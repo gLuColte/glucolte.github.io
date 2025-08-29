@@ -41,21 +41,76 @@ title: Home
     </ul>
   </section>
 
-  <section class="section">
-    <h2>key skills</h2>
-    <ul class="list">
-      <li><strong>Cloud:</strong> AWS (Intermediate), Azure (Intermediate)</li>
-      <li><strong>IaC:</strong> Terraform (Intermediate), CloudFormation</li>
-      <li><strong>CI/CD &amp; Containers:</strong> Jenkins, Octopus, Docker, Azure DevOps</li>
-      <li><strong>Code/Scripting:</strong> Python, PowerShell</li>
-      <li><strong>VCS:</strong> Git, Bitbucket</li>
-      <li><strong>Monitoring/Logging:</strong> OpenSearch, Elastic Stack</li>
-      <li><strong>Databases:</strong> MySQL, MSSQL</li>
-      <li><strong>APIs:</strong> REST, Postman</li>
-      <li><strong>OS:</strong> Windows, Linux (Ubuntu)</li>
-      <li><strong>IoT:</strong> Azure IoT Hub, Edge</li>
-      <li><strong>Data/Vis:</strong> Pandas, Plotly, Power BI</li>
-      <li><strong>Agile:</strong> Jira</li>
+<section class="section">
+  <h2>key skills</h2>
+  <div class="skill-group">
+    <h3>☁️ Cloud & Infrastructure</h3>
+    <ul class="skills">
+      <li>AWS</li>
+      <li>Azure</li>
+      <li>Linux (Ubuntu)</li>
+      <li>Windows Server</li>
     </ul>
-  </section>
+  </div>
+
+  <div class="skill-group">
+    <h3>⚙️ Infrastructure as Code</h3>
+    <ul class="skills">
+      <li>Terraform</li>
+      <li>CloudFormation</li>
+    </ul>
+  </div>
+
+  <div class="skill-group">
+    <h3>🚀 CI/CD & Automation</h3>
+    <ul class="skills">
+      <li>Jenkins</li>
+      <li>Azure DevOps</li>
+      <li>Octopus Deploy</li>
+      <li>GitHub Actions</li>
+      <li>Docker</li>
+      <li>Kubernetes (basic)</li>
+    </ul>
+  </div>
+
+  <div class="skill-group">
+    <h3>💻 Programming & Scripting</h3>
+    <ul class="skills">
+      <li>Python</li>
+      <li>PowerShell</li>
+      <li>Bash</li>
+      <li>Git</li>
+      <li>Bitbucket</li>
+    </ul>
+  </div>
+
+  <div class="skill-group">
+    <h3>📈 Monitoring & Observability</h3>
+    <ul class="skills">
+      <li>OpenSearch</li>
+      <li>Elastic Stack</li>
+      <li>Prometheus</li>
+      <li>Grafana</li>
+    </ul>
+  </div>
+
+  <div class="skill-group">
+    <h3>🗄️ Databases & APIs</h3>
+    <ul class="skills">
+      <li>MySQL</li>
+      <li>MSSQL</li>
+      <li>REST APIs</li>
+      <li>Postman</li>
+    </ul>
+  </div>
+
+  <div class="skill-group">
+    <h3>🔗 Other</h3>
+    <ul class="skills">
+      <li>Azure IoT Hub</li>
+      <li>Edge Computing</li>
+      <li>Agile/Scrum</li>
+    </ul>
+  </div>
+</section>
 </div>
