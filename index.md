@@ -43,7 +43,7 @@ title: Home
 
   <section class="section">
     <h2>/keySkills</h2>
-    <ul class="list two-col">
+    <ul class="list">
       <li><strong>Cloud:</strong> AWS (Intermediate), Azure (Intermediate)</li>
       <li><strong>IaC:</strong> Terraform (Intermediate), CloudFormation</li>
       <li><strong>CI/CD &amp; Containers:</strong> Jenkins, Octopus, Docker, Azure DevOps</li>
