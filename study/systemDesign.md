@@ -1,5 +1,5 @@
 ---
-title: study/system design
+title: system design
 permalink: /study/systemDesign
 ---
 

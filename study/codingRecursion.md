@@ -1,5 +1,5 @@
 ---
-title: study/recursion
+title: recursion
 permalink: /study/codingRecursion
 ---
 

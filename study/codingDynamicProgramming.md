@@ -1,5 +1,5 @@
 ---
-title: study/dynamic programming
+title: dynamic programming
 permalink: /study/codingDynamicProgramming
 ---
 
