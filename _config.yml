@@ -1,3 +1,18 @@
-theme: jekyll-theme-minimal
-title: Octocat's homepage
-description: Bookmark this to keep an eye on my project updates!
+title: glucolte
+description: notes • principles • systems
+url: https://glucolte.github.io
+baseurl: ""          # user site → keep empty
+markdown: kramdown
+theme: nil           # we’ll use our own layout/CSS
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# All Markdown pages use our layout by default
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"

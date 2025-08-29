@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}</title>
+  <meta name="description" content="{{ page.excerpt | strip_html | strip_newlines | truncate: 160 | default: site.description }}">
+  <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
+  {% seo %}
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    <nav class="nav">
+      <a href="{{ '/' | relative_url }}">home</a>
+      <a href="{{ '/principles' | relative_url }}">principles</a>
+      <a href="{{ '/rules' | relative_url }}">rules</a>
+      <a href="{{ '/study/systemDesign' | relative_url }}">system design</a>
+      <a href="{{ '/study/codingRecursion' | relative_url }}">recursion</a>
+      <a href="{{ '/study/codingDynamicProgramming' | relative_url }}">dp</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      {{ content }}
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© {{ site.time | date: "%Y" }} {{ site.title }}</span>
+    <span class="dot">•</span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+</body>
+</html>
