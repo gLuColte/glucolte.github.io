@@ -59,24 +59,35 @@ No single mentor has all the answers. Surround yourself with multiple perspectiv
 
 ## From Principles to Practice
 
-Principles provide direction, but they are still broad. In difficult moments, choices are rarely between “good and bad” but between two things that both feel uncertain. Kazuo Inamori expressed this tension through a set of paradoxical maxims: when stuck, lean toward the choice that demands discipline, courage, or selflessness.
+Principles provide direction, but they are still broad. In difficult moments, choices are rarely between “good and bad,” but between two paths that both feel uncertain.  
 
-These are not rules for comfort but rules for clarity. They turn abstract principles into concrete pivots for decision-making.
+One of the voices I return to often is **Kazuo Inamori**, a Japanese entrepreneur and philosopher. He expressed this tension through a set of paradoxical maxims — reminders that clarity often comes from choosing the harder, more disciplined option:
 
-愛するか愛さないかで迷ったら、愛さない方を選べ。
-行くか行かないかで迷ったら、行く方を選べ。
-買うか買わないかで迷ったら、買わない方を選べ。
-言うか言わないかで迷ったら、言わない方を選べ。
-与えるか与えないかで迷ったら、与える方を選べ。
-食べるか食べないかで迷ったら、食べない方を選べ。
-やるかやらないかで迷ったら、やる方を選べ。
+---
+
+愛するか愛さないかで迷ったら、愛さない方を選べ。  
+行くか行かないかで迷ったら、行く方を選べ。  
+買うか買わないかで迷ったら、買わない方を選べ。  
+言うか言わないかで迷ったら、言わない方を選べ。  
+与えるか与えないかで迷ったら、与える方を選べ。  
+食べるか食べないかで迷ったら、食べない方を選べ。  
+やるかやらないかで迷ったら、やる方を選べ。  
 — 稲盛和夫
 
-When torn between love and not-love, choose not-love.  
-When hesitating to go or not go, choose to go.  
-When debating to buy or not buy, choose not to buy.  
-When wondering whether to speak or stay silent, choose silence.  
-When struggling to give or not give, choose to give.  
-When considering to eat or not eat, choose not to eat.  
-When uncertain about doing or not doing, choose to do.  
+---
+
+**Translated:**  
+- When torn between love and not-love, choose not-love.  
+- When hesitating to go or not go, choose to go.  
+- When debating to buy or not buy, choose not to buy.  
+- When wondering whether to speak or stay silent, choose silence.  
+- When struggling to give or not give, choose to give.  
+- When considering to eat or not to eat, choose not to eat.  
+- When uncertain about doing or not doing, choose to do.  
 — Kazuo Inamori
+
+---
+
+💡 These aren’t rules for comfort — they are rules for clarity. They turn broad principles into concrete pivots for decision-making.  
+
+> For everyday, specific habits (like *“Don’t open Slack after hours”*), see [rules](/rules).
