@@ -5,7 +5,6 @@ title: Home
 <div class="hero">
   <div class="hero-visual">
     <img src="{{ '/assets/dp.png' | relative_url }}" alt="dynamic programming visual" />
-    <figcaption>dp patterns</figcaption>
   </div>
 
   <div class="hero-text">
