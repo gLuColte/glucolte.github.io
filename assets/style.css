@@ -17,6 +17,7 @@ body{font:16px/1.65 var(--sans); -webkit-font-smoothing:antialiased; -moz-osx-fo
 a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(0,0,0,.25)}
 a:hover{text-decoration:none;border-bottom-color:transparent}
 
+/* Header / Nav */
 .site-header{
   display:flex; gap:16px; align-items:center; justify-content:space-between;
   border-bottom:1px solid var(--line);
@@ -26,20 +27,17 @@ a:hover{text-decoration:none;border-bottom-color:transparent}
 .nav a{margin-left:14px; color:var(--muted); border-bottom:0}
 .nav a:hover{color:var(--ink)}
 
+/* Layout */
 .container{max-width:var(--maxw); margin:32px auto; padding:0 18px}
-.content{
-  padding:0;
-}
+.content{padding:0}
 .content h1,.content h2,.content h3{line-height:1.25; margin:1.25em 0 .6em}
 .content h1{font-size:28px}
 .content h2{font-size:22px}
 .content h3{font-size:18px}
-
 .content p, .content ul, .content ol, .content blockquote{margin:0 0 1em}
-.content blockquote{
-  border-left:3px solid var(--line); padding-left:12px; color:var(--muted)
-}
+.content blockquote{border-left:3px solid var(--line); padding-left:12px; color:var(--muted)}
 
+/* Code */
 .content code{
   font-family:var(--mono); font-size:.95em;
   background:#f8fafc; padding:2px 6px; border:1px solid var(--line); border-radius:6px
@@ -50,33 +48,27 @@ a:hover{text-decoration:none;border-bottom-color:transparent}
 }
 .content pre code{background:transparent; border:0; padding:0; color:inherit}
 
+/* Misc */
 hr{border:0; border-top:1px solid var(--line); margin:24px 0}
-
 .table{width:100%; border-collapse:collapse}
 .table th,.table td{border:1px solid var(--line); padding:8px 10px; text-align:left}
 .table th{background:#f9fafb; color:#111827}
 
+/* Footer */
 .site-footer{
   max-width:var(--maxw); margin:48px auto 24px; padding:0 18px;
   color:var(--muted); font-size:14px; display:flex; gap:10px; align-items:center
 }
 .dot{opacity:.5}
 
-
-/* --- home layout enhancements --- */
+/* --- Home hero (dp on left, text on right) --- */
 .hero{
   display:grid; gap:24px; align-items:center;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 0.8fr 1.2fr;  /* left column slightly smaller for image */
   margin: 8px 0 24px;
 }
 .hero-text h1{margin:0 0 .25em; font-size:28px}
 .hero-text p{color:var(--muted); margin:.25em 0 1em}
-.actions{display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 6px}
-.btn{
-  display:inline-block; padding:8px 12px; border:1px solid var(--line);
-  border-radius:8px; background:#fff; color:var(--ink); text-decoration:none
-}
-.btn:hover{border-color:#cbd5e1}
 
 .social{display:flex; gap:10px; align-items:center; color:var(--muted); margin-top:8px}
 .social a{color:var(--accent); border-bottom:0}
@@ -89,19 +81,7 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
 .hero-visual img{max-width:360px; width:100%; height:auto; border-radius:8px; display:block}
 .hero-visual figcaption{margin-top:6px; color:var(--muted); font-size:12px}
 
-.grid{
-  display:grid; gap:14px;
-  grid-template-columns: repeat( auto-fit, minmax(240px, 1fr) );
-  margin: 12px 0 8px;
-}
-.card{
-  display:block; padding:16px; background:#fff; border:1px solid var(--line);
-  border-radius:12px; text-decoration:none; color:var(--ink);
-}
-.card:hover{border-color:#cbd5e1}
-.card h3{margin:.2em 0 .4em; font-size:16px}
-.card p{margin:0; color:var(--muted); font-size:14px}
-
+/* Responsive */
 @media (max-width: 880px){
   .hero{grid-template-columns: 1fr}
   .hero-visual{justify-self:start; width:100%}
