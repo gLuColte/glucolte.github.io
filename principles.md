@@ -45,13 +45,25 @@ Career growth is multiplied through people. Trust, reputation, and generosity co
 
 ---
 
-### 7. **Work on the System, Not Just in It**
+### 7. **Gratitude Grounds Ambition**
+
+No one climbs alone. Appreciate those who help you—through mentorship, collaboration, or simple kindness. Say thank you, be polite, and acknowledge effort. Gratitude keeps ambition grounded and turns colleagues into allies.
+
+---
+
+### 8. **Design the Path Before Walking It**
+
+Without structure, priorities scatter and energy leaks. Planning provides direction, creates guardrails, and prevents you from running in circles. A clear plan doesn’t remove uncertainty, but it ensures every step builds toward something larger.
+
+---
+
+### 9. **Work on the System, Not Just in It**
 
 Execution delivers results, but systems make results repeatable. Always seek to improve workflows, tools, and habits. Invest in better ways of working, not just in completing tasks.
 
 ---
 
-### 8. **Seek Many Voices, Not Just One**
+### 10. **Seek Many Voices, Not Just One**
 
 No single mentor has all the answers. Surround yourself with multiple perspectives—mentors, peers, and advisors across different domains. Ask for advice, compare viewpoints, and develop judgment by synthesizing diverse inputs. Networking is not opportunistic—it is a discipline of curiosity, generosity, and dialogue.
 
@@ -90,4 +102,4 @@ One of the voices I return to often is **Kazuo Inamori**, a Japanese entrepreneu
 
 💡 These aren’t rules for comfort — they are rules for clarity. They turn broad principles into concrete pivots for decision-making.  
 
-> For everyday, specific habits (like *“Don’t open Slack after hours”*), see [rules](/rules).
+> For everyday, specific habits (like *“Don’t open Slack after hours”*), see [rules](/rule)
