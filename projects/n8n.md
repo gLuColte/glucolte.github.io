@@ -3,7 +3,7 @@ title: n8n
 permalink: /projects/n8n
 ---
 
-# system design
+# n8n
 
-Notes on consistency, availability, throughput, and cost.
+Notes on n8n
 
