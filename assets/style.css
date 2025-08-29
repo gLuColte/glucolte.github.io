@@ -102,3 +102,40 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
   .hero-visual{justify-self:start; width:100%}
   .hero-visual img{max-width:100%}
 }
+
+/* Sections under hero */
+.sections{
+  display:grid;
+  gap:16px;
+  grid-template-columns: 1fr 1fr;
+  margin: 12px 0 24px;
+}
+.section{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:18px;
+}
+.section h2{
+  margin:0 0 10px;
+  font-family:var(--mono);
+  font-size:18px;
+  color:var(--ink);
+}
+
+/* Lists */
+.list{margin:0; padding-left:18px}
+.list li{margin:6px 0}
+
+/* Make the skills list flow in two columns on wide screens */
+.two-col{
+  columns: 2;
+  column-gap: 24px;
+}
+.two-col li{break-inside: avoid}
+
+/* Responsive: stack sections, single-column skills list */
+@media (max-width: 880px){
+  .sections{grid-template-columns: 1fr}
+  .two-col{columns: 1}
+}
