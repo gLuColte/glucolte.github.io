@@ -5,7 +5,7 @@ permalink: /principles
 
 # Core Principles
 
-These principles act as guiding lights for career and life. They are broad, enduring truths that anchor decision-making and provide context for daily rules. Rules may evolve, but principles remain stable.
+I am starting to realize how important it is to have principles to anchor decisions. This page is my attempt to write them down — not as achievements, but as goals to build toward. They are simple, sometimes hard to follow, but I hope keeping them visible will keep me honest.
 
 ---
 
