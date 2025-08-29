@@ -15,9 +15,16 @@
       <a href="{{ '/' | relative_url }}">home</a>
       <a href="{{ '/principles' | relative_url }}">principles</a>
       <a href="{{ '/rules' | relative_url }}">rules</a>
-      <a href="{{ '/study/systemDesign' | relative_url }}">system design</a>
-      <a href="{{ '/study/codingRecursion' | relative_url }}">recursion</a>
-      <a href="{{ '/study/codingDynamicProgramming' | relative_url }}">dp</a>
+
+      <!-- Dropdown for study -->
+      <div class="dropdown">
+        <button class="dropbtn">study ▾</button>
+        <div class="dropdown-content">
+          <a href="{{ '/study/systemDesign' | relative_url }}">system design</a>
+          <a href="{{ '/study/codingRecursion' | relative_url }}">recursion</a>
+          <a href="{{ '/study/codingDynamicProgramming' | relative_url }}">dp</a>
+        </div>
+      </div>
     </nav>
   </header>
 
