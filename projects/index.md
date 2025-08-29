@@ -1,13 +1,13 @@
 ---
-title: study
-permalink: /study/
+title: projects
+permalink: /projects/
 ---
 
-## all notes in /study
+## all notes in /projects
 <ul>
 {% assign all_pages = site.pages | sort: "title" %}
 {% for p in all_pages %}
-  {% if p.url contains '/study/' and p.url != '/study/' %}
+  {% if p.url contains '/projects/' and p.url != '/projects/' %}
     <li><a href="{{ p.url | relative_url }}">{{ p.title | default: p.url }}</a></li>
   {% endif %}
 {% endfor %}
