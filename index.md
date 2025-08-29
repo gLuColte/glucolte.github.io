@@ -26,7 +26,7 @@ title: Home
 
 <div class="sections">
   <section class="section">
-    <h2>/achievements</h2>
+    <h2>achievements</h2>
     <ul class="list">
       <li>Supported 24/7 global operations, assisting with 25+ international on-prem installs.</li>
       <li>Helped implement monitoring with OpenSearch, improving incident response.</li>
@@ -42,7 +42,7 @@ title: Home
   </section>
 
   <section class="section">
-    <h2>/keySkills</h2>
+    <h2>key skills</h2>
     <ul class="list">
       <li><strong>Cloud:</strong> AWS (Intermediate), Azure (Intermediate)</li>
       <li><strong>IaC:</strong> Terraform (Intermediate), CloudFormation</li>

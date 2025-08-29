@@ -3,7 +3,7 @@ title: study
 permalink: /study/
 ---
 
-## all notes in /study
+## /study
 <ul>
 {% assign all_pages = site.pages | sort: "title" %}
 {% for p in all_pages %}

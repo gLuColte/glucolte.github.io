@@ -3,7 +3,7 @@ title: projects
 permalink: /projects/
 ---
 
-## all notes in /projects
+## /projects
 <ul>
 {% assign all_pages = site.pages | sort: "title" %}
 {% for p in all_pages %}

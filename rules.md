@@ -3,7 +3,7 @@ title: rules
 permalink: /rules
 ---
 
-# rules
+# /rules
 
 Practical constraints I choose to operate with.
 
