@@ -14,9 +14,10 @@ Quick links:
 
 ## all notes in /study
 <ul>
-{% assign pages_in_study = site.pages | where_exp: "p", "p.url != '/study/' and p.url contains '/study/'" %}
-{% assign sorted = pages_in_study | sort: "title" %}
-{% for p in sorted %}
-  <li><a href="{{ p.url | relative_url }}">{{ p.title | default: p.url }}</a></li>
+{% assign all_pages = site.pages | sort: "title" %}
+{% for p in all_pages %}
+  {% if p.url contains '/study/' and p.url != '/study/' %}
+    <li><a href="{{ p.url | relative_url }}">{{ p.title | default: p.url }}</a></li>
+  {% endif %}
 {% endfor %}
 </ul>
