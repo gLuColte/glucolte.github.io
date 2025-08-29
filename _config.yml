@@ -3,7 +3,6 @@ description: notes • principles • systems
 url: https://glucolte.github.io
 baseurl: ""          # user site → keep empty
 markdown: kramdown
-theme: nil           # we’ll use our own layout/CSS
 
 plugins:
   - jekyll-seo-tag
