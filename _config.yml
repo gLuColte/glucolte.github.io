@@ -13,8 +13,24 @@ plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
 
-# All Markdown pages use our layout by default
+# Set default layouts for different sections
 defaults:
+  # Home page uses home layout
+  - scope:
+      path: ""
+      type: "pages"
+      name: "index"
+    values:
+      layout: "home"
+  
+  # Study pages use study layout
+  - scope:
+      path: "study"
+      type: "pages"
+    values:
+      layout: "study"
+  
+  # Everything else uses default layout
   - scope:
       path: ""
       type: "pages"
