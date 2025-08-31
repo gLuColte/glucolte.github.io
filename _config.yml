@@ -3,6 +3,9 @@ description: notes • principles • systems
 url: https://glucolte.github.io
 baseurl: ""          # user site → keep empty
 markdown: kramdown
+kramdown:
+  input: GFM
+  toc_levels: 2..3   # include ## and ### in the ToC
 
 plugins:
   - jekyll-seo-tag

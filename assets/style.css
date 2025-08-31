@@ -139,3 +139,37 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
   .sections{grid-template-columns: 1fr}
   .two-col{columns: 1}
 }
+
+
+/* Study layout with sidebar */
+.study-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 24px;
+}
+
+.toc {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  background: #fff;
+}
+.toc:empty { display: none; }
+
+#markdown-toc {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+}
+#markdown-toc li { margin: 6px 0; }
+#markdown-toc a { text-decoration: none; border-bottom: 0; }
+#markdown-toc a:hover { text-decoration: underline; }
+
+/* On small screens, stack instead of sidebar */
+@media (max-width: 960px) {
+  .study-layout { grid-template-columns: 1fr; }
+  .toc { position: static; order: -1; }
+}

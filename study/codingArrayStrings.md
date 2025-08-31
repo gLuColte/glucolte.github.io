@@ -18,6 +18,11 @@ permalink: /study/codingArraysStrings
 - "Longest/shortest substring" → usually sliding window.  
 - "Find pair/triplet" → often two pointers + sorting.  
 
+-----
+
+{% include study_toc.md %}
+
+-----
 
 ## 1. Two Sums - Easy
 

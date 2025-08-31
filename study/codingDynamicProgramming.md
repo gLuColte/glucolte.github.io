@@ -21,6 +21,12 @@ permalink: /study/codingDynamicProgramming
 - Optimal substructure (global optimum = combination of local optima).  
 - Often solved recursively → memoization → tabulation.  
 
+-----
+
+{% include study_toc.md %}
+
+-----
+
 ## 1. Climbing Stairs - Easy
 
 [Leetcode Link](https://leetcode.com/problems/climbing-stairs/?envType=problem-list-v2&envId=dynamic-programming)
