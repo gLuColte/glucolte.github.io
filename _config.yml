@@ -7,6 +7,8 @@ kramdown:
   input: GFM
   toc_levels: 2..3   # include ## and ### in the ToC
 
+highlighter: rouge
+
 plugins:
   - jekyll-seo-tag
   - jekyll-sitemap

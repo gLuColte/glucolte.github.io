@@ -260,3 +260,13 @@ class Solution:
         # Space -> O(n) -> Output list has size n+1
 
 ```
+
+
+## 5. Unique Paths - Medium
+
+[Leetcode Link](https://leetcode.com/problems/unique-paths/?envType=problem-list-v2&envId=dynamic-programming)
+
+
+```python
+
+```
