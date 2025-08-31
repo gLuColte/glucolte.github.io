@@ -1,5 +1,3 @@
 ## Contents
 * Auto-generated
 {:toc}
-
----

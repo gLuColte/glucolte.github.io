@@ -156,17 +156,26 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
   border-radius: 12px;
   padding: 14px;
   background: #fff;
+  text-align: center;        /* center the whole block */
 }
 .toc:empty { display: none; }
 
 #markdown-toc {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 0;           /* remove left indent */
+  list-style: none;          /* no bullets */
   font-size: 14px;
 }
-#markdown-toc li { margin: 6px 0; }
-#markdown-toc a { text-decoration: none; border-bottom: 0; }
-#markdown-toc a:hover { text-decoration: underline; }
+#markdown-toc li {
+  margin: 6px 0;
+}
+#markdown-toc a {
+  text-decoration: none;
+  border-bottom: 0;
+}
+#markdown-toc a:hover {
+  text-decoration: underline;
+}
 
 /* On small screens, stack instead of sidebar */
 @media (max-width: 960px) {
