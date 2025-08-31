@@ -156,23 +156,30 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
   border-radius: 12px;
   padding: 14px;
   background: #fff;
-  text-align: center;        /* center the whole block */
 }
+
 .toc:empty { display: none; }
 
+/* Center the ToC list */
 #markdown-toc {
-  margin: 0;
-  padding-left: 0;           /* remove left indent */
-  list-style: none;          /* no bullets */
+  margin: 0 auto;              /* center within .toc */
+  padding: 0;
+  list-style: none;
   font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;         /* center items horizontally */
 }
+
 #markdown-toc li {
   margin: 6px 0;
 }
+
 #markdown-toc a {
   text-decoration: none;
   border-bottom: 0;
 }
+
 #markdown-toc a:hover {
   text-decoration: underline;
 }
