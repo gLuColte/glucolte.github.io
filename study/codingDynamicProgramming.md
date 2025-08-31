@@ -8,6 +8,9 @@ permalink: /study/codingDynamicProgramming
 **Patterns to know:**  
 - 1D DP (Fibonacci, House Robber).  
 - 2D DP on Grids (Unique Paths, Min Path Sum).  
+    - If it’s pure counting with 2 moves (right/down) → yes, think Pascal/binomial.
+    - If it’s extra rules → switch to general DP grid filling (but it’s the same spirit).
+    - If it’s just paths with no conditions → you can even skip DP and use the formula directly (C(m+n-2, m-1)).
 - Subsequence DP (LIS, LCS, Edit Distance).  
 - Knapsack Variants.  
 - Interval DP (Burst Balloons).  
@@ -268,5 +271,47 @@ class Solution:
 
 
 ```python
+class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        # Inputs: int, int
+        # Outputs: int
+        # Description:
+            # Initially located at the top left corner (0,0)
+            # Tries to move to bottom right
+            # Can only move down or right
+            # Return the number of possible unique paths that the robot can take to reach the bottom righ corner
 
+        # Example 1:
+        # Inputs -> 3,7
+        # Outputs -> 28
+
+        # Example 2:
+        # Inputs -> 3,2
+        # Outputs -> 3
+
+        # Think of it as Pascal Triangle
+        # 3x3
+        # 1 1 1
+        # 1 2 3
+        # 1 3 6
+
+        # 5x4
+        # 1  1  1  1  1 
+        # 1  2  3  4  5
+        # 1  3  6  10 15
+        # 1  4  10 20 35 
+
+        # Create the 2d grid first
+        dp = [[1] * n for _ in range(m)]
+        # Fill the rest of the table
+        # i goes down
+        for i in range(1,m):
+            # j goes right
+            for j in range(1,n):
+                # E.g. i = 1, j = 1 --> 1 + 1 = 2
+                # E.g. i = 2, j = 6 --> 2 + 6 = 7
+                dp[i][j] = dp[i-1][j] + dp[i][j-1]
+
+        # Answer
+        return dp[m-1][n-1]
 ```
