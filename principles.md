@@ -3,7 +3,7 @@ title: principles
 permalink: /principles
 ---
 
-# Core Principles
+# /principles
 
 I am starting to realize how important it is to have principles to anchor decisions. This page is my attempt to write them down — not as achievements, but as goals to build toward. They are simple, sometimes hard to follow, but I hope keeping them visible will keep me honest.
 
