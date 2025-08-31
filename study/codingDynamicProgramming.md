@@ -194,6 +194,68 @@ class Solution:
 
 ```
 
-
 ## 4. Counting Bits - Easy
 
+```python
+
+class Solution:
+    def countBits(self, n: int) -> List[int]:
+        # Inputs: int
+        # Outputs: List[int]
+        # Description:
+            # For 0...n
+            # Convert to Binary
+
+        # Example 1:
+        # Input -> n = 2
+        # Output -> [0,1,1] 
+
+        # Example 2:
+        # Input -> n = 5
+        # Output -> [0,1,1,2,1,2]
+
+        # Brute Force appraoch
+        # output_list = []
+        # for num in range(n+1):
+        #     current_sum = sum(int(_) for _ in bin(num)[2:])
+        #     output_list.append(current_sum)
+        # return output_list
+
+        # DP approach
+        # 0) Setup
+        # Initialize an array of 0s -> [0,0,0,0,0,0] for n = 5
+        output_list = [0] * (n + 1)
+        # Iterate from 0...n+1
+        # 0 has no bit, which is already captured
+        for num in range(1, n + 1):
+            # num >> 1 = Chop off the last bit and return the integer
+            # E.g. 
+            # 13231 >> 1 = 6615
+            # >>> bin(13231)
+            # '0b11001110101111'
+            # >>> bin(13231>>1)
+            # '0b1100111010111'
+            # num & 1 = last bit (0 if even, 1 if odd)
+            # The trick here is:
+            # 1 → 001  (1 one-bit)
+            # 2 → 010  (1 one-bit)
+            # 3 → 011  (2 one-bits)
+            # 4 → 100  (1 one-bit)
+            # 5 → 101  (2 one-bits)
+            # 6 → 110  (2 one-bits)
+            # 7 → 111  (3 one-bits)
+            # Example:
+            # 5 (101) → 2 (10)
+            # 6 (110) → 3 (11)
+            # 7 (111) → 3 (11)
+            # You are not "directly" using the previous number
+            # You are using the "number" that is off the same "bit"
+            # So overall, we get:
+            output_list[num] = output_list[num >> 1] + (num & 1)
+        return output_list
+
+        # Complexity
+        # Time -> O(n)
+        # Space -> O(n) -> Output list has size n+1
+
+```
