@@ -61,7 +61,7 @@ class Solution:
         # The worst case is finding the compliment as the last item
 ```
 
-## 2. 3Sum Closest
+## 2. 3Sum Closest - Medium
 
 [Leetcode Link](https://leetcode.com/problems/3sum-closest/?envType=problem-list-v2&envId=array&)
 
@@ -118,7 +118,7 @@ class Solution:
 ```
 
 
-## 3. 4Sum
+## 3. 4Sum - Medium
 
 [Leetcode Link](https://leetcode.com/problems/4sum/submissions/1753588794/?envType=problem-list-v2&envId=array&)
 
@@ -232,4 +232,75 @@ class Solution:
                             r -= 1
         return res
 
+```
+
+
+## 4. Remove Duplicates from Sorted Array - Easy
+
+[Leetcode Link](https://leetcode.com/problems/remove-duplicates-from-sorted-array/description/?envType=problem-list-v2&envId=array&)
+
+```python
+class Solution:
+    def removeDuplicates(self, nums: List[int]) -> int:
+        # Input: List[int]
+        # Output: int
+
+        # Example 1:
+        # Input -> nums = [1,1,2]
+        # output -> 2, nums = [1,2,_]
+
+        # Example 2:
+        # Input -> nums = [0,0,1,1,1,2,2,3,3,4]
+        # Output -> 5, nums = [0,1,2,3,4,_,_,_,_,_]
+
+        # 0) Setup
+        seen = set()
+        
+        # 1) Iterate backwards -> [a,b,c,d,e,f,g,h] 
+        for num_index in range(len(nums)-1, -1, -1):
+            # 2) Check if number in seen
+            if nums[num_index] in seen:
+                # If it is, we just remove it
+                del nums[num_index]
+            else:
+                # If it is NOT, we add to seen
+                seen.add(nums[num_index])
+
+        return len(nums)
+
+        # Complexity:
+        # Time = O(n^2)
+            # Beacuse lists shift elements
+        # Space = O(n)
+```
+
+
+## 5. Remove Element - Easy
+
+[Leetcode Link](https://leetcode.com/problems/remove-element/description/?envType=problem-list-v2&envId=array&)
+
+```python
+class Solution:
+    def removeElement(self, nums: List[int], val: int) -> int:
+        # Input: List[int], int
+        # Output: int
+        # Constraints:
+            # Inplace Removable
+            # Return Number of Element in nums not equal to val 
+
+        # Example:
+        # Input -> nums = [0,1,2,2,3,0,4,2], val = 3
+        # Output -> 2
+
+        # 0) Setup
+        n = len(nums)
+        # When you delete, index shifts, so you need to work "backwards"
+        for num_index in range(n-1, -1, -1):
+            if nums[num_index] == val:
+                del nums[num_index]
+        return len(nums)
+
+        # Complexity
+        # Time = O(n^2) -> Because deletion
+        # Space = O(1) -> No such thing as Nil
 ```
