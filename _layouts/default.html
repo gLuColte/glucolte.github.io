@@ -43,15 +43,77 @@
       // Add TOC functionality
       const toc = document.querySelector('#markdown-toc');
       if (toc) {
-        // Style the TOC
-        toc.style.cssText = `
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
           background: #f8fafc;
           border: 1px solid #e5e7eb;
           border-radius: 8px;
           padding: 16px;
           margin: 20px 0;
-          font-size: 14px;
+          position: relative;
         `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
         
         // Add smooth scrolling to TOC links
         const tocLinks = toc.querySelectorAll('a');

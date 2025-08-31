@@ -111,3 +111,74 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
   text-align:center;
 }
 
+/* --- Home hero (dp on left, text on right) --- */
+.hero{
+  display:grid; gap:24px; align-items:center;
+  grid-template-columns: 0.8fr 1.2fr;  /* left column slightly smaller for image */
+  margin: 8px 0 24px;
+}
+.hero-text h1{margin:0 0 .25em; font-size:28px}
+.hero-text p{color:var(--muted); margin:.25em 0 1em}
+
+.social{
+  display:flex;
+  justify-content:center;   /* center horizontally */
+  gap:10px;
+  align-items:center;
+  color:var(--muted);
+  margin-top:12px;
+}
+.social a{color:var(--accent); border-bottom:0}
+.social span{opacity:.5}
+
+.hero-visual{
+  justify-self:end; text-align:center;
+  border:1px solid var(--line); border-radius:12px; padding:10px; background:#fff;
+}
+.hero-visual img{max-width:360px; width:100%; height:auto; border-radius:8px; display:block}
+.hero-visual figcaption{margin-top:6px; color:var(--muted); font-size:12px}
+
+/* Responsive */
+@media (max-width: 880px){
+  .hero{grid-template-columns: 1fr}
+  .hero-visual{justify-self:start; width:100%}
+  .hero-visual img{max-width:100%}
+}
+
+/* Sections under hero */
+.sections{
+  display:grid;
+  gap:16px;
+  grid-template-columns: 1fr 1fr;
+  margin: 12px 0 24px;
+}
+.section{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:18px;
+}
+.section h2{
+  margin:0 0 10px;
+  font-family:var(--mono);
+  font-size:18px;
+  color:var(--ink);
+}
+
+/* Lists */
+.list{margin:0; padding-left:18px}
+.list li{margin:6px 0}
+
+/* Make the skills list flow in two columns on wide screens */
+.two-col{
+  columns: 2;
+  column-gap: 24px;
+}
+.two-col li{break-inside: avoid}
+
+/* Responsive: stack sections, single-column skills list */
+@media (max-width: 880px){
+  .sections{grid-template-columns: 1fr}
+  .two-col{columns: 1}
+}
+
