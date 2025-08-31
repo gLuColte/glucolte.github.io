@@ -196,8 +196,9 @@ class Solution:
 
 ## 4. Counting Bits - Easy
 
-```python
+[Leetcode Link](https://leetcode.com/problems/counting-bits/?envType=problem-list-v2&envId=dynamic-programming)
 
+```python
 class Solution:
     def countBits(self, n: int) -> List[int]:
         # Inputs: int
