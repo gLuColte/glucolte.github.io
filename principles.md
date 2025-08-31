@@ -25,6 +25,8 @@ Without structure, priorities scatter and energy leaks. Planning provides direct
 
 Focus energy on actions that are within personal control—such as consistent learning, deliberate practice, and outreach—rather than on outcomes that depend on external factors like promotions, politics, or recognition. Mastering inputs ensures progress even when results are uncertain.
 
+Even when you’re taken off something you deeply cared about, focus on what’s still in your control: learning, building, and improving your craft. Projects may come and go, but skill and discipline remain.
+
 ---
 
 ### 4. **Protect Energy**

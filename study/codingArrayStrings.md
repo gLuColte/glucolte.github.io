@@ -178,37 +178,58 @@ class Solution:
         # Taken - 491ms
 ```
 
-The GPT Solution by adding "checks" that skips duplicates, speed up to 387ms
+The GPT Solution by adding "checks" that skips duplicates, speed up to 15ms
 
 ```python
 class Solution:
     def fourSum(self, nums: List[int], target: int) -> List[List[int]]:
         nums.sort()
         n = len(nums)
-        res = []
+        res: List[List[int]] = []
 
         for i in range(n - 3):
+            # skip duplicate anchors i
             if i > 0 and nums[i] == nums[i - 1]:
                 continue
 
+            # prune for i: smallest and largest sums achievable with this i
+            min_i = nums[i] + nums[i + 1] + nums[i + 2] + nums[i + 3]
+            if min_i > target:
+                break
+            max_i = nums[i] + nums[n - 1] + nums[n - 2] + nums[n - 3]
+            if max_i < target:
+                continue
+
             for j in range(i + 1, n - 2):
+                # skip duplicate anchors j
                 if j > i + 1 and nums[j] == nums[j - 1]:
                     continue
 
+                # prune for j
+                min_j = nums[i] + nums[j] + nums[j + 1] + nums[j + 2]
+                if min_j > target:
+                    break
+                max_j = nums[i] + nums[j] + nums[n - 1] + nums[n - 2]
+                if max_j < target:
+                    continue
+
                 l, r = j + 1, n - 1
+                a, b = nums[i], nums[j]  # local refs are a hair faster
                 while l < r:
-                    s = nums[i] + nums[j] + nums[l] + nums[r]
+                    s = a + b + nums[l] + nums[r]
                     if s < target:
                         l += 1
                     elif s > target:
                         r -= 1
                     else:
-                        res.append([nums[i], nums[j], nums[l], nums[r]])
+                        res.append([a, b, nums[l], nums[r]])
                         l += 1
+                        r -= 1
+                        # skip duplicates on both sides
                         while l < r and nums[l] == nums[l - 1]:
                             l += 1
-                        r -= 1
                         while l < r and nums[r] == nums[r + 1]:
                             r -= 1
         return res
+
 ```
