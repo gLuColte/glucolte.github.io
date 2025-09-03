@@ -16,3 +16,12 @@ permalink: /study/codingMathBits
 - Involves divisibility, prime, modulo.  
 - Input constraints very large (10^9) → need log-time math.  
 - "Subsets" and n ≤ 20 → bitmask.  
+
+## 1. Sum of All Subset XOR Totals
+
+[Leetcode Link](https://leetcode.com/problems/sum-of-all-subset-xor-totals/)
+
+
+
+
+

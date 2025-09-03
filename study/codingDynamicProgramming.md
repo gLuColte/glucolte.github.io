@@ -315,3 +315,280 @@ class Solution:
         # Answer
         return dp[m-1][n-1]
 ```
+
+## 6. Unique Paths II - Medium
+
+[Leetcode Link](https://leetcode.com/problems/unique-paths-ii/?envType=problem-list-v2&envId=dynamic-programming)
+
+```python
+class Solution:
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        # Inputs: List[List[int]]
+        # Outputs: int
+        # Description:
+        #   Given a Grid m x n
+        #   Start at (0,0)
+        #   Move to the bottom right (m-1, n-1)
+        #   Can only move down or right
+        #   Obstacles are marked as 1, spaces as 0
+        #   Return the number of possible unique paths to the bottom right
+        #
+        # Example 1
+        # Inputs: obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]
+        # Output: 2
+        #
+        # Pascal Triangle intuition (no obstacles):
+        # 3x3
+        # 1 1 1
+        # 1 2 3
+        # 1 3 6
+        #
+        # With obstacles (1s act like “walls” that stop flow):
+        # 1 1 1
+        # 1 0 1
+        # 1 1 2
+
+        m = len(obstacleGrid)
+        n = len(obstacleGrid[0])
+
+        # Edge case: start or end blocked → 0 paths
+        if obstacleGrid[0][0] == 1 or obstacleGrid[m-1][n-1] == 1:
+            return 0
+
+        # pathGrid[i][j] = number of ways to reach (i, j)
+        # Note - a mistake made here is assuming pathGrid initialize with 1
+        pathGrid = [[0] * n for _ in range(m)]
+
+        # Seed: exactly one way to “be” at the start (if not blocked)
+        pathGrid[0][0] = 1
+
+        # First column: only from above; if an obstacle appears,
+        # everything below remains 0 (no way around in the same column)
+        for i in range(1, m):
+            pathGrid[i][0] = 0 if obstacleGrid[i][0] == 1 else pathGrid[i-1][0]
+
+        # First row: only from left; if an obstacle appears,
+        # everything to the right remains 0 (no way around in the same row)
+        for j in range(1, n):
+            pathGrid[0][j] = 0 if obstacleGrid[0][j] == 1 else pathGrid[0][j-1]
+
+        # Inner cells: if not an obstacle → sum of top + left (Pascal with walls)
+        for i in range(1, m):
+            for j in range(1, n):
+                # If there is an obstacle
+                if obstacleGrid[i][j] == 1:
+                    pathGrid[i][j] = 0
+                # If there is no obstacle, sum top and left
+                else:
+                    pathGrid[i][j] = pathGrid[i-1][j] + pathGrid[i][j-1]
+
+        # Answer: ways to reach bottom-right
+        return pathGrid[m-1][n-1]
+
+        # Complexity:
+        # Time = O(mn)
+        # Space = O(mn)
+
+```
+
+## 7. Minimum Path Sum - Medium
+
+[Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
+
+```python
+class Solution:
+    def minPathSum(self, grid: List[List[int]]) -> int:
+        # Inputs: List[List[int]]
+        # Outputs: int
+        # Descriptions:
+            # Grid with NON Negative values
+            # Find a path from top left to bottom right, minimizes the sum
+
+        # Example 1:
+        # Inputs -> grid = [[1,3,1],[1,5,1],[4,2,1]]
+        # Outputs -> 7
+        # Example 2:
+        # Inputs -> grid = [[1,2,3],[4,5,6]]
+        # Outputs -> 12
+        # Understanding:
+            # Think of as Tolls per Cell
+            # You are finding the "accumulative minimum cost"
+            # The local minimum will eventually build the "global" minimum
+
+        # Setup
+        m = len(grid)
+        n = len(grid[0])
+
+        # Prefix sums along first row
+        for j in range(1,n):
+            grid[0][j] += grid[0][j-1]
+
+        # Prefix sums along the first column
+        for i in range(1,m):
+            grid[i][0] += grid[i-1][0]
+
+        # Fill the rest
+        for i in range(1,m):
+            for j in range(1,n):
+                grid[i][j] += min(grid[i-1][j], grid[i][j-1])
+
+        return grid[m-1][n-1]
+        # Complexity
+        # Time -> O(nm)
+        # Space -> O(nm)
+```
+
+
+## 8. Is Subsequence - Easy
+
+[Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
+
+```python
+class Solution:
+    def isSubsequence(self, s: str, t: str) -> bool:
+        # Inputs: str, str
+        # Outputs: bool
+        # Description:
+            # Subsequence -> s is formed by deleting some(or nill) of the characters
+            # Preserving the order
+            # "ace" -> abcde -> true
+            # "aec" -> abcde -> false
+        # Example 1
+        # Inputs -> s = "abc", t = "ahbgdc"
+        # Output -> True
+
+        # Example 2
+        # Inputs -> s = "axc", t = "ahbgdc"
+        # Output -> False
+        
+        # Edge Case
+        if s == "":
+            return True
+
+        # Iterate and pointer
+        s_pointer = 0
+        for character in t:
+            if character == s[s_pointer]:
+                s_pointer += 1
+                # Early exit
+                if s_pointer == len(s):
+                    return True
+        return False
+
+        # Walk through an example
+        # t = ahbgdc
+        # s = abc
+        # Iteration 1
+            # a, s_pointer = 0
+            # a == s[s_pointer] --> s_pointer += 1 = 1
+        # Iteration 2
+            # h, s_pointer = 1
+            # h != s[s_pointer] 
+        # Iteration 3
+            # b, s_pointer = 1
+            # b == s[pointer] --> s_pointer += 1 = 2
+        # Iteration 4
+            # g, s_pointer = 2
+            # g != s[s_pointer]
+        # iteration 5
+            # d, s_pointer = 2
+            # d != s[s_pointer]
+        # iteration 6
+            # c, s_pointer = 2
+            # c == s[s_pointer] -> s_pointer += 1 = 3
+            # s_pointer == len(s) -> Return True
+```
+
+## 9. Fibonacci Number - Easy
+
+[Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
+
+```python
+class Solution:
+    def fib(self, n: int) -> int:
+        # Inputs: int
+        # Outputs: int
+        # Description:
+            # F(n-1) + F(n-2) 
+        
+        # Typical Recursion Appraoch
+        # if n == 0:
+        #     return 0
+        # if n == 1:
+        #     return 1
+        
+        # return self.fib(n-1) + self.fib(n-2)
+        # Complexity
+        # Time O(2^n)
+        # Space O(n)
+
+        # Dynamic Programming approach
+        if n < 2:
+            return n
+        # We create a list
+        dp = [0,1]
+        # We calculate the list
+        for i in range(2,n+1):
+            # Append the value
+            dp.append(dp[i-1] + dp[i-2])
+        return dp[n]
+        # Complexity:
+        # Time O(n)
+        # Space O(n)
+
+```
+
+## 10. Nth Tribonacci Number
+
+[Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
+
+```python
+class Solution:
+    def tribonacci(self, n: int) -> int:
+        # Inputs: int
+        # Outputs: int
+        # Description:
+            # T3 = T0 + T1 + T2
+
+        # Setup
+        dp = [0, 1, 1]
+
+        # Iterate
+        for i in range(3, n+1):
+            dp.append(dp[i-3] + dp[i-2] + dp[i-1])
+        return dp[n]
+        # Complexity
+        # Time - O(n)
+        # Space - O(n)
+```
+
+## 11. Maximum Repeating Substring - Easy
+
+[Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
+
+
+```python
+class Solution:
+    def maxRepeating(self, sequence: str, word: str) -> int:
+        # Inputs: str, str
+        # Outputs: int
+        # Description:
+            # Occurence of "word" in sequence
+        # Count
+        k = 0
+        # Current Word
+        cur = word
+        # Keep Iterating and add word to cur
+        # Breaks when it is no longer a substring
+        while cur in sequence:
+            k += 1
+            cur += word
+        return k
+        # Think about it in a reverse manner
+        # how many words keeps it in "Sequence"
+        # Complexity:
+        # Time - O(kn) - n = len of sequence
+        # Space - O(km) - m = len of word
+
+
+```

@@ -18,6 +18,7 @@ Not rigid laws, but reminders to save energy, stay sharp, and keep moving.
 - Not every meeting deserves you. Attend only if you’ll **gain or contribute**.  
 - Default to **asynchronous updates** (docs, notes, recordings) over live meetings.  
 - Capture open loops (ideas, tasks, errands) into one trusted system (not your head).  
+- When you feel unfocused (e.g. early morning), **reset your state**: stand up, take a 5-minute walk, breathe, then plan your top 3 priorities for the day.  
 
 ---
 
