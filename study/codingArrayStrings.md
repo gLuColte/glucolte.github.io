@@ -309,3 +309,281 @@ class Solution:
         # Time = O(n^2) -> Because deletion
         # Space = O(1) -> No such thing as Nil
 ```
+
+## 6. Maximum Sum of an Hourglass - Medium
+
+[Leetcode Link](https://leetcode.com/problems/maximum-sum-of-an-hourglass/description/)
+
+```python
+class Solution:
+    def maxSum(self, grid: List[List[int]]) -> int:
+        # Inputs: List[List[int]]
+        # Outputs: int
+        # Description: 
+            # hour glass
+            # Maximum sum
+            # Finding maximum sum of 3x3 - [i+1][j], [i+1][j+2]
+            # Assuming MxN
+        # Example 1:
+        # Inptus: grid = [[1,2,3], [4,5,6], [7,8,9]]
+        # Outputs: 1+2+3+5+7+8+9 = 35
+
+        # Brute force first approrach:
+        # Carving out a sub grid
+        # Setup
+        # m = len(grid)
+        # n = len(grid[0])
+        
+        # # If it is a 3x3
+        # if m == 3 and n == 3:
+        #     return sum(sum(inner) for inner in grid) - grid[1][0] - grid[1][2]
+        
+        # # Else
+        # maximum_sum = 0
+        # for i in range(0, m):
+        #     if i + 3 > m:
+        #         break
+        #     for j in range(0, n):
+        #         if j + 3 > n:
+        #             break
+        #         sub_grid = [row[j:j+3] for row in grid[i:i+3]]
+        #         current_sum = sum(sum(inner) for inner in sub_grid) - sub_grid[1][0] - sub_grid[1][2]
+        #         if current_sum > maximum_sum:
+        #             maximum_sum = current_sum
+        # return maximum_sum
+
+        # GPT Guidance:
+        # Don't carve out sub grid, index the 7 cells directly
+        m,n = len(grid), len(grid[0])
+        maximum_s = 0
+        for i in range(m-2):
+            # Define rows
+            row0, row1, row2 = grid[i], grid[i+1], grid[i+2]
+            for j in range(n-2):
+                # Hour glass: top row + middle centre + bottom row
+                s = row0[j] + row0[j+1] + row0[j+2] + row1[j+1] + row2[j] + row2[j+1] + row2[j+2]
+                if maximum_s < s:
+                    maximum_s = s
+        return maximum_s
+        # Complexity:
+        # Time: O(mn)
+        # Space: O(1)
+
+```
+
+
+## 7. Grumpy Bookstore Owner - Medium
+
+[Leetcode Link](https://leetcode.com/problems/grumpy-bookstore-owner/description/)
+
+```python
+class Solution:
+    def maxSatisfied(self, customers: List[int], grumpy: List[int], minutes: int) -> int:
+        # Inputs: List[int], List[int], minute
+        # Outputs: int
+        # Description:
+            # Store open for N (length of list)
+            # Customers represents the "element"
+            # Grumpy list
+            # Can stay "non grumpy" for minutes
+            # What is the most ideal way to have maximum satisifed customers?
+        # Example 1
+        # Inputs:
+            # Customer -> [1,0,1,2,1,1,7,5]
+            # Grumpy ->   [0,1,0,1,0,1,0,1]
+            # Mintues ->   3 
+        # Outputs:
+            # 16
+                # We can see 1 + 5 is the largest
+                # Hence we use that "Minutes" to stay not grumpy
+                # [1,1,1] + [1,7,5] = 16
+        
+        # First identify the index that gets grumpy
+        # Can this be treated as 2d matrix and find the best cost path?
+        n = len(customers)
+
+        # Baseline -> Already satisifed
+        baseline = 0
+        for i in range(n):
+            if grumpy[i] == 0:
+                baseline += customers[i]
+
+        # Sliding window 
+        gain = 0
+        max_gain = 0
+
+        # Initial Window
+        # Note, if minutes > n, that means we can cover WHOLE customers
+        # If n > minutes, then we will be range(0,3) -> which means we started from 0 to minutes
+        for i in range(min(minutes,n)):
+            if grumpy[i] == 1:
+                gain += customers[i]
+        # Max gain set to initial gain we calculated
+        max_gain = gain
+
+        # Slide, starting from minutes
+        # Note, if minutes > n, it would exists
+        for i in range(minutes, n):
+            # i = the NEW index entering the window (right edge)
+            if grumpy[i] == 1:
+                gain += customers[i]
+            # j = the OLD index leaving the window (left edge)
+            j = i - minutes
+            if grumpy[j] == 1:
+                gain -= customers[j]
+            
+            # Basically we are sliding now:
+            # initial window: [0,1,2] → gain from grumpy==1 here
+            # i=3, j=0 → window [1,2,3]  (add idx 3, remove idx 0)
+            # i=4, j=1 → window [2,3,4]  (add idx 4, remove idx 1)
+            # i=5, j=2 → window [3,4,5]  (add idx 5, remove idx 2)
+            # i=6, j=3 → window [4,5,6]  (add idx 6, remove idx 3)
+            # i=7, j=4 → window [5,6,7]  (add idx 7, remove idx 4)
+            
+            # If it is greater
+            if gain > max_gain:
+                max_gain = gain
+        return baseline + max_gain
+
+
+```
+
+
+## 8. Longest Consecutive Sequence - Medium
+
+[Leetcode Link](https://leetcode.com/problems/longest-consecutive-sequence/?envType=problem-list-v2&envId=oizxjoit&)
+
+Initial attempt:
+
+```python
+class Solution:
+    def longestConsecutive(self, nums: List[int]) -> int:
+        # Inputs: List[int]
+        # Outputs: int
+        # Descrption:  
+            # Return the Longest consecutive sequence
+            # Must run in O(n)
+
+        # Example 1:
+        # Inputs: nums = [100,4,200,1,3,2]
+        # Outputs: 4 -> 1,2,3,4
+
+        # Example 2:
+        # Inputs: nums = [0,3,7,2,5,8,4,6,0,1]
+        # Outputs: 9 -> 0,1,2,3,4,5,6,7,8
+        # Setup
+        n = len(nums)
+
+        # Edge case catching
+        if n == 0 :
+            return 0
+
+        # Sorting
+        nums.sort()
+        max_sequence = 0
+        current_sequence = 0
+        for i in range(1, n):
+            if nums[i] == nums[i-1] + 1:
+                current_sequence += 1
+            elif nums[i] == nums[i-1]:
+                continue
+            else:
+                max_sequence = max(max_sequence, current_sequence)
+                current_sequence = 0
+        if max_sequence <= current_sequence:
+            max_sequence = current_sequence
+
+        return max_sequence + 1
+        # Complexity
+        # You call nums.sort().
+        # Sorting an array of length n takes O(n log n) in the average case (Timsort in Python).
+        # After sorting, your loop runs in O(n).
+        # Together, that makes your solution O(n log n), not O(n).
+        # Hence this solution is incorrect
+```
+
+Correct Attempt:
+
+```python
+class Solution:
+    def longestConsecutive(self, nums: List[int]) -> int:
+        # Inputs: List[int]
+        # Outputs: int
+        # Descrption:  
+            # Return the Longest consecutive sequence
+            # Must run in O(n)
+
+        # Example 1:
+        # Inputs: nums = [100,4,200,1,3,2]
+        # Outputs: 4 -> 1,2,3,4
+
+        # Example 2:
+        # Inputs: nums = [0,3,7,2,5,8,4,6,0,1]
+        # Outputs: 9 -> 0,1,2,3,4,5,6,7,8
+        # Setup
+        s = set(nums)
+
+        longest = 0
+        # Iterate each number
+        for x in s:
+            # if x - 1 is NOT in s
+            if x - 1 not in s:
+                # Start a streak check 
+                length = 1
+                # keep plusing until it is NOT
+                while x + length in s:
+                    length += 1
+                # Get longest
+                longest = max(longest, length)
+        return longest
+```
+
+
+
+## 9. Longest Substring Without Repeating Characters - Medium
+
+[Leetcode Link](https://leetcode.com/problems/longest-substring-without-repeating-characters/?envType=problem-list-v2&envId=oizxjoit&)
+
+```python
+class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        # Inputs: str
+        # Outputs: int
+        # Description:
+            # Longest substring without duplicates
+
+        # Example 1:
+            # Inputs: "abcabcbb"
+            # Outputs: 3 -> longest "abc" substring without duplicates
+        # Example 2:
+            # inputs: "bbbbbb":
+            # Outputs: 1 -> "b"
+        # Example 3:
+            # Inputs: "pwwkew"
+            # Outputs: 3 -< "wke"
+        
+        # last: maps a character to the last index where we saw it
+        last = {}
+
+        # start: left edge of the "current window" (inclusive)
+        # best: length of the best window we've seen so far
+        start = 0
+        best = 0
+
+        # Iterate over each character and its index
+        for i, ch in enumerate(s):
+            # If we've seen ch, before AND its last position is inside
+            # the current window [ start .. i-1], we must move left 
+            # edge (Strat) to one past that previous position to avoid duplicates
+            if ch in last and last[ch] >= start:
+                # Drop everything up to and including previous ch.
+                start = last[ch] + 1
+            # Record/update last index where we saw ch
+            last[ch] = i
+
+            # The current window is [start .. i]. Its length is i - start + 1.
+            # Update best if this window is longer than what we had.
+            best = max(best, i - start + 1)
+
+        return best
+```

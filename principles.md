@@ -77,6 +77,24 @@ No single mentor has all the answers. Surround yourself with multiple perspectiv
 
 ---
 
+### 12. Presence Defines Value
+
+Time itself cannot be wasted — every moment passes either way. What gives it value is how fully you inhabit it.
+
+Be immersed in what you do: focus, use your best capabilities, and let each moment be an opportunity to learn or grow. Whether it’s work, rest, or play, it matters if you’re truly there for it.
+
+The true waste is not in the activity itself, but in half-living it — doing one thing while wishing you were elsewhere, distracted, or regretting.
+
+---
+
+### 13. Responsibility Anchors Freedom
+
+One has to decide they must do something. Without that decision, freedom drifts into suffering. Responsibility is not just imposed from outside — it is chosen. To pursue any ideal — family, wealth, or a simple, carefree life — you must accept the responsibilities that sustain it.
+
+The wrong responsibilities crush, but the right ones give life weight and direction. Decide what you will carry, and let it anchor the life you want to build.
+
+---
+
 ## From Principles to Practice
 
 Principles provide direction, but they are still broad. In difficult moments, choices are rarely between “good and bad,” but between two paths that both feel uncertain.  
