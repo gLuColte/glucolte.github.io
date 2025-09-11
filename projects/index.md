@@ -361,7 +361,8 @@ class GitHubProjects {
     // Projects to ignore - edit this list directly in the code
     this.ignoreList = [
       'garyJune',
-      'glucolte.github.io'
+      'glucolte.github.io',
+      'COMP9321-Data-Services'
     ];
     
     // Pinned projects - edit this list directly in the code
