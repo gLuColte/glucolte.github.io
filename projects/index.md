@@ -10,7 +10,7 @@ permalink: /projects/
 <div class="config-section">
   <h3>Ignore Projects</h3>
   <p>Add project names (one per line) to hide them from the list:</p>
-  <textarea id="ignore-list" placeholder="project-name-1&#10;project-name-2&#10;another-project" rows="4"></textarea>
+  <textarea id="ignore-list" placeholder="garyJune&#10;glucolte.github.io&#10;another-project" rows="4"></textarea>
   <button id="apply-config" class="config-button">Apply Changes</button>
   <button id="reset-config" class="config-button secondary">Reset to Default</button>
 </div>
@@ -20,11 +20,7 @@ permalink: /projects/
 <div id="projects-container">
   <div id="loading" class="loading">
     <div class="loading-spinner"></div>
-    <p id="loading-text">Fetching repositories...</p>
-    <div class="loading-progress">
-      <div class="progress-bar" id="progress-bar"></div>
-      <span id="progress-text">0 / 0</span>
-    </div>
+    <p id="loading-text">Loading projects...</p>
   </div>
   <div id="error" class="error" style="display: none;">
     <p>Failed to load projects. Please try again later.</p>
@@ -46,7 +42,7 @@ class GitHubProjects {
 
   loadIgnoreList() {
     const saved = localStorage.getItem('github-projects-ignore');
-    return saved ? saved.split('\n').filter(name => name.trim()) : [];
+    return saved ? saved.split('\n').filter(name => name.trim()) : ['garyJune', 'glucolte.github.io'];
   }
 
   saveIgnoreList() {
@@ -95,12 +91,10 @@ class GitHubProjects {
     const errorEl = document.getElementById('error');
     const projectsEl = document.getElementById('projects-list');
     const loadingText = document.getElementById('loading-text');
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
 
     try {
-      // Step 1: Fetch repositories
-      loadingText.textContent = 'Fetching repositories...';
+      // Fetch repositories
+      loadingText.textContent = 'Loading projects...';
       const reposResponse = await fetch(`${this.apiBase}/users/${this.username}/repos?sort=updated&per_page=100`);
       
       if (!reposResponse.ok) {
@@ -121,13 +115,8 @@ class GitHubProjects {
 
       this.currentProjects = filteredRepos;
 
-      // Step 2: Load READMEs with progress tracking
-      loadingText.textContent = 'Loading project details...';
-      progressText.textContent = `0 / ${filteredRepos.length}`;
-      
-      const projectsWithReadme = await this.loadReadmesWithProgress(filteredRepos, progressBar, progressText);
-
-      this.renderProjects(projectsWithReadme);
+      // Projects are ready to render (no README fetching needed)
+      this.renderProjects(filteredRepos);
       
       loadingEl.style.display = 'none';
       projectsEl.style.display = 'block';
@@ -138,48 +127,6 @@ class GitHubProjects {
       errorEl.style.display = 'block';
       errorEl.querySelector('p').textContent = error.message || 'Failed to load projects. Please try again later.';
     }
-  }
-
-  async loadReadmesWithProgress(repos, progressBar, progressText) {
-    const projectsWithReadme = [];
-    const total = repos.length;
-    
-    for (let i = 0; i < repos.length; i++) {
-      const repo = repos[i];
-      
-      try {
-        // Add small delay to avoid rate limiting (only for README requests)
-        if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 50));
-        }
-        
-        const readmeResponse = await fetch(`${this.apiBase}/repos/${this.username}/${repo.name}/readme`);
-        let readmeContent = null;
-        
-        if (readmeResponse.ok) {
-          const readmeData = await readmeResponse.json();
-          readmeContent = atob(readmeData.content);
-        }
-        
-        projectsWithReadme.push({
-          ...repo,
-          readme: readmeContent
-        });
-      } catch (error) {
-        console.warn(`Could not fetch README for ${repo.name}:`, error);
-        projectsWithReadme.push({
-          ...repo,
-          readme: null
-        });
-      }
-      
-      // Update progress
-      const progress = ((i + 1) / total) * 100;
-      progressBar.style.setProperty('--progress', `${progress}%`);
-      progressText.textContent = `${i + 1} / ${total}`;
-    }
-    
-    return projectsWithReadme;
   }
 
   renderProjects(projects) {
@@ -198,25 +145,6 @@ class GitHubProjects {
     const languages = project.language ? `<span class="language">${project.language}</span>` : '';
     const stars = project.stargazers_count > 0 ? `<span class="stars">⭐ ${project.stargazers_count}</span>` : '';
     const updatedDate = new Date(project.updated_at).toLocaleDateString();
-    
-    let readmePreview = '';
-    if (project.readme) {
-      // Clean and truncate README content
-      const cleanReadme = project.readme
-        .replace(/^#+\s*.*$/gm, '') // Remove headers
-        .replace(/```[\s\S]*?```/g, '') // Remove code blocks
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
-        .replace(/\n+/g, ' ') // Replace newlines with spaces
-        .trim();
-      
-      const truncatedReadme = cleanReadme.length > 200 
-        ? cleanReadme.substring(0, 200) + '...' 
-        : cleanReadme;
-      
-      if (truncatedReadme) {
-        readmePreview = `<div class="readme-preview">${truncatedReadme}</div>`;
-      }
-    }
 
     return `
       <div class="project-card">
@@ -231,7 +159,6 @@ class GitHubProjects {
           </div>
         </div>
         ${project.description ? `<p class="project-description">${project.description}</p>` : ''}
-        ${readmePreview}
         <div class="project-links">
           <a href="${project.html_url}" target="_blank" rel="noopener">View on GitHub</a>
           ${project.homepage ? `<a href="${project.homepage}" target="_blank" rel="noopener">Live Demo</a>` : ''}
