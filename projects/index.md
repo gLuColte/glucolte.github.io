@@ -31,29 +31,12 @@ permalink: /projects/
 <style>
 :root {
   --border: #e5e7eb;
-  --border-dark: #374151;
   --bg: #ffffff;
-  --bg-dark: #111827;
   --text: #111827;
-  --text-dark: #f9fafb;
   --text-muted: #6b7280;
-  --text-muted-dark: #9ca3af;
-  --accent: #3b82f6;
-  --accent-dark: #60a5fa;
+  --accent: #111827;
   --shadow: 0 1px 3px rgba(0,0,0,.1);
   --shadow-hover: 0 8px 24px rgba(0,0,0,.08);
-  --shadow-hover-dark: 0 8px 24px rgba(0,0,0,.3);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --border: var(--border-dark);
-    --bg: var(--bg-dark);
-    --text: var(--text-dark);
-    --text-muted: var(--text-muted-dark);
-    --accent: var(--accent-dark);
-    --shadow-hover: var(--shadow-hover-dark);
-  }
 }
 
 .projects-toolbar {
