@@ -5,18 +5,6 @@ permalink: /projects/
 
 # /projects
 
-## Configuration
-
-<div class="config-section">
-  <h3>Ignore Projects</h3>
-  <p>Add project names (one per line) to hide them from the list:</p>
-  <textarea id="ignore-list" placeholder="garyJune&#10;glucolte.github.io&#10;another-project" rows="4"></textarea>
-  <button id="apply-config" class="config-button">Apply Changes</button>
-  <button id="reset-config" class="config-button secondary">Reset to Default</button>
-</div>
-
----
-
 <div id="projects-container">
   <div id="loading" class="loading">
     <div class="loading-spinner"></div>
@@ -36,54 +24,24 @@ class GitHubProjects {
   constructor() {
     this.username = 'gLuColte'; // Your GitHub username
     this.apiBase = 'https://api.github.com';
-    this.ignoreList = this.loadIgnoreList();
+    
+    // Projects to ignore - edit this list directly in the code
+    this.ignoreList = [
+      'garyJune',
+      'glucolte.github.io'
+      // Add more project names here as needed
+    ];
+    
     this.init();
   }
 
-  loadIgnoreList() {
-    const saved = localStorage.getItem('github-projects-ignore');
-    return saved ? saved.split('\n').filter(name => name.trim()) : ['garyJune', 'glucolte.github.io'];
-  }
-
-  saveIgnoreList() {
-    localStorage.setItem('github-projects-ignore', this.ignoreList.join('\n'));
-  }
-
   async init() {
-    this.setupConfigUI();
     try {
       await this.loadProjects();
     } catch (error) {
       console.error('Error loading projects:', error);
       this.showError();
     }
-  }
-
-  setupConfigUI() {
-    const ignoreTextarea = document.getElementById('ignore-list');
-    const applyButton = document.getElementById('apply-config');
-    const resetButton = document.getElementById('reset-config');
-
-    // Load current ignore list
-    ignoreTextarea.value = this.ignoreList.join('\n');
-
-    applyButton.addEventListener('click', () => {
-      const newIgnoreList = ignoreTextarea.value
-        .split('\n')
-        .map(name => name.trim())
-        .filter(name => name);
-      
-      this.ignoreList = newIgnoreList;
-      this.saveIgnoreList();
-      this.renderProjects(this.currentProjects || []);
-    });
-
-    resetButton.addEventListener('click', () => {
-      this.ignoreList = [];
-      this.saveIgnoreList();
-      ignoreTextarea.value = '';
-      this.renderProjects(this.currentProjects || []);
-    });
   }
 
   async loadProjects() {
