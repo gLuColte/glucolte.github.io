@@ -205,3 +205,147 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
   color: var(--muted);
 }
 
+/* Projects Page Styles */
+.loading, .error {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+
+.error {
+  color: #dc2626;
+}
+
+.projects-list {
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.project-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+}
+
+.project-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 16px;
+}
+
+.project-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.project-title a {
+  color: var(--ink);
+  border-bottom: 0;
+}
+
+.project-title a:hover {
+  color: var(--accent);
+}
+
+.project-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.language {
+  background: #f3f4f6;
+  color: var(--ink);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.updated {
+  font-size: 12px;
+}
+
+.project-description {
+  margin: 0 0 12px 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.readme-preview {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.project-links {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.project-links a {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.project-links a:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+/* Responsive design for projects */
+@media (max-width: 880px) {
+  .project-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .project-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .project-links {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .project-links a {
+    text-align: center;
+  }
+}
+
