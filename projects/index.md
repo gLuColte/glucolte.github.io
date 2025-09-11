@@ -346,8 +346,8 @@ class GitHubProjects {
     
     // Pinned projects - edit this list directly in the code
     this.pinned = [
-      'AI-Stack-Lite',
-      'GenAi-Lab-ComfyUi'
+    //   'AI-Stack-Lite',
+    //   'GenAi-Lab-ComfyUi'
     ];
     
     this.viewState = {
