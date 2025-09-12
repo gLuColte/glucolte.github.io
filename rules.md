@@ -29,7 +29,7 @@ Not rigid laws, but reminders to save energy, stay sharp, and keep moving.
 - Sleep is a performance enhancer. Prioritize 7+ hours as **non-negotiable**.  
 - Limit caffeine after 2 PM. Tomorrow’s energy is part of today’s job.  
 - Stretch mid-day or when you are tired/sleepy.  
-- When things go wrong, give yourself **5 minutes to release** — complain, mourn, be angry if you need. After 5 minutes, take a breath and remind yourself: *“I can’t change it. Accept and move on.”*  ([Talk Link](https://www.youtube.com/watch?v=g9yg5cDagJ0))
+- When things go wrong or out of your control, give yourself **5 minutes to release** — complain, mourn, be angry if you need. After 5 minutes, take a breath and remind yourself: *“I can’t change it. Accept and move on.”*  ([Talk Link](https://www.youtube.com/watch?v=g9yg5cDagJ0))
 
 
 ---
