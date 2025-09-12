@@ -3,14 +3,7 @@ title: setup
 permalink: /setup/
 ---
 
-<div class="hero">
-  <div class="hero-text">
-    <h1>/setup</h1>
-    <p>
-      Things I do to setup my systems
-    </p>
-  </div>
-</div>
+Things I do to setup my systems for development
 
 ---
 

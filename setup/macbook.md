@@ -3,14 +3,7 @@ title: Macbook Setup
 permalink: /setup/macbook
 ---
 
-<div class="hero">
-  <div class="hero-text">
-    <h1>/setup/macbook</h1>
-    <p>
-      Complete MacBook setup guide for development and note-taking — with essential tools, apps, and configuration commands.
-    </p>
-  </div>
-</div>
+Complete MacBook setup guide for development and note-taking — with essential tools, apps, and configuration commands.
 
 ---
 

@@ -3,14 +3,7 @@ title: Ubuntu Setup
 permalink: /setup/ubuntu
 ---
 
-<div class="hero">
-  <div class="hero-text">
-    <h1>/setup/ubuntu</h1>
-    <p>
-      Complete Ubuntu setup guide for development on a GPU machine — includes Nvidia drivers, CUDA, dev tools, monitoring, and daily-use commands.
-    </p>
-  </div>
-</div>
+Complete Ubuntu setup guide for development on a GPU machine — includes Nvidia drivers, CUDA, dev tools, monitoring, and daily-use commands.
 
 ---
 
