@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>setup · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>setup | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="setup" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/setup/" />
+<meta property="og:url" content="http://localhost:4000/setup/" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="setup" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"setup","url":"http://localhost:4000/setup/"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <h1 id="setup">/setup</h1>
+
+<p>Things I do to setup my systems for development</p>
+
+<hr />
+
+<h1 id="-choose-your-setup">🎮 Choose Your Setup</h1>
+
+<div class="setup-selection">
+  <div class="setup-card">
+    <div class="setup-icon">💻</div>
+    <h2>MacBook Setup</h2>
+    <p>Complete macOS development environment with terminal tools, package managers, and productivity apps.</p>
+    <div class="setup-features">
+      <span class="feature-tag">Zsh + Powerlevel10k</span>
+      <span class="feature-tag">Docker</span>
+      <span class="feature-tag">Git + LazyGit</span>
+      <span class="feature-tag">Node.js + Python</span>
+      <span class="feature-tag">VS Code + Neovim</span>
+    </div>
+    <a href="/setup/macbook" class="setup-button">
+      Start MacBook Setup →
+    </a>
+  </div>
+
+  <div class="setup-card">
+    <div class="setup-icon">🖥️</div>
+    <h2>Ubuntu Setup</h2>
+    <p>Linux server configuration for deployment, monitoring, and production environments.</p>
+    <div class="setup-features">
+      <span class="feature-tag">Ubuntu/Debian</span>
+      <span class="feature-tag">Docker</span>
+      <span class="feature-tag">Nginx</span>
+      <span class="feature-tag">SSL/TLS</span>
+      <span class="feature-tag">Monitoring</span>
+    </div>
+    <a href="/setup/ubuntu" class="setup-button">
+      Start Server Setup →
+    </a>
+  </div>
+</div>
+
+<style>
+.setup-selection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.setup-card {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.setup-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+.setup-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), #60a5fa);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.setup-card:hover::before {
+  opacity: 1;
+}
+
+.setup-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.setup-card h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  color: var(--ink);
+}
+
+.setup-card p {
+  margin: 0 0 1.5rem 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.setup-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.feature-tag {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+
+.setup-button {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 2px solid var(--accent);
+}
+
+.setup-button:hover {
+  background: white;
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .setup-selection {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .setup-card {
+    padding: 1.5rem;
+  }
+  
+  .setup-features {
+    justify-content: flex-start;
+  }
+}
+</style>
+
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+</body>
+</html>

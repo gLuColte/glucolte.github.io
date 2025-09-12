@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>arrays and strings · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>arrays and strings | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="arrays and strings" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/codingArraysStrings" />
+<meta property="og:url" content="http://localhost:4000/study/codingArraysStrings" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="arrays and strings" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"arrays and strings","url":"http://localhost:4000/study/codingArraysStrings"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <h1 id="arrays--strings">Arrays &amp; Strings</h1>
+
+<p><strong>Patterns to know:</strong></p>
+<ul>
+  <li>Two Pointers (fast/slow, inward/outward).</li>
+  <li>Sliding Window.</li>
+  <li>Prefix Sum / Difference Array.</li>
+  <li>Sorting + Greedy.</li>
+  <li>Binary Search on answer.</li>
+</ul>
+
+<p><strong>How to identify:</strong></p>
+<ul>
+  <li>Input is just a flat array or string.</li>
+  <li>Asked to find subarray/subsequence with certain property.</li>
+  <li>“Longest/shortest substring” → usually sliding window.</li>
+  <li>“Find pair/triplet” → often two pointers + sorting.</li>
+</ul>
+
+<hr />
+
+<ul id="markdown-toc">
+  <li><a href="#1-two-sums---easy" id="markdown-toc-1-two-sums---easy">1. Two Sums - Easy</a></li>
+  <li><a href="#2-3sum-closest---medium" id="markdown-toc-2-3sum-closest---medium">2. 3Sum Closest - Medium</a></li>
+  <li><a href="#3-4sum---medium" id="markdown-toc-3-4sum---medium">3. 4Sum - Medium</a></li>
+  <li><a href="#4-remove-duplicates-from-sorted-array---easy" id="markdown-toc-4-remove-duplicates-from-sorted-array---easy">4. Remove Duplicates from Sorted Array - Easy</a></li>
+  <li><a href="#5-remove-element---easy" id="markdown-toc-5-remove-element---easy">5. Remove Element - Easy</a></li>
+  <li><a href="#6-maximum-sum-of-an-hourglass---medium" id="markdown-toc-6-maximum-sum-of-an-hourglass---medium">6. Maximum Sum of an Hourglass - Medium</a></li>
+  <li><a href="#7-grumpy-bookstore-owner---medium" id="markdown-toc-7-grumpy-bookstore-owner---medium">7. Grumpy Bookstore Owner - Medium</a></li>
+  <li><a href="#8-longest-consecutive-sequence---medium" id="markdown-toc-8-longest-consecutive-sequence---medium">8. Longest Consecutive Sequence - Medium</a></li>
+  <li><a href="#9-longest-substring-without-repeating-characters---medium" id="markdown-toc-9-longest-substring-without-repeating-characters---medium">9. Longest Substring Without Repeating Characters - Medium</a></li>
+</ul>
+
+<hr />
+
+<h2 id="1-two-sums---easy">1. Two Sums - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/two-sum/description/?envType=problem-list-v2&amp;envId=array&amp;">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">twoSum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="c1"># Input -&gt; nums, target
+</span>            <span class="c1"># Always 1 Solution
+</span>        <span class="c1"># Constraints 
+</span>            <span class="c1"># nums[index1] + nums[index2] = target
+</span>        <span class="c1"># Output -&gt; [index1, index2]
+</span>
+        <span class="c1"># Example:
+</span>        <span class="c1"># nums = 2,7,11,15, target = 9
+</span>        <span class="c1"># output = [0,1] -&gt; 2+7 = 9
+</span>
+        <span class="c1"># Example:
+</span>        <span class="c1"># nums = 3,2,4, target = 6
+</span>        <span class="c1"># output = [1,2] -&gt; 2+4 = 6
+</span>
+        <span class="c1"># Use a Hash to store seen compliments
+</span>        <span class="n">seen</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Iterate with index
+</span>        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nums</span><span class="p">):</span>
+            <span class="c1"># If other half is in the keys
+</span>            <span class="k">if</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="c1"># We found it!
+</span>                <span class="k">return</span> <span class="p">[</span><span class="n">seen</span><span class="p">[</span><span class="n">num</span><span class="p">],</span> <span class="n">index</span><span class="p">]</span>
+            <span class="c1"># If not, we store the "other half" and its index
+</span>            <span class="n">compliment</span> <span class="o">=</span> <span class="n">target</span> <span class="o">-</span> <span class="n">num</span>
+            <span class="n">seen</span><span class="p">[</span><span class="n">compliment</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span> 
+        <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="c1"># Comlpexity:
+</span>        <span class="c1"># Time = O(n)
+</span>        <span class="c1"># Space = O(n)
+</span>        <span class="c1"># n is number of items in the list, as we iterate through.
+</span>        <span class="c1"># The worst case is finding the compliment as the last item
+</span></code></pre></div></div>
+
+<h2 id="2-3sum-closest---medium">2. 3Sum Closest - Medium</h2>
+
+<p><a href="https://leetcode.com/problems/3sum-closest/?envType=problem-list-v2&amp;envId=array&amp;">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">threeSumClosest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Input -&gt; nums, target
+</span>        <span class="c1"># Output -&gt; int
+</span>
+        <span class="c1"># Example:
+</span>        <span class="c1"># Input: nums = [-1,2,1,-4], target = 1
+</span>        <span class="c1"># Output: 2
+</span>        <span class="c1"># Explanation: The sum that is closest to the target is 2. (-1 + 2 + 1 = 2).
+</span>
+        <span class="c1"># 0) Sort the list, this make it in "order"
+</span>        <span class="n">nums</span><span class="p">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="c1"># length of list
+</span>        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+
+        <span class="c1"># Initialize to first 3
+</span>        <span class="n">best_sum</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">best_gap</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">target</span> <span class="o">-</span> <span class="n">best_sum</span><span class="p">)</span>
+
+        <span class="c1"># Lock i, i can only go till n-2
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="c1"># We get "Left" and "Right" indices
+</span>            <span class="n">l</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="c1"># While Left is "left"
+</span>            <span class="k">while</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="n">r</span><span class="p">:</span>
+                <span class="c1"># Get Sum
+</span>                <span class="n">s</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+                <span class="c1"># Find gap to target
+</span>                <span class="n">gap</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">target</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">gap</span> <span class="o">&lt;</span> <span class="n">best_gap</span><span class="p">:</span>
+                    <span class="c1"># Update running check if it is smaller
+</span>                    <span class="n">best_gap</span> <span class="o">=</span> <span class="n">gap</span>
+                    <span class="n">best_sum</span> <span class="o">=</span> <span class="n">s</span>
+                <span class="c1"># Since it is sorted list
+</span>                <span class="c1"># If s is less, means we need to move Left 
+</span>                <span class="k">if</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">:</span>
+                    <span class="n">l</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="c1"># If s is more, means we need to move Right
+</span>                <span class="k">elif</span> <span class="n">s</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+                    <span class="n">r</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="c1"># If it matches the target
+</span>                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">target</span>  <span class="c1"># exact match, means we hit what we want
+</span>        <span class="c1"># Best
+</span>        <span class="k">return</span> <span class="n">best_sum</span>
+        <span class="c1"># Complexity;
+</span>        <span class="c1"># Time -&gt; O(n^2)
+</span>        <span class="c1"># Space -&gt; O(1)
+</span></code></pre></div></div>
+
+<h2 id="3-4sum---medium">3. 4Sum - Medium</h2>
+
+<p><a href="https://leetcode.com/problems/4sum/submissions/1753588794/?envType=problem-list-v2&amp;envId=array&amp;">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">fourSum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="c1"># Input -&gt; List[int], int
+</span>        <span class="c1"># Output -&gt; List[List[int]]
+</span>        <span class="c1"># Descprtion:
+</span>        <span class="c1"># Return a list of unique quadruplets that hits the target
+</span>
+        <span class="c1"># Example 1
+</span>        <span class="c1"># Input: nums = [1,0,-1,0,-2,2], target = 0
+</span>        <span class="c1"># Output: [[-2,-1,1,2], [-2,0,0,2],[-1,0,0,1]]
+</span>
+        <span class="c1"># Example 2
+</span>        <span class="c1"># Input: nums = [2,2,2,2], target = 0
+</span>        <span class="c1"># Output: [[2,2,2,2]]
+</span>
+        <span class="c1"># 0) Sort
+</span>        <span class="n">nums</span><span class="p">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+        <span class="c1"># 1) We start by giving a pointer for the first 2 index (i,j)
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">3</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
+                <span class="c1"># Then we create left and right
+</span>                <span class="n">l</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span>
+                <span class="k">while</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="n">r</span><span class="p">:</span>
+                    <span class="n">current_sum</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">current_sum</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">:</span>
+                        <span class="n">l</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">elif</span> <span class="n">current_sum</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+                        <span class="n">r</span> <span class="o">-=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Set -&gt; Set comparison ignores order
+</span>                        <span class="n">current_set</span> <span class="o">=</span> <span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">nums</span><span class="p">[</span><span class="n">l</span><span class="p">],</span> <span class="n">nums</span><span class="p">[</span><span class="n">r</span><span class="p">])</span>
+                        <span class="k">if</span> <span class="n">current_set</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                            <span class="n">seen</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">current_set</span><span class="p">)</span>
+                            <span class="n">output_list</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">current_set</span><span class="p">))</span>
+                        <span class="c1"># Force move r pointer
+</span>                        <span class="n">r</span> <span class="o">-=</span> <span class="mi">1</span>
+                        <span class="c1"># Ignoring duplicates
+</span>                        <span class="k">while</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="n">r</span> <span class="ow">and</span> <span class="n">nums</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">r</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>
+                            <span class="n">r</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">output_list</span>
+        <span class="c1"># [b,c,g,d,f,a,e,h]
+</span>        <span class="c1"># Sorted          -&gt; [a,b,c,d,e,f,g,h]
+</span>        <span class="c1"># Lock i,j        -&gt; [i,j,l,        r]
+</span>            <span class="c1"># Iteration 2 -&gt; [i,j,l,       r ] if sum &gt; target -&gt; Move right
+</span>            <span class="c1"># Iteration 2 -&gt; [i,j,  l,      r] if sum &lt; target -&gt; Move left
+</span>        <span class="c1"># if it is equal to target -&gt; means we found one can break, no need to adjust as we are finding equals
+</span>        <span class="c1"># Complexity:
+</span>        <span class="c1"># Time = O(n^3)
+</span>        <span class="c1"># Space = O(m)
+</span>        <span class="c1"># Taken - 491ms
+</span></code></pre></div></div>
+
+<p>The GPT Solution by adding “checks” that skips duplicates, speed up to 15ms</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">fourSum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="n">nums</span><span class="p">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="c1"># skip duplicate anchors i
+</span>            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># prune for i: smallest and largest sums achievable with this i
+</span>            <span class="n">min_i</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">3</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">min_i</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">max_i</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">max_i</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="c1"># skip duplicate anchors j
+</span>                <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># prune for j
+</span>                <span class="n">min_j</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">min_j</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">max_j</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">max_j</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">l</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>  <span class="c1"># local refs are a hair faster
+</span>                <span class="k">while</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="n">r</span><span class="p">:</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">:</span>
+                        <span class="n">l</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">elif</span> <span class="n">s</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+                        <span class="n">r</span> <span class="o">-=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">res</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">nums</span><span class="p">[</span><span class="n">l</span><span class="p">],</span> <span class="n">nums</span><span class="p">[</span><span class="n">r</span><span class="p">]])</span>
+                        <span class="n">l</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">r</span> <span class="o">-=</span> <span class="mi">1</span>
+                        <span class="c1"># skip duplicates on both sides
+</span>                        <span class="k">while</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="n">r</span> <span class="ow">and</span> <span class="n">nums</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">l</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span>
+                            <span class="n">l</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">while</span> <span class="n">l</span> <span class="o">&lt;</span> <span class="n">r</span> <span class="ow">and</span> <span class="n">nums</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">r</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+                            <span class="n">r</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+</code></pre></div></div>
+
+<h2 id="4-remove-duplicates-from-sorted-array---easy">4. Remove Duplicates from Sorted Array - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/remove-duplicates-from-sorted-array/description/?envType=problem-list-v2&amp;envId=array&amp;">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">removeDuplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Input: List[int]
+</span>        <span class="c1"># Output: int
+</span>
+        <span class="c1"># Example 1:
+</span>        <span class="c1"># Input -&gt; nums = [1,1,2]
+</span>        <span class="c1"># output -&gt; 2, nums = [1,2,_]
+</span>
+        <span class="c1"># Example 2:
+</span>        <span class="c1"># Input -&gt; nums = [0,0,1,1,1,2,2,3,3,4]
+</span>        <span class="c1"># Output -&gt; 5, nums = [0,1,2,3,4,_,_,_,_,_]
+</span>
+        <span class="c1"># 0) Setup
+</span>        <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        
+        <span class="c1"># 1) Iterate backwards -&gt; [a,b,c,d,e,f,g,h] 
+</span>        <span class="k">for</span> <span class="n">num_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># 2) Check if number in seen
+</span>            <span class="k">if</span> <span class="n">nums</span><span class="p">[</span><span class="n">num_index</span><span class="p">]</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="c1"># If it is, we just remove it
+</span>                <span class="k">del</span> <span class="n">nums</span><span class="p">[</span><span class="n">num_index</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># If it is NOT, we add to seen
+</span>                <span class="n">seen</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="n">num_index</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+
+        <span class="c1"># Complexity:
+</span>        <span class="c1"># Time = O(n^2)
+</span>            <span class="c1"># Beacuse lists shift elements
+</span>        <span class="c1"># Space = O(n)
+</span></code></pre></div></div>
+
+<h2 id="5-remove-element---easy">5. Remove Element - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/remove-element/description/?envType=problem-list-v2&amp;envId=array&amp;">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">removeElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Input: List[int], int
+</span>        <span class="c1"># Output: int
+</span>        <span class="c1"># Constraints:
+</span>            <span class="c1"># Inplace Removable
+</span>            <span class="c1"># Return Number of Element in nums not equal to val 
+</span>
+        <span class="c1"># Example:
+</span>        <span class="c1"># Input -&gt; nums = [0,1,2,2,3,0,4,2], val = 3
+</span>        <span class="c1"># Output -&gt; 2
+</span>
+        <span class="c1"># 0) Setup
+</span>        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+        <span class="c1"># When you delete, index shifts, so you need to work "backwards"
+</span>        <span class="k">for</span> <span class="n">num_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">nums</span><span class="p">[</span><span class="n">num_index</span><span class="p">]</span> <span class="o">==</span> <span class="n">val</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">nums</span><span class="p">[</span><span class="n">num_index</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+
+        <span class="c1"># Complexity
+</span>        <span class="c1"># Time = O(n^2) -&gt; Because deletion
+</span>        <span class="c1"># Space = O(1) -&gt; No such thing as Nil
+</span></code></pre></div></div>
+
+<h2 id="6-maximum-sum-of-an-hourglass---medium">6. Maximum Sum of an Hourglass - Medium</h2>
+
+<p><a href="https://leetcode.com/problems/maximum-sum-of-an-hourglass/description/">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">maxSum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: List[List[int]]
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Description: 
+</span>            <span class="c1"># hour glass
+</span>            <span class="c1"># Maximum sum
+</span>            <span class="c1"># Finding maximum sum of 3x3 - [i+1][j], [i+1][j+2]
+</span>            <span class="c1"># Assuming MxN
+</span>        <span class="c1"># Example 1:
+</span>        <span class="c1"># Inptus: grid = [[1,2,3], [4,5,6], [7,8,9]]
+</span>        <span class="c1"># Outputs: 1+2+3+5+7+8+9 = 35
+</span>
+        <span class="c1"># Brute force first approrach:
+</span>        <span class="c1"># Carving out a sub grid
+</span>        <span class="c1"># Setup
+</span>        <span class="c1"># m = len(grid)
+</span>        <span class="c1"># n = len(grid[0])
+</span>        
+        <span class="c1"># # If it is a 3x3
+</span>        <span class="c1"># if m == 3 and n == 3:
+</span>        <span class="c1">#     return sum(sum(inner) for inner in grid) - grid[1][0] - grid[1][2]
+</span>        
+        <span class="c1"># # Else
+</span>        <span class="c1"># maximum_sum = 0
+</span>        <span class="c1"># for i in range(0, m):
+</span>        <span class="c1">#     if i + 3 &gt; m:
+</span>        <span class="c1">#         break
+</span>        <span class="c1">#     for j in range(0, n):
+</span>        <span class="c1">#         if j + 3 &gt; n:
+</span>        <span class="c1">#             break
+</span>        <span class="c1">#         sub_grid = [row[j:j+3] for row in grid[i:i+3]]
+</span>        <span class="c1">#         current_sum = sum(sum(inner) for inner in sub_grid) - sub_grid[1][0] - sub_grid[1][2]
+</span>        <span class="c1">#         if current_sum &gt; maximum_sum:
+</span>        <span class="c1">#             maximum_sum = current_sum
+</span>        <span class="c1"># return maximum_sum
+</span>
+        <span class="c1"># GPT Guidance:
+</span>        <span class="c1"># Don't carve out sub grid, index the 7 cells directly
+</span>        <span class="n">m</span><span class="p">,</span><span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">maximum_s</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
+            <span class="c1"># Define rows
+</span>            <span class="n">row0</span><span class="p">,</span> <span class="n">row1</span><span class="p">,</span> <span class="n">row2</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
+                <span class="c1"># Hour glass: top row + middle centre + bottom row
+</span>                <span class="n">s</span> <span class="o">=</span> <span class="n">row0</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">row0</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">row0</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">row1</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">row2</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">row2</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">row2</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">maximum_s</span> <span class="o">&lt;</span> <span class="n">s</span><span class="p">:</span>
+                    <span class="n">maximum_s</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="k">return</span> <span class="n">maximum_s</span>
+        <span class="c1"># Complexity:
+</span>        <span class="c1"># Time: O(mn)
+</span>        <span class="c1"># Space: O(1)
+</span>
+</code></pre></div></div>
+
+<h2 id="7-grumpy-bookstore-owner---medium">7. Grumpy Bookstore Owner - Medium</h2>
+
+<p><a href="https://leetcode.com/problems/grumpy-bookstore-owner/description/">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">maxSatisfied</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">customers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">grumpy</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">minutes</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: List[int], List[int], minute
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># Store open for N (length of list)
+</span>            <span class="c1"># Customers represents the "element"
+</span>            <span class="c1"># Grumpy list
+</span>            <span class="c1"># Can stay "non grumpy" for minutes
+</span>            <span class="c1"># What is the most ideal way to have maximum satisifed customers?
+</span>        <span class="c1"># Example 1
+</span>        <span class="c1"># Inputs:
+</span>            <span class="c1"># Customer -&gt; [1,0,1,2,1,1,7,5]
+</span>            <span class="c1"># Grumpy -&gt;   [0,1,0,1,0,1,0,1]
+</span>            <span class="c1"># Mintues -&gt;   3 
+</span>        <span class="c1"># Outputs:
+</span>            <span class="c1"># 16
+</span>                <span class="c1"># We can see 1 + 5 is the largest
+</span>                <span class="c1"># Hence we use that "Minutes" to stay not grumpy
+</span>                <span class="c1"># [1,1,1] + [1,7,5] = 16
+</span>        
+        <span class="c1"># First identify the index that gets grumpy
+</span>        <span class="c1"># Can this be treated as 2d matrix and find the best cost path?
+</span>        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">customers</span><span class="p">)</span>
+
+        <span class="c1"># Baseline -&gt; Already satisifed
+</span>        <span class="n">baseline</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">grumpy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">baseline</span> <span class="o">+=</span> <span class="n">customers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># Sliding window 
+</span>        <span class="n">gain</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">max_gain</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Initial Window
+</span>        <span class="c1"># Note, if minutes &gt; n, that means we can cover WHOLE customers
+</span>        <span class="c1"># If n &gt; minutes, then we will be range(0,3) -&gt; which means we started from 0 to minutes
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">minutes</span><span class="p">,</span><span class="n">n</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">grumpy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gain</span> <span class="o">+=</span> <span class="n">customers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c1"># Max gain set to initial gain we calculated
+</span>        <span class="n">max_gain</span> <span class="o">=</span> <span class="n">gain</span>
+
+        <span class="c1"># Slide, starting from minutes
+</span>        <span class="c1"># Note, if minutes &gt; n, it would exists
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">minutes</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="c1"># i = the NEW index entering the window (right edge)
+</span>            <span class="k">if</span> <span class="n">grumpy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gain</span> <span class="o">+=</span> <span class="n">customers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># j = the OLD index leaving the window (left edge)
+</span>            <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">minutes</span>
+            <span class="k">if</span> <span class="n">grumpy</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gain</span> <span class="o">-=</span> <span class="n">customers</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            
+            <span class="c1"># Basically we are sliding now:
+</span>            <span class="c1"># initial window: [0,1,2] → gain from grumpy==1 here
+</span>            <span class="c1"># i=3, j=0 → window [1,2,3]  (add idx 3, remove idx 0)
+</span>            <span class="c1"># i=4, j=1 → window [2,3,4]  (add idx 4, remove idx 1)
+</span>            <span class="c1"># i=5, j=2 → window [3,4,5]  (add idx 5, remove idx 2)
+</span>            <span class="c1"># i=6, j=3 → window [4,5,6]  (add idx 6, remove idx 3)
+</span>            <span class="c1"># i=7, j=4 → window [5,6,7]  (add idx 7, remove idx 4)
+</span>            
+            <span class="c1"># If it is greater
+</span>            <span class="k">if</span> <span class="n">gain</span> <span class="o">&gt;</span> <span class="n">max_gain</span><span class="p">:</span>
+                <span class="n">max_gain</span> <span class="o">=</span> <span class="n">gain</span>
+        <span class="k">return</span> <span class="n">baseline</span> <span class="o">+</span> <span class="n">max_gain</span>
+
+
+</code></pre></div></div>
+
+<h2 id="8-longest-consecutive-sequence---medium">8. Longest Consecutive Sequence - Medium</h2>
+
+<p><a href="https://leetcode.com/problems/longest-consecutive-sequence/?envType=problem-list-v2&amp;envId=oizxjoit&amp;">Leetcode Link</a></p>
+
+<p>Initial attempt:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">longestConsecutive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: List[int]
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Descrption:  
+</span>            <span class="c1"># Return the Longest consecutive sequence
+</span>            <span class="c1"># Must run in O(n)
+</span>
+        <span class="c1"># Example 1:
+</span>        <span class="c1"># Inputs: nums = [100,4,200,1,3,2]
+</span>        <span class="c1"># Outputs: 4 -&gt; 1,2,3,4
+</span>
+        <span class="c1"># Example 2:
+</span>        <span class="c1"># Inputs: nums = [0,3,7,2,5,8,4,6,0,1]
+</span>        <span class="c1"># Outputs: 9 -&gt; 0,1,2,3,4,5,6,7,8
+</span>        <span class="c1"># Setup
+</span>        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+
+        <span class="c1"># Edge case catching
+</span>        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="c1"># Sorting
+</span>        <span class="n">nums</span><span class="p">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">max_sequence</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">current_sequence</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">current_sequence</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">max_sequence</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_sequence</span><span class="p">,</span> <span class="n">current_sequence</span><span class="p">)</span>
+                <span class="n">current_sequence</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">max_sequence</span> <span class="o">&lt;=</span> <span class="n">current_sequence</span><span class="p">:</span>
+            <span class="n">max_sequence</span> <span class="o">=</span> <span class="n">current_sequence</span>
+
+        <span class="k">return</span> <span class="n">max_sequence</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="c1"># Complexity
+</span>        <span class="c1"># You call nums.sort().
+</span>        <span class="c1"># Sorting an array of length n takes O(n log n) in the average case (Timsort in Python).
+</span>        <span class="c1"># After sorting, your loop runs in O(n).
+</span>        <span class="c1"># Together, that makes your solution O(n log n), not O(n).
+</span>        <span class="c1"># Hence this solution is incorrect
+</span></code></pre></div></div>
+
+<p>Correct Attempt:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">longestConsecutive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: List[int]
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Descrption:  
+</span>            <span class="c1"># Return the Longest consecutive sequence
+</span>            <span class="c1"># Must run in O(n)
+</span>
+        <span class="c1"># Example 1:
+</span>        <span class="c1"># Inputs: nums = [100,4,200,1,3,2]
+</span>        <span class="c1"># Outputs: 4 -&gt; 1,2,3,4
+</span>
+        <span class="c1"># Example 2:
+</span>        <span class="c1"># Inputs: nums = [0,3,7,2,5,8,4,6,0,1]
+</span>        <span class="c1"># Outputs: 9 -&gt; 0,1,2,3,4,5,6,7,8
+</span>        <span class="c1"># Setup
+</span>        <span class="n">s</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+
+        <span class="n">longest</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Iterate each number
+</span>        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="c1"># if x - 1 is NOT in s
+</span>            <span class="k">if</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+                <span class="c1"># Start a streak check 
+</span>                <span class="n">length</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="c1"># keep plusing until it is NOT
+</span>                <span class="k">while</span> <span class="n">x</span> <span class="o">+</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+                    <span class="n">length</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="c1"># Get longest
+</span>                <span class="n">longest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">longest</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">longest</span>
+</code></pre></div></div>
+
+<h2 id="9-longest-substring-without-repeating-characters---medium">9. Longest Substring Without Repeating Characters - Medium</h2>
+
+<p><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/?envType=problem-list-v2&amp;envId=oizxjoit&amp;">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">lengthOfLongestSubstring</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: str
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># Longest substring without duplicates
+</span>
+        <span class="c1"># Example 1:
+</span>            <span class="c1"># Inputs: "abcabcbb"
+</span>            <span class="c1"># Outputs: 3 -&gt; longest "abc" substring without duplicates
+</span>        <span class="c1"># Example 2:
+</span>            <span class="c1"># inputs: "bbbbbb":
+</span>            <span class="c1"># Outputs: 1 -&gt; "b"
+</span>        <span class="c1"># Example 3:
+</span>            <span class="c1"># Inputs: "pwwkew"
+</span>            <span class="c1"># Outputs: 3 -&lt; "wke"
+</span>        
+        <span class="c1"># last: maps a character to the last index where we saw it
+</span>        <span class="n">last</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># start: left edge of the "current window" (inclusive)
+</span>        <span class="c1"># best: length of the best window we've seen so far
+</span>        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">best</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Iterate over each character and its index
+</span>        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="c1"># If we've seen ch, before AND its last position is inside
+</span>            <span class="c1"># the current window [ start .. i-1], we must move left 
+</span>            <span class="c1"># edge (Strat) to one past that previous position to avoid duplicates
+</span>            <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">last</span> <span class="ow">and</span> <span class="n">last</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">:</span>
+                <span class="c1"># Drop everything up to and including previous ch.
+</span>                <span class="n">start</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="c1"># Record/update last index where we saw ch
+</span>            <span class="n">last</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+            <span class="c1"># The current window is [start .. i]. Its length is i - start + 1.
+</span>            <span class="c1"># Update best if this window is longer than what we had.
+</span>            <span class="n">best</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">best</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">best</span>
+</code></pre></div></div>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Initialize highlight.js after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Add TOC functionality
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

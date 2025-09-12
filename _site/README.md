@@ -62,21 +62,25 @@ cd glucolte.github.io
 
 # Install Ruby > 3.2+
 brew install ruby
-
-# Alternative: Use Conda instead of System Ruby
-# Use Conda with development tools
-# conda create -n git-site-env-1 -c conda-forge ruby=3.2 gcc_osx-64 gxx_osx-64 make
-# Point path
-# export PATH="/Users/garylu/anaconda3/envs/git-site-env-1/bin:$PATH"  
-
-
+gem install bundler jekyll
+bundle install
 # Check version
 which ruby
 ruby -v
 
-# Install Jekyll
+# Install Jekyll (if not already installed)
 gem install bundler jekyll
+
+# Create Gemfile (if it doesn't exist)
+echo "source 'https://rubygems.org'
+gem 'github-pages', group: :jekyll_plugins
+gem 'jekyll-seo-tag'
+gem 'jekyll-sitemap'" > Gemfile
+
+# Install dependencies
 bundle install
+
+# Alternative: Use system Ruby instead of Conda
 
 # Serve locally
 bundle exec jekyll serve

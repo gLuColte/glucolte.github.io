@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>trees · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>trees | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="trees" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/codingTrees" />
+<meta property="og:url" content="http://localhost:4000/study/codingTrees" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="trees" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"trees","url":"http://localhost:4000/study/codingTrees"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <p><strong>Patterns to know</strong></p>
+
+<ul>
+  <li>
+    <p><strong>DFS Traversals (Depth-First)</strong></p>
+
+    <ul>
+      <li>Preorder (Root → Left → Right)</li>
+      <li>Inorder (Left → Root → Right) → sorted order in BST</li>
+      <li>Postorder (Left → Right → Root)</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>BFS Traversals (Breadth-First)</strong></p>
+
+    <ul>
+      <li>Level Order (by queue)</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Divide &amp; Conquer</strong></p>
+
+    <ul>
+      <li>Build / validate BST</li>
+      <li>Lowest Common Ancestor (LCA)</li>
+      <li>Subtree problems (check subtree, serialize/compare)</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Path Problems</strong></p>
+
+    <ul>
+      <li>Path Sum, Maximum Path Sum</li>
+      <li>Diameter of Binary Tree</li>
+      <li>Root-to-leaf paths (collect, count)</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Other Patterns</strong></p>
+
+    <ul>
+      <li>Serialization / Deserialization</li>
+      <li>Flattening / converting tree structures (to linked list, array, etc.)</li>
+      <li>Traversal without recursion (stack / Morris traversal)</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<p><strong>How to identify</strong></p>
+
+<ul>
+  <li>Input is <code class="language-plaintext highlighter-rouge">root</code> (not array) → tree problem.</li>
+  <li>
+    <p>Ask yourself:</p>
+
+    <ul>
+      <li><strong>“Do I need nodes in sorted order?”</strong> → Inorder DFS.</li>
+      <li><strong>“Do I need to process parents before children?”</strong> → Preorder.</li>
+      <li><strong>“Do I need to clean up bottom-up?”</strong> → Postorder.</li>
+      <li><strong>“Do I need level by level / shortest path?”</strong> → BFS.</li>
+      <li><strong>“Is it about balancing / height / max depth?”</strong> → DFS with return values.</li>
+      <li><strong>“Is it about ancestors?”</strong> → LCA pattern.</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<p><strong>Traversals in a nutshell</strong></p>
+
+<p>For node <code class="language-plaintext highlighter-rouge">N</code>:</p>
+
+<ul>
+  <li><strong>Preorder:</strong> <code class="language-plaintext highlighter-rouge">N → Left → Right</code></li>
+  <li><strong>Inorder:</strong> <code class="language-plaintext highlighter-rouge">Left → N → Right</code></li>
+  <li><strong>Postorder:</strong> <code class="language-plaintext highlighter-rouge">Left → Right → N</code></li>
+  <li><strong>Level Order:</strong> visit nodes by levels (queue).</li>
+</ul>
+
+<p>Example tree:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      4
+     / \
+    2   5
+   / \
+  1   3
+</code></pre></div></div>
+
+<ul>
+  <li>Preorder → [4,2,1,3,5]</li>
+  <li>Inorder → [1,2,3,4,5]</li>
+  <li>Postorder → [1,3,2,5,4]</li>
+  <li>Level order → [[4],[2,5],[1,3]]</li>
+</ul>
+
+<hr />
+
+<p><strong>Common interview problems by category</strong></p>
+
+<ul>
+  <li><strong>Traversal:</strong> Binary Tree Inorder Traversal, Level Order Traversal.</li>
+  <li><strong>Path:</strong> Path Sum I/II, Diameter of Tree, Max Path Sum.</li>
+  <li><strong>BST:</strong> Validate BST, Convert Sorted Array to BST, Kth Smallest in BST.</li>
+  <li><strong>LCA:</strong> Lowest Common Ancestor in BST, in Binary Tree.</li>
+  <li><strong>Construction:</strong> Build Tree from Preorder+Inorder, Serialize &amp; Deserialize Binary Tree.</li>
+  <li><strong>Properties:</strong> Balanced Binary Tree, Symmetric Tree, Invert/Flip Tree.</li>
+</ul>
+
+<hr />
+
+<p>⚡ Pro tip:
+Whenever you see “<strong>sum, max, height, balanced, depth, diameter</strong>,” think <strong>DFS recursion with a return value</strong>.
+Whenever you see “<strong>level, closest, shortest path, zigzag</strong>,” think <strong>BFS with a queue</strong>.</p>
+
+<hr />
+
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Initialize highlight.js after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Add TOC functionality
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

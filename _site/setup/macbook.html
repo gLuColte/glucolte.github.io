@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Macbook Setup · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Macbook Setup | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Macbook Setup" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/setup/macbook" />
+<meta property="og:url" content="http://localhost:4000/setup/macbook" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Macbook Setup" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Macbook Setup","url":"http://localhost:4000/setup/macbook"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <p>Complete MacBook setup guide for <strong>local development and playground</strong> — with essential tools, apps, and configuration commands.</p>
+
+<hr />
+
+<h1 id="-system-setup-guide-for-macos">🛠 System Setup Guide for macOS</h1>
+
+<h2 id="-prerequisites">📦 Prerequisites</h2>
+
+<p>Install Xcode Command Line Tools:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>xcode-select <span class="nt">--install</span>
+</code></pre></div></div>
+
+<p>Install Homebrew (package manager):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/bin/bash <span class="nt">-c</span> <span class="s2">"</span><span class="si">$(</span>curl <span class="nt">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="si">)</span><span class="s2">"</span>
+brew update <span class="o">&amp;&amp;</span> brew doctor
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="️-zsh--powerlevel10k">⚙️ Zsh + Powerlevel10k</h2>
+
+<p>Install Zsh and plugins:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>zsh zsh-autosuggestions zsh-syntax-highlighting
+chsh <span class="nt">-s</span> /bin/zsh
+</code></pre></div></div>
+
+<p>Add to your <code class="language-plaintext highlighter-rouge">~/.zshrc</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">source</span> <span class="si">$(</span>brew <span class="nt">--prefix</span><span class="si">)</span>/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+<span class="nb">source</span> <span class="si">$(</span>brew <span class="nt">--prefix</span><span class="si">)</span>/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+</code></pre></div></div>
+
+<p>Install Powerlevel10k and fonts:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>powerlevel10k
+brew tap homebrew/cask-fonts
+brew <span class="nb">install</span> <span class="nt">--cask</span> font-meslo-lg-nerd-font
+<span class="nb">echo</span> <span class="s1">'source $(brew --prefix)/share/powerlevel10k/powerlevel10k.zsh-theme'</span> <span class="o">&gt;&gt;</span> ~/.zshrc
+p10k configure
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="-terminal-tools">💻 Terminal Tools</h2>
+
+<h3 id="tmux">Tmux</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>tmux
+</code></pre></div></div>
+
+<p>Create <code class="language-plaintext highlighter-rouge">~/.tmux.conf</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">set</span> <span class="nt">-g</span> prefix C-a
+unbind C-b
+<span class="nb">set</span> <span class="nt">-g</span> mouse on
+<span class="nb">set</span> <span class="nt">-g</span> base-index 1
+setw <span class="nt">-g</span> pane-base-index 1
+</code></pre></div></div>
+
+<p>(Optional TPM plugins):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+</code></pre></div></div>
+
+<h3 id="fuzzy-finder-suite">Fuzzy Finder Suite</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>fzf ripgrep fd
+<span class="si">$(</span>brew <span class="nt">--prefix</span><span class="si">)</span>/opt/fzf/install
+</code></pre></div></div>
+
+<p>Add to <code class="language-plaintext highlighter-rouge">~/.zshrc</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">FZF_DEFAULT_COMMAND</span><span class="o">=</span><span class="s1">'fd --type f --hidden --follow --exclude .git'</span>
+<span class="nb">export </span><span class="nv">FZF_DEFAULT_OPTS</span><span class="o">=</span><span class="s1">'--height 40% --layout=reverse --border'</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="-docker">🐳 Docker</h2>
+
+<p>Install Docker Desktop and helper tools:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install</span> <span class="nt">--cask</span> docker
+brew <span class="nb">install </span>lazydocker
+docker compose version
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="-git">🌱 Git</h2>
+
+<p>Install and configure Git:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>git lazygit git-extras
+
+git config <span class="nt">--global</span> user.name <span class="s2">"Your Name"</span>
+git config <span class="nt">--global</span> user.email <span class="s2">"you@example.com"</span>
+git config <span class="nt">--global</span> init.defaultBranch main
+git config <span class="nt">--global</span> color.ui auto
+</code></pre></div></div>
+
+<p>Useful aliases:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git config <span class="nt">--global</span> alias.st status
+git config <span class="nt">--global</span> alias.co checkout
+git config <span class="nt">--global</span> alias.br branch
+git config <span class="nt">--global</span> alias.ci commit
+</code></pre></div></div>
+
+<h3 id="lazygit-terminal-git-ui">LazyGit (Terminal Git UI)</h3>
+
+<p>LazyGit provides a simple terminal UI for Git commands. Launch with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lazygit
+</code></pre></div></div>
+
+<p>Key bindings:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">q</code> - Quit</li>
+  <li><code class="language-plaintext highlighter-rouge">?</code> - Help/Key bindings</li>
+  <li><code class="language-plaintext highlighter-rouge">c</code> - Commit</li>
+  <li><code class="language-plaintext highlighter-rouge">P</code> - Push</li>
+  <li><code class="language-plaintext highlighter-rouge">p</code> - Pull</li>
+  <li><code class="language-plaintext highlighter-rouge">space</code> - Stage/unstage files</li>
+  <li><code class="language-plaintext highlighter-rouge">enter</code> - View file diff</li>
+  <li><code class="language-plaintext highlighter-rouge">m</code> - Merge</li>
+  <li><code class="language-plaintext highlighter-rouge">b</code> - Create branch</li>
+  <li><code class="language-plaintext highlighter-rouge">d</code> - Delete branch</li>
+</ul>
+
+<p>Create config file <code class="language-plaintext highlighter-rouge">~/.config/lazygit/config.yml</code> for customization:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">gui</span><span class="pi">:</span>
+  <span class="na">showFileTree</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">showBranchCommitHash</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">showDivergenceFromBaseBranch</span><span class="pi">:</span> <span class="no">true</span>
+<span class="na">git</span><span class="pi">:</span>
+  <span class="na">autoFetch</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">autoRefresh</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="-languages--package-managers">🧪 Languages &amp; Package Managers</h2>
+
+<h3 id="nodejs--npm-via-nvm">Node.js + npm (via nvm)</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>node nvm
+<span class="nb">mkdir</span> ~/.nvm
+<span class="nb">echo</span> <span class="s1">'export NVM_DIR="$HOME/.nvm"'</span> <span class="o">&gt;&gt;</span> ~/.zshrc
+<span class="nb">echo</span> <span class="s1">'[ -s "$(brew --prefix)/opt/nvm/nvm.sh" ] &amp;&amp; \. "$(brew --prefix)/opt/nvm/nvm.sh"'</span> <span class="o">&gt;&gt;</span> ~/.zshrc
+</code></pre></div></div>
+
+<h3 id="python--conda">Python + Conda</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>python
+brew <span class="nb">install</span> <span class="nt">--cask</span> miniconda
+conda init zsh
+</code></pre></div></div>
+
+<p>Common usage:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>conda create <span class="nt">--name</span> myenv <span class="nv">python</span><span class="o">=</span>3.11
+conda activate myenv
+conda deactivate
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="-editors">📝 Editors</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>neovim vim
+brew <span class="nb">install</span> <span class="nt">--cask</span> visual-studio-code
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="-productivity-apps">💼 Productivity Apps</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install</span> <span class="nt">--cask</span> rectangle
+brew <span class="nb">install</span> <span class="nt">--cask</span> obsidian
+brew <span class="nb">install</span> <span class="nt">--cask</span> keepassxc
+brew <span class="nb">install</span> <span class="nt">--cask</span> displaylink
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="-final-steps">✅ Final Steps</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">source</span> ~/.zshrc
+zsh <span class="nt">--version</span>
+tmux <span class="nt">-V</span>
+docker <span class="nt">--version</span>
+fzf <span class="nt">--version</span>
+git <span class="nt">--version</span>
+</code></pre></div></div>
+
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>projects · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>projects | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="projects" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/projects/" />
+<meta property="og:url" content="http://localhost:4000/projects/" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="projects" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"projects","url":"http://localhost:4000/projects/"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <h1 id="projects">/projects</h1>
+
+<div id="projects-container">
+  <div id="loading" class="loading">
+    <div class="loading-spinner"></div>
+    <p id="loading-text">Loading projects...</p>
+  </div>
+  <div id="error" class="error" style="display: none;">
+    <p>Failed to load projects. Please try again later.</p>
+    <button id="retry-button" class="retry-button">Retry</button>
+  </div>
+  <div id="projects-toolbar" class="projects-toolbar" style="display: none;">
+    <input id="project-search" placeholder="Search projects…" />
+    <div id="language-chips"></div>
+    <select id="sort-select">
+      <option value="stars" selected="">Most stars</option>
+      <option value="updated">Recently updated</option>
+      <option value="name">Name A–Z</option>
+    </select>
+  </div>
+  <div id="projects-list" class="projects-list" style="display: none;">
+    <!-- Projects will be dynamically loaded here -->
+  </div>
+</div>
+
+<style>
+:root {
+  --border: #e5e7eb;
+  --bg: #ffffff;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --accent: #111827;
+  --shadow: 0 1px 3px rgba(0,0,0,.1);
+  --shadow-hover: 0 8px 24px rgba(0,0,0,.08);
+}
+
+.projects-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+#project-search {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+#project-search:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+#language-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.language-chip {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.language-chip:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.language-chip.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+#sort-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.projects-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.projects-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.projects-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.projects-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.projects-list::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.project-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.project-card.pinned::before {
+  content: "Pinned";
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  background: var(--accent);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.project-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.project-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.project-title a:hover {
+  color: var(--accent);
+}
+
+.project-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.language-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.language-dot.python { background: #3776ab; }
+.language-dot.javascript { background: #f7df1e; }
+.language-dot.typescript { background: #3178c6; }
+.language-dot.java { background: #ed8b00; }
+.language-dot.cpp { background: #00599c; }
+.language-dot.c { background: #a8b9cc; }
+.language-dot.csharp { background: #239120; }
+.language-dot.php { background: #777bb4; }
+.language-dot.ruby { background: #cc342d; }
+.language-dot.go { background: #00add8; }
+.language-dot.rust { background: #dea584; }
+.language-dot.swift { background: #fa7343; }
+.language-dot.kotlin { background: #7f52ff; }
+.language-dot.dart { background: #0175c2; }
+.language-dot.css { background: #1572b6; }
+.language-dot.html { background: #e34f26; }
+.language-dot.shell { background: #89e051; }
+.language-dot.jupyter-notebook { background: #f37626; }
+
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.updated {
+  cursor: help;
+}
+
+.project-description {
+  margin: 0 0 1rem 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.project-links {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.project-links a {
+  padding: 0.5rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.project-links a:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.skeleton-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 1rem;
+  background: var(--border);
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-line.medium {
+  width: 80%;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.retry-button {
+  background: var(--accent);
+  color: white;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.2s;
+}
+
+.retry-button:hover {
+  background: var(--text);
+  border-color: var(--text);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .projects-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  #project-search {
+    min-width: auto;
+  }
+  
+  .projects-list {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script>
+class GitHubProjects {
+  constructor() {
+    this.username = 'gLuColte';
+    this.apiBase = 'https://api.github.com';
+    
+    // Projects to ignore - edit this list directly in the code
+    this.ignoreList = [
+      'garyJune',
+      'glucolte.github.io',
+      'COMP9321-Data-Services'
+    ];
+    
+    // Pinned projects - edit this list directly in the code
+    this.pinned = [
+    //   'AI-Stack-Lite',
+    //   'GenAi-Lab-ComfyUi'
+    ];
+    
+    this.viewState = {
+      search: '',
+      language: 'All',
+      sort: 'stars'
+    };
+    
+    this.allProjects = [];
+    this.languages = new Set();
+    
+    this.init();
+  }
+
+  async init() {
+    this.loadViewState();
+    this.renderSkeletons(8);
+    
+    try {
+      await this.loadProjects();
+    } catch (error) {
+      console.error('Error loading projects:', error);
+      this.showError();
+    }
+  }
+
+  loadViewState() {
+    const saved = localStorage.getItem('github-projects-viewstate');
+    if (saved) {
+      this.viewState = { ...this.viewState, ...JSON.parse(saved) };
+    }
+  }
+
+  saveViewState() {
+    localStorage.setItem('github-projects-viewstate', JSON.stringify(this.viewState));
+  }
+
+  renderSkeletons(count) {
+    const projectsEl = document.getElementById('projects-list');
+    const skeletons = Array(count).fill().map(() => `
+      <div class="skeleton-card">
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line medium"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+    `).join('');
+    
+    projectsEl.innerHTML = skeletons;
+    projectsEl.style.display = 'block';
+  }
+
+  async loadProjects() {
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const projectsEl = document.getElementById('projects-list');
+    const toolbarEl = document.getElementById('projects-toolbar');
+
+    try {
+      const reposResponse = await fetch(`${this.apiBase}/users/${this.username}/repos?sort=updated&per_page=100`);
+      
+      if (!reposResponse.ok) {
+        if (reposResponse.status === 403) {
+          throw new Error('GitHub API rate limit exceeded. Please try again later.');
+        }
+        throw new Error(`HTTP error! status: ${reposResponse.status}`);
+      }
+      
+      const repos = await reposResponse.json();
+      
+      // Filter and process projects
+      this.allProjects = repos
+        .filter(repo => !repo.fork && 
+                       repo.name !== this.username + '.github.io' &&
+                       !this.ignoreList.includes(repo.name))
+        .map(repo => ({
+          ...repo,
+          isPinned: this.pinned.includes(repo.name)
+        }));
+
+      // Build languages set
+      this.languages.clear();
+      this.allProjects.forEach(project => {
+        if (project.language) {
+          this.languages.add(project.language);
+        }
+      });
+
+      // Render toolbar and projects
+      this.renderToolbar();
+      this.renderProjects();
+      
+      loadingEl.style.display = 'none';
+      toolbarEl.style.display = 'flex';
+      
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      loadingEl.style.display = 'none';
+      errorEl.style.display = 'block';
+      errorEl.querySelector('p').textContent = error.message || 'Failed to load projects. Please try again later.';
+    }
+  }
+
+  renderToolbar() {
+    const searchEl = document.getElementById('project-search');
+    const chipsEl = document.getElementById('language-chips');
+    const sortEl = document.getElementById('sort-select');
+
+    // Set initial values
+    searchEl.value = this.viewState.search;
+    sortEl.value = this.viewState.sort;
+
+    // Render language chips
+    const languages = ['All', ...Array.from(this.languages).sort()];
+    chipsEl.innerHTML = languages.map(lang => `
+      <div class="language-chip ${lang === this.viewState.language ? 'active' : ''}" 
+           data-language="${lang}">${lang}</div>
+    `).join('');
+
+    // Add event listeners
+    searchEl.addEventListener('input', (e) => {
+      this.viewState.search = e.target.value;
+      this.saveViewState();
+      this.renderProjects();
+    });
+
+    chipsEl.addEventListener('click', (e) => {
+      if (e.target.classList.contains('language-chip')) {
+        const language = e.target.dataset.language;
+        this.viewState.language = language;
+        this.saveViewState();
+        
+        // Update active chip
+        chipsEl.querySelectorAll('.language-chip').forEach(chip => {
+          chip.classList.toggle('active', chip.dataset.language === language);
+        });
+        
+        this.renderProjects();
+      }
+    });
+
+    sortEl.addEventListener('change', (e) => {
+      this.viewState.sort = e.target.value;
+      this.saveViewState();
+      this.renderProjects();
+    });
+  }
+
+  applyFiltersAndSort(projects) {
+    let filtered = [...projects];
+
+    // Apply search filter
+    if (this.viewState.search) {
+      const searchLower = this.viewState.search.toLowerCase();
+      filtered = filtered.filter(project => 
+        project.name.toLowerCase().includes(searchLower) ||
+        (project.description && project.description.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply language filter
+    if (this.viewState.language !== 'All') {
+      filtered = filtered.filter(project => project.language === this.viewState.language);
+    }
+
+    // Apply sorting
+    switch (this.viewState.sort) {
+      case 'stars':
+        filtered.sort((a, b) => b.stargazers_count - a.stargazers_count);
+        break;
+      case 'updated':
+        filtered.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        break;
+      case 'name':
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+    }
+
+    // Sort pinned projects to top
+    filtered.sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return 0;
+    });
+
+    return filtered;
+  }
+
+  renderProjects() {
+    const projectsEl = document.getElementById('projects-list');
+    const filteredProjects = this.applyFiltersAndSort(this.allProjects);
+    
+    if (filteredProjects.length === 0) {
+      projectsEl.innerHTML = `
+        <div class="empty-state">
+          <h3>No matching projects</h3>
+          <p>Try adjusting your search or filters</p>
+        </div>
+      `;
+      return;
+    }
+
+    const projectsHTML = filteredProjects.map(project => this.createProjectCard(project)).join('');
+    projectsEl.innerHTML = projectsHTML;
+  }
+
+  createProjectCard(project) {
+    const languageDot = project.language ? 
+      `<div class="language-dot ${this.getLanguageClass(project.language)}"></div>` : '';
+    
+    const stars = project.stargazers_count > 0 ? 
+      `<div class="stars">⭐ ${project.stargazers_count}</div>` : '';
+    
+    const relativeTime = this.timeAgo(new Date(project.updated_at));
+    const exactDate = new Date(project.updated_at).toLocaleDateString();
+
+    return `
+      <div class="project-card ${project.isPinned ? 'pinned' : ''}">
+        <h3 class="project-title">
+          <a href="${project.html_url}" target="_blank" rel="noopener">${project.name}</a>
+        </h3>
+        <div class="project-meta">
+          ${languageDot}
+          ${stars}
+          <span class="updated" title="${exactDate}">Updated ${relativeTime}</span>
+        </div>
+        ${project.description ? `<p class="project-description">${project.description}</p>` : ''}
+        <div class="project-links">
+          <a href="${project.html_url}" target="_blank" rel="noopener">View on GitHub</a>
+          ${project.homepage ? `<a href="${project.homepage}" target="_blank" rel="noopener">Live Demo</a>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  timeAgo(date) {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`;
+    return `${Math.floor(diffInSeconds / 31536000)} years ago`;
+  }
+
+  getLanguageClass(language) {
+    return language.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  }
+
+  showError() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    
+    const retryButton = document.getElementById('retry-button');
+    retryButton.addEventListener('click', () => {
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      this.loadProjects();
+    });
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  new GitHubProjects();
+});
+</script>
+
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+</body>
+</html>

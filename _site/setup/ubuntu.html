@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Ubuntu Setup · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Ubuntu Setup | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Ubuntu Setup" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/setup/ubuntu" />
+<meta property="og:url" content="http://localhost:4000/setup/ubuntu" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Ubuntu Setup" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Ubuntu Setup","url":"http://localhost:4000/setup/ubuntu"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <p>Complete Ubuntu setup guide for <strong>local development and playground</strong> on a GPU machine — includes Nvidia drivers, CUDA, dev tools, monitoring, and daily-use commands.</p>
+
+<hr />
+
+<h1 id="-base-setup">🧩 Base Setup</h1>
+
+<h2 id="update--essentials">Update &amp; Essentials</h2>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade <span class="nt">-y</span>
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> build-essential curl wget git unzip net-tools software-properties-common ca-certificates gnupg lsb-release
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="-shell--editor">🎨 Shell &amp; Editor</h1>
+
+<h2 id="zsh--powerlevel10k">Zsh + Powerlevel10k</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> zsh fonts-powerline
+chsh <span class="nt">-s</span> <span class="si">$(</span>which zsh<span class="si">)</span>
+
+<span class="c"># Plugins</span>
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> zsh-autosuggestions zsh-syntax-highlighting
+<span class="nb">echo</span> <span class="s1">'source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh'</span> <span class="o">&gt;&gt;</span> ~/.zshrc
+<span class="nb">echo</span> <span class="s1">'source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh'</span> <span class="o">&gt;&gt;</span> ~/.zshrc
+
+<span class="c"># Powerlevel10k</span>
+git clone <span class="nt">--depth</span><span class="o">=</span>1 https://github.com/romkatv/powerlevel10k.git <span class="k">${</span><span class="nv">ZSH_CUSTOM</span><span class="k">:-</span><span class="p">~/.oh-my-zsh/custom</span><span class="k">}</span>/themes/powerlevel10k
+<span class="nb">echo</span> <span class="s1">'source ~/powerlevel10k/powerlevel10k.zsh-theme'</span> <span class="o">&gt;&gt;</span> ~/.zshrc
+</code></pre></div></div>
+
+<h2 id="neovim">Neovim</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> neovim
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="-development-tools">🧪 Development Tools</h1>
+
+<h2 id="git--lazygit">Git + Lazygit</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> git
+<span class="nb">sudo </span>add-apt-repository ppa:lazygit-team/release <span class="nt">-y</span>
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> lazygit
+
+git config <span class="nt">--global</span> user.name <span class="s2">"Your Name"</span>
+git config <span class="nt">--global</span> user.email <span class="s2">"you@example.com"</span>
+git config <span class="nt">--global</span> init.defaultBranch main
+</code></pre></div></div>
+
+<h2 id="docker--lazydocker">Docker + Lazydocker</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Docker</span>
+<span class="nb">sudo </span>apt remove <span class="nt">-y</span> docker docker-engine docker.io containerd runc
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> ca-certificates curl gnupg lsb-release
+<span class="nb">sudo install</span> <span class="nt">-m</span> 0755 <span class="nt">-d</span> /etc/apt/keyrings
+curl <span class="nt">-fsSL</span> https://download.docker.com/linux/ubuntu/gpg | <span class="nb">sudo </span>gpg <span class="nt">--dearmor</span> <span class="nt">-o</span> /etc/apt/keyrings/docker.gpg
+<span class="nb">echo</span> <span class="se">\</span>
+  <span class="s2">"deb [arch=</span><span class="si">$(</span>dpkg <span class="nt">--print-architecture</span><span class="si">)</span><span class="s2"> signed-by=/etc/apt/keyrings/docker.gpg] </span><span class="se">\</span><span class="s2">
+  https://download.docker.com/linux/ubuntu </span><span class="si">$(</span>lsb_release <span class="nt">-cs</span><span class="si">)</span><span class="s2"> stable"</span> <span class="se">\</span>
+| <span class="nb">sudo tee</span> /etc/apt/sources.list.d/docker.list <span class="o">&gt;</span> /dev/null
+
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+<span class="nb">sudo </span>usermod <span class="nt">-aG</span> docker <span class="nv">$USER</span>
+newgrp docker
+
+<span class="c"># Lazydocker</span>
+<span class="nb">sudo </span>curl <span class="nt">-L</span> https://github.com/jesseduffield/lazydocker/releases/latest/download/lazydocker_<span class="si">$(</span><span class="nb">uname</span> <span class="nt">-s</span><span class="si">)</span>_<span class="si">$(</span><span class="nb">uname</span> <span class="nt">-m</span><span class="si">)</span>.tar.gz | <span class="nb">sudo tar</span> <span class="nt">-xz</span> <span class="nt">-C</span> /usr/local/bin lazydocker
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="-ssh-server">💻 SSH Server</h1>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> openssh-server
+<span class="nb">sudo </span>systemctl <span class="nb">enable </span>ssh <span class="nt">--now</span>
+<span class="nb">sudo </span>ufw allow ssh
+<span class="nb">sudo </span>systemctl status ssh
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="-nvidia-drivers--cuda">⚡ Nvidia Drivers + CUDA</h1>
+
+<blockquote>
+  <p><strong>📋 Check Latest Versions</strong>: For the most current Nvidia drivers and CUDA versions, visit:</p>
+  <ul>
+    <li><strong>Nvidia Drivers</strong>: https://www.nvidia.com/drivers/</li>
+    <li><strong>CUDA Toolkit</strong>: https://developer.nvidia.com/cuda-downloads</li>
+    <li><strong>CUDA Archive</strong>: https://developer.nvidia.com/cuda-toolkit-archive</li>
+  </ul>
+</blockquote>
+
+<h2 id="install-nvidia-driver-520--cuda-118">Install Nvidia Driver 520 + CUDA 11.8</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+<span class="nb">sudo </span>apt purge nvidia<span class="k">*</span> <span class="nt">-y</span>
+<span class="nb">sudo </span>apt autoremove <span class="nt">-y</span> <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt autoclean <span class="nt">-y</span>
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade <span class="nt">-y</span>
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> g++ freeglut3-dev build-essential libx11-dev libxmu-dev libxi-dev libglu1-mesa libglu1-mesa-dev
+<span class="nb">sudo </span>add-apt-repository ppa:graphics-drivers/ppa <span class="nt">-y</span>
+<span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> libnvidia-common-520 libnvidia-gl-520 nvidia-driver-520
+
+<span class="c"># CUDA 11.8 (check CUDA downloads page for latest version)</span>
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
+<span class="nb">sudo mv </span>cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
+wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda-repo-ubuntu2204-11-8-local_11.8.0-520.61.05-1_amd64.deb
+<span class="nb">sudo </span>dpkg <span class="nt">-i</span> cuda-repo-ubuntu2204-11-8-local_11.8.0-520.61.05-1_amd64.deb
+<span class="nb">sudo cp</span> /var/cuda-repo-ubuntu2204-11-8-local/cuda-<span class="k">*</span><span class="nt">-keyring</span>.gpg /usr/share/keyrings/
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt <span class="nt">-y</span> <span class="nb">install </span>cuda
+<span class="nb">rm </span>cuda-ubuntu2204.pin cuda-repo-ubuntu2204-11-8-local_11.8.0-520.61.05-1_amd64.deb
+</code></pre></div></div>
+
+<p>Reboot and verify:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>reboot now
+nvidia-smi
+nvtop
+</code></pre></div></div>
+
+<h2 id="optional-container-toolkit">(Optional) Container Toolkit</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt remove <span class="nt">--purge</span> <span class="nt">-y</span> nvidia-container-toolkit
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt autoremove <span class="nt">-y</span>
+apt list <span class="nt">-a</span> <span class="s2">"*nvidia-container-toolkit*"</span>
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> nvidia-container-toolkit<span class="o">=</span>1.14.0-1 nvidia-container-toolkit-base<span class="o">=</span>1.14.0-1
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="-monitoring-tools">📊 Monitoring Tools</h1>
+
+<h2 id="cpu--memory">CPU / Memory</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>top
+vmstat 1
+mpstat <span class="nt">-P</span> ALL 1
+</code></pre></div></div>
+
+<h2 id="disk">Disk</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>iostat <span class="nt">-x</span> 1
+</code></pre></div></div>
+
+<h2 id="network">Network</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>traceroute <span class="nt">-n</span> <span class="nt">-w</span> 2 <span class="nt">-m</span> 15 www.google.com
+sar <span class="nt">-n</span> DEV 1
+</code></pre></div></div>
+
+<h2 id="processes--syscalls">Processes / Syscalls</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pidstat 1
+perf record <span class="nt">-F</span> 99 <span class="nt">-a</span> <span class="nt">-g</span> <span class="nt">--</span> <span class="nb">sleep </span>10
+perf report <span class="nt">-n</span> <span class="nt">--stdio</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="-common-command-cheatsheet">🧠 Common Command Cheatsheet</h1>
+
+<h2 id="system-info">System Info</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lsblk           <span class="c"># List block devices</span>
+<span class="nb">df</span> <span class="nt">-h</span>           <span class="c"># Disk usage</span>
+free <span class="nt">-h</span>         <span class="c"># Memory usage</span>
+lscpu            <span class="c"># CPU info</span>
+<span class="nb">uname</span> <span class="nt">-a</span>         <span class="c"># Kernel version</span>
+</code></pre></div></div>
+
+<h2 id="networking">Networking</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip a             <span class="c"># Show interfaces</span>
+ip route          <span class="c"># Show routes</span>
+netstat <span class="nt">-tulnp</span>    <span class="c"># Listening ports</span>
+traceroute &lt;host&gt; <span class="c"># Trace route</span>
+</code></pre></div></div>
+
+<h2 id="file--search">File &amp; Search</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>find <span class="nb">.</span> <span class="nt">-name</span> <span class="s2">"*.log"</span>
+<span class="nb">grep</span> <span class="nt">-R</span> <span class="s2">"pattern"</span> <span class="nb">.</span>
+<span class="nb">du</span> <span class="nt">-h</span> <span class="nt">--max-depth</span><span class="o">=</span>1
+</code></pre></div></div>
+
+<h2 id="docker">Docker</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker ps <span class="nt">-a</span>
+docker images
+docker compose up <span class="nt">-d</span>
+lazydocker
+</code></pre></div></div>
+
+<h2 id="git">Git</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
+lazygit
+</code></pre></div></div>
+
+<h2 id="zsh">Zsh</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>p10k configure
+</code></pre></div></div>
+
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+</body>
+</html>

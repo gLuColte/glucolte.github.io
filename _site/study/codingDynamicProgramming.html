@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>dynamic programming · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>dynamic programming | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="dynamic programming" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/codingDynamicProgramming" />
+<meta property="og:url" content="http://localhost:4000/study/codingDynamicProgramming" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="dynamic programming" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"dynamic programming","url":"http://localhost:4000/study/codingDynamicProgramming"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <h1 id="dynamic-programming">Dynamic Programming</h1>
+
+<p><strong>Patterns to know:</strong></p>
+<ul>
+  <li>1D DP (Fibonacci, House Robber).</li>
+  <li>2D DP on Grids (Unique Paths, Min Path Sum).
+    <ul>
+      <li>If it’s pure counting with 2 moves (right/down) → yes, think Pascal/binomial.</li>
+      <li>If it’s extra rules → switch to general DP grid filling (but it’s the same spirit).</li>
+      <li>If it’s just paths with no conditions → you can even skip DP and use the formula directly (C(m+n-2, m-1)).</li>
+    </ul>
+  </li>
+  <li>Subsequence DP (LIS, LCS, Edit Distance).</li>
+  <li>Knapsack Variants.</li>
+  <li>Interval DP (Burst Balloons).</li>
+  <li>State Machine DP (Stocks).</li>
+  <li>State Compression (Bitmask DP).</li>
+  <li>Digit DP (counting numbers under constraints).</li>
+</ul>
+
+<p><strong>How to identify:</strong></p>
+<ul>
+  <li>Problem asks for “maximum/minimum ways, cost, length”.</li>
+  <li>Overlapping subproblems (same input repeated).</li>
+  <li>Optimal substructure (global optimum = combination of local optima).</li>
+  <li>Often solved recursively → memoization → tabulation.</li>
+</ul>
+
+<hr />
+
+<ul id="markdown-toc">
+  <li><a href="#1-climbing-stairs---easy" id="markdown-toc-1-climbing-stairs---easy">1. Climbing Stairs - Easy</a></li>
+  <li><a href="#2-pascals-triangle---easy" id="markdown-toc-2-pascals-triangle---easy">2. Pascal’s Triangle - Easy</a></li>
+  <li><a href="#3-pascals-triangle-ii---easy" id="markdown-toc-3-pascals-triangle-ii---easy">3. Pascal’s Triangle II - Easy</a></li>
+  <li><a href="#4-counting-bits---easy" id="markdown-toc-4-counting-bits---easy">4. Counting Bits - Easy</a></li>
+  <li><a href="#5-unique-paths---medium" id="markdown-toc-5-unique-paths---medium">5. Unique Paths - Medium</a></li>
+  <li><a href="#6-unique-paths-ii---medium" id="markdown-toc-6-unique-paths-ii---medium">6. Unique Paths II - Medium</a></li>
+  <li><a href="#7-minimum-path-sum---medium" id="markdown-toc-7-minimum-path-sum---medium">7. Minimum Path Sum - Medium</a></li>
+  <li><a href="#8-is-subsequence---easy" id="markdown-toc-8-is-subsequence---easy">8. Is Subsequence - Easy</a></li>
+  <li><a href="#9-fibonacci-number---easy" id="markdown-toc-9-fibonacci-number---easy">9. Fibonacci Number - Easy</a></li>
+  <li><a href="#10-nth-tribonacci-number" id="markdown-toc-10-nth-tribonacci-number">10. Nth Tribonacci Number</a></li>
+  <li><a href="#11-maximum-repeating-substring---easy" id="markdown-toc-11-maximum-repeating-substring---easy">11. Maximum Repeating Substring - Easy</a></li>
+</ul>
+
+<hr />
+
+<h2 id="1-climbing-stairs---easy">1. Climbing Stairs - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/climbing-stairs/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<p>To understand the problem:</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">4   ------------ 4 ----------
+               / ^  \
+3   -------  3 - ^ - ^ ------
+          /  ^ - ^ - ^ ------
+2   ---- 2 - ^ - 2 - 2 ------
+       / ^   ^ - ^ - | ------
+1   --1- ^ - 1 - ^ - 1 ------
+      |  ^   |   ^   |
+S   --o--o---o---o---o-------
+
+</span><span class="gp">| -&gt;</span><span class="w"> </span>1 Step
+<span class="gp">^ -&gt;</span><span class="w"> </span>2 Step
+</code></pre></div></div>
+
+<p>Solution:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">climbStairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Input: int
+</span>        <span class="c1"># Output: int
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># Only 1 or 2 Steps
+</span>            <span class="c1"># Find distinct ways for Summing to n
+</span>        
+        <span class="c1"># Example 1:
+</span>        <span class="c1"># Input -&gt; [1]
+</span>        <span class="c1"># Output -&gt; 1 way
+</span>        <span class="c1"># Example 2:
+</span>        <span class="c1"># Input -&gt; [2]
+</span>        <span class="c1"># Output -&gt; [1+1], [2] = 2 Ways
+</span>        <span class="c1"># Input -&gt; 3
+</span>        <span class="c1"># Output -&gt; [1+1+1], [1+2], [2+1] = 3 ways
+</span>
+        <span class="c1"># Going from bottom of the tree up
+</span>
+        <span class="c1"># 0) If there is 1 stair -&gt; only 1 way up
+</span>        <span class="c1"># If there are 2 stairs -&gt; 2 ways up
+</span>        <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">n</span>
+
+        <span class="c1"># Initialize
+</span>        <span class="c1"># We at ladder 3, one step before = 2, and there is 2 way to reach it (aka step a single step, or jump two steps)
+</span>        <span class="c1"># We at ladder 3, two steps beofer = 1, and there is 1 way to reach it (aka step a single step)
+</span>        <span class="n">one_step_before</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># ways to reach THE step ahead
+</span>        <span class="n">two_steps_before</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># ways to reach THE 2 steps ahead
+</span>        <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Iterate from 3, meaning we are going up the "ladder"
+</span>        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># to reach 3, we add the "paths" before
+</span>            <span class="n">total</span> <span class="o">=</span> <span class="n">one_step_before</span> <span class="o">+</span> <span class="n">two_steps_before</span>
+            <span class="c1"># Re-assign, the two steps before, becomes one step before, as we move along
+</span>            <span class="n">two_steps_before</span> <span class="o">=</span> <span class="n">one_step_before</span>
+            <span class="c1"># The one step before becomes the current step
+</span>            <span class="n">one_step_before</span> <span class="o">=</span> <span class="n">total</span>
+        <span class="k">return</span> <span class="n">total</span>
+        <span class="c1"># Complexity:
+</span>        <span class="c1"># Time = O(n)
+</span>        <span class="c1"># Space = O(1)
+</span></code></pre></div></div>
+
+<h2 id="2-pascals-triangle---easy">2. Pascal’s Triangle - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/pascals-triangle/description/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">numRows</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="c1"># Input: int
+</span>        <span class="c1"># Output: List[List[int]]
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># Each number is the sum of the two numbers directly above it
+</span>        <span class="c1"># Example 1:
+</span>        <span class="c1"># Input -&gt; numRows = 5
+</span>        <span class="c1"># Output -&gt; [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]
+</span>        <span class="c1"># Example 2:
+</span>        <span class="c1"># Input -&gt; numRows = 1
+</span>        <span class="c1"># Output -&gt; [[1]]
+</span>
+        <span class="c1"># Understanding by reverting the "triangle"
+</span>        <span class="c1"># 5 | 1 4 6 4 1
+</span>        <span class="c1"># 4 |  1 3 3 1
+</span>        <span class="c1"># 3 |   1 2 1
+</span>        <span class="c1"># 2 |    1 1
+</span>        <span class="c1"># 1 |     1
+</span>        
+        <span class="c1"># Initialize with [1]
+</span>        <span class="n">output_list</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="c1"># We going up the "rows"
+</span>        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">numRows</span><span class="p">):</span>
+            <span class="c1"># Get the "last" row
+</span>            <span class="n">prev</span> <span class="o">=</span> <span class="n">output_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># The Current becomes:
+</span>            <span class="c1"># Middle Component "iterates" through length of previous and adds
+</span>            <span class="c1"># e.g. len(prev) = 3, minus one to keep it in index, then use the index to add
+</span>            <span class="n">middle_component</span> <span class="o">=</span> <span class="p">[</span><span class="n">prev</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">prev</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">prev</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="c1"># Append [1] to two side
+</span>            <span class="n">current</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">middle_component</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># Add to output_list
+</span>            <span class="n">output_list</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output_list</span>
+        <span class="c1"># Complexity
+</span>        <span class="c1"># Time = O(n^2) -&gt; Row 1 has 1 element, row 2 has 2, … row n has n.
+</span>        <span class="c1"># Space = O(n^2) -&gt; If you store all rows (like in output_list), you’re storing ~ n(n+1)/2 integers.
+</span></code></pre></div></div>
+
+<h2 id="3-pascals-triangle-ii---easy">3. Pascal’s Triangle II - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/pascals-triangle-ii/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">getRow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowIndex</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="c1"># Inputs: int
+</span>        <span class="c1"># Output: List[int]
+</span>        <span class="c1"># Description:
+</span>        <span class="c1"># In Pascal's triangle, each number is the sum of the two numbers directly above it
+</span>
+        <span class="c1"># Example 1:
+</span>        <span class="c1"># Inputs -&gt; rowIndex = 3
+</span>        <span class="c1"># Outputs -&gt; [1,3,3,1]
+</span>
+        <span class="c1"># Example 2:
+</span>        <span class="c1"># Inputs -&gt; rowIndex = 0
+</span>        <span class="c1"># Outputs -&gt; [1]
+</span>
+        <span class="c1"># Example 3:
+</span>        <span class="c1"># Inputs -&gt; rowIndex = 1
+</span>        <span class="c1"># Outputs -&gt; [1,1]
+</span>
+        <span class="c1"># Understanding:
+</span>        <span class="c1"># 4 | 1 4 6 4 1
+</span>        <span class="c1"># 3 |  1 3 3 1
+</span>        <span class="c1"># 2 |   1 2 1
+</span>        <span class="c1"># 1 |    1 1
+</span>        <span class="c1"># 0 |     1
+</span>
+        <span class="c1"># Initialize 1st row
+</span>        <span class="n">previous_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">rowIndex</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">previous_list</span>
+
+        <span class="c1"># Iterate through
+</span>        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowIndex</span><span class="p">):</span>
+            <span class="n">middle_component</span> <span class="o">=</span> <span class="p">[</span><span class="n">previous_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">previous_list</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">previous_list</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="n">current_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">middle_component</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">previous_list</span> <span class="o">=</span> <span class="n">current_list</span>
+        <span class="k">return</span> <span class="n">current_list</span>
+
+        <span class="c1"># Complexity:
+</span>        <span class="c1"># Time = O(n^2)
+</span>        <span class="c1"># Space = O(n)
+</span>
+</code></pre></div></div>
+
+<h2 id="4-counting-bits---easy">4. Counting Bits - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/counting-bits/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">countBits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="c1"># Inputs: int
+</span>        <span class="c1"># Outputs: List[int]
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># For 0...n
+</span>            <span class="c1"># Convert to Binary
+</span>
+        <span class="c1"># Example 1:
+</span>        <span class="c1"># Input -&gt; n = 2
+</span>        <span class="c1"># Output -&gt; [0,1,1] 
+</span>
+        <span class="c1"># Example 2:
+</span>        <span class="c1"># Input -&gt; n = 5
+</span>        <span class="c1"># Output -&gt; [0,1,1,2,1,2]
+</span>
+        <span class="c1"># Brute Force appraoch
+</span>        <span class="c1"># output_list = []
+</span>        <span class="c1"># for num in range(n+1):
+</span>        <span class="c1">#     current_sum = sum(int(_) for _ in bin(num)[2:])
+</span>        <span class="c1">#     output_list.append(current_sum)
+</span>        <span class="c1"># return output_list
+</span>
+        <span class="c1"># DP approach
+</span>        <span class="c1"># 0) Setup
+</span>        <span class="c1"># Initialize an array of 0s -&gt; [0,0,0,0,0,0] for n = 5
+</span>        <span class="n">output_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Iterate from 0...n+1
+</span>        <span class="c1"># 0 has no bit, which is already captured
+</span>        <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># num &gt;&gt; 1 = Chop off the last bit and return the integer
+</span>            <span class="c1"># E.g. 
+</span>            <span class="c1"># 13231 &gt;&gt; 1 = 6615
+</span>            <span class="c1"># &gt;&gt;&gt; bin(13231)
+</span>            <span class="c1"># '0b11001110101111'
+</span>            <span class="c1"># &gt;&gt;&gt; bin(13231&gt;&gt;1)
+</span>            <span class="c1"># '0b1100111010111'
+</span>            <span class="c1"># num &amp; 1 = last bit (0 if even, 1 if odd)
+</span>            <span class="c1"># The trick here is:
+</span>            <span class="c1"># 1 → 001  (1 one-bit)
+</span>            <span class="c1"># 2 → 010  (1 one-bit)
+</span>            <span class="c1"># 3 → 011  (2 one-bits)
+</span>            <span class="c1"># 4 → 100  (1 one-bit)
+</span>            <span class="c1"># 5 → 101  (2 one-bits)
+</span>            <span class="c1"># 6 → 110  (2 one-bits)
+</span>            <span class="c1"># 7 → 111  (3 one-bits)
+</span>            <span class="c1"># Example:
+</span>            <span class="c1"># 5 (101) → 2 (10)
+</span>            <span class="c1"># 6 (110) → 3 (11)
+</span>            <span class="c1"># 7 (111) → 3 (11)
+</span>            <span class="c1"># You are not "directly" using the previous number
+</span>            <span class="c1"># You are using the "number" that is off the same "bit"
+</span>            <span class="c1"># So overall, we get:
+</span>            <span class="n">output_list</span><span class="p">[</span><span class="n">num</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_list</span><span class="p">[</span><span class="n">num</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">num</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output_list</span>
+
+        <span class="c1"># Complexity
+</span>        <span class="c1"># Time -&gt; O(n)
+</span>        <span class="c1"># Space -&gt; O(n) -&gt; Output list has size n+1
+</span>
+</code></pre></div></div>
+
+<h2 id="5-unique-paths---medium">5. Unique Paths - Medium</h2>
+
+<p><a href="https://leetcode.com/problems/unique-paths/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">uniquePaths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: int, int
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># Initially located at the top left corner (0,0)
+</span>            <span class="c1"># Tries to move to bottom right
+</span>            <span class="c1"># Can only move down or right
+</span>            <span class="c1"># Return the number of possible unique paths that the robot can take to reach the bottom righ corner
+</span>
+        <span class="c1"># Example 1:
+</span>        <span class="c1"># Inputs -&gt; 3,7
+</span>        <span class="c1"># Outputs -&gt; 28
+</span>
+        <span class="c1"># Example 2:
+</span>        <span class="c1"># Inputs -&gt; 3,2
+</span>        <span class="c1"># Outputs -&gt; 3
+</span>
+        <span class="c1"># Think of it as Pascal Triangle
+</span>        <span class="c1"># 3x3
+</span>        <span class="c1"># 1 1 1
+</span>        <span class="c1"># 1 2 3
+</span>        <span class="c1"># 1 3 6
+</span>
+        <span class="c1"># 5x4
+</span>        <span class="c1"># 1  1  1  1  1 
+</span>        <span class="c1"># 1  2  3  4  5
+</span>        <span class="c1"># 1  3  6  10 15
+</span>        <span class="c1"># 1  4  10 20 35 
+</span>
+        <span class="c1"># Create the 2d grid first
+</span>        <span class="n">dp</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span>
+        <span class="c1"># Fill the rest of the table
+</span>        <span class="c1"># i goes down
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">m</span><span class="p">):</span>
+            <span class="c1"># j goes right
+</span>            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+                <span class="c1"># E.g. i = 1, j = 1 --&gt; 1 + 1 = 2
+</span>                <span class="c1"># E.g. i = 2, j = 6 --&gt; 2 + 6 = 7
+</span>                <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Answer
+</span>        <span class="k">return</span> <span class="n">dp</span><span class="p">[</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h2 id="6-unique-paths-ii---medium">6. Unique Paths II - Medium</h2>
+
+<p><a href="https://leetcode.com/problems/unique-paths-ii/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">uniquePathsWithObstacles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obstacleGrid</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: List[List[int]]
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Description:
+</span>        <span class="c1">#   Given a Grid m x n
+</span>        <span class="c1">#   Start at (0,0)
+</span>        <span class="c1">#   Move to the bottom right (m-1, n-1)
+</span>        <span class="c1">#   Can only move down or right
+</span>        <span class="c1">#   Obstacles are marked as 1, spaces as 0
+</span>        <span class="c1">#   Return the number of possible unique paths to the bottom right
+</span>        <span class="c1">#
+</span>        <span class="c1"># Example 1
+</span>        <span class="c1"># Inputs: obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]
+</span>        <span class="c1"># Output: 2
+</span>        <span class="c1">#
+</span>        <span class="c1"># Pascal Triangle intuition (no obstacles):
+</span>        <span class="c1"># 3x3
+</span>        <span class="c1"># 1 1 1
+</span>        <span class="c1"># 1 2 3
+</span>        <span class="c1"># 1 3 6
+</span>        <span class="c1">#
+</span>        <span class="c1"># With obstacles (1s act like “walls” that stop flow):
+</span>        <span class="c1"># 1 1 1
+</span>        <span class="c1"># 1 0 1
+</span>        <span class="c1"># 1 1 2
+</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">obstacleGrid</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">obstacleGrid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># Edge case: start or end blocked → 0 paths
+</span>        <span class="k">if</span> <span class="n">obstacleGrid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">obstacleGrid</span><span class="p">[</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="c1"># pathGrid[i][j] = number of ways to reach (i, j)
+</span>        <span class="c1"># Note - a mistake made here is assuming pathGrid initialize with 1
+</span>        <span class="n">pathGrid</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span>
+
+        <span class="c1"># Seed: exactly one way to “be” at the start (if not blocked)
+</span>        <span class="n">pathGrid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># First column: only from above; if an obstacle appears,
+</span>        <span class="c1"># everything below remains 0 (no way around in the same column)
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+            <span class="n">pathGrid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">obstacleGrid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">pathGrid</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># First row: only from left; if an obstacle appears,
+</span>        <span class="c1"># everything to the right remains 0 (no way around in the same row)
+</span>        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">pathGrid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">obstacleGrid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">pathGrid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Inner cells: if not an obstacle → sum of top + left (Pascal with walls)
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+                <span class="c1"># If there is an obstacle
+</span>                <span class="k">if</span> <span class="n">obstacleGrid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">pathGrid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="c1"># If there is no obstacle, sum top and left
+</span>                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pathGrid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">pathGrid</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">pathGrid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Answer: ways to reach bottom-right
+</span>        <span class="k">return</span> <span class="n">pathGrid</span><span class="p">[</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Complexity:
+</span>        <span class="c1"># Time = O(mn)
+</span>        <span class="c1"># Space = O(mn)
+</span>
+</code></pre></div></div>
+
+<h2 id="7-minimum-path-sum---medium">7. Minimum Path Sum - Medium</h2>
+
+<p><a href="https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">minPathSum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: List[List[int]]
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Descriptions:
+</span>            <span class="c1"># Grid with NON Negative values
+</span>            <span class="c1"># Find a path from top left to bottom right, minimizes the sum
+</span>
+        <span class="c1"># Example 1:
+</span>        <span class="c1"># Inputs -&gt; grid = [[1,3,1],[1,5,1],[4,2,1]]
+</span>        <span class="c1"># Outputs -&gt; 7
+</span>        <span class="c1"># Example 2:
+</span>        <span class="c1"># Inputs -&gt; grid = [[1,2,3],[4,5,6]]
+</span>        <span class="c1"># Outputs -&gt; 12
+</span>        <span class="c1"># Understanding:
+</span>            <span class="c1"># Think of as Tolls per Cell
+</span>            <span class="c1"># You are finding the "accumulative minimum cost"
+</span>            <span class="c1"># The local minimum will eventually build the "global" minimum
+</span>
+        <span class="c1"># Setup
+</span>        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># Prefix sums along first row
+</span>        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Prefix sums along the first column
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">m</span><span class="p">):</span>
+            <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Fill the rest
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">m</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">min</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">grid</span><span class="p">[</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Complexity
+</span>        <span class="c1"># Time -&gt; O(nm)
+</span>        <span class="c1"># Space -&gt; O(nm)
+</span></code></pre></div></div>
+
+<h2 id="8-is-subsequence---easy">8. Is Subsequence - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">isSubsequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># Inputs: str, str
+</span>        <span class="c1"># Outputs: bool
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># Subsequence -&gt; s is formed by deleting some(or nill) of the characters
+</span>            <span class="c1"># Preserving the order
+</span>            <span class="c1"># "ace" -&gt; abcde -&gt; true
+</span>            <span class="c1"># "aec" -&gt; abcde -&gt; false
+</span>        <span class="c1"># Example 1
+</span>        <span class="c1"># Inputs -&gt; s = "abc", t = "ahbgdc"
+</span>        <span class="c1"># Output -&gt; True
+</span>
+        <span class="c1"># Example 2
+</span>        <span class="c1"># Inputs -&gt; s = "axc", t = "ahbgdc"
+</span>        <span class="c1"># Output -&gt; False
+</span>        
+        <span class="c1"># Edge Case
+</span>        <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s">""</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="c1"># Iterate and pointer
+</span>        <span class="n">s_pointer</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">character</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">character</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="n">s_pointer</span><span class="p">]:</span>
+                <span class="n">s_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="c1"># Early exit
+</span>                <span class="k">if</span> <span class="n">s_pointer</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c1"># Walk through an example
+</span>        <span class="c1"># t = ahbgdc
+</span>        <span class="c1"># s = abc
+</span>        <span class="c1"># Iteration 1
+</span>            <span class="c1"># a, s_pointer = 0
+</span>            <span class="c1"># a == s[s_pointer] --&gt; s_pointer += 1 = 1
+</span>        <span class="c1"># Iteration 2
+</span>            <span class="c1"># h, s_pointer = 1
+</span>            <span class="c1"># h != s[s_pointer] 
+</span>        <span class="c1"># Iteration 3
+</span>            <span class="c1"># b, s_pointer = 1
+</span>            <span class="c1"># b == s[pointer] --&gt; s_pointer += 1 = 2
+</span>        <span class="c1"># Iteration 4
+</span>            <span class="c1"># g, s_pointer = 2
+</span>            <span class="c1"># g != s[s_pointer]
+</span>        <span class="c1"># iteration 5
+</span>            <span class="c1"># d, s_pointer = 2
+</span>            <span class="c1"># d != s[s_pointer]
+</span>        <span class="c1"># iteration 6
+</span>            <span class="c1"># c, s_pointer = 2
+</span>            <span class="c1"># c == s[s_pointer] -&gt; s_pointer += 1 = 3
+</span>            <span class="c1"># s_pointer == len(s) -&gt; Return True
+</span></code></pre></div></div>
+
+<h2 id="9-fibonacci-number---easy">9. Fibonacci Number - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">fib</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: int
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># F(n-1) + F(n-2) 
+</span>        
+        <span class="c1"># Typical Recursion Appraoch
+</span>        <span class="c1"># if n == 0:
+</span>        <span class="c1">#     return 0
+</span>        <span class="c1"># if n == 1:
+</span>        <span class="c1">#     return 1
+</span>        
+        <span class="c1"># return self.fib(n-1) + self.fib(n-2)
+</span>        <span class="c1"># Complexity
+</span>        <span class="c1"># Time O(2^n)
+</span>        <span class="c1"># Space O(n)
+</span>
+        <span class="c1"># Dynamic Programming approach
+</span>        <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">n</span>
+        <span class="c1"># We create a list
+</span>        <span class="n">dp</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># We calculate the list
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># Append the value
+</span>            <span class="n">dp</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">dp</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+        <span class="c1"># Complexity:
+</span>        <span class="c1"># Time O(n)
+</span>        <span class="c1"># Space O(n)
+</span>
+</code></pre></div></div>
+
+<h2 id="10-nth-tribonacci-number">10. Nth Tribonacci Number</h2>
+
+<p><a href="https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">tribonacci</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: int
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># T3 = T0 + T1 + T2
+</span>
+        <span class="c1"># Setup
+</span>        <span class="n">dp</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Iterate
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">dp</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">dp</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+        <span class="c1"># Complexity
+</span>        <span class="c1"># Time - O(n)
+</span>        <span class="c1"># Space - O(n)
+</span></code></pre></div></div>
+
+<h2 id="11-maximum-repeating-substring---easy">11. Maximum Repeating Substring - Easy</h2>
+
+<p><a href="https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&amp;envId=dynamic-programming">Leetcode Link</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">maxRepeating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Inputs: str, str
+</span>        <span class="c1"># Outputs: int
+</span>        <span class="c1"># Description:
+</span>            <span class="c1"># Occurence of "word" in sequence
+</span>        <span class="c1"># Count
+</span>        <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Current Word
+</span>        <span class="n">cur</span> <span class="o">=</span> <span class="n">word</span>
+        <span class="c1"># Keep Iterating and add word to cur
+</span>        <span class="c1"># Breaks when it is no longer a substring
+</span>        <span class="k">while</span> <span class="n">cur</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">cur</span> <span class="o">+=</span> <span class="n">word</span>
+        <span class="k">return</span> <span class="n">k</span>
+        <span class="c1"># Think about it in a reverse manner
+</span>        <span class="c1"># how many words keeps it in "Sequence"
+</span>        <span class="c1"># Complexity:
+</span>        <span class="c1"># Time - O(kn) - n = len of sequence
+</span>        <span class="c1"># Space - O(km) - m = len of word
+</span>
+
+</code></pre></div></div>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Initialize highlight.js after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Add TOC functionality
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>
