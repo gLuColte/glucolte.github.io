@@ -1,6 +1,6 @@
 ---
 title: Ubuntu Setup
-permalink: /setup/ubuntuSetup
+permalink: /setup/ubuntu
 ---
 
 <div class="hero">

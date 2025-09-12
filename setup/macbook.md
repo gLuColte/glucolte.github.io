@@ -1,6 +1,6 @@
 ---
 title: Macbook Setup
-permalink: /setup/macbookSetup
+permalink: /setup/macbook
 ---
 
 <div class="hero">

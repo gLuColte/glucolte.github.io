@@ -7,7 +7,7 @@ permalink: /setup/
   <div class="hero-text">
     <h1>/setup</h1>
     <p>
-      Complete setup guides for development environments — choose your platform and get started with essential tools, configurations, and best practices.
+      Things I do to setup my systems
     </p>
   </div>
 </div>
@@ -35,7 +35,7 @@ permalink: /setup/
 
   <div class="setup-card">
     <div class="setup-icon">🖥️</div>
-    <h2>Server Setup</h2>
+    <h2>Ubuntu Setup</h2>
     <p>Linux server configuration for deployment, monitoring, and production environments.</p>
     <div class="setup-features">
       <span class="feature-tag">Ubuntu/Debian</span>
@@ -44,7 +44,7 @@ permalink: /setup/
       <span class="feature-tag">SSL/TLS</span>
       <span class="feature-tag">Monitoring</span>
     </div>
-    <a href="{{ '/setup/server' | relative_url }}" class="setup-button">
+    <a href="{{ '/setup/ubuntu' | relative_url }}" class="setup-button">
       Start Server Setup →
     </a>
   </div>
