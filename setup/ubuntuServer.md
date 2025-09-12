@@ -3,7 +3,7 @@ title: Ubuntu Setup
 permalink: /setup/ubuntu
 ---
 
-Complete Ubuntu setup guide for development on a GPU machine — includes Nvidia drivers, CUDA, dev tools, monitoring, and daily-use commands.
+Complete Ubuntu setup guide for **local development and playground** on a GPU machine — includes Nvidia drivers, CUDA, dev tools, monitoring, and daily-use commands.
 
 ---
 

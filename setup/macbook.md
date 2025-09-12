@@ -3,7 +3,7 @@ title: Macbook Setup
 permalink: /setup/macbook
 ---
 
-Complete MacBook setup guide for development and note-taking — with essential tools, apps, and configuration commands.
+Complete MacBook setup guide for **local development and playground** — with essential tools, apps, and configuration commands.
 
 ---
 
