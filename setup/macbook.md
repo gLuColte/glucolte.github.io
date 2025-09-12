@@ -7,33 +7,225 @@ permalink: /setup/macbookSetup
   <div class="hero-text">
     <h1>/setup/macbook</h1>
     <p>
-      Fresh MacBook setup for development and note-taking. Minimal steps, just clean links to installers and guides.
+      Complete MacBook setup guide for development and note-taking — with essential tools, apps, and configuration commands.
     </p>
   </div>
 </div>
 
-<div class="sections">
-  <section class="section">
-    <h2>terminal &amp; dev tools</h2>
-    <ul class="list">
-      <li><strong>zsh</strong> — default macOS shell (use with <a href="https://ohmyz.sh/" target="_blank" rel="noopener">oh-my-zsh</a>)</li>
-      <li><strong>Powerlevel10k (p10k)</strong> — fast prompt theme — <a href="https://github.com/romkatv/powerlevel10k" target="_blank" rel="noopener">install guide</a></li>
-      <li><strong>Git</strong> — version control — <a href="https://git-scm.com/downloads" target="_blank" rel="noopener">download</a></li>
-      <li><strong>Visual Studio Code</strong> — editor — <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">download</a></li>
-      <li><strong>SSH (for Git)</strong> — GitHub SSH keys — <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh" target="_blank" rel="noopener">setup guide</a></li>
-      <li><strong>Anaconda</strong> — Python env &amp; packages — <a href="https://www.anaconda.com/download" target="_blank" rel="noopener">download</a></li>
-      <li><strong>Docker Desktop</strong> — containers — <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">download</a></li>
-      <li><strong>Homebrew (optional)</strong> — package manager — <a href="https://brew.sh" target="_blank" rel="noopener">brew.sh</a></li>
-    </ul>
-  </section>
+---
 
-  <section class="section">
-    <h2>productivity apps</h2>
-    <ul class="list">
-      <li><strong>Rectangle</strong> — window snapping — <a href="https://rectangleapp.com/" target="_blank" rel="noopener">download</a></li>
-      <li><strong>DisplayLink Manager</strong> — multi-display docks — <a href="https://www.synaptics.com/products/displaylink-graphics/downloads/macos" target="_blank" rel="noopener">macOS driver</a></li>
-      <li><strong>Obsidian</strong> — note-taking — <a href="https://obsidian.md/" target="_blank" rel="noopener">download</a></li>
-      <li><strong>KeePassXC</strong> — password manager — <a href="https://keepassxc.org/" target="_blank" rel="noopener">download</a></li>
-    </ul>
-  </section>
-</div>
+# 🛠 System Setup Guide for macOS
+
+## 📦 Prerequisites
+
+Install Xcode Command Line Tools:
+
+```bash
+xcode-select --install
+````
+
+Install Homebrew (package manager):
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew update && brew doctor
+```
+
+---
+
+## ⚙️ Zsh + Powerlevel10k
+
+Install Zsh and plugins:
+
+```bash
+brew install zsh zsh-autosuggestions zsh-syntax-highlighting
+chsh -s /bin/zsh
+```
+
+Add to your `~/.zshrc`:
+
+```bash
+source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+```
+
+Install Powerlevel10k and fonts:
+
+```bash
+brew install powerlevel10k
+brew tap homebrew/cask-fonts
+brew install --cask font-meslo-lg-nerd-font
+echo 'source $(brew --prefix)/share/powerlevel10k/powerlevel10k.zsh-theme' >> ~/.zshrc
+p10k configure
+```
+
+---
+
+## 💻 Terminal Tools
+
+### Tmux
+
+```bash
+brew install tmux
+```
+
+Create `~/.tmux.conf`:
+
+```bash
+set -g prefix C-a
+unbind C-b
+set -g mouse on
+set -g base-index 1
+setw -g pane-base-index 1
+```
+
+(Optional TPM plugins):
+
+```bash
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+```
+
+### Fuzzy Finder Suite
+
+```bash
+brew install fzf ripgrep fd
+$(brew --prefix)/opt/fzf/install
+```
+
+Add to `~/.zshrc`:
+
+```bash
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+```
+
+---
+
+## 🐳 Docker
+
+Install Docker Desktop and helper tools:
+
+```bash
+brew install --cask docker
+brew install lazydocker
+docker compose version
+```
+
+---
+
+## 🌱 Git
+
+Install and configure Git:
+
+```bash
+brew install git lazygit git-extras
+
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+git config --global init.defaultBranch main
+git config --global color.ui auto
+```
+
+Useful aliases:
+
+```bash
+git config --global alias.st status
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+```
+
+### LazyGit (Terminal Git UI)
+
+LazyGit provides a simple terminal UI for Git commands. Launch with:
+
+```bash
+lazygit
+```
+
+Key bindings:
+- `q` - Quit
+- `?` - Help/Key bindings
+- `c` - Commit
+- `P` - Push
+- `p` - Pull
+- `space` - Stage/unstage files
+- `enter` - View file diff
+- `m` - Merge
+- `b` - Create branch
+- `d` - Delete branch
+
+Create config file `~/.config/lazygit/config.yml` for customization:
+
+```yaml
+gui:
+  showFileTree: true
+  showBranchCommitHash: true
+  showDivergenceFromBaseBranch: true
+git:
+  autoFetch: true
+  autoRefresh: true
+```
+
+---
+
+## 🧪 Languages & Package Managers
+
+### Node.js + npm (via nvm)
+
+```bash
+brew install node nvm
+mkdir ~/.nvm
+echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.zshrc
+echo '[ -s "$(brew --prefix)/opt/nvm/nvm.sh" ] && \. "$(brew --prefix)/opt/nvm/nvm.sh"' >> ~/.zshrc
+```
+
+### Python + Conda
+
+```bash
+brew install python
+brew install --cask miniconda
+conda init zsh
+```
+
+Common usage:
+
+```bash
+conda create --name myenv python=3.11
+conda activate myenv
+conda deactivate
+```
+
+---
+
+## 📝 Editors
+
+```bash
+brew install neovim vim
+brew install --cask visual-studio-code
+```
+
+---
+
+## 💼 Productivity Apps
+
+```bash
+brew install --cask rectangle
+brew install --cask obsidian
+brew install --cask keepassxc
+brew install --cask displaylink
+```
+
+---
+
+## ✅ Final Steps
+
+```bash
+source ~/.zshrc
+zsh --version
+tmux -V
+docker --version
+fzf --version
+git --version
+```
+
