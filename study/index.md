@@ -39,7 +39,7 @@ Think of this page as your **mental compass** — quick reminders on *how to thi
 
 👉 Always tie complexity back to input size.
 
-### Topic-Specific Study Pages
+### Topic-Specific Pages
 The following are topic-specific coding interview study pages (auto-generated):
 
 <ul>
@@ -54,6 +54,19 @@ The following are topic-specific coding interview study pages (auto-generated):
 ---
 
 ## System Design
+
+### Placeholder Sections
+*Coming soon - these topics will be added:*
+
+- Scalability Fundamentals - Load balancing, caching, CDNs
+- Database Design - SQL vs NoSQL, sharding, replication
+- Microservices Architecture - Service communication, API design
+- Real-time Systems - WebSockets, message queues, event streaming
+- Security & Authentication - OAuth, JWT, rate limiting
+- Monitoring & Observability - Logging, metrics, distributed tracing
+
+
+### Topic-Specific Pages
 The following are system design study pages (auto-generated):
 
 <ul>
@@ -65,12 +78,3 @@ The following are system design study pages (auto-generated):
 {% endfor %}
 </ul>
 
-### Placeholder Sections
-*Coming soon - these topics will be added:*
-
-- Scalability Fundamentals - Load balancing, caching, CDNs
-- Database Design - SQL vs NoSQL, sharding, replication
-- Microservices Architecture - Service communication, API design
-- Real-time Systems - WebSockets, message queues, event streaming
-- Security & Authentication - OAuth, JWT, rate limiting
-- Monitoring & Observability - Logging, metrics, distributed tracing
