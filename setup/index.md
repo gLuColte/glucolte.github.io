@@ -3,6 +3,8 @@ title: setup
 permalink: /setup/
 ---
 
+# /setup
+
 Things I do to setup my systems for development
 
 ---
