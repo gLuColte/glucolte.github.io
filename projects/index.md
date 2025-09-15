@@ -5,6 +5,11 @@ permalink: /projects/
 
 # /projects
 
+A showcase of **technical projects** and **hands-on experience**.  
+Think of this page as your **portfolio compass** — quick insights into *what I've built* and *technologies I've worked with*.
+
+---
+
 <div id="projects-container">
   <div id="loading" class="loading">
     <div class="loading-spinner"></div>
