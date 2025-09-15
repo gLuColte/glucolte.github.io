@@ -28,57 +28,55 @@ title: Home
   <section class="section">
     <h2>achievements</h2>
     <ul class="list">
-      <li>Supported 24/7 global operations, assisting with 25+ international on-prem installs.</li>
-      <li>Helped implement monitoring with OpenSearch, improving incident response.</li>
-      <li>Contributed to CI/CD optimization (Azure DevOps &amp; AWS), reducing deploy times.</li>
-      <li>Assisted with SOPs for DR and incident management to enhance reliability.</li>
-      <li>Helped build an end-to-end data flow (collection → processing → visualization).</li>
-      <li>Contributed to deploying &amp; managing 130+ edge modules via Azure IoT Hub.</li>
-      <li>Assisted in developing an internal SDK integrating multi-platform resources.</li>
-      <li>Supported migration from Azure VM to AWS EC2 with minimal downtime.</li>
-      <li>Helped implement single-table design on DynamoDB to improve efficiency.</li>
-      <li>Contributed to Azure &amp; AWS cost-saving initiatives for meaningful reductions.</li>
+      <li>Built an internal PoC service portal for Amazon Dedicated Cloud (ADC), automating manual processes and streamlining regional support</li>
+      <li>Set up CI/CD pipelines and infrastructure for the portal, aligned with ADC security and deployment constraints</li>
+      <li>Optimised CI/CD pipelines to improve deployment reliability and reduce release failures</li>
+      <li>Integrated New Relic for monitoring and alerting, and leveraged OpenSearch for request/response tracing, improving incident response and root-cause analysis</li>
+      <li>Led operational support and weekly reviews for Amazon Redshift sub-service</li>
+      <li>Introduced AI-assisted diagnostics with Amazon Q, speeding up root-cause analysis from hours to minutes</li>
+      <li>Designed and maintained deployment process documentation, improving release consistency, onboarding efficiency, and incident response during deployments</li>
+      <li>Supported 24/7 global operations, contributing to 25+ international on-premises deployments</li>
+      <li>Migrated critical workloads from Microsoft Azure VMs to Amazon EC2 with minimal downtime</li>
+      <li>Drove cloud cost optimisation across Azure and AWS, achieving significant infrastructure savings</li>
+      <li>Created SOPs and disaster recovery runbooks, strengthening operational resilience</li>
+      <li>Rewrote and standardised Redshift runbooks, reducing onboarding and resolution time</li>
+      <li>Deployed and managed 130+ edge modules via Azure IoT Hub, improving remote infrastructure reliability</li>
     </ul>
   </section>
 
 <section class="section">
   <h2>key skills</h2>
   <div class="skill-group">
-    <h3>☁️ Cloud & Infrastructure</h3>
+    <h3>☁️ Cloud Platforms</h3>
     <ul class="skills">
-      <li>AWS</li>
-      <li>Azure</li>
-      <li>Linux (Ubuntu)</li>
-      <li>Windows Server</li>
+      <li>Amazon Web Services (AWS)</li>
+      <li>Microsoft Azure</li>
     </ul>
   </div>
 
   <div class="skill-group">
-    <h3>⚙️ Infrastructure as Code</h3>
+    <h3>⚙️ Infrastructure & Delivery Automation</h3>
     <ul class="skills">
       <li>Terraform</li>
-      <li>CloudFormation</li>
-    </ul>
-  </div>
-
-  <div class="skill-group">
-    <h3>🚀 CI/CD & Automation</h3>
-    <ul class="skills">
+      <li>CDK</li>
       <li>Jenkins</li>
-      <li>Azure DevOps</li>
       <li>Octopus Deploy</li>
-      <li>GitHub Actions</li>
+      <li>Azure DevOps</li>
       <li>Docker</li>
-      <li>Kubernetes (basic)</li>
     </ul>
   </div>
 
   <div class="skill-group">
-    <h3>💻 Programming & Scripting</h3>
+    <h3>💻 Scripting & Automation</h3>
     <ul class="skills">
       <li>Python</li>
       <li>PowerShell</li>
-      <li>Bash</li>
+    </ul>
+  </div>
+
+  <div class="skill-group">
+    <h3>🔗 Version Control & Collaboration</h3>
+    <ul class="skills">
       <li>Git</li>
       <li>Bitbucket</li>
     </ul>
@@ -89,27 +87,23 @@ title: Home
     <ul class="skills">
       <li>OpenSearch</li>
       <li>Elastic Stack</li>
-      <li>Prometheus</li>
-      <li>Grafana</li>
+      <li>CloudWatch</li>
+      <li>New Relic</li>
     </ul>
   </div>
 
   <div class="skill-group">
-    <h3>🗄️ Databases & APIs</h3>
+    <h3>🖥️ Operating Systems</h3>
     <ul class="skills">
-      <li>MySQL</li>
-      <li>MSSQL</li>
-      <li>REST APIs</li>
-      <li>Postman</li>
+      <li>Ubuntu</li>
+      <li>Windows Server</li>
     </ul>
   </div>
 
   <div class="skill-group">
-    <h3>🔗 Other</h3>
+    <h3>🚀 Agile Delivery</h3>
     <ul class="skills">
-      <li>Azure IoT Hub</li>
-      <li>Edge Computing</li>
-      <li>Agile/Scrum</li>
+      <li>Jira</li>
     </ul>
   </div>
 </section>
