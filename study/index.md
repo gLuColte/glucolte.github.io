@@ -10,6 +10,23 @@ Think of this page as your **mental compass** — quick reminders on *how to thi
 
 ---
 
+## System Design
+
+### Topic-Specific Pages
+The following are system design study pages (auto-generated):
+
+<ul>
+{% assign all_pages = site.pages | sort: "title" %}
+{% for p in all_pages %}
+  {% if p.url contains '/study/systemDesign' and p.url != '/study/' %}
+    <li><a href="{{ p.url | relative_url }}">{{ p.title | default: p.url }}</a></li>
+  {% endif %}
+{% endfor %}
+</ul>
+
+
+---
+
 ## LeetCode
 
 ### 🧭 Mindset for Problem Solving
@@ -46,33 +63,6 @@ The following are topic-specific coding interview study pages (auto-generated):
 {% assign all_pages = site.pages | sort: "title" %}
 {% for p in all_pages %}
   {% if p.url contains '/study/coding' and p.url != '/study/' %}
-    <li><a href="{{ p.url | relative_url }}">{{ p.title | default: p.url }}</a></li>
-  {% endif %}
-{% endfor %}
-</ul>
-
----
-
-## System Design
-
-### Placeholder Sections
-*Coming soon - these topics will be added:*
-
-- Scalability Fundamentals - Load balancing, caching, CDNs
-- Database Design - SQL vs NoSQL, sharding, replication
-- Microservices Architecture - Service communication, API design
-- Real-time Systems - WebSockets, message queues, event streaming
-- Security & Authentication - OAuth, JWT, rate limiting
-- Monitoring & Observability - Logging, metrics, distributed tracing
-
-
-### Topic-Specific Pages
-The following are system design study pages (auto-generated):
-
-<ul>
-{% assign all_pages = site.pages | sort: "title" %}
-{% for p in all_pages %}
-  {% if p.url contains '/study/systemDesign' and p.url != '/study/' %}
     <li><a href="{{ p.url | relative_url }}">{{ p.title | default: p.url }}</a></li>
   {% endif %}
 {% endfor %}
