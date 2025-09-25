@@ -3,7 +3,7 @@ title: SLA, SLO & SLI
 permalink: /study/systemDesignSlaSloSli
 ---
 
-# SLA, SLO & SLI in System Design
+# SLA, SLO & SLI
 
 An **SLA (Service Level Agreement)** is a formal commitment between a service provider and its customers. It defines what level of service will be delivered, often with financial or contractual penalties if the provider fails to meet it. To design reliable systems, you start by defining SLAs and then architect infrastructure to meet those guarantees.
 
