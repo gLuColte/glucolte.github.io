@@ -1,5 +1,5 @@
 ---
-title: SLA, SLO & SLI in System Design
+title: SLA, SLO & SLI
 permalink: /study/systemDesignSlaSloSli
 ---
 
