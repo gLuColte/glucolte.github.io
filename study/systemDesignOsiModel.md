@@ -1,5 +1,5 @@
 ---
-title: osi model
+title: OSI Model
 permalink: /study/systemDesignOsiModel
 ---
 

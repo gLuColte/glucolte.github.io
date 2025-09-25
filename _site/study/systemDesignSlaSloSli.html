@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>SLA, SLO & SLI in System Design · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>SLA, SLO &amp; SLI in System Design | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="SLA, SLO &amp; SLI in System Design" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/systemDesignSlaSloSli" />
+<meta property="og:url" content="http://localhost:4000/study/systemDesignSlaSloSli" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="SLA, SLO &amp; SLI in System Design" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"SLA, SLO &amp; SLI in System Design","url":"http://localhost:4000/study/systemDesignSlaSloSli"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <h1 id="sla-slo--sli-in-system-design">SLA, SLO &amp; SLI in System Design</h1>
+
+<p>An <strong>SLA (Service Level Agreement)</strong> is a formal commitment between a service provider and its customers. It defines what level of service will be delivered, often with financial or contractual penalties if the provider fails to meet it. To design reliable systems, you start by defining SLAs and then architect infrastructure to meet those guarantees.</p>
+
+<hr />
+
+<h2 id="sla-vs-slo-vs-sli">SLA vs SLO vs SLI</h2>
+
+<ul>
+  <li><strong>SLI (Service Level Indicator):</strong> The actual metric being measured.
+    <ul>
+      <li>Example: Percentage of HTTP 200 responses under 300ms.</li>
+    </ul>
+  </li>
+  <li><strong>SLO (Service Level Objective):</strong> The internal target for an SLI.
+    <ul>
+      <li>Example: 99.9% of requests respond under 300ms in a rolling 30-day window.</li>
+    </ul>
+  </li>
+  <li><strong>SLA (Service Level Agreement):</strong> The external customer contract, usually tied to SLOs with penalties.
+    <ul>
+      <li>Example: If uptime drops below 99.9% in a month, customers receive service credits.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>👉 SLI = metric → SLO = target → SLA = binding agreement.</p>
+
+<hr />
+
+<h2 id="key-sla-components">Key SLA Components</h2>
+
+<ol>
+  <li><strong>Availability</strong><br />
+Defines uptime guarantees.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  Availability = (Total Time – Downtime) ÷ Total Time × 100
+</code></pre></div>    </div>
+    <ul>
+      <li>99.9% → 8.77 hrs downtime/year.</li>
+      <li>99.99% → 52.6 mins downtime/year.</li>
+    </ul>
+  </li>
+  <li><strong>Performance</strong>
+    <ul>
+      <li>Response time (e.g., P95 &lt; 100ms).</li>
+      <li>Throughput (e.g., ≥500 req/sec).</li>
+    </ul>
+  </li>
+  <li><strong>Error Rate</strong><br />
+  Acceptable % of failed requests.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  Error Rate = (Failed Requests ÷ Total Requests) × 100
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Recovery</strong>
+    <ul>
+      <li><strong>RTO (Recovery Time Objective):</strong> Max acceptable downtime per incident.</li>
+      <li><strong>RPO (Recovery Point Objective):</strong> Max acceptable data loss.</li>
+    </ul>
+  </li>
+  <li><strong>Other Dimensions</strong>
+    <ul>
+      <li><strong>Durability:</strong> e.g., S3 promises 99.999999999% object durability.</li>
+      <li><strong>Consistency:</strong> strong vs eventual.</li>
+      <li><strong>Support SLAs:</strong> e.g., P1 ticket response within 1 hour.</li>
+    </ul>
+  </li>
+</ol>
+
+<hr />
+
+<h2 id="sla-and-system-design">SLA and System Design</h2>
+
+<ol>
+  <li><strong>SLA First, Architecture Second</strong>
+    <ul>
+      <li>A 99.9% SLA means tolerating up to 8.77 hrs downtime/year.</li>
+      <li>Higher targets require multi-AZ or multi-region redundancy.</li>
+    </ul>
+  </li>
+  <li><strong>Availability Targets and Architecture</strong>
+    <ul>
+      <li><strong>90% (36.5 days downtime/year):</strong> Single AZ, minimal redundancy.</li>
+      <li><strong>99.9% (8.77 hrs/year):</strong> Single AZ with fast recovery, or Multi-AZ for resilience.</li>
+      <li><strong>99.99% (52.6 mins/year):</strong> Multi-AZ failover, automated recovery.</li>
+      <li><strong>99.999% (~5 mins/year):</strong> Multi-region active-active, very high cost.</li>
+    </ul>
+  </li>
+  <li><strong>Key Considerations</strong>
+    <ul>
+      <li>Planned maintenance often excluded.</li>
+      <li>Unplanned downtime directly impacts SLA.</li>
+      <li>Buffers account for unexpected incidents.</li>
+      <li>Redundancy raises SLA but increases cost and complexity.</li>
+    </ul>
+  </li>
+</ol>
+
+<hr />
+
+<h2 id="example-e-commerce-platform">Example: E-Commerce Platform</h2>
+
+<h3 id="step-1-define-slis-what-to-measure">Step 1: Define SLIs (What to Measure)</h3>
+
+<ul>
+  <li><strong>Availability:</strong> % of successful HTTPS responses (measured at the edge via Route 53).</li>
+  <li><strong>Performance:</strong>
+    <ul>
+      <li>Homepage latency (P95).</li>
+      <li>Checkout API latency (P95).</li>
+    </ul>
+  </li>
+  <li><strong>Error Rate:</strong> % of failed transactions.</li>
+  <li><strong>Recovery:</strong>
+    <ul>
+      <li>RTO (time to recover).</li>
+      <li>RPO (max data loss).</li>
+    </ul>
+  </li>
+</ul>
+
+<p>➡️ These are end-to-end metrics as seen by customers. Internally, engineers also watch component health (EC2, RDS, ALB, etc.), but those are <em>inputs</em>, not customer-facing outcomes.</p>
+
+<hr />
+
+<h3 id="step-2-define-slos-targets-for-each-sli">Step 2: Define SLOs (Targets for Each SLI)</h3>
+
+<p>Each SLO directly maps to an SLI in Step 1:</p>
+
+<ul>
+  <li>Availability ≥ <strong>99.95%</strong> successful requests per month.</li>
+  <li>Homepage latency &lt; <strong>200ms P95</strong>.</li>
+  <li>Checkout API latency &lt; <strong>100ms P95</strong>.</li>
+  <li>Error rate &lt; <strong>0.1%</strong> per month.</li>
+  <li>Recovery: RTO = <strong>15 minutes</strong>, RPO = <strong>5 minutes</strong>.</li>
+</ul>
+
+<p>➡️ Step 1 defines <em>variables</em>, Step 2 sets <em>thresholds</em>. If SLOs aren’t realistic, the SLA that follows will be hollow.</p>
+
+<hr />
+
+<h3 id="step-3-define-sla-customer-facing-contract">Step 3: Define SLA (Customer-Facing Contract)</h3>
+
+<p>Only a subset of SLOs become contractual:</p>
+
+<ul>
+  <li><strong>Availability SLA:</strong> ≥ <strong>99.95% uptime</strong> per month (~21.6 mins downtime).</li>
+  <li><strong>Remedy:</strong> Service credits if uptime falls below 99.95%.</li>
+  <li><strong>Other SLOs:</strong> (latency, error rate, recovery) may be tracked internally or included in premium SLAs, but are not part of the base contract.</li>
+</ul>
+
+<p>➡️ Customers don’t care about component health; they only care about <strong>request success</strong>. That’s why SLAs are expressed in terms of end-to-end outcomes, not subsystem metrics.</p>
+
+<hr />
+
+<h3 id="step-4-architecture-to-meet-sla">Step 4: Architecture to Meet SLA</h3>
+
+<p>The system is engineered to satisfy the SLA (Step 3) by aligning infrastructure to the SLOs (Step 2):</p>
+
+<ul>
+  <li><strong>Frontend:</strong> CloudFront CDN → improves availability and latency SLOs.</li>
+  <li><strong>APIs:</strong> Multi-AZ ECS/EC2 behind ALB → ensures API availability.</li>
+  <li><strong>Database:</strong> Aurora Multi-AZ → automatic failover meets recovery SLOs (RTO/RPO).</li>
+  <li><strong>Storage:</strong> S3 → supports durability promises (11 nines).</li>
+  <li><strong>Payments:</strong> Primary + backup providers → protects error rate SLO.</li>
+  <li><strong>Monitoring:</strong> CloudWatch + Route 53 health checks → enforce availability at the edge.</li>
+</ul>
+
+<p>➡️ This isn’t random architecture — each choice directly maps back to the metrics that underpin the SLA.</p>
+
+<hr />
+
+<h3 id="customer-facing-sla-external-view">Customer-Facing SLA (External View)</h3>
+
+<ul>
+  <li><strong>Metric</strong>: % of successful HTTPS requests (Route 53 checks).</li>
+  <li><strong>Promise</strong>: ≥ <strong>99.95% uptime</strong> per month.</li>
+  <li><strong>Enforcement</strong>: Credits issued if the target is missed.</li>
+</ul>
+
+<p>👉 Customers never see the internal math. They only see whether they can load the homepage and complete checkout.</p>
+
+<hr />
+
+<h3 id="internal-sla-baseline-aws-as-our-provider">Internal SLA Baseline (AWS as Our Provider)</h3>
+
+<p>As AWS customers, we rely on <strong>provider SLAs</strong> to know our lower bound:</p>
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+  <thead>
+    <tr style="background-color: #f8f9fa;">
+      <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Service</th>
+      <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">SLA (Published by AWS)</th>
+      <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">CloudFront</td>
+      <td style="border: 1px solid #ddd; padding: 12px;">99.9%</td>
+      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/cloudfront/sla/" target="_blank">CloudFront SLA</a></td>
+    </tr>
+    <tr style="background-color: #f8f9fa;">
+      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">ALB (Elastic Load Balancing)</td>
+      <td style="border: 1px solid #ddd; padding: 12px;">99.99%</td>
+      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/elasticloadbalancing/sla/" target="_blank">ALB SLA</a></td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">EC2 (per AZ)</td>
+      <td style="border: 1px solid #ddd; padding: 12px;">99.99%</td>
+      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/compute/sla/" target="_blank">EC2 SLA</a></td>
+    </tr>
+    <tr style="background-color: #f8f9fa;">
+      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">RDS Multi-AZ</td>
+      <td style="border: 1px solid #ddd; padding: 12px;">99.99%</td>
+      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/rds/sla/" target="_blank">RDS SLA</a></td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">S3</td>
+      <td style="border: 1px solid #ddd; padding: 12px;">99.99% availability,<br />11 nines durability</td>
+      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/s3/sla/" target="_blank">S3 SLA</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>With <strong>Multi-AZ deployments</strong>, availability improves because both AZs would need to fail simultaneously for the service to be unavailable. If each AZ has <strong>99.99% availability (0.9999)</strong>, then the probability of <em>both</em> failing at the same time is:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Joint failure = (1 – 0.9999) × (1 – 0.9999)
+              = 0.0001 × 0.0001
+              = 0.00000001  (0.000001%)
+</code></pre></div></div>
+
+<p>So effective availability is:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Multi-AZ Availability ≈ 1 – Joint failure
+                      ≈ 1 – 0.00000001
+                      ≈ 99.999999%  (8 nines)
+</code></pre></div></div>
+
+<p>That’s why AWS often markets <strong>Multi-AZ RDS or EC2 setups</strong> as “highly available” — the redundancy pushes the number of nines up dramatically.</p>
+
+<hr />
+
+<h3 id="engineering-roll-up-approx">Engineering roll-up (approx)</h3>
+
+<p>When combining multiple services, the system’s effective availability is roughly the product of each component’s availability:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>System Availability ≈ CloudFront × ALB × EC2(Multi-AZ) × RDS(Multi-AZ) × S3
+≈ 0.999 × 0.9999 × 0.99999999 × 0.99999999 × 0.9999
+≈ 99.88%
+</code></pre></div></div>
+
+<p>➡️ This illustrates a <strong>gap</strong>: even though individual services have strong SLAs, the multiplicative effect drags the total down. To confidently offer an external <strong>99.95% SLA</strong> (or higher), you need <strong>extra redundancy</strong> such as multi-region, edge caching, or graceful degradation (e.g., read-only mode if the database is down).</p>
+
+<hr />
+
+<h3 id="key-insight">Key Insight</h3>
+
+<ul>
+  <li><strong>Externally:</strong> SLA is measured end-to-end at the edge → customer outcomes.</li>
+  <li><strong>Internally:</strong> Engineers validate feasibility by multiplying provider SLAs.</li>
+  <li><strong>Professional Risk View:</strong> If AWS guarantees ~99.88% and we promise 99.95%, we must close the delta with multi-region or fallback strategies — otherwise the SLA is wishful thinking.</li>
+</ul>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Initialize highlight.js after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Add TOC functionality
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Global Accelerator VS Cloud Front · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Global Accelerator VS Cloud Front | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Global Accelerator VS Cloud Front" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/tmp_awsProStudy.html" />
+<meta property="og:url" content="http://localhost:4000/study/tmp_awsProStudy.html" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Global Accelerator VS Cloud Front" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Global Accelerator VS Cloud Front","url":"http://localhost:4000/study/tmp_awsProStudy.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      
+<h2 id="global-accelerator-vs-cloud-front">Global Accelerator VS Cloud Front</h2>
+
+<ul>
+  <li>Global Accelerator:
+    <ul>
+      <li>Start with 2 anycast IP addresses (1.2.3.4 and 4.3.2.1)</li>
+      <li>Anycast: Allow a single ip to be in multiple locations, routing moves traffic to closest location
+        <ul>
+          <li>Once the customer hits the closest Location</li>
+          <li>It transit that data to the destination over AWS dedicated fibre link (Less Hops)</li>
+        </ul>
+      </li>
+      <li>Moves AWS network closer to Customer to hit the original Destination</li>
+      <li>Network Product -&gt; TCP/UDP  only
+        <ul>
+          <li>DOES NOT CACH ANYTHING</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Cloudfront:
+    <ul>
+      <li>Put the distribution to the edge closer to the customer</li>
+      <li>Caching it at edge location, moves content closer</li>
+      <li>BUT it does not use the fibre link</li>
+      <li>Application Layer -&gt; HTTP only</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="ipsec-vpn">IPSEC VPN</h2>
+<ul>
+  <li>Symmetric - Fast</li>
+  <li>Asymmetric - Slow</li>
+  <li>IKE Phase 1
+    <ul>
+      <li>Authenticate with Pre Shared key/Certificate</li>
+      <li>Using Asymmetric encryption to agree on and craete a shared symmetric key</li>
+      <li>IKE SA created</li>
+    </ul>
+  </li>
+  <li>IKE Phase 2
+    <ul>
+      <li>use Phase 1 Key</li>
+      <li>Agree encryption method and used for bulk data transfer</li>
+      <li>Create IPSEC SA phase 2 tunnel</li>
+    </ul>
+  </li>
+  <li>TLS: runs above TCP; typically mapped to L6. Protects application data (e.g., HTTP).
+    <ul>
+      <li>Key exchange: RSA (legacy, no forward secrecy) or DH/ECDH (modern, forward secrecy; TLS 1.3 = ECDHE only).</li>
+      <li>Auth: usually X.509 certs; RSA/ECDSA used for signatures.</li>
+    </ul>
+  </li>
+  <li>IPSec: protects whole IP packets at L3 (ESP/AH); setup via IKE, which feels like L5.
+    <ul>
+      <li>Key exchange: DH/ECDH only (for shared secret).</li>
+      <li>Auth: certs or PSK; RSA/ECDSA used for signatures (not for encrypting a premaster).</li>
+      <li>Two steps: Phase 1 (IKE SA, like a TLS-style secure control channel) → Phase 2 (IPSec SAs for data traffic).</li>
+    </ul>
+  </li>
+  <li>Similarity (when using DH/ECDH):
+    <ul>
+      <li>Both do a DH/ECDH exchange to derive a shared secret, then expand to symmetric session keys.</li>
+      <li>Both can use certificates for peer authentication.</li>
+    </ul>
+  </li>
+  <li>Key difference:
+    <ul>
+      <li>TLS can use RSA or DH/ECDH for key exchange (but modern = DH/ECDH).</li>
+      <li>IPSec/IKE uses DH/ECDH only; RSA is just for signing/auth.</li>
+    </ul>
+  </li>
+  <li>Single Pair Association</li>
+</ul>
+
+<h3 id="route-based-vpns">Route Based VPNS</h3>
+<ul>
+  <li>Target matching</li>
+  <li>Matches a single pair of SAs per prefix
+    <ul>
+      <li>e.g. for a prefix uses 1 phase 2 tunnel, and another for another</li>
+    </ul>
+  </li>
+  <li>Each Policy = SA pair = Unique IPSEC Key
+    <ul>
+      <li>More flexibility and secure</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="site-to-site-vpn">Site to SIte VPN</h2>
+<ul>
+  <li>Uses IPSec ACROSS Public Internet</li>
+  <li>FULL HA, if you design and implemetn it correctly</li>
+  <li>Quick to provision</li>
+  <li>Virtual Private Gateway (VGW) - ONLY 1
+    <ul>
+      <li>WIthin AWS Public Zone NOT Public Internet</li>
+      <li>2x across different AZ to ensure Highly Avilably</li>
+      <li>each VGW can have multiple endpoints
+        <ul>
+          <li>You use the endpoint to establish connection to CGW</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Customer Gateway (CGW)
+    <ul>
+      <li>At customer size</li>
+      <li>If only 1 x on premisis -&gt; Partial Highly Avilability</li>
+      <li>2x on Premises (Separate building) to ensure High Avilaibility</li>
+    </ul>
+  </li>
+  <li>VPN Tunnel Connection connectes VPG and CG
+    <ul>
+      <li>Can have two endpoints for Tunnel for avilability</li>
+      <li>Connects the Endpoint over Public Internet to CGW</li>
+    </ul>
+  </li>
+  <li>VGW != VPN Tunnel
+    <ul>
+      <li>Tunnel is the ACTUAL Connection
+  -</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Static VPN</p>
+<ul>
+  <li>uses static routes at route table</li>
+  <li>statisitcally configured on the VPN connection</li>
+  <li>Cons:
+    <ul>
+      <li>No Load balancing and multi connection failover</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Dynamic VPN</p>
+<ul>
+  <li>uses BGP on both the customer and AWS side using ASN, networks are exchanged via BGP</li>
+  <li>Multiple VPN connections provide HA and traffic distriubtion</li>
+  <li>Can still add Static routes but also route propagation</li>
+</ul>
+
+<p>VPN Consideration</p>
+<ul>
+  <li>Speed limit = 1.25Gbps</li>
+  <li>Latency Consideration -&gt; VPNs are inconsistent as it travels through Public Internet</li>
+  <li>COST - AWS Hourly, GB Out cost, Data Cap</li>
+  <li>Soeed setup- as everything is over the internet on software level</li>
+  <li>Can be used as a backup for DX</li>
+  <li>Can be used with DX</li>
+</ul>
+
+<h2 id="transit-gateway-tgw">Transit Gateway (TGW)</h2>
+<ul>
+  <li>Allows VPC to interconnect</li>
+  <li>Network Transit hub to connect VPCs to on premises networks</li>
+  <li>Significantly reduces network complexity</li>
+  <li>Single network Object - HA and Scalable</li>
+  <li>Attachements to other network types</li>
+  <li>
+    <p>VPC, Site to Site VPN &amp; Direct Connect</p>
+  </li>
+  <li>1 single TGW can route traffic to VPCs</li>
+  <li>
+    <p>VPC Attachements are configured with a subnet in each AZ where service is required</p>
+  </li>
+  <li>Considerations:
+    <ul>
+      <li>Transitive Routing (it basically routes for any attached, if you setup correctly)</li>
+      <li>Can be used to create global networks</li>
+      <li>Share between accounts using AWS RAM</li>
+      <li>Peer with regions same or cross account</li>
+      <li>Offers less complexity vs full mesh topology</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Transit gateway</p>
+<ul>
+  <li>Has one RT</li>
+  <li>All attachements use this RT for routing decisions</li>
+  <li>all attachements propagate and add routes</li>
+  <li>Peer Attachement  (TGW peer with TGW)
+    <ul>
+      <li>Cross Region</li>
+      <li>Max 50 per TGW</li>
+      <li>Routes are NOT shared for Peered TGWs
+        <ul>
+          <li>You need to statisticall add</li>
+        </ul>
+      </li>
+      <li>Encrypted</li>
+      <li>Public DNS to private IP resolution DOES NOT WORK</li>
+    </ul>
+  </li>
+  <li>All attachements can route to all attachements</li>
+  <li>Bit confused on Association vs Propagation
+    <ul>
+      <li>Isolated Routing ?</li>
+      <li>You can attached isolated Route table to VPC?</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Leetcode is also about training your mindset with coding</p>
+<ul>
+  <li>You are certain about the implication of your algorithm</li>
+</ul>
+
+<h1 id="transit-gateway-deep-dive">Transit Gateway Deep Dive</h1>
+
+<ul>
+  <li>Transit Gateway -&gt; Layer 3</li>
+  <li>Transift VIF (Virtual Interface)</li>
+  <li>A TGW by default has one RT
+    <ul>
+      <li>Propagate and associate</li>
+    </ul>
+  </li>
+</ul>
+
+<p>ASSOCIATION:
+    Determines WHICH subnets USE this route table
+    It’s like saying “this subnet will use this route table for routing decisions”
+    One subnet can only be associated with one route table at a time
+    Example: Associating a subnet to a custom route table means that subnet will use those routes</p>
+
+<p>PROPAGATION:
+    Automatically ADDS routes to the route table
+    Allows routes to be dynamically shared/advertised to the route table
+    Common with VPN, Transit Gateway, or Virtual Private Gateway connections
+    Example: When you enable route propagation from a Virtual Private Gateway, it automatically adds VPN routes to your route table</p>
+
+<p>Simple analogy:
+    Association is like assigning a map to someone (which directions to follow)
+    Propagation is like automatically updating that map with new routes (adding new directions)</p>
+
+<p>Default Configuration:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Yes, by default Transit Gateway comes with 1 default route table
+All attachments are associated with this default route table initially
+</code></pre></div></div>
+
+<p>Multiple Route Tables:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Yes, you CAN create multiple route tables in a Transit Gateway
+This is useful for complex routing scenarios or network segmentation
+Common use case: Separating Dev and Prod environments
+</code></pre></div></div>
+
+<p>Attachments vs Route Tables:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Each attachment (VPC, VPN, Direct Connect) can only be associated with ONE route table
+However, one route table can have MULTIPLE attachments
+Routes can be propagated from multiple attachments to multiple route tables
+</code></pre></div></div>
+
+<p>Each attachement to TGW can associate to 1 RT (1:1) and if not defined, use default
+You can let attachedment propagages it route
+When a resource is attached to a Transit Gateway, it only establishes the initial connection - like plugging in a network cable. At this point, the Transit Gateway knows the resource exists, but other attached resources (like other VPCs) can’t communicate with it yet. This is where route propagation becomes crucial - it advertises the routes to other resources connected to the Transit Gateway, essentially saying “here’s how to reach me.” Without propagation enabled, even though resources are attached to the same Transit Gateway, they won’t be able to route traffic to each other because they don’t know the paths to reach one another.</p>
+
+<h1 id="virtual-private-gateway">Virtual Private Gateway</h1>
+<ul>
+  <li>??</li>
+</ul>
+
+<h1 id="advanced-vpc-routing">Advanced VPC Routing</h1>
+
+<ul>
+  <li>Subnets are associated with 1 Route Table only
+    <ul>
+      <li>Either with Main RT or Custom RT</li>
+    </ul>
+  </li>
+  <li>RT can associate with IGW/VGW</li>
+  <li>RT controls how traffic is handled</li>
+  <li>Static Routes -&gt; Manually</li>
+  <li>Propagated route
+    <ul>
+      <li>Virtual Private Gateway attached</li>
+      <li>If RT enabled and attached to VPG
+        <ul>
+          <li>Then RT will propagate route
+Priorities:</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Lognest Prefix wins
+    <ul>
+      <li>e.g. /32 will take place over /16</li>
+    </ul>
+  </li>
+  <li>Static Routes take priority over Propagated</li>
+  <li>If All propagated, then priorities are:
+    <ol>
+      <li>DX</li>
+      <li>VPN Static</li>
+      <li>VPN BGP</li>
+      <li>AS_PATH</li>
+    </ol>
+  </li>
+  <li>To handle CIDE Overlap
+    <ul>
+      <li>Use RT per subnet to route to different VPC with same CIDR, under different Subnets</li>
+      <li>OR use more specific, as RT takes Specific as priorities</li>
+    </ul>
+  </li>
+  <li>INgress Routing (NEW)
+    <ul>
+      <li>Gateway Route Tables
+  -&gt; Allow security inspection</li>
+      <li>We use to be able to control what goes out, but doesn’t examine what goes in, hence this is introducd</li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="networking--hybrid">Networking &amp; Hybrid</h1>
+<ul>
+  <li>Basically Any Gateway should come with a RT</li>
+  <li>RT can Associate or propagate
+    <ul>
+      <li>each attachment associate, but it can be configured to propagate</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="accelerated-site-to-site-vpn">Accelerated Site to Site VPN</h2>
+<ul>
+  <li>Uses Same Global Network</li>
+  <li>2 Resilient Public Space Endpoints</li>
+  <li>2 IPSEC Tunnels</li>
+  <li>Transit over the Public Internet</li>
+  <li>Variable Performance/Latency/Consistency
+    <ul>
+      <li>Due to “different possible hops”</li>
+    </ul>
+  </li>
+  <li>Alternative: Use Direct Connect Public VIF
+    <ul>
+      <li>Higher Cost</li>
+    </ul>
+  </li>
+  <li>Ways to Connect to VPC
+    <ol>
+      <li>VGW to CGW (1:1 VPC) - Still over Public</li>
+      <li>TGW to CGW (1:M VPC) - Still over Public</li>
+      <li>Accelerated S2S VPN
+        <ul>
+          <li>Global AWS Network</li>
+          <li>Minimal use of Public Network, and route to AWS Edge to entre AWS Network backbone</li>
+          <li>Acceleration can ONLY be enabled by TGW VPN attachement.</li>
+          <li>Not compatible with VPNs using VGW</li>
+          <li>You need to also configure On-primses side to run BGP</li>
+        </ul>
+      </li>
+    </ol>
+  </li>
+  <li>Explanation of Sequence:
+    <ul>
+      <li>On-Prem Router Configures BGP ASN: Your on-prem router sets up the BGP ASN and prepares to send/receive routing information.</li>
+      <li>Advertise Internal Routes: The on-prem router advertises its internal subnets (e.g., 192.168.1.0/24) to AWS.</li>
+      <li>AWS VPN Gateway Setup: The AWS VPN Gateway is configured, and VPN tunnels are established.</li>
+      <li>BGP Peering: The on-prem router and AWS VPN Gateway establish a BGP peering session.</li>
+      <li>Route Advertisement: AWS advertises the VPC subnets to the on-prem router.</li>
+      <li>Route Learning: The on-prem router learns about the AWS subnets (VPC routes) via BGP.</li>
+      <li>Traffic to AWS: Traffic from the on-prem network (destined for AWS) is routed based on BGP-learned routes.</li>
+      <li>Forward Traffic via TGW: The Transit Gateway forwards the traffic to the correct AWS VPC.</li>
+      <li>Return Traffic from AWS: Traffic from AWS (for example, from an EC2 instance) is routed back to the on-prem router via the established VPN.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="client-vpn">Client VPN</h2>
+<ul>
+  <li>Managed OpenVPN</li>
+  <li>Connect to a Client VPN Endpoint</li>
+  <li>One VPC</li>
+  <li>1+ Networks (High availability)</li>
+  <li>Billed based on network associations</li>
+  <li>What is Client VPN for???</li>
+  <li>Type:
+    <ul>
+      <li>Split Tunnel VPN
+        <ul>
+          <li>Connection to Internet is directly to Internet</li>
+          <li>COnnection to AWS is connected through VPN ENI</li>
+        </ul>
+      </li>
+      <li>Split tunnel IS NOT DEFAULT</li>
+    </ul>
+  </li>
+  <li>Ability to integrate with identity based or certificate based Authentication</li>
+  <li>Create Client VPN
+    <ul>
+      <li>Create ACM (Certificate)
+        <ul>
+          <li>What are the certificates use for?</li>
+        </ul>
+      </li>
+      <li>I need to draw a sequence diagram
+        <ul>
+          <li>You then introduce a DNS Server IP to use</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="direct-connect">Direct Connect</h2>
+<ul>
+  <li>Physical Port Allocation at DX Location</li>
+  <li>Port Hourly Cost &amp; Outbound Data transfer</li>
+  <li>Provisioning Time
+    <ul>
+      <li>Physical Cables &amp; No Resilience (Weeks to month)</li>
+      <li>Low and Consistent Latency with High Speed</li>
+    </ul>
+  </li>
+  <li>DX Location
+    <ul>
+      <li>Not owned by AWS, usually a large regional data centre where AWS have space and equipment</li>
+      <li>You setup a connection between:
+        <ul>
+          <li>AWS Direct Connect Cage (DX Port)</li>
+          <li>Customer/Comms Partner Cage
+            <ul>
+              <li>Then your Comms/CustomerCage is connected to your on premises</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>VIFS:
+    <ul>
+      <li>Transit VIFs</li>
+      <li>Public VIFs -&gt; Basically connect from your on premises to DXLocation to AWS Public</li>
+      <li>Private VIFs -&gt; Basically connect to your own private</li>
+    </ul>
+  </li>
+  <li>DX Physical COnnection Architecture
+    <ul>
+      <li>DX Connection = 1, 10, 100 Gbps speed
+        <ul>
+          <li>1 Gbps -&gt; 1000BASE-LX(1310nm)</li>
+          <li>10 Gbps -&gt; 10GBASE-LX(1310nm)</li>
+          <li>100 Gbps -&gt; 100GBASE-LR4</li>
+        </ul>
+      </li>
+      <li>Requires Single Mode Fibre (NO Copper is allowed)</li>
+      <li>Auto Negotiation Disabled
+        <ul>
+          <li>What does this mean?</li>
+        </ul>
+      </li>
+      <li>Port Speed and full duplex manually set
+        <ul>
+          <li>What does this mean?</li>
+        </ul>
+      </li>
+      <li>BGP / BGP MD5 AUthentication</li>
+      <li>Optional MACsec and Bidirectional forwarding detection</li>
+    </ul>
+  </li>
+  <li>MACSec
+    <ul>
+      <li>To address lack of build in encryption between “Switch to Switch”</li>
+      <li>Encryption of Frame (Layer 2) -&gt; IEEE 802.1AE-2018</li>
+      <li>Hop by Hop -&gt; between switches/routers</li>
+      <li>Confidentiality</li>
+      <li>Data Integrity</li>
+      <li>Data Origin Authority</li>
+      <li>Replay Protection</li>
+      <li>Does NOT reply End 2 End IPSEC over DX!!!</li>
+      <li>Designed to allow for super high speed</li>
+      <li>How it is done?
+        <ul>
+          <li>Secure Channel - Unidirectional (1 in 1 out)</li>
+          <li>Secure Channel Identifier (SCI)</li>
+          <li>Secure Associations - sessions on SC, generally 1 exists at a time (except when they are being replaced)</li>
+          <li>Inserts a 16 bytes MACsec tag &amp; 16 bytes integrity Check Value (ICV)</li>
+          <li>Key Agreement -&gt; Discovery, authentication, generation
+            <ul>
+              <li>CAK/CKN Pair with Connection</li>
+            </ul>
+          </li>
+          <li>Cipher Suite</li>
+        </ul>
+      </li>
+      <li>You can extended to you physical on premises, as long as you have Layer 2 Dedicated connection</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h3 id="aws-services-by-osi-layer">AWS Services by OSI Layer</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>OSI Layer</th>
+      <th>AWS Service</th>
+      <th>What It Does</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>L7 Application</strong></td>
+      <td>CloudFront</td>
+      <td>Content Delivery Network (CDN) for caching and accelerating web traffic.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Route 53</td>
+      <td>DNS resolution, domain registration, routing policies (latency, geo, failover).</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>WAF</td>
+      <td>Web Application Firewall filtering Layer 7 attacks (SQLi, XSS).</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>API Gateway</td>
+      <td>Expose/manage APIs, request/response routing.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>App Mesh</td>
+      <td>Service mesh for microservice-to-microservice communication.</td>
+    </tr>
+    <tr>
+      <td><strong>L6 Presentation</strong></td>
+      <td>ACM (Certificate Manager)</td>
+      <td>Manages and deploys SSL/TLS certificates for encryption.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>AWS Shield Advanced</td>
+      <td>DDoS protection including SSL/TLS-based attack mitigation.</td>
+    </tr>
+    <tr>
+      <td><strong>L5 Session</strong></td>
+      <td>Site-to-Site VPN</td>
+      <td>IPSec tunnels for connecting on-prem to AWS securely.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Client VPN</td>
+      <td>VPN for end-users to securely connect into AWS resources.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Direct Connect</td>
+      <td>Dedicated physical link for stable private connectivity into AWS.</td>
+    </tr>
+    <tr>
+      <td><strong>L4 Transport</strong></td>
+      <td>Global Accelerator</td>
+      <td>Anycast routing to improve global TCP/UDP performance and availability.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Elastic Load Balancer – NLB</td>
+      <td>Balances TCP/UDP traffic at connection level.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Elastic Load Balancer – ALB</td>
+      <td>Balances HTTP/HTTPS traffic (can inspect at L7, but transport at L4 too).</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Transit Gateway</td>
+      <td>Hub-and-spoke model for connecting multiple VPCs and on-premises.</td>
+    </tr>
+    <tr>
+      <td><strong>L3 Network</strong></td>
+      <td>VPC</td>
+      <td>Logical isolated network with routing tables, subnets, ACLs.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Internet Gateway (IGW)</td>
+      <td>Provides L3 connectivity between VPC and the public internet.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>NAT Gateway</td>
+      <td>Enables private instances to access the internet while hiding private IPs.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Virtual Private Gateway (VGW)</td>
+      <td>Endpoint for VPN connections into VPC.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Route 53 Resolver</td>
+      <td>DNS resolver inside a VPC for L3 name resolution.</td>
+    </tr>
+    <tr>
+      <td><strong>L2 Data Link</strong></td>
+      <td>Elastic Network Interface (ENI)</td>
+      <td>Virtual network card with MAC address, supporting multiple IPs.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>VPC Peering (L2-ish abstraction)</td>
+      <td>Connects VPCs directly, routing frames/packets transparently.</td>
+    </tr>
+    <tr>
+      <td><strong>L1 Physical</strong></td>
+      <td>AWS Global Network Backbone</td>
+      <td>AWS’s optical fiber, submarine cables, and data center cabling. Not exposed but forms the physical medium.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="gatway-and-their-osi-layer">Gatway and Their osi layer</h2>
+<p>| AWS Gateway                       | OSI Layer  | What It Does                                                                                                |
+| ——————————— | ———- | ———————————————————————————————————– |
+| <strong>Internet Gateway (IGW)</strong>        | L3 Network | Connects VPC to the public internet. Translates between private routing in VPC and global routing.          |
+| <strong>NAT Gateway</strong>                   | L3 Network | Lets private instances reach the internet. Performs IP + port translation (PAT).                            |
+| <strong>Virtual Private Gateway (VGW)</strong> | L3 Network | VPN endpoint on AWS side; routes encrypted traffic into/out of VPC.                                         |
+| <strong>Transit Gateway (TGW)</strong>         | L3 Network | Acts as a <strong>router hub</strong>: interconnects multiple VPCs, VPNs, and Direct Connect links using routing tables. |
+| <strong>PrivateLink / VPC Endpoint</strong>    | L3/L4      | Provides private connectivity to AWS services over the VPC network. Works with DNS and TCP ports.           |
+| <strong>Gateway Load Balancer (GWLB)</strong>  | L3/L4      | Passes traffic to security appliances transparently, often used for firewalls/inspection.                   |</p>
+
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Initialize highlight.js after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Add TOC functionality
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

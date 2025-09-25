@@ -1,0 +1,5 @@
+# Ignore PNG files starting with "Screenshot"
+Screenshot*.png
+
+# Ignore markdown files containing "tmp"
+*tmp*.md
