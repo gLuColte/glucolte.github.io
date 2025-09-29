@@ -32,4 +32,18 @@ A slightly longer routine to recharge energy for the rest of the day.
 
 ---
 
-✨ *Tip:* Bookmark this page or keep it open in a tab — take 5 minutes at lunch or mid-afternoon to go through one video. It’s a small thing, but it makes the rest of the day better.
+## 4. Complete Full-Body Stretch Session
+A comprehensive routine targeting all major muscle groups for total body relief.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_YZZfaMGEOU" title="Complete Full-Body Stretch Session" frameborder="0" allowfullscreen></iframe>
+
+---
+
+## 5. Full-Body Flexibility Flow
+A dynamic stretching sequence to improve mobility and reduce stiffness.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/yi1TbzML2cU" title="Full-Body Flexibility Flow" frameborder="0" allowfullscreen></iframe>
+
+---
+
+✨ *Tip:* Bookmark this page or keep it open in a tab — take 5 minutes at lunch or mid-afternoon to go through one video. It's a small thing, but it makes the rest of the day better.
