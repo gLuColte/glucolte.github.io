@@ -1,6 +1,6 @@
 ---
 title: OSI Model
-permalink: /study/systemDesignOsiModel
+permalink: /study/infrastructureOsiModel
 ---
 
 # Osi Model
@@ -88,32 +88,7 @@ A really good diagram illustration is from [Osi Model Explained - Byte Byte Go](
 
 Different network devices operate at different OSI layers, each handling only the information relevant to its role:
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
-<thead>
-<tr style="background-color: #f8f9fa;">
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Device</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">OSI Layer</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">What It Does</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Hub</td>
-<td style="border: 1px solid #ddd; padding: 12px;">L1</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Blindly broadcasts bits to all ports. No MAC awareness → collisions possible.</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Switch</td>
-<td style="border: 1px solid #ddd; padding: 12px;">L2</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Forwards frames based on MAC address table. Falls back to broadcast if unknown.</td>
-</tr>
-<tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Router</td>
-<td style="border: 1px solid #ddd; padding: 12px;">L3</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Forwards packets based on IP. Removes incoming frame header, adds a new one for the next hop.</td>
-</tr>
-</tbody>
-</table>
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;"> <thead> <tr style="background-color: #f8f9fa;"> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Device</th> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">OSI Layer</th> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">What It Does</th> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Protocol Examples</th> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Authentication</th> </tr> </thead> <tbody> <tr> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Hub</td> <td style="border: 1px solid #ddd; padding: 12px;">L1 (Physical)</td> <td style="border: 1px solid #ddd; padding: 12px;">Blindly repeats bits to all ports. No concept of frames or addresses → collisions possible.</td> <td style="border: 1px solid #ddd; padding: 12px;">None (raw electrical/optical signals)</td> <td style="border: 1px solid #ddd; padding: 12px;">None</td> </tr> <tr style="background-color: #f8f9fa;"> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Switch</td> <td style="border: 1px solid #ddd; padding: 12px;">L2 (Data Link)</td> <td style="border: 1px solid #ddd; padding: 12px;">Forwards Ethernet frames using MAC address table. Falls back to broadcast (flooding) if unknown.</td> <td style="border: 1px solid #ddd; padding: 12px;">Ethernet, ARP, VLAN (802.1Q), STP</td> <td style="border: 1px solid #ddd; padding: 12px;">Port security (MAC binding), 802.1X (RADIUS/EAP)</td> </tr> <tr> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Router</td> <td style="border: 1px solid #ddd; padding: 12px;">L3 (Network)</td> <td style="border: 1px solid #ddd; padding: 12px;">Routes IP packets across networks. Strips L2 header and adds a new one for each hop.</td> <td style="border: 1px solid #ddd; padding: 12px;">IP, ICMP, OSPF, BGP, EIGRP</td> <td style="border: 1px solid #ddd; padding: 12px;">BGP MD5, OSPF auth (MD5/SHA), IPsec for secure tunnels</td> </tr> <tr style="background-color: #f8f9fa;"> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Firewall</td> <td style="border: 1px solid #ddd; padding: 12px;">L3–L4 (sometimes L7)</td> <td style="border: 1px solid #ddd; padding: 12px;">Inspects and filters packets based on IP, ports, and sometimes application signatures.</td> <td style="border: 1px solid #ddd; padding: 12px;">IP, TCP/UDP, HTTP/S (for deep inspection)</td> <td style="border: 1px solid #ddd; padding: 12px;">Rule sets, TLS interception (certificates), VPN auth</td> </tr> <tr> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Load Balancer</td> <td style="border: 1px solid #ddd; padding: 12px;">L4–L7</td> <td style="border: 1px solid #ddd; padding: 12px;">Distributes client requests across multiple servers, can also terminate TLS.</td> <td style="border: 1px solid #ddd; padding: 12px;">TCP, HTTP/S, TLS, gRPC</td> <td style="border: 1px solid #ddd; padding: 12px;">TLS certificates, client certs, token-based auth</td> </tr> </tbody> </table>
 
 
 ---
@@ -210,7 +185,7 @@ note right of D: Frame removed, IP packet delivered up the stack
 
 ---
 
-## Multi Layer 4 & 7 - TLS Handshake
+## Multi Layer 4 & 7 - TLS and IPSec Tunnel
 
 TLS handshake for encrypted communication:
 
@@ -220,23 +195,30 @@ actor Server
 actor Client
 actor CA
 
-== Certificate Setup (before handshake) ==
+== Certificate Setup (out of band) ==
 Server -> CA: CSR (public key + org info)
 CA -> Server: Signed Certificate (X.509)
 
-== TCP 3-Way Handshake ==
+== TCP 3-Way Handshake (TLS only) ==
 Client -> Server: SYN
 Server -> Client: SYN-ACK
 Client -> Server: ACK
 note over Client,Server: TCP connection established
 
 == TLS Handshake ==
-Client -> Server: ClientHello
-Server -> Client: ServerHello + Certificate (signed by CA)
+Client -> Server: ClientHello (supported ciphers, random)
+Server -> Client: ServerHello + Certificate
 Client -> CA: Validate Certificate Chain
 note over Client: Check CA root, expiry, domain
-Client -> Server: Pre-Master Secret (encrypted)
-note over Client,Server: Derive Master Secret & Session Keys
+
+alt RSA Key Exchange (older)
+  Client -> Server: Pre-Master Secret (encrypted with server pubkey)
+  note over Client,Server: Derive Master Secret & Session Keys
+else (EC)DHE Key Exchange (modern)
+  Client -> Server: DH/ECDH public value
+  Server -> Client: DH/ECDH public value
+  note over Client,Server: Derive Shared Secret (PFS)
+end
 
 Client -> Server: Finished
 Server -> Client: Finished
@@ -245,7 +227,26 @@ note over Client,Server: Secure TLS Channel Established
 == Application Data ==
 Client -> Server: Encrypted HTTP Request
 Server -> Client: Encrypted HTTP Response
+
+== IPsec IKE Phase 1 (Main Mode) ==
+Client -> Server: IKE_SA_INIT (DH values, nonces, proposals)
+Server -> Client: IKE_SA_INIT Response
+note over Client,Server: DH/ECDH → Shared Key (IKE SA)
+
+Client -> Server: IKE_AUTH (ID, Certificate, Auth payload)
+Server -> Client: IKE_AUTH Response
+note over Client,Server: Peers authenticated, secure control channel
+
+== IPsec IKE Phase 2 (Quick Mode) ==
+Client -> Server: Child SA proposal (ESP/AH algorithms, lifetimes)
+Server -> Client: Child SA response
+note over Client,Server: Derive IPsec SA keys from Phase 1
+
+== Encrypted Tunnel Established ==
+Client -> Server: Encrypted IP packets (ESP/AH)
+Server -> Client: Encrypted IP packets (ESP/AH)
 @enduml
+
 
 ```
 
@@ -677,3 +678,16 @@ Think of the internet as a **network of networks**:
 
 ---
 
+
+
+## Casting
+
+| Cast Type     | Who Receives            | Example                   | OSI Level         |
+| ------------- | ----------------------- | ------------------------- | ----------------- |
+| **Broadcast** | Everyone in subnet      | ARP requests              | L2                |
+| **Unicast**   | One specific host       | Accessing a website       | L3 (IP)           |
+| **Multicast** | Group of hosts (opt-in) | IPTV, video conference    | L3 (IP Multicast) |
+| **Anycast**   | Closest host (routing)  | DNS root servers          | L3                |
+| **Geocast**   | Hosts in a region       | Vehicle-to-vehicle alerts | L3 (conceptual)   |
+
+VLAN - Draws a invisible boundary inside the same Physical Switch, allowing L2 Broadcast to be "VLAN" Specific. This is done by VLAN tagging (IEEE 802.1Q) inserts a 4-byte header into the Ethernet frame between the Source MAC and EtherType, containing a 12-bit VLAN ID that tells switches which VLAN the frame belongs to.

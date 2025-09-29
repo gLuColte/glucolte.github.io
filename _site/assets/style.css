@@ -23,7 +23,7 @@ a:hover{text-decoration:none;border-bottom-color:transparent}
   border-bottom:1px solid var(--line);
   padding:14px 18px; position:sticky; top:0; background:var(--bg); backdrop-filter:saturate(140%) blur(6px)
 }
-.brand{font-weight:700; letter-spacing:.2px}
+.brand{font-weight:700; letter-spacing:.2px; border-bottom:0 !important}
 .nav a{margin-left:14px; color:var(--muted); border-bottom:0}
 .nav a:hover{color:var(--ink)}
 
@@ -96,6 +96,101 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
 .table{width:100%; border-collapse:collapse}
 .table th,.table td{border:1px solid var(--line); padding:8px 10px; text-align:left}
 .table th{background:#f9fafb; color:#111827}
+
+/* Study page table styling - consistent with OSI Model page */
+.study-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+.study-table thead tr {
+  background-color: #f8f9fa;
+}
+
+.study-table th,
+.study-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.study-table th {
+  font-weight: bold;
+}
+
+.study-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.study-table tbody tr td:first-child {
+  font-weight: bold;
+}
+
+/* Study index tile layout */
+.study-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+  max-width: 100%;
+}
+
+.study-tile {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.study-tile:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: inherit;
+}
+
+.study-tile.system-design:hover {
+  background-color: #e3f2fd;
+  border-color: #0366d6;
+}
+
+.study-tile.coding:hover {
+  background-color: #e8f5e8;
+  border-color: #28a745;
+}
+
+.study-tile-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0 0 8px 0;
+  color: var(--ink);
+}
+
+.study-tile-icon {
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+/* Responsive: stack to 2 columns on medium screens, 1 column on small screens */
+@media (max-width: 768px) {
+  .study-tiles {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .study-tiles {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* Site Footer */
 .site-footer{

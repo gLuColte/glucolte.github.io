@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AWS Network Services · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>AWS Network Services | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="AWS Network Services" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSNetwork" />
+<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSNetwork" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="AWS Network Services" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS Network Services","url":"http://localhost:4000/study/infrastructureAWSNetwork"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <h1 id="aws-network-services-by-osi-model">AWS Network Services By OSI Model</h1>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>OSI Layer</th>
+<th>AWS Service</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L7 Application</strong></td>
+<td>CloudFront</td>
+<td>Content Delivery Network (CDN) for caching and accelerating web traffic.</td>
+</tr>
+<tr>
+<td></td>
+<td>Route 53</td>
+<td>DNS resolution, domain registration, routing policies (latency, geo, failover).</td>
+</tr>
+<tr>
+<td></td>
+<td>WAF</td>
+<td>Web Application Firewall filtering Layer 7 attacks (SQLi, XSS).</td>
+</tr>
+<tr>
+<td></td>
+<td>API Gateway</td>
+<td>Expose/manage APIs, request/response routing.</td>
+</tr>
+<tr>
+<td></td>
+<td>App Mesh</td>
+<td>Service mesh for microservice-to-microservice communication.</td>
+</tr>
+<tr>
+<td><strong>L6 Presentation</strong></td>
+<td>ACM (Certificate Manager)</td>
+<td>Manages and deploys SSL/TLS certificates for encryption.</td>
+</tr>
+<tr>
+<td></td>
+<td>AWS Shield Advanced</td>
+<td>DDoS protection including SSL/TLS-based attack mitigation.</td>
+</tr>
+<tr>
+<td><strong>L5 Session</strong></td>
+<td>Site-to-Site VPN</td>
+<td>IPSec tunnels for connecting on-prem to AWS securely.</td>
+</tr>
+<tr>
+<td></td>
+<td>Client VPN</td>
+<td>VPN for end-users to securely connect into AWS resources.</td>
+</tr>
+<tr>
+<td></td>
+<td>Direct Connect</td>
+<td>Dedicated physical link for stable private connectivity into AWS.</td>
+</tr>
+<tr>
+<td><strong>L4 Transport</strong></td>
+<td>Global Accelerator</td>
+<td>Anycast routing to improve global TCP/UDP performance and availability.</td>
+</tr>
+<tr>
+<td></td>
+<td>Elastic Load Balancer – NLB</td>
+<td>Balances TCP/UDP traffic at connection level.</td>
+</tr>
+<tr>
+<td></td>
+<td>Elastic Load Balancer – ALB</td>
+<td>Balances HTTP/HTTPS traffic (can inspect at L7, but transport at L4 too).</td>
+</tr>
+<tr>
+<td></td>
+<td>Transit Gateway</td>
+<td>Hub-and-spoke model for connecting multiple VPCs and on-premises.</td>
+</tr>
+<tr>
+<td><strong>L3 Network</strong></td>
+<td>VPC</td>
+<td>Logical isolated network with routing tables, subnets, ACLs.</td>
+</tr>
+<tr>
+<td></td>
+<td>Internet Gateway (IGW)</td>
+<td>Provides L3 connectivity between VPC and the public internet.</td>
+</tr>
+<tr>
+<td></td>
+<td>NAT Gateway</td>
+<td>Enables private instances to access the internet while hiding private IPs.</td>
+</tr>
+<tr>
+<td></td>
+<td>Virtual Private Gateway (VGW)</td>
+<td>Endpoint for VPN connections into VPC.</td>
+</tr>
+<tr>
+<td></td>
+<td>Route 53 Resolver</td>
+<td>DNS resolver inside a VPC for L3 name resolution.</td>
+</tr>
+<tr>
+<td><strong>L2 Data Link</strong></td>
+<td>Elastic Network Interface (ENI)</td>
+<td>Virtual network card with MAC address, supporting multiple IPs.</td>
+</tr>
+<tr>
+<td></td>
+<td>VPC Peering (L2-ish abstraction)</td>
+<td>Connects VPCs directly, routing frames/packets transparently.</td>
+</tr>
+<tr>
+<td><strong>L1 Physical</strong></td>
+<td>AWS Global Network Backbone</td>
+<td>AWS's optical fiber, submarine cables, and data center cabling. Not exposed but forms the physical medium.</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="gateways-and-their-osi-layer">Gateways and Their OSI Layer</h2>
+<table class="study-table">
+<thead>
+<tr>
+<th>AWS Gateway</th>
+<th>OSI Layer</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Internet Gateway (IGW)</strong></td>
+<td>L3 Network</td>
+<td>Connects VPC to the public internet. Translates between private routing in VPC and global routing.</td>
+</tr>
+<tr>
+<td><strong>NAT Gateway</strong></td>
+<td>L3 Network</td>
+<td>Lets private instances reach the internet. Performs IP + port translation (PAT).</td>
+</tr>
+<tr>
+<td><strong>Virtual Private Gateway (VGW)</strong></td>
+<td>L3 Network</td>
+<td>VPN endpoint on AWS side; routes encrypted traffic into/out of VPC.</td>
+</tr>
+<tr>
+<td><strong>Transit Gateway (TGW)</strong></td>
+<td>L3 Network</td>
+<td>Acts as a <strong>router hub</strong>: interconnects multiple VPCs, VPNs, and Direct Connect links using routing tables.</td>
+</tr>
+<tr>
+<td><strong>PrivateLink / VPC Endpoint</strong></td>
+<td>L3/L4</td>
+<td>Provides private connectivity to AWS services over the VPC network. Works with DNS and TCP ports.</td>
+</tr>
+<tr>
+<td><strong>Gateway Load Balancer (GWLB)</strong></td>
+<td>L3/L4</td>
+<td>Passes traffic to security appliances transparently, often used for firewalls/inspection.</td>
+</tr>
+</tbody>
+</table>
+
+<h1 id="understanding-pop">Understanding PoP</h1>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@startuml
+actor Client
+
+Client -&gt; "ISP Router" : Send packet to Anycast IP / CF domain
+"ISP Router" -&gt; "AWS Edge PoP (rack in 3rd-party DC)" : Forward via peering
+
+alt Route 53 DNS
+  Client -&gt; "Route 53 at Edge PoP" : DNS query
+  "Route 53 at Edge PoP" --&gt; Client : DNS response
+end
+
+alt Global Accelerator path
+  "AWS Edge PoP (rack in 3rd-party DC)" -&gt; "Edge Router + GA logic" : Nearest Anycast IP match
+  "Edge Router + GA logic" -&gt; "AWS Backbone" : On-ramp
+  "AWS Backbone" -&gt; "AWS Region" : Forward to ALB / NLB / EC2
+end
+
+alt CloudFront path
+  "AWS Edge PoP (rack in 3rd-party DC)" -&gt; "CloudFront Cache" : HTTPS request
+  alt Cache Hit
+    "CloudFront Cache" --&gt; Client : Serve object
+  else Cache Miss
+    "CloudFront Cache" -&gt; "AWS Backbone" : Fetch from origin
+    "AWS Backbone" -&gt; "AWS Region" : Request origin (S3 / ALB / EC2)
+    "AWS Region" --&gt; "CloudFront Cache" : Response stored
+    "CloudFront Cache" --&gt; Client : Serve object
+  end
+end
+@enduml
+
+</code></pre></div></div>
+
+<p>Global Accelerator = Anycast IP + routing into backbone → your Region.
+CloudFront = Anycast IP + CDN cache at edge → serve or fetch.
+Both run on the same physical AWS PoP racks inside 3rd-party DCs.</p>
+
+<p><img src="./assets/aws_network_pop.png" alt="Pop" /></p>
+
+<h1 id="ipsec-vpn">IPSEC VPN</h1>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Initialize highlight.js after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Add TOC functionality
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

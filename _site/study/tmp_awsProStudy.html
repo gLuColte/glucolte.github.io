@@ -6,6 +6,9 @@
   <title>Global Accelerator VS Cloud Front · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
@@ -542,144 +545,80 @@ Priorities:</li>
   </li>
 </ul>
 
-<hr />
+<p>DX Connection Process</p>
+<ul>
+  <li>LOA-CFA - Letter of AUthorzation customer facility Access
+    <ul>
+      <li>To Connect AWS Cage to your provider Cage</li>
+      <li>AWS will allocate a port in AWS Cage and provide a form for you to complete</li>
+      <li>Customer fill the form, then staff at Datacenter will perform the connection</li>
+    </ul>
+  </li>
+</ul>
 
-<h3 id="aws-services-by-osi-layer">AWS Services by OSI Layer</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>OSI Layer</th>
-      <th>AWS Service</th>
-      <th>What It Does</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>L7 Application</strong></td>
-      <td>CloudFront</td>
-      <td>Content Delivery Network (CDN) for caching and accelerating web traffic.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>Route 53</td>
-      <td>DNS resolution, domain registration, routing policies (latency, geo, failover).</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>WAF</td>
-      <td>Web Application Firewall filtering Layer 7 attacks (SQLi, XSS).</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>API Gateway</td>
-      <td>Expose/manage APIs, request/response routing.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>App Mesh</td>
-      <td>Service mesh for microservice-to-microservice communication.</td>
-    </tr>
-    <tr>
-      <td><strong>L6 Presentation</strong></td>
-      <td>ACM (Certificate Manager)</td>
-      <td>Manages and deploys SSL/TLS certificates for encryption.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>AWS Shield Advanced</td>
-      <td>DDoS protection including SSL/TLS-based attack mitigation.</td>
-    </tr>
-    <tr>
-      <td><strong>L5 Session</strong></td>
-      <td>Site-to-Site VPN</td>
-      <td>IPSec tunnels for connecting on-prem to AWS securely.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>Client VPN</td>
-      <td>VPN for end-users to securely connect into AWS resources.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>Direct Connect</td>
-      <td>Dedicated physical link for stable private connectivity into AWS.</td>
-    </tr>
-    <tr>
-      <td><strong>L4 Transport</strong></td>
-      <td>Global Accelerator</td>
-      <td>Anycast routing to improve global TCP/UDP performance and availability.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>Elastic Load Balancer – NLB</td>
-      <td>Balances TCP/UDP traffic at connection level.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>Elastic Load Balancer – ALB</td>
-      <td>Balances HTTP/HTTPS traffic (can inspect at L7, but transport at L4 too).</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>Transit Gateway</td>
-      <td>Hub-and-spoke model for connecting multiple VPCs and on-premises.</td>
-    </tr>
-    <tr>
-      <td><strong>L3 Network</strong></td>
-      <td>VPC</td>
-      <td>Logical isolated network with routing tables, subnets, ACLs.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>Internet Gateway (IGW)</td>
-      <td>Provides L3 connectivity between VPC and the public internet.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>NAT Gateway</td>
-      <td>Enables private instances to access the internet while hiding private IPs.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>Virtual Private Gateway (VGW)</td>
-      <td>Endpoint for VPN connections into VPC.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>Route 53 Resolver</td>
-      <td>DNS resolver inside a VPC for L3 name resolution.</td>
-    </tr>
-    <tr>
-      <td><strong>L2 Data Link</strong></td>
-      <td>Elastic Network Interface (ENI)</td>
-      <td>Virtual network card with MAC address, supporting multiple IPs.</td>
-    </tr>
-    <tr>
-      <td> </td>
-      <td>VPC Peering (L2-ish abstraction)</td>
-      <td>Connects VPCs directly, routing frames/packets transparently.</td>
-    </tr>
-    <tr>
-      <td><strong>L1 Physical</strong></td>
-      <td>AWS Global Network Backbone</td>
-      <td>AWS’s optical fiber, submarine cables, and data center cabling. Not exposed but forms the physical medium.</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr />
-
-<h2 id="gatway-and-their-osi-layer">Gatway and Their osi layer</h2>
-<p>| AWS Gateway                       | OSI Layer  | What It Does                                                                                                |
-| ——————————— | ———- | ———————————————————————————————————– |
-| <strong>Internet Gateway (IGW)</strong>        | L3 Network | Connects VPC to the public internet. Translates between private routing in VPC and global routing.          |
-| <strong>NAT Gateway</strong>                   | L3 Network | Lets private instances reach the internet. Performs IP + port translation (PAT).                            |
-| <strong>Virtual Private Gateway (VGW)</strong> | L3 Network | VPN endpoint on AWS side; routes encrypted traffic into/out of VPC.                                         |
-| <strong>Transit Gateway (TGW)</strong>         | L3 Network | Acts as a <strong>router hub</strong>: interconnects multiple VPCs, VPNs, and Direct Connect links using routing tables. |
-| <strong>PrivateLink / VPC Endpoint</strong>    | L3/L4      | Provides private connectivity to AWS services over the VPC network. Works with DNS and TCP ports.           |
-| <strong>Gateway Load Balancer (GWLB)</strong>  | L3/L4      | Passes traffic to security appliances transparently, often used for firewalls/inspection.                   |</p>
-
+<p>DX Virtual Interfaces</p>
+<ul>
+  <li>BGP Session + VLAN
+    <ul>
+      <li>DX Connections are a layer 2 connection</li>
+      <li>To connect Multiple types of layers 3 networks over the DX connection
+  BGP exchanges routes/authenticates and VLAN isolates the network</li>
+      <li>VLAN is used between DX Router and AWS Router
+        <ul>
+          <li>Each VLAN then maps to a VIF</li>
+          <li>EACH VIF is then connected to your resouces</li>
+        </ul>
+      </li>
+      <li>VLAN are BGP sessions, and authenticated via MD5</li>
+    </ul>
+  </li>
+  <li>Concept of VIF</li>
+  <li>Public / Private / Transit
+    <ul>
+      <li>Private VIFs
+        <ul>
+          <li>Acces 1 VPC resources using private IPs (can use TGW)</li>
+          <li>Attach to VGWs - 1*VPC only</li>
+          <li>in the same region as your DX Location</li>
+          <li>1 Private VIF = 1 VGW = 1 VPC</li>
+          <li>No Encryption on private VIFs</li>
+          <li>Private VIFs are region specific, you can’t jump to another region</li>
+        </ul>
+      </li>
+      <li>Public VIFs
+        <ul>
+          <li>Use to access Public Zone resources (e.g. SNS/SQS..etc)</li>
+          <li>No direct acces to private VPC services</li>
+          <li>Can access all public zone regions (across AWS GLobal network)</li>
+          <li>AWS Advertise Public IP ranges to you</li>
+          <li>You advertise any public IPs you won over BGP</li>
+          <li>NOT Transitive, your prefixes dont leave AWS</li>
+          <li>Direct Connect + VPN
+            <ul>
+              <li>VPN give Encrypted and Authenticated Tunnel</li>
+              <li>Over DX (low latency and consistenty latency)</li>
+              <li>Use Public VIF + VGW/TGW public endpoints</li>
+              <li>VPN is Transit Agnostic and E2E encryption</li>
+              <li>VPN as backup, direct connect as primary</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Direct Connect Gateway
+    <ul>
+      <li>DX is regional</li>
+      <li>1+ DX Locations</li>
+      <li>Public VIF can access all regions
+        <ul>
+          <li>since IPs for Public Service VIFs are more specific, hence it take priority</li>
+        </ul>
+      </li>
+      <li>Private only Private IPs</li>
+    </ul>
+  </li>
+</ul>
 
     </article>
   </main>
