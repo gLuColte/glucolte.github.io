@@ -51,6 +51,26 @@ The following are system design fundamentals study pages (auto-generated):
 
 ---
 
+## GenAI
+
+The following are Generative AI study pages (auto-generated):
+
+<div class="study-tiles">
+{% assign all_pages = site.pages | sort: "title" %}
+{% for p in all_pages %}
+  {% if p.url contains '/study/genAi' and p.url != '/study/' %}
+    <a href="{{ p.url | relative_url }}" class="study-tile system-design">
+      <div class="study-tile-title">
+        <span class="study-tile-icon">🤖</span>
+        {{ p.title | default: p.url }}
+      </div>
+    </a>
+  {% endif %}
+{% endfor %}
+</div>
+
+---
+
 ## Troubleshooting Practices
 
 Practice your debugging and troubleshooting skills with hands-on Linux server challenges:
