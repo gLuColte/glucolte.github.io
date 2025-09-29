@@ -4,3 +4,6 @@ permalink: /study/systemDesignArchitecture
 ---
 
 # Architecture
+
+
+Placeholder

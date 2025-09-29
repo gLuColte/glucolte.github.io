@@ -4,3 +4,5 @@ permalink: /study/infrastructureAWSCompute
 ---
 
 # AWS Compute Services
+
+Placeholder

@@ -4,3 +4,5 @@ permalink: /study/infrastructureAWSStorage
 ---
 
 # AWS Storage Services
+
+Placeholder
