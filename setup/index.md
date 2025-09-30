@@ -31,7 +31,7 @@ Things I do to setup my systems for development
   <div class="setup-card">
     <div class="setup-icon">🖥️</div>
     <h2>Ubuntu Setup</h2>
-    <p>Linux server configuration for deployment, monitoring, and production environments.</p>
+    <p>Ubuntu cloud desktop setup for remote development and local server environment.</p>
     <div class="setup-features">
       <span class="feature-tag">Ubuntu/Debian</span>
       <span class="feature-tag">Docker</span>
