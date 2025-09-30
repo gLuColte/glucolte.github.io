@@ -495,3 +495,160 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
   }
 }
 
+/* Floating Table of Contents */
+.floating-toc {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  z-index: 1000;
+  font-family: var(--sans);
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-toc .toc-icon {
+  width: 32px;
+  height: 70px;
+  background: #6b7280;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffffff;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.floating-toc .toc-icon:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.floating-toc .toc-content {
+  position: absolute;
+  right: 50px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 280px;
+  max-width: 320px;
+  max-height: 70vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(-50%) translateX(10px);
+}
+
+.floating-toc:hover .toc-content,
+.floating-toc.toc-open .toc-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+.floating-toc .toc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.floating-toc .toc-header span {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.floating-toc .toc-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.floating-toc .toc-close:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+.floating-toc .toc-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.floating-toc .toc-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  margin-left: 16px;
+}
+
+.floating-toc .toc-nav li {
+  margin: 4px 0;
+}
+
+.floating-toc .toc-nav a {
+  display: block;
+  padding: 6px 8px;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.floating-toc .toc-nav a:hover {
+  background: var(--line);
+  color: var(--accent);
+}
+
+.floating-toc .toc-nav a.active {
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 500;
+}
+
+/* Responsive adjustments for floating TOC */
+@media (max-width: 768px) {
+  .floating-toc {
+    right: 16px;
+  }
+  
+  .floating-toc .toc-content {
+    right: 46px;
+    min-width: 260px;
+    max-width: calc(100vw - 80px);
+  }
+}
+
+@media (max-width: 480px) {
+  .floating-toc {
+    right: 12px;
+  }
+  
+  .floating-toc .toc-content {
+    right: 42px;
+    min-width: 240px;
+    max-width: calc(100vw - 70px);
+  }
+}
+

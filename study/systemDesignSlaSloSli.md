@@ -145,39 +145,39 @@ The system is engineered to satisfy the SLA (Step 3) by aligning infrastructure 
 
 As AWS customers, we rely on **provider SLAs** to know our lower bound:  
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+<table class="study-table">
   <thead>
-    <tr style="background-color: #f8f9fa;">
-      <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Service</th>
-      <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">SLA (Published by AWS)</th>
-      <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Link</th>
+    <tr>
+      <th>Service</th>
+      <th>SLA (Published by AWS)</th>
+      <th>Link</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">CloudFront</td>
-      <td style="border: 1px solid #ddd; padding: 12px;">99.9%</td>
-      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/cloudfront/sla/" target="_blank">CloudFront SLA</a></td>
-    </tr>
-    <tr style="background-color: #f8f9fa;">
-      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">ALB (Elastic Load Balancing)</td>
-      <td style="border: 1px solid #ddd; padding: 12px;">99.99%</td>
-      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/elasticloadbalancing/sla/" target="_blank">ALB SLA</a></td>
+      <td>CloudFront</td>
+      <td>99.9%</td>
+      <td><a href="https://aws.amazon.com/cloudfront/sla/" target="_blank">CloudFront SLA</a></td>
     </tr>
     <tr>
-      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">EC2 (per AZ)</td>
-      <td style="border: 1px solid #ddd; padding: 12px;">99.99%</td>
-      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/compute/sla/" target="_blank">EC2 SLA</a></td>
-    </tr>
-    <tr style="background-color: #f8f9fa;">
-      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">RDS Multi-AZ</td>
-      <td style="border: 1px solid #ddd; padding: 12px;">99.99%</td>
-      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/rds/sla/" target="_blank">RDS SLA</a></td>
+      <td>ALB (Elastic Load Balancing)</td>
+      <td>99.99%</td>
+      <td><a href="https://aws.amazon.com/elasticloadbalancing/sla/" target="_blank">ALB SLA</a></td>
     </tr>
     <tr>
-      <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">S3</td>
-      <td style="border: 1px solid #ddd; padding: 12px;">99.99% availability,<br/>11 nines durability</td>
-      <td style="border: 1px solid #ddd; padding: 12px;"><a href="https://aws.amazon.com/s3/sla/" target="_blank">S3 SLA</a></td>
+      <td>EC2 (per AZ)</td>
+      <td>99.99%</td>
+      <td><a href="https://aws.amazon.com/compute/sla/" target="_blank">EC2 SLA</a></td>
+    </tr>
+    <tr>
+      <td>RDS Multi-AZ</td>
+      <td>99.99%</td>
+      <td><a href="https://aws.amazon.com/rds/sla/" target="_blank">RDS SLA</a></td>
+    </tr>
+    <tr>
+      <td>S3</td>
+      <td>99.99% availability,<br/>11 nines durability</td>
+      <td><a href="https://aws.amazon.com/s3/sla/" target="_blank">S3 SLA</a></td>
     </tr>
   </tbody>
 </table>

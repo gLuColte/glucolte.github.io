@@ -85,6 +85,9 @@
 <loc>http://localhost:4000/setup/ubuntu</loc>
 </url>
 <url>
-<loc>http://localhost:4000/study/tmp_awsProStudy.html</loc>
+<loc>http://localhost:4000/study/tmp_awsProStudyNetwork.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/study/tmp_awsProStudyStorage.html</loc>
 </url>
 </urlset>

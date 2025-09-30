@@ -45,69 +45,69 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="osi-model">Osi Model</h1>
+      <h1 id="osi-model">OSI Model</h1>
 
 <p>The OSI (Open Systems Interconnection) Model is a conceptual framework that explains how data moves from one device to another across a network. It breaks communication into seven layers, each with a specific role—from turning raw electrical signals into bits, all the way up to human-readable applications like web browsers or email. By separating these responsibilities, the OSI model makes it easier to design, troubleshoot, and scale networks. It supports everything from simple device-to-device communication (like two computers in a LAN) to complex many-to-many interactions across the global internet. Each higher OSI layer builds on the services of the layer below, while layers remain functionally independent when viewed side-by-side.</p>
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+<table class="study-table">
 <thead>
-<tr style="background-color: #f8f9fa;">
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">OSI Layer</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Example Protocols</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Data Unit</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">What It Adds / Handles</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Key Details &amp; Examples</th>
+<tr>
+<th>OSI Layer</th>
+<th>Example Protocols</th>
+<th>Data Unit</th>
+<th>What It Adds / Handles</th>
+<th>Key Details &amp; Examples</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L7 Application</td>
-<td style="border: 1px solid #ddd; padding: 12px;">HTTP, DNS, SMTP, FTP</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Data</td>
-<td style="border: 1px solid #ddd; padding: 12px;">User-facing services &amp; protocols</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Apps talk in human-readable formats. Browser → HTTP Request, Mail client → SMTP.</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L6 Presentation</td>
-<td style="border: 1px solid #ddd; padding: 12px;">TLS/SSL, JPEG, JSON</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Record</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Data format, encryption, compression</td>
-<td style="border: 1px solid #ddd; padding: 12px;">TLS encrypts HTTP; JSON/XML standardize data; JPEG/MP3 compress media. Often merged into L7 in practice.</td>
+<td>L7 Application</td>
+<td>HTTP, DNS, SMTP, FTP</td>
+<td>Data</td>
+<td>User-facing services &amp; protocols</td>
+<td>Apps talk in human-readable formats. Browser → HTTP Request, Mail client → SMTP.</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L5 Session</td>
-<td style="border: 1px solid #ddd; padding: 12px;">NetBIOS, RPC</td>
-<td style="border: 1px solid #ddd; padding: 12px;">–</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Session control (setup, sync, teardown)</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Rarely explicit today. Example: RPC, NetBIOS. TLS sessions can resume without full handshake.</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L4 Transport</td>
-<td style="border: 1px solid #ddd; padding: 12px;">TCP, UDP</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Segment</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Reliable delivery (TCP) or fast fire-and-forget (UDP)</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Fixes L3 issues: out-of-order, loss, no channels. TCP headers include ports, seq/ack, window, checksum. TCP 3-way handshake → SYN, SYN/ACK, ACK. Maintains state (reliable, ordered). UDP = stateless (no session info).</td>
+<td>L6 Presentation</td>
+<td>TLS/SSL, JPEG, JSON</td>
+<td>Record</td>
+<td>Data format, encryption, compression</td>
+<td>TLS encrypts HTTP; JSON/XML standardize data; JPEG/MP3 compress media. Often merged into L7 in practice.</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L3 Network</td>
-<td style="border: 1px solid #ddd; padding: 12px;">IP, ICMP</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Packet</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Logical addressing, routing between networks</td>
-<td style="border: 1px solid #ddd; padding: 12px;">IP = addressing system. ICMP = control (ping, errors). Routers strip/replace frames at every hop. Uses ARP to resolve IP→MAC. Routing tables decide next hop (default 0.0.0.0/0). House = IP, Apartment = Port.</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L2 Data Link</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Ethernet, Wi-Fi, PPP</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Frame</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Local delivery between devices on the same medium</td>
-<td style="border: 1px solid #ddd; padding: 12px;">MAC addresses unique per device. Frame = Header (src/dst MAC + EtherType) + Payload (L3 packet) + CRC. Handles collisions (CSMA/CD). Supports unicast, broadcast, VLAN tagging. Protocols: Ethernet, Wi-Fi, MPLS, PPP.</td>
+<td>L5 Session</td>
+<td>NetBIOS, RPC</td>
+<td>–</td>
+<td>Session control (setup, sync, teardown)</td>
+<td>Rarely explicit today. Example: RPC, NetBIOS. TLS sessions can resume without full handshake.</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L1 Physical</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Copper, Fiber, Wi-Fi PHY</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Bits</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Transmission of raw signals</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Defines voltage, RF, or light wavelength. No addressing or error detection. Standards: copper (RJ45), fiber optics, Wi-Fi PHY.</td>
+<td>L4 Transport</td>
+<td>TCP, UDP</td>
+<td>Segment</td>
+<td>Reliable delivery (TCP) or fast fire-and-forget (UDP)</td>
+<td>Fixes L3 issues: out-of-order, loss, no channels. TCP headers include ports, seq/ack, window, checksum. TCP 3-way handshake → SYN, SYN/ACK, ACK. Maintains state (reliable, ordered). UDP = stateless (no session info).</td>
+</tr>
+<tr>
+<td>L3 Network</td>
+<td>IP, ICMP</td>
+<td>Packet</td>
+<td>Logical addressing, routing between networks</td>
+<td>IP = addressing system. ICMP = control (ping, errors). Routers strip/replace frames at every hop. Uses ARP to resolve IP→MAC. Routing tables decide next hop (default 0.0.0.0/0). House = IP, Apartment = Port.</td>
+</tr>
+<tr>
+<td>L2 Data Link</td>
+<td>Ethernet, Wi-Fi, PPP</td>
+<td>Frame</td>
+<td>Local delivery between devices on the same medium</td>
+<td>MAC addresses unique per device. Frame = Header (src/dst MAC + EtherType) + Payload (L3 packet) + CRC. Handles collisions (CSMA/CD). Supports unicast, broadcast, VLAN tagging. Protocols: Ethernet, Wi-Fi, MPLS, PPP.</td>
+</tr>
+<tr>
+<td>L1 Physical</td>
+<td>Copper, Fiber, Wi-Fi PHY</td>
+<td>Bits</td>
+<td>Transmission of raw signals</td>
+<td>Defines voltage, RF, or light wavelength. No addressing or error detection. Standards: copper (RJ45), fiber optics, Wi-Fi PHY.</td>
 </tr>
 </tbody>
 </table>
@@ -128,7 +128,54 @@
 
 <p>Different network devices operate at different OSI layers, each handling only the information relevant to its role:</p>
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;"> <thead> <tr style="background-color: #f8f9fa;"> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Device</th> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">OSI Layer</th> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">What It Does</th> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Protocol Examples</th> <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Authentication</th> </tr> </thead> <tbody> <tr> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Hub</td> <td style="border: 1px solid #ddd; padding: 12px;">L1 (Physical)</td> <td style="border: 1px solid #ddd; padding: 12px;">Blindly repeats bits to all ports. No concept of frames or addresses → collisions possible.</td> <td style="border: 1px solid #ddd; padding: 12px;">None (raw electrical/optical signals)</td> <td style="border: 1px solid #ddd; padding: 12px;">None</td> </tr> <tr style="background-color: #f8f9fa;"> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Switch</td> <td style="border: 1px solid #ddd; padding: 12px;">L2 (Data Link)</td> <td style="border: 1px solid #ddd; padding: 12px;">Forwards Ethernet frames using MAC address table. Falls back to broadcast (flooding) if unknown.</td> <td style="border: 1px solid #ddd; padding: 12px;">Ethernet, ARP, VLAN (802.1Q), STP</td> <td style="border: 1px solid #ddd; padding: 12px;">Port security (MAC binding), 802.1X (RADIUS/EAP)</td> </tr> <tr> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Router</td> <td style="border: 1px solid #ddd; padding: 12px;">L3 (Network)</td> <td style="border: 1px solid #ddd; padding: 12px;">Routes IP packets across networks. Strips L2 header and adds a new one for each hop.</td> <td style="border: 1px solid #ddd; padding: 12px;">IP, ICMP, OSPF, BGP, EIGRP</td> <td style="border: 1px solid #ddd; padding: 12px;">BGP MD5, OSPF auth (MD5/SHA), IPsec for secure tunnels</td> </tr> <tr style="background-color: #f8f9fa;"> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Firewall</td> <td style="border: 1px solid #ddd; padding: 12px;">L3–L4 (sometimes L7)</td> <td style="border: 1px solid #ddd; padding: 12px;">Inspects and filters packets based on IP, ports, and sometimes application signatures.</td> <td style="border: 1px solid #ddd; padding: 12px;">IP, TCP/UDP, HTTP/S (for deep inspection)</td> <td style="border: 1px solid #ddd; padding: 12px;">Rule sets, TLS interception (certificates), VPN auth</td> </tr> <tr> <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Load Balancer</td> <td style="border: 1px solid #ddd; padding: 12px;">L4–L7</td> <td style="border: 1px solid #ddd; padding: 12px;">Distributes client requests across multiple servers, can also terminate TLS.</td> <td style="border: 1px solid #ddd; padding: 12px;">TCP, HTTP/S, TLS, gRPC</td> <td style="border: 1px solid #ddd; padding: 12px;">TLS certificates, client certs, token-based auth</td> </tr> </tbody> </table>
+<table class="study-table">
+<thead>
+<tr>
+<th>Device</th>
+<th>OSI Layer</th>
+<th>What It Does</th>
+<th>Protocol Examples</th>
+<th>Authentication</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hub</td>
+<td>L1 (Physical)</td>
+<td>Blindly repeats bits to all ports. No concept of frames or addresses → collisions possible.</td>
+<td>None (raw electrical/optical signals)</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Switch</td>
+<td>L2 (Data Link)</td>
+<td>Forwards Ethernet frames using MAC address table. Falls back to broadcast (flooding) if unknown.</td>
+<td>Ethernet, ARP, VLAN (802.1Q), STP</td>
+<td>Port security (MAC binding), 802.1X (RADIUS/EAP)</td>
+</tr>
+<tr>
+<td>Router</td>
+<td>L3 (Network)</td>
+<td>Routes IP packets across networks. Strips L2 header and adds a new one for each hop.</td>
+<td>IP, ICMP, OSPF, BGP, EIGRP</td>
+<td>BGP MD5, OSPF auth (MD5/SHA), IPsec for secure tunnels</td>
+</tr>
+<tr>
+<td>Firewall</td>
+<td>L3–L4 (sometimes L7)</td>
+<td>Inspects and filters packets based on IP, ports, and sometimes application signatures.</td>
+<td>IP, TCP/UDP, HTTP/S (for deep inspection)</td>
+<td>Rule sets, TLS interception (certificates), VPN auth</td>
+</tr>
+<tr>
+<td>Load Balancer</td>
+<td>L4–L7</td>
+<td>Distributes client requests across multiple servers, can also terminate TLS.</td>
+<td>TCP, HTTP/S, TLS, gRPC</td>
+<td>TLS certificates, client certs, token-based auth</td>
+</tr>
+</tbody>
+</table>
 
 <hr />
 
@@ -303,114 +350,114 @@ Server -&gt; Client: Encrypted IP packets (ESP/AH)
 
 <h2 id="commands-by-osi-layer">Commands by OSI Layer</h2>
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+<table class="study-table">
 <thead>
-<tr style="background-color: #f8f9fa;">
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Layer</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Command</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Purpose</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Example</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Popular Flags</th>
+<tr>
+<th>Layer</th>
+<th>Command</th>
+<th>Purpose</th>
+<th>Example</th>
+<th>Popular Flags</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L2 Data Link</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>arp</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Show/modify ARP cache (IP↔MAC)</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>arp -a</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-a</code> all, <code>-d</code> delete</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px;"></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ip link</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Manage NICs, errors, drops</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ip -s link show eth0</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-s</code> stats, <code>set</code> up/down</td>
+<td>L2 Data Link</td>
+<td><code>arp</code></td>
+<td>Show/modify ARP cache (IP↔MAC)</td>
+<td><code>arp -a</code></td>
+<td><code>-a</code> all, <code>-d</code> delete</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px;"></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ethtool</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">NIC driver/speed info</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ethtool eth0</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-i</code> driver info, <code>-S</code> stats</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L3 Network</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ping</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Test reachability + latency (ICMP)</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ping -c 4 8.8.8.8</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-c</code> count, <code>-s</code> size, <code>-I</code> iface</td>
+<td></td>
+<td><code>ip link</code></td>
+<td>Manage NICs, errors, drops</td>
+<td><code>ip -s link show eth0</code></td>
+<td><code>-s</code> stats, <code>set</code> up/down</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px;"></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>traceroute</code>/<code>mtr</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Show hop path</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>mtr -rw 8.8.8.8</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-r</code> report, <code>-n</code> numeric, <code>-w</code> wide</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px;"></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ip route</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Show/manage routing table</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ip route show</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">add/del routes</td>
+<td></td>
+<td><code>ethtool</code></td>
+<td>NIC driver/speed info</td>
+<td><code>ethtool eth0</code></td>
+<td><code>-i</code> driver info, <code>-S</code> stats</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L4 Transport</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ss</code>/<code>netstat</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">List sockets, ports, states</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>ss -antp</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-a</code> all, <code>-t</code> TCP, <code>-u</code> UDP, <code>-p</code> proc</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px;"></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>tcpdump</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Capture packets</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>tcpdump -i eth0 port 443 -nnvvXSs 1500</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-i</code> iface, <code>-nn</code> no resolve, <code>-w</code> write</td>
+<td>L3 Network</td>
+<td><code>ping</code></td>
+<td>Test reachability + latency (ICMP)</td>
+<td><code>ping -c 4 8.8.8.8</code></td>
+<td><code>-c</code> count, <code>-s</code> size, <code>-I</code> iface</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">L7 Application</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>dig</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">DNS resolution</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>dig +trace example.com</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>+trace</code>, <code>@server</code></td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px;"></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>nslookup</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Legacy DNS tool</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>nslookup example.com 8.8.8.8</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">server param</td>
+<td></td>
+<td><code>traceroute</code>/<code>mtr</code></td>
+<td>Show hop path</td>
+<td><code>mtr -rw 8.8.8.8</code></td>
+<td><code>-r</code> report, <code>-n</code> numeric, <code>-w</code> wide</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px;"></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>curl</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Test HTTP/TLS endpoints</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>curl -vk https://example.com</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-v</code> verbose, <code>-k</code> ignore cert</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px;"></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>wget</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Fetch HTTP/FTP files</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>wget --spider https://example.com</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>--spider</code> test only, <code>-O</code> output</td>
+<td></td>
+<td><code>ip route</code></td>
+<td>Show/manage routing table</td>
+<td><code>ip route show</code></td>
+<td>add/del routes</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Cross</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>iftop</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Bandwidth by connection</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>iftop -i eth0</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-n</code> numeric, <code>-P</code> show ports</td>
+<td>L4 Transport</td>
+<td><code>ss</code>/<code>netstat</code></td>
+<td>List sockets, ports, states</td>
+<td><code>ss -antp</code></td>
+<td><code>-a</code> all, <code>-t</code> TCP, <code>-u</code> UDP, <code>-p</code> proc</td>
 </tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px;"></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>nmap</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;">Scan ports/services</td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>nmap -sS -p 1-1000 10.1.2.3</code></td>
-<td style="border: 1px solid #ddd; padding: 12px;"><code>-sS</code> SYN, <code>-sV</code> version, <code>-A</code> aggressive</td>
+<tr>
+<td></td>
+<td><code>tcpdump</code></td>
+<td>Capture packets</td>
+<td><code>tcpdump -i eth0 port 443 -nnvvXSs 1500</code></td>
+<td><code>-i</code> iface, <code>-nn</code> no resolve, <code>-w</code> write</td>
+</tr>
+<tr>
+<td>L7 Application</td>
+<td><code>dig</code></td>
+<td>DNS resolution</td>
+<td><code>dig +trace example.com</code></td>
+<td><code>+trace</code>, <code>@server</code></td>
+</tr>
+<tr>
+<td></td>
+<td><code>nslookup</code></td>
+<td>Legacy DNS tool</td>
+<td><code>nslookup example.com 8.8.8.8</code></td>
+<td>server param</td>
+</tr>
+<tr>
+<td></td>
+<td><code>curl</code></td>
+<td>Test HTTP/TLS endpoints</td>
+<td><code>curl -vk https://example.com</code></td>
+<td><code>-v</code> verbose, <code>-k</code> ignore cert</td>
+</tr>
+<tr>
+<td></td>
+<td><code>wget</code></td>
+<td>Fetch HTTP/FTP files</td>
+<td><code>wget --spider https://example.com</code></td>
+<td><code>--spider</code> test only, <code>-O</code> output</td>
+</tr>
+<tr>
+<td>Cross</td>
+<td><code>iftop</code></td>
+<td>Bandwidth by connection</td>
+<td><code>iftop -i eth0</code></td>
+<td><code>-n</code> numeric, <code>-P</code> show ports</td>
+</tr>
+<tr>
+<td></td>
+<td><code>nmap</code></td>
+<td>Scan ports/services</td>
+<td><code>nmap -sS -p 1-1000 10.1.2.3</code></td>
+<td><code>-sS</code> SYN, <code>-sV</code> version, <code>-A</code> aggressive</td>
 </tr>
 </tbody>
 </table>
@@ -485,42 +532,42 @@ Server -&gt; Client: Encrypted IP packets (ESP/AH)
 
 <h3 id="decimal-and-binary-converions">Decimal and Binary Converions</h3>
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+<table class="study-table">
 <thead>
-<tr style="background-color: #f8f9fa;">
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">Position</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">1</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">2</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">3</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">4</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">5</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">6</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">7</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">8</th>
+<tr>
+<th style="text-align: center;">Position</th>
+<th style="text-align: center;">1</th>
+<th style="text-align: center;">2</th>
+<th style="text-align: center;">3</th>
+<th style="text-align: center;">4</th>
+<th style="text-align: center;">5</th>
+<th style="text-align: center;">6</th>
+<th style="text-align: center;">7</th>
+<th style="text-align: center;">8</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Decimal</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">128</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">64</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">32</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">16</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">8</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">4</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">2</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">1</td>
+<td>Decimal</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
 </tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Representation</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
+<tr>
+<td>Representation</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
 </tr>
 </tbody>
 </table>
@@ -544,42 +591,42 @@ Server -&gt; Client: Encrypted IP packets (ESP/AH)
 
 <p>Result row: <strong>1 0 0 0 0 1 0 0</strong></p>
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+<table class="study-table">
 <thead>
-<tr style="background-color: #f8f9fa;">
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">Position</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">1</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">2</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">3</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">4</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">5</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">6</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">7</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">8</th>
+<tr>
+<th style="text-align: center;">Position</th>
+<th style="text-align: center;">1</th>
+<th style="text-align: center;">2</th>
+<th style="text-align: center;">3</th>
+<th style="text-align: center;">4</th>
+<th style="text-align: center;">5</th>
+<th style="text-align: center;">6</th>
+<th style="text-align: center;">7</th>
+<th style="text-align: center;">8</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Decimal</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">128</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">64</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">32</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">16</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">8</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">4</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">2</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">1</td>
+<td>Decimal</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
 </tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Representation</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">1</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">1</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
+<tr>
+<td>Representation</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
 </tr>
 </tbody>
 </table>
@@ -600,57 +647,57 @@ Server -&gt; Client: Encrypted IP packets (ESP/AH)
   <li>Add them up → <strong>132</strong>.</li>
 </ol>
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+<table class="study-table">
 <thead>
-<tr style="background-color: #f8f9fa;">
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">Position</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">1</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">2</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">3</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">4</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">5</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">6</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">7</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">8</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">Sum</th>
+<tr>
+<th style="text-align: center;">Position</th>
+<th style="text-align: center;">1</th>
+<th style="text-align: center;">2</th>
+<th style="text-align: center;">3</th>
+<th style="text-align: center;">4</th>
+<th style="text-align: center;">5</th>
+<th style="text-align: center;">6</th>
+<th style="text-align: center;">7</th>
+<th style="text-align: center;">8</th>
+<th style="text-align: center;">Sum</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Decimal</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">128</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">64</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">32</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">16</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">8</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">4</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">2</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">1</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Bit</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">1</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">1</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;"></td>
+<td>Decimal</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"></td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Value</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">128</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">4</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center;">0</td>
-<td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">132</td>
+<td>Bit</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Value</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center; font-weight: bold;">132</td>
 </tr>
 </tbody>
 </table>
@@ -696,49 +743,49 @@ Server -&gt; Client: Encrypted IP packets (ESP/AH)
   <li>Between ASes, they must <strong>talk to each other</strong> → that’s what <strong>BGP (Border Gateway Protocol)</strong> does.</li>
 </ul>
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+<table class="study-table">
 <thead>
-<tr style="background-color: #f8f9fa;">
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Term</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">What it Means</th>
-<th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: bold;">Example</th>
+<tr>
+<th>Term</th>
+<th>What it Means</th>
+<th>Example</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">AS (Autonomous System)</td>
-<td style="border: 1px solid #ddd; padding: 12px;">A collection of IP networks under one admin with one routing policy.</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Google's AS15169, Amazon's AS16509, Cloudflare's AS13335</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">ASN</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Autonomous System Number (unique ID).</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Public (IANA/RIR assigned) / Private (64512–65534)</td>
+<td>AS (Autonomous System)</td>
+<td>A collection of IP networks under one admin with one routing policy.</td>
+<td>Google's AS15169, Amazon's AS16509, Cloudflare's AS13335</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">BGP</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Protocol that connects ASes by exchanging route info.</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Runs over TCP/179</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">iBGP</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Routing <strong>inside</strong> an AS.</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Google moving traffic between data centers.</td>
+<td>ASN</td>
+<td>Autonomous System Number (unique ID).</td>
+<td>Public (IANA/RIR assigned) / Private (64512–65534)</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">eBGP</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Routing <strong>between</strong> ASes.</td>
-<td style="border: 1px solid #ddd; padding: 12px;">ISP ↔ Google ↔ Amazon connections.</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">ASPATH</td>
-<td style="border: 1px solid #ddd; padding: 12px;">A list of AS hops to reach a network (shortest path usually wins).</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Client → ISP (AS123) → Google (AS15169).</td>
+<td>BGP</td>
+<td>Protocol that connects ASes by exchanging route info.</td>
+<td>Runs over TCP/179</td>
 </tr>
 <tr>
-<td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Tricks/Policies</td>
-<td style="border: 1px solid #ddd; padding: 12px;">Control routing with ASPATH prepending, filtering, or peering vs transit deals.</td>
-<td style="border: 1px solid #ddd; padding: 12px;">ISP may "prefer" cheaper peering routes.</td>
+<td>iBGP</td>
+<td>Routing <strong>inside</strong> an AS.</td>
+<td>Google moving traffic between data centers.</td>
+</tr>
+<tr>
+<td>eBGP</td>
+<td>Routing <strong>between</strong> ASes.</td>
+<td>ISP ↔ Google ↔ Amazon connections.</td>
+</tr>
+<tr>
+<td>ASPATH</td>
+<td>A list of AS hops to reach a network (shortest path usually wins).</td>
+<td>Client → ISP (AS123) → Google (AS15169).</td>
+</tr>
+<tr>
+<td>Tricks/Policies</td>
+<td>Control routing with ASPATH prepending, filtering, or peering vs transit deals.</td>
+<td>ISP may "prefer" cheaper peering routes.</td>
 </tr>
 </tbody>
 </table>
@@ -775,47 +822,47 @@ Server -&gt; Client: Encrypted IP packets (ESP/AH)
 
 <h2 id="casting">Casting</h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Cast Type</th>
-      <th>Who Receives</th>
-      <th>Example</th>
-      <th>OSI Level</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Broadcast</strong></td>
-      <td>Everyone in subnet</td>
-      <td>ARP requests</td>
-      <td>L2</td>
-    </tr>
-    <tr>
-      <td><strong>Unicast</strong></td>
-      <td>One specific host</td>
-      <td>Accessing a website</td>
-      <td>L3 (IP)</td>
-    </tr>
-    <tr>
-      <td><strong>Multicast</strong></td>
-      <td>Group of hosts (opt-in)</td>
-      <td>IPTV, video conference</td>
-      <td>L3 (IP Multicast)</td>
-    </tr>
-    <tr>
-      <td><strong>Anycast</strong></td>
-      <td>Closest host (routing)</td>
-      <td>DNS root servers</td>
-      <td>L3</td>
-    </tr>
-    <tr>
-      <td><strong>Geocast</strong></td>
-      <td>Hosts in a region</td>
-      <td>Vehicle-to-vehicle alerts</td>
-      <td>L3 (conceptual)</td>
-    </tr>
-  </tbody>
+<table class="study-table">
+<thead>
+<tr>
+<th>Cast Type</th>
+<th>Who Receives</th>
+<th>Example</th>
+<th>OSI Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Broadcast</strong></td>
+<td>Everyone in subnet</td>
+<td>ARP requests</td>
+<td>L2</td>
+</tr>
+<tr>
+<td><strong>Unicast</strong></td>
+<td>One specific host</td>
+<td>Accessing a website</td>
+<td>L3 (IP)</td>
+</tr>
+<tr>
+<td><strong>Multicast</strong></td>
+<td>Group of hosts (opt-in)</td>
+<td>IPTV, video conference</td>
+<td>L3 (IP Multicast)</td>
+</tr>
+<tr>
+<td><strong>Anycast</strong></td>
+<td>Closest host (routing)</td>
+<td>DNS root servers</td>
+<td>L3</td>
+</tr>
+<tr>
+<td><strong>Geocast</strong></td>
+<td>Hosts in a region</td>
+<td>Vehicle-to-vehicle alerts</td>
+<td>L3 (conceptual)</td>
+</tr>
+</tbody>
 </table>
 
 <p>VLAN - Draws a invisible boundary inside the same Physical Switch, allowing L2 Broadcast to be “VLAN” Specific. This is done by VLAN tagging (IEEE 802.1Q) inserts a 4-byte header into the Ethernet frame between the Source MAC and EtherType, containing a 12-bit VLAN ID that tells switches which VLAN the frame belongs to.</p>
@@ -823,19 +870,191 @@ Server -&gt; Client: Encrypted IP packets (ESP/AH)
     </article>
   </main>
 
+  <!-- Floating Table of Contents -->
+  <div id="floating-toc" class="floating-toc">
+    <div class="toc-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"></line>
+        <line x1="8" y1="12" x2="21" y2="12"></line>
+        <line x1="8" y1="18" x2="21" y2="18"></line>
+        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+      </svg>
+    </div>
+    <div class="toc-content">
+      <div class="toc-header">
+        <span>Contents</span>
+        <button class="toc-close" aria-label="Close table of contents">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="toc-nav" id="toc-nav">
+        <!-- Generated by JavaScript -->
+      </nav>
+    </div>
+  </div>
+
   <footer class="site-footer">
     <span>© 2025 glucolte • </span>
     <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
   </footer>
 
   <script>
-    // Initialize highlight.js after the DOM is loaded
+    // Initialize highlight.js and floating TOC after the DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
       hljs.highlightAll();
       
-      // Add TOC functionality
+      // Floating TOC functionality - only show on sub-study pages
+      const floatingToc = document.getElementById('floating-toc');
+      const tocNav = document.getElementById('toc-nav');
+      const tocClose = document.querySelector('.toc-close');
+      
+      // Check if we're on a sub-study page (not the main study index)
+      const isSubStudyPage = window.location.pathname !== '/study/' && 
+                            window.location.pathname !== '/study' && 
+                            window.location.pathname.startsWith('/study/');
+      
+      if (floatingToc && tocNav && isSubStudyPage) {
+        // Generate TOC from headings
+        function generateTOC() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          if (headings.length === 0) {
+            floatingToc.style.display = 'none';
+            return;
+          }
+          
+          const tocList = document.createElement('ul');
+          let currentLevel = 0;
+          let currentList = tocList;
+          const listStack = [tocList];
+          
+          headings.forEach((heading, index) => {
+            const level = parseInt(heading.tagName.charAt(1));
+            const id = heading.id || `heading-${index}`;
+            
+            // Ensure heading has an ID
+            if (!heading.id) {
+              heading.id = id;
+            }
+            
+            // Create list item
+            const listItem = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = `#${id}`;
+            link.textContent = heading.textContent.trim();
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetElement = document.getElementById(id);
+              if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Close TOC after clicking
+                floatingToc.classList.remove('toc-open');
+              }
+            });
+            
+            listItem.appendChild(link);
+            
+            // Handle nesting
+            if (level > currentLevel) {
+              // Go deeper
+              for (let i = currentLevel; i < level; i++) {
+                const newList = document.createElement('ul');
+                currentList.appendChild(newList);
+                listStack.push(newList);
+                currentList = newList;
+              }
+            } else if (level < currentLevel) {
+              // Go shallower
+              for (let i = currentLevel; i > level; i--) {
+                listStack.pop();
+                currentList = listStack[listStack.length - 1];
+              }
+            }
+            
+            currentList.appendChild(listItem);
+            currentLevel = level;
+          });
+          
+          tocNav.appendChild(tocList);
+        }
+        
+        // Generate the TOC
+        generateTOC();
+        
+        // Handle close button
+        if (tocClose) {
+          tocClose.addEventListener('click', function() {
+            floatingToc.classList.remove('toc-open');
+          });
+        }
+        
+        // Handle click on icon to toggle
+        const tocIcon = document.querySelector('.toc-icon');
+        if (tocIcon) {
+          tocIcon.addEventListener('click', function() {
+            floatingToc.classList.toggle('toc-open');
+          });
+        }
+        
+        // Active section highlighting
+        function updateActiveSection() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          const tocLinks = tocNav.querySelectorAll('a');
+          
+          // Remove active class from all links
+          tocLinks.forEach(link => link.classList.remove('active'));
+          
+          // Find the current section
+          let currentHeading = null;
+          const scrollPosition = window.scrollY + 100; // Offset for better UX
+          
+          for (let i = headings.length - 1; i >= 0; i--) {
+            const heading = headings[i];
+            const headingTop = heading.offsetTop;
+            
+            if (headingTop <= scrollPosition) {
+              currentHeading = heading;
+              break;
+            }
+          }
+          
+          // Add active class to current section
+          if (currentHeading) {
+            const activeLink = tocNav.querySelector(`a[href="#${currentHeading.id}"]`);
+            if (activeLink) {
+              activeLink.classList.add('active');
+            }
+          }
+        }
+        
+        // Update active section on scroll
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+          if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+          }
+          scrollTimeout = setTimeout(updateActiveSection, 10);
+        });
+        
+        // Initial update
+        updateActiveSection();
+      } else if (floatingToc && !isSubStudyPage) {
+        // Hide floating TOC on main study page
+        floatingToc.style.display = 'none';
+      }
+      
+      // Legacy TOC functionality (for existing markdown TOCs)
       const toc = document.querySelector('#markdown-toc');
       if (toc) {
+        // Hide the floating TOC if there's already a markdown TOC
+        if (floatingToc) {
+          floatingToc.style.display = 'none';
+        }
+        
         // Create TOC container with header
         const tocContainer = document.createElement('div');
         tocContainer.className = 'toc-container';
