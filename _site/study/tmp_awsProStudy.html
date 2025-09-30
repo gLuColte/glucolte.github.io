@@ -1238,6 +1238,19 @@ note right of User : Step 6: DNS records returned if the signature is valid.
         - you basically create a PrivateDNS</p>
 
 <p>VPC Endpoint policies</p>
+<ul>
+  <li>Bucket Policies can declined all access, except from specific INterface Endpoint or Gateway Endpoint</li>
+  <li>This make it restrictive
+    <ul>
+      <li>Everything is private</li>
+      <li>If you dont do Endpoints, you have to traverse to AWS Public endpoint and access from there
+        <ul>
+          <li>Which by some regulation you might be worried</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
 
     </article>
   </main>

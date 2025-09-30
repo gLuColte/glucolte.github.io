@@ -1,6 +1,6 @@
 ---
 title: Large Language Models (LLMs)
-permalink: /study/genAiLLMs
+permalink: /study/aiLLMs
 ---
 
 # Large Language Models (LLMs)

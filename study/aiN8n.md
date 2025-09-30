@@ -1,6 +1,6 @@
 ---
 title: n8n Workflow Automation
-permalink: /study/genAiN8n
+permalink: /study/aiN8n
 ---
 
 # n8n Workflow Automation

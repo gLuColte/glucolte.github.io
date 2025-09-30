@@ -1,6 +1,6 @@
 ---
 title: GenAI Security
-permalink: /study/genAiSecurity
+permalink: /study/aiSecurity
 ---
 
 # GenAI Security

@@ -51,14 +51,14 @@ The following are system design fundamentals study pages:
 
 ---
 
-## GenAI
+## AI
 
-The following are Generative AI study pages:
+The following are AI study pages:
 
 <div class="study-tiles">
 {% assign all_pages = site.pages | sort: "title" %}
 {% for p in all_pages %}
-  {% if p.url contains '/study/genAi' and p.url != '/study/' %}
+  {% if p.url contains '/study/ai' and p.url != '/study/' %}
     <a href="{{ p.url | relative_url }}" class="study-tile system-design">
       <div class="study-tile-title">
         <span class="study-tile-icon">🤖</span>
