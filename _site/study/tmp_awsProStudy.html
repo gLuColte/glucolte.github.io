@@ -1226,7 +1226,18 @@ note right of User : Step 6: DNS records returned if the signature is valid.
 
 <p>Without DNSSEC, the DNS resolution process is vulnerable to various attacks, like <strong>DNS cache poisoning</strong>, <strong>MITM attacks</strong>, and <strong>DNS spoofing</strong>, where attackers can inject or alter DNS responses. <strong>DNSSEC</strong> addresses these risks by <strong>digitally signing</strong> DNS records and enabling <strong>authentication</strong> at each step of the resolution process. This ensures the integrity and authenticity of DNS responses and prevents malicious tampering.</p>
 
-<p>Let me know if you need further clarification or details!</p>
+<p>Gateway endpoint for S3/DDB, done by adding a route</p>
+
+<p>Interface Endpoints, you get a “new endpoint service name”
+    - This is different to gateway endpoint.
+    - e.g. vpce-123-xyz……
+        - Regional / Zonal DNS
+    - No HA by default
+        - TO be HA you need to add one per AZ
+    - PrivateDNS overrides the default DNS
+        - you basically create a PrivateDNS</p>
+
+<p>VPC Endpoint policies</p>
 
     </article>
   </main>

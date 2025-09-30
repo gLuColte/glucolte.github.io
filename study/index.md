@@ -12,7 +12,7 @@ Think of this page as your **mental compass** — quick reminders on *how to thi
 
 ## Infrastructure & Cloud
 
-The following are infrastructure and cloud services study pages (auto-generated):
+The following are infrastructure and cloud services study pages:
 
 <div class="study-tiles">
 {% assign all_pages = site.pages | sort: "title" %}
@@ -32,7 +32,7 @@ The following are infrastructure and cloud services study pages (auto-generated)
 
 ## System Design Fundamentals
 
-The following are system design fundamentals study pages (auto-generated):
+The following are system design fundamentals study pages:
 
 <div class="study-tiles">
 {% assign all_pages = site.pages | sort: "title" %}
@@ -53,7 +53,7 @@ The following are system design fundamentals study pages (auto-generated):
 
 ## GenAI
 
-The following are Generative AI study pages (auto-generated):
+The following are Generative AI study pages:
 
 <div class="study-tiles">
 {% assign all_pages = site.pages | sort: "title" %}
@@ -91,7 +91,7 @@ Practice your debugging and troubleshooting skills with hands-on Linux server ch
 
 ## LeetCode
 
-The following are topic-specific coding interview study pages (auto-generated):
+The following are topic-specific coding interview study pages:
 
 <div class="study-tiles">
 {% assign all_pages = site.pages | sort: "title" %}
