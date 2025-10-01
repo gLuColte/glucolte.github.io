@@ -35,13 +35,54 @@ Think of this page as your **portfolio compass** — quick insights into *what I
 
 <style>
 :root {
-  --border: #e5e7eb;
-  --bg: #ffffff;
-  --text: #111827;
-  --text-muted: #6b7280;
-  --accent: #111827;
+  --border: var(--line);
+  --bg: var(--card);
+  --text: var(--ink);
+  --text-muted: var(--muted);
+  --accent: var(--accent);
   --shadow: 0 1px 3px rgba(0,0,0,.1);
   --shadow-hover: 0 8px 24px rgba(0,0,0,.08);
+}
+
+[data-theme="dark"] {
+  --shadow: 0 1px 3px rgba(0,0,0,.3);
+  --shadow-hover: 0 8px 24px rgba(0,0,0,.2);
+}
+
+[data-theme="dark"] .project-title,
+[data-theme="dark"] .project-title a,
+[data-theme="dark"] .project-meta,
+[data-theme="dark"] .project-meta span,
+[data-theme="dark"] .project-description,
+[data-theme="dark"] .project-description p,
+[data-theme="dark"] .project-links a {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] #project-search,
+[data-theme="dark"] .language-chip,
+[data-theme="dark"] #sort-select,
+[data-theme="dark"] #sort-select option {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .language-chip.active {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+[data-theme="dark"] .project-card:hover {
+  background-color: #1e3a8a !important;
+  border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .project-card:hover .project-title a,
+[data-theme="dark"] .project-card:hover .project-meta,
+[data-theme="dark"] .project-card:hover .project-meta span,
+[data-theme="dark"] .project-card:hover .project-description,
+[data-theme="dark"] .project-card:hover .project-description p {
+  color: #ffffff !important;
 }
 
 .projects-toolbar {
@@ -97,10 +138,11 @@ Think of this page as your **portfolio compass** — quick insights into *what I
 }
 
 .language-chip.active {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
+  background: #000000;
+  color: #ffffff !important;
+  border-color: #000000;
 }
+
 
 #sort-select {
   padding: 0.75rem 1rem;
@@ -148,8 +190,16 @@ Think of this page as your **portfolio compass** — quick insights into *what I
 }
 
 .project-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hover);
+  background-color: #e3f2fd;
+  border-color: #0366d6;
+}
+
+.project-card:hover .project-title a,
+.project-card:hover .project-meta,
+.project-card:hover .project-meta span,
+.project-card:hover .project-description,
+.project-card:hover .project-description p {
+  color: #0366d6;
 }
 
 .project-card.pinned::before {
@@ -180,12 +230,20 @@ Think of this page as your **portfolio compass** — quick insights into *what I
   color: var(--accent);
 }
 
+.project-title {
+  color: var(--text);
+}
+
 .project-meta {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
   font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.project-meta span {
   color: var(--text-muted);
 }
 
@@ -235,28 +293,10 @@ Think of this page as your **portfolio compass** — quick insights into *what I
   overflow: hidden;
 }
 
-.project-links {
-  display: flex;
-  gap: 0.75rem;
+.project-description p {
+  color: var(--text-muted);
 }
 
-.project-links a {
-  padding: 0.5rem 1rem;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.project-links a:hover {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
-}
 
 .skeleton-card {
   background: var(--bg);
@@ -591,9 +631,9 @@ class GitHubProjects {
     const exactDate = new Date(project.updated_at).toLocaleDateString();
 
     return `
-      <div class="project-card ${project.isPinned ? 'pinned' : ''}">
+      <div class="project-card ${project.isPinned ? 'pinned' : ''}" onclick="window.open('${project.html_url}', '_blank')" style="cursor: pointer;">
         <h3 class="project-title">
-          <a href="${project.html_url}" target="_blank" rel="noopener">${project.name}</a>
+          ${project.name}
         </h3>
         <div class="project-meta">
           ${languageDot}
@@ -601,10 +641,6 @@ class GitHubProjects {
           <span class="updated" title="${exactDate}">Updated ${relativeTime}</span>
         </div>
         ${project.description ? `<p class="project-description">${project.description}</p>` : ''}
-        <div class="project-links">
-          <a href="${project.html_url}" target="_blank" rel="noopener">View on GitHub</a>
-          ${project.homepage ? `<a href="${project.homepage}" target="_blank" rel="noopener">Live Demo</a>` : ''}
-        </div>
       </div>
     `;
   }

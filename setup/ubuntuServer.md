@@ -13,7 +13,7 @@ Complete Ubuntu setup guide for **local development and playground** on a GPU ma
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y build-essential curl wget git unzip net-tools software-properties-common ca-certificates gnupg lsb-release
-````
+```
 
 ---
 

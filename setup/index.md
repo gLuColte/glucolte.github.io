@@ -62,6 +62,9 @@ Things I do to setup my systems for development
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .setup-card:hover {
@@ -108,7 +111,7 @@ Things I do to setup my systems for development
   flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .feature-tag {
@@ -131,12 +134,28 @@ Things I do to setup my systems for development
   font-weight: 500;
   transition: all 0.2s ease;
   border: 2px solid var(--accent);
+  margin-top: auto;
 }
 
 .setup-button:hover {
-  background: white;
-  color: var(--accent);
   transform: translateY(-1px);
+}
+
+[data-theme="dark"] .setup-card h2,
+[data-theme="dark"] .setup-card p {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .feature-tag {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+[data-theme="dark"] .setup-button {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #ffffff !important;
 }
 
 @media (max-width: 768px) {

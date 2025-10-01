@@ -13,9 +13,9 @@ Complete MacBook setup guide for **local development and playground** — with e
 
 Install Xcode Command Line Tools:
 
-```bash
+```
 xcode-select --install
-````
+```
 
 Install Homebrew (package manager):
 
