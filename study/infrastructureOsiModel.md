@@ -5,16 +5,22 @@ permalink: /study/infrastructureOsiModel
 
 # OSI Model
 
-The OSI (Open Systems Interconnection) Model is a conceptual framework that explains how data moves from one device to another across a network. It breaks communication into seven layers, each with a specific role—from turning raw electrical signals into bits, all the way up to human-readable applications like web browsers or email. By separating these responsibilities, the OSI model makes it easier to design, troubleshoot, and scale networks. It supports everything from simple device-to-device communication (like two computers in a LAN) to complex many-to-many interactions across the global internet. Each higher OSI layer builds on the services of the layer below, while layers remain functionally independent when viewed side-by-side.
+The **OSI (Open Systems Interconnection) Model** is a conceptual framework that describes how data moves across a network. It breaks communication into **seven layers**, each with a distinct role—from physical signals up to human-facing applications.  
+
+By separating responsibilities, the OSI model makes it easier to design, troubleshoot, and scale networks. Each higher layer builds on the services of the one below, while remaining logically independent.
+
+---
+
+## 1. The 7 Layers
 
 <table class="study-table">
 <thead>
 <tr>
-<th>OSI Layer</th>
+<th>Layer</th>
 <th>Example Protocols</th>
 <th>Data Unit</th>
 <th>What It Adds / Handles</th>
-<th>Key Details & Examples</th>
+<th>Notes</th>
 </tr>
 </thead>
 <tbody>
@@ -22,129 +28,138 @@ The OSI (Open Systems Interconnection) Model is a conceptual framework that expl
 <td>L7 Application</td>
 <td>HTTP, DNS, SMTP, FTP</td>
 <td>Data</td>
-<td>User-facing services & protocols</td>
-<td>Apps talk in human-readable formats. Browser → HTTP Request, Mail client → SMTP.</td>
+<td>User-facing services</td>
+<td>Browser → HTTP, Mail → SMTP.</td>
 </tr>
 <tr>
 <td>L6 Presentation</td>
 <td>TLS/SSL, JPEG, JSON</td>
 <td>Record</td>
 <td>Data format, encryption, compression</td>
-<td>TLS encrypts HTTP; JSON/XML standardize data; JPEG/MP3 compress media. Often merged into L7 in practice.</td>
+<td>Often merged into L7.</td>
 </tr>
 <tr>
 <td>L5 Session</td>
 <td>NetBIOS, RPC</td>
 <td>–</td>
-<td>Session control (setup, sync, teardown)</td>
-<td>Rarely explicit today. Example: RPC, NetBIOS. TLS sessions can resume without full handshake.</td>
+<td>Session setup & teardown</td>
+<td>Rarely explicit today.</td>
 </tr>
 <tr>
 <td>L4 Transport</td>
 <td>TCP, UDP</td>
 <td>Segment</td>
-<td>Reliable delivery (TCP) or fast fire-and-forget (UDP)</td>
-<td>Fixes L3 issues: out-of-order, loss, no channels. TCP headers include ports, seq/ack, window, checksum. TCP 3-way handshake → SYN, SYN/ACK, ACK. Maintains state (reliable, ordered). UDP = stateless (no session info).</td>
+<td>Reliable (TCP) vs fast (UDP)</td>
+<td>TCP = handshake, ports, seq/ack. UDP = stateless.</td>
 </tr>
 <tr>
 <td>L3 Network</td>
 <td>IP, ICMP</td>
 <td>Packet</td>
-<td>Logical addressing, routing between networks</td>
-<td>IP = addressing system. ICMP = control (ping, errors). Routers strip/replace frames at every hop. Uses ARP to resolve IP→MAC. Routing tables decide next hop (default 0.0.0.0/0). House = IP, Apartment = Port.</td>
+<td>Logical addressing & routing</td>
+<td>Routers forward packets. Uses ARP for MAC resolution.</td>
 </tr>
 <tr>
 <td>L2 Data Link</td>
 <td>Ethernet, Wi-Fi, PPP</td>
 <td>Frame</td>
-<td>Local delivery between devices on the same medium</td>
-<td>MAC addresses unique per device. Frame = Header (src/dst MAC + EtherType) + Payload (L3 packet) + CRC. Handles collisions (CSMA/CD). Supports unicast, broadcast, VLAN tagging. Protocols: Ethernet, Wi-Fi, MPLS, PPP.</td>
+<td>Local delivery</td>
+<td>Frames = MAC headers + payload + CRC.</td>
 </tr>
 <tr>
 <td>L1 Physical</td>
 <td>Copper, Fiber, Wi-Fi PHY</td>
 <td>Bits</td>
 <td>Transmission of raw signals</td>
-<td>Defines voltage, RF, or light wavelength. No addressing or error detection. Standards: copper (RJ45), fiber optics, Wi-Fi PHY.</td>
+<td>Voltage, RF, or optical light.</td>
 </tr>
 </tbody>
 </table>
 
-
-🔁 **Encapsulation order**:
-**Frame → Packet → Segment → Application Data**
-…and the whole frame turns into **bits/signals** at Layer 1.
-
-A really good diagram illustration is from [Osi Model Explained - Byte Byte Go](https://bytebytego.com/guides/what-is-osi-model/)
+🔁 **Encapsulation order:**  
+`Application Data → Segment → Packet → Frame → Bits`
 
 <div style="text-align: center; margin: 20px 0;">
-<img src="https://assets.bytebytego.com/diagrams/0295-osi-model.jpeg" alt="ByteByteGo OSI Model" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <img src="https://assets.bytebytego.com/diagrams/0295-osi-model.jpeg" 
+       alt="ByteByteGo OSI Model" 
+       style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="margin-top: 8px; font-size: 0.9em; color: #555;">
+    <a href="https://bytebytego.com/guides/what-is-osi-model/" target="_blank" style="text-decoration: none; color: #3366cc;">
+      📖 Source: OSI Model Explained – Byte Byte Go
+    </a>
+  </div>
 </div>
-
 
 ---
 
-## Devices at Different Layers
-
-Different network devices operate at different OSI layers, each handling only the information relevant to its role:
+## 2. Devices at Each Layer
 
 <table class="study-table">
 <thead>
 <tr>
 <th>Device</th>
-<th>OSI Layer</th>
+<th>Layer</th>
 <th>What It Does</th>
-<th>Protocol Examples</th>
+<th>Protocols</th>
 <th>Authentication</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Hub</td>
-<td>L1 (Physical)</td>
-<td>Blindly repeats bits to all ports. No concept of frames or addresses → collisions possible.</td>
-<td>None (raw electrical/optical signals)</td>
-<td>None</td>
-</tr>
-<tr>
-<td>Switch</td>
-<td>L2 (Data Link)</td>
-<td>Forwards Ethernet frames using MAC address table. Falls back to broadcast (flooding) if unknown.</td>
-<td>Ethernet, ARP, VLAN (802.1Q), STP</td>
-<td>Port security (MAC binding), 802.1X (RADIUS/EAP)</td>
-</tr>
-<tr>
-<td>Router</td>
-<td>L3 (Network)</td>
-<td>Routes IP packets across networks. Strips L2 header and adds a new one for each hop.</td>
-<td>IP, ICMP, OSPF, BGP, EIGRP</td>
-<td>BGP MD5, OSPF auth (MD5/SHA), IPsec for secure tunnels</td>
+<td>Load Balancer</td>
+<td>L4–L7</td>
+<td>Distributes traffic</td>
+<td>TCP, HTTP/S, gRPC</td>
+<td>TLS certs, tokens</td>
 </tr>
 <tr>
 <td>Firewall</td>
 <td>L3–L4 (sometimes L7)</td>
-<td>Inspects and filters packets based on IP, ports, and sometimes application signatures.</td>
-<td>IP, TCP/UDP, HTTP/S (for deep inspection)</td>
-<td>Rule sets, TLS interception (certificates), VPN auth</td>
+<td>Filters packets/flows</td>
+<td>IP, TCP/UDP, HTTP</td>
+<td>Rules, TLS interception, VPN</td>
 </tr>
 <tr>
-<td>Load Balancer</td>
-<td>L4–L7</td>
-<td>Distributes client requests across multiple servers, can also terminate TLS.</td>
-<td>TCP, HTTP/S, TLS, gRPC</td>
-<td>TLS certificates, client certs, token-based auth</td>
+<td>Router</td>
+<td>L3</td>
+<td>Routes IP packets</td>
+<td>IP, ICMP, BGP, OSPF</td>
+<td>BGP MD5, IPsec</td>
+</tr>
+<tr>
+<td>Switch</td>
+<td>L2</td>
+<td>Forwards frames by MAC</td>
+<td>Ethernet, VLAN, ARP</td>
+<td>802.1X, MAC binding</td>
+</tr>
+<tr>
+<td>Hub</td>
+<td>L1</td>
+<td>Repeats bits blindly</td>
+<td>–</td>
+<td>None</td>
 </tr>
 </tbody>
 </table>
 
-
 ---
 
-## Layer 2 - ARP
+## 3. Layer Interactions
 
-ARP (Address Resolution Protocol) maps an IP address (L3) to a MAC address (L2) so devices can deliver frames on a local network. It works by broadcasting “Who has this IP?” and the target replies with its MAC. Once resolved, the sender builds the frame (Src MAC → Dst MAC) and hands it to Layer 1, which transmits the raw bits as electrical, optical, or radio signals.
+### 3.1 Layer 2 – ARP
 
-```
+Maps IP → MAC via broadcast request and unicast reply.  
+
+<div class="diagram-wrapper">
+  <img src="./assets/l2_arp.png" alt="L2 ARP Example">
+
+  <div class="diagram-caption" data-snippet-id="arp-snippet">
+    🖼️ ARP – Sequence (hover to see PlantUML code)
+  </div>
+
+  <!-- Keep your PlantUML raw here -->
+  <script type="text/plain" id="arp-snippet">
 @startuml
 actor "Host A\n(133.33.3.7)" as A
 participant "Switch / LAN" as LAN
@@ -166,17 +181,10 @@ LAN -> A: Deliver ARP Reply
 A -> B: Frame (Src MAC A → Dst MAC B)\nCarrying IP Packet (A IP → B IP)
 note over A,B: Now Host A can send data directly to Host B
 @enduml
-
-```
-
-<div style="text-align: center; margin: 20px 0;">
-<img src="./assets/l2_arp.png" alt="L2 ARP Example" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  </script>
 </div>
 
----
-
-## Layer 2 - VLANs, Trunks & QinQ 
-
+### 3.2 Layer 2 – VLANs & Trunks
 VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains, and efficiently carry multiple logical networks over the same physical infrastructure.
 
 * **VLAN (802.1Q):**
@@ -194,13 +202,18 @@ VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains,
 
 👉 All three work at **Layer 2 (Frames)** to logically separate traffic over shared physical networks.
 
----
+### 3.3 Layer 3 – Routing
+Routers strip old frames, keep IP header, attach new MAC header for next hop.  
 
-## Layer 3 - Routing
+<div class="diagram-wrapper">
+  <img src="./assets/l3_routing.png" alt="L3 Routing Example">
 
-Layer 3 (Network) routing forwards packets across different networks. At each hop, the router keeps the IP packet unchanged (source IP → destination IP) but removes the old Layer 2 frame and attaches a new one with the next hop’s MAC address. This process lets traffic move from a local LAN to remote networks through multiple routers. Note, L3 Routing depends on L2 ARP.
+  <div class="diagram-caption" data-snippet-id="routing-snippet">
+    🖼️ Routing – Sequence (hover to see PlantUML code)
+  </div>
 
-```
+  <!-- Keep your PlantUML raw here -->
+  <script type="text/plain" id="routing-snippet">
 @startuml
 actor Host as H
 participant "Router 1\n(Home Gateway)" as R1
@@ -224,86 +237,159 @@ D <-- R2: Destination Host receives Packet(H-IP → D-IP)
 note right of D: Frame removed, IP packet delivered up the stack
 @enduml
 
-```
-
-<div style="text-align: center; margin: 20px 0;">
-<img src="./assets/l3_routing.png" alt="L3 Routing Example" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  </script>
 </div>
 
----
+### 3.4 Layer 3 & 5–6 - IPsec
+IPsec = encrypted **network tunnels**.  
+- **IKE (control plane)** negotiates SAs and keys (**Layer 5–6**, over UDP/500 or UDP/4500 for NAT-T).  
+- **ESP/AH (data plane)** protects IP packets at **Layer 3**.  
+- Commonly used for site-to-site and remote-access VPNs.  
+- Protects *all traffic* (HTTP, SSH, DNS, ICMP, etc.), independent of app protocol.
 
-## Multi Layer 4 & 7 - TLS and IPSec Tunnel
-
-TLS handshake for encrypted communication:
-
-```
+<div class="diagram-wrapper">
+  <img src="./assets/ipsec_handshake.png" alt="IPsec Example">
+  <div class="diagram-caption" data-snippet-id="ipsec-snippet">
+    🖼️ IPsec – Sequence (hover to see PlantUML code)
+  </div>
+  <!-- Keep your PlantUML raw here -->
+  <script type="text/plain" id="ipsec-snippet">
 @startuml
-actor Server
 actor Client
+actor Server
+
+== IKE Phase 1 (Main Mode / IKE_SA_INIT + IKE_AUTH) ==
+Client -> Server: IKE_SA_INIT (DH/ECDH group, nonces, proposals) over UDP/500 (or 4500 NAT-T)
+Server -> Client: IKE_SA_INIT Response
+note over Client,Server: Exchange DH/ECDH (ephemeral by design) -> derive IKE SA key (PFS)
+
+Client -> Server: IKE_AUTH (ID, Certificate/PSK, Auth payload)
+Server -> Client: IKE_AUTH Response
+note over Client,Server: Peers authenticated; secure IKE control channel established
+
+== IKE Phase 2 (Quick Mode / CHILD_SA) ==
+Client -> Server: CHILD_SA proposal (ESP/AH algos, lifetimes, selectors)
+Server -> Client: CHILD_SA response
+note over Client,Server: Negotiate keys/SPI for ESP/AH; set rekey lifetimes
+
+== Encrypted Tunnel Established ==
+note over Client,Server: All subsequent IP traffic protected inside ESP/AH (per CHILD_SA)
+
+== Payload ==
+alt Tunnel mode
+  Client -> Server: ESP { Outer IP | ESP hdr(SPI, Seq) | Inner IP | TCP/UDP | App Data }
+  Server -> Client: ESP { Outer IP | ESP hdr(SPI, Seq) | Inner IP | TCP/UDP | App Data }
+else Transport mode
+  Client -> Server: ESP { IP | ESP hdr(SPI, Seq) | TCP/UDP | App Data }
+  Server -> Client: ESP { IP | ESP hdr(SPI, Seq) | TCP/UDP | App Data }
+end
+
+== Operations ==
+... Rekey on lifetime expiry; DPD/keepalives monitor liveness ...
+@enduml
+  </script>
+</div>
+> Elliptic Curve Diffie–Hellman Ephemeral provides **Perfect Forward Secrecy (PFS)** by using a fresh, temporary key pair per session. Even if a server’s long-term private key is later compromised, past sessions remain confidential. Both TLS and IPsec commonly prefer ECDHE for key exchange.
+
+### 3.5 Layer 5–6 - TLS
+TLS = encrypted **application sessions**.  
+- Runs above TCP (L4) and below Application (L7).  
+- Provides confidentiality, integrity, authentication.  
+- Examples: HTTPS, SMTPS, IMAPS.  
+- Protects *specific app protocols*, not all traffic.
+
+<div class="diagram-wrapper">
+  <img src="./assets/tls_handshake.png" alt="TLS Example">
+  <div class="diagram-caption" data-snippet-id="tls-snippet">
+    🖼️ TLS – Sequence (hover to see PlantUML code)
+  </div>
+  <!-- Keep your PlantUML raw here -->
+  <script type="text/plain" id="tls-snippet">
+@startuml
+actor Client
+actor Server
 actor CA
 
-== Certificate Setup (out of band) ==
-Server -> CA: CSR (public key + org info)
-CA -> Server: Signed Certificate (X.509)
-
-== TCP 3-Way Handshake (TLS only) ==
-Client -> Server: SYN
-Server -> Client: SYN-ACK
-Client -> Server: ACK
+== TCP Setup ==
+Client -> Server: SYN / SYN-ACK / ACK
 note over Client,Server: TCP connection established
 
 == TLS Handshake ==
-Client -> Server: ClientHello (supported ciphers, random)
+Client -> Server: ClientHello (ciphers, random)
 Server -> Client: ServerHello + Certificate
-Client -> CA: Validate Certificate Chain
-note over Client: Check CA root, expiry, domain
+Client -> CA: Validate cert chain (CA root, expiry, hostname)
 
-alt RSA Key Exchange (older)
-  Client -> Server: Pre-Master Secret (encrypted with server pubkey)
-  note over Client,Server: Derive Master Secret & Session Keys
-else (EC)DHE Key Exchange (modern)
-  Client -> Server: DH/ECDH public value
-  Server -> Client: DH/ECDH public value
-  note over Client,Server: Derive Shared Secret (PFS)
-end
+Client -> Server: ECDHE public value
+Server -> Client: ECDHE public value
+note over Client,Server: Derive shared secret (Perfect Forward Secrecy)
 
 Client -> Server: Finished
 Server -> Client: Finished
-note over Client,Server: Secure TLS Channel Established
+note over Client,Server: Secure TLS channel established
 
-== Application Data ==
-Client -> Server: Encrypted HTTP Request
-Server -> Client: Encrypted HTTP Response
-
-== IPsec IKE Phase 1 (Main Mode) ==
-Client -> Server: IKE_SA_INIT (DH values, nonces, proposals)
-Server -> Client: IKE_SA_INIT Response
-note over Client,Server: DH/ECDH → Shared Key (IKE SA)
-
-Client -> Server: IKE_AUTH (ID, Certificate, Auth payload)
-Server -> Client: IKE_AUTH Response
-note over Client,Server: Peers authenticated, secure control channel
-
-== IPsec IKE Phase 2 (Quick Mode) ==
-Client -> Server: Child SA proposal (ESP/AH algorithms, lifetimes)
-Server -> Client: Child SA response
-note over Client,Server: Derive IPsec SA keys from Phase 1
-
-== Encrypted Tunnel Established ==
-Client -> Server: Encrypted IP packets (ESP/AH)
-Server -> Client: Encrypted IP packets (ESP/AH)
+== Payload ==
+Client -> Server: TLS record { Application Data: HTTP Request }
+Server -> Client: TLS record { Application Data: HTTP Response }
 @enduml
-
-
-```
-
-<div style="text-align: center; margin: 20px 0;">
-<img src="./assets/tls_handshake.png" alt="TLS Handshake" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  </script>
 </div>
+
+### 3.6 Traffic Addressing Modes (Unicast, Broadcast, Multicast, Anycast, Geocast)
+
+How frames/packets are addressed determines who receives them and how the network treats them.
+
+<table class="study-table">
+<thead>
+<tr>
+  <th>Mode</th>
+  <th>Who Receives</th>
+  <th>OSI Context</th>
+  <th>Typical Uses</th>
+  <th>Key Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Unicast</strong></td>
+  <td>Exactly one host</td>
+  <td>L2 (MAC→MAC), L3 (IP→IP)</td>
+  <td>Web browsing, API calls, SSH</td>
+  <td>Most traffic is unicast. Switched at L2, routed at L3.</td>
+</tr>
+<tr>
+  <td><strong>Broadcast</strong></td>
+  <td>All hosts in the L2 broadcast domain</td>
+  <td>L2 (FF:FF:FF:FF:FF:FF)</td>
+  <td>ARP, DHCP DISCOVER</td>
+  <td>Routers block broadcasts by default.</td>
+</tr>
+<tr>
+  <td><strong>Multicast</strong></td>
+  <td>Members of a subscribed group</td>
+  <td>L3 (224.0.0.0/4 IPv4; ff00::/8 IPv6)</td>
+  <td>IPTV, conferencing, OSPF</td>
+  <td>Uses IGMP/MLD (hosts), PIM (routers).</td>
+</tr>
+<tr>
+  <td><strong>Anycast</strong></td>
+  <td>“Nearest” one of many identical endpoints</td>
+  <td>L3 (same IP announced in multiple sites)</td>
+  <td>CDNs, DNS resolvers</td>
+  <td>Routing selects the closest service.</td>
+</tr>
+<tr>
+  <td><strong>Geocast</strong></td>
+  <td>Hosts in a geographic region</td>
+  <td>L3 concept</td>
+  <td>Vehicular alerts, ITS</td>
+  <td>Conceptual; app-layer in practice.</td>
+</tr>
+</tbody>
+</table>
 
 ---
 
-## Commands by OSI Layer
+## 4. Commands by OSI Layer
 
 <table class="study-table">
 <thead>
@@ -312,255 +398,74 @@ Server -> Client: Encrypted IP packets (ESP/AH)
 <th>Command</th>
 <th>Purpose</th>
 <th>Example</th>
-<th>Popular Flags</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>L2 Data Link</td>
+<td>L2</td>
 <td><code>arp</code></td>
-<td>Show/modify ARP cache (IP↔MAC)</td>
+<td>Show ARP cache</td>
 <td><code>arp -a</code></td>
-<td><code>-a</code> all, <code>-d</code> delete</td>
 </tr>
 <tr>
-<td></td>
-<td><code>ip link</code></td>
-<td>Manage NICs, errors, drops</td>
-<td><code>ip -s link show eth0</code></td>
-<td><code>-s</code> stats, <code>set</code> up/down</td>
-</tr>
-<tr>
-<td></td>
-<td><code>ethtool</code></td>
-<td>NIC driver/speed info</td>
-<td><code>ethtool eth0</code></td>
-<td><code>-i</code> driver info, <code>-S</code> stats</td>
-</tr>
-<tr>
-<td>L3 Network</td>
+<td>L3</td>
 <td><code>ping</code></td>
-<td>Test reachability + latency (ICMP)</td>
-<td><code>ping -c 4 8.8.8.8</code></td>
-<td><code>-c</code> count, <code>-s</code> size, <code>-I</code> iface</td>
+<td>Test ICMP reachability</td>
+<td><code>ping 8.8.8.8</code></td>
 </tr>
 <tr>
-<td></td>
-<td><code>traceroute</code>/<code>mtr</code></td>
+<td>L3</td>
+<td><code>traceroute</code></td>
 <td>Show hop path</td>
-<td><code>mtr -rw 8.8.8.8</code></td>
-<td><code>-r</code> report, <code>-n</code> numeric, <code>-w</code> wide</td>
+<td><code>mtr 8.8.8.8</code></td>
 </tr>
 <tr>
-<td></td>
-<td><code>ip route</code></td>
-<td>Show/manage routing table</td>
-<td><code>ip route show</code></td>
-<td>add/del routes</td>
+<td>L4</td>
+<td><code>ss</code></td>
+<td>List sockets</td>
+<td><code>ss -ant</code></td>
 </tr>
 <tr>
-<td>L4 Transport</td>
-<td><code>ss</code>/<code>netstat</code></td>
-<td>List sockets, ports, states</td>
-<td><code>ss -antp</code></td>
-<td><code>-a</code> all, <code>-t</code> TCP, <code>-u</code> UDP, <code>-p</code> proc</td>
-</tr>
-<tr>
-<td></td>
+<td>L4</td>
 <td><code>tcpdump</code></td>
 <td>Capture packets</td>
-<td><code>tcpdump -i eth0 port 443 -nnvvXSs 1500</code></td>
-<td><code>-i</code> iface, <code>-nn</code> no resolve, <code>-w</code> write</td>
+<td><code>tcpdump -i eth0 port 443</code></td>
 </tr>
 <tr>
-<td>L7 Application</td>
+<td>L7</td>
 <td><code>dig</code></td>
-<td>DNS resolution</td>
-<td><code>dig +trace example.com</code></td>
-<td><code>+trace</code>, <code>@server</code></td>
+<td>DNS lookup</td>
+<td><code>dig example.com</code></td>
 </tr>
 <tr>
-<td></td>
-<td><code>nslookup</code></td>
-<td>Legacy DNS tool</td>
-<td><code>nslookup example.com 8.8.8.8</code></td>
-<td>server param</td>
-</tr>
-<tr>
-<td></td>
+<td>L7</td>
 <td><code>curl</code></td>
-<td>Test HTTP/TLS endpoints</td>
-<td><code>curl -vk https://example.com</code></td>
-<td><code>-v</code> verbose, <code>-k</code> ignore cert</td>
-</tr>
-<tr>
-<td></td>
-<td><code>wget</code></td>
-<td>Fetch HTTP/FTP files</td>
-<td><code>wget --spider https://example.com</code></td>
-<td><code>--spider</code> test only, <code>-O</code> output</td>
+<td>Test HTTP</td>
+<td><code>curl -vk https://site</code></td>
 </tr>
 <tr>
 <td>Cross</td>
-<td><code>iftop</code></td>
-<td>Bandwidth by connection</td>
-<td><code>iftop -i eth0</code></td>
-<td><code>-n</code> numeric, <code>-P</code> show ports</td>
-</tr>
-<tr>
-<td></td>
 <td><code>nmap</code></td>
-<td>Scan ports/services</td>
-<td><code>nmap -sS -p 1-1000 10.1.2.3</code></td>
-<td><code>-sS</code> SYN, <code>-sV</code> version, <code>-A</code> aggressive</td>
-</tr>
-</tbody>
-</table>
-
-
----
-
-## IPv4 Classes & Reservations
-
-IPv4 addresses are 32-bit numbers, written as four octets (groups of 8 bits) in decimal, separated by dots (e.g., 192.168.1.1). Early on, these addresses were divided into classes (A–E) to handle different network sizes and special purposes.
-
-* **Class A (0.0.0.0 – 127.255.255.255)**
-  * Originally: Very large networks (up to \~16 million hosts).
-  * Reserved bits:
-    * `0.0.0.0/8` → “this network.”
-    * `127.0.0.0/8` → **loopback** (localhost, e.g., `127.0.0.1`).
-    * `10.0.0.0/8` → **private addressing** (RFC 1918).
-
-* **Class B (128.0.0.0 – 191.255.255.255)**
-  * Originally: Medium networks (up to \~65,000 hosts).
-  * Reserved bits:
-    * `172.16.0.0 – 172.31.255.255` → **private use**.
-
-* **Class C (192.0.0.0 – 223.255.255.255)**
-  * Originally: Small networks (up to 254 hosts).
-  * Reserved bits:
-    * `192.168.0.0/16` → **private use**.
-    * `192.0.2.0/24` → **TEST-NET-1** (docs/examples).
-    * `198.51.100.0/24` → **TEST-NET-2**.
-    * `203.0.113.0/24` → **TEST-NET-3**.
-
-* **Class D (224.0.0.0 – 239.255.255.255)**
-  * **Reserved for multicast.**
-  * Examples:
-    * `224.0.0.1` → all hosts in subnet.
-    * `224.0.0.2` → all routers in subnet.
-
-* **Class E (240.0.0.0 – 255.255.255.255)**
-  * **Reserved for experimental use.**
-  * Not routable on the public internet.
-
-👉 In practice:
-* **Classes A/B/C**: Mostly historical; we now use **CIDR (Classless Inter-Domain Routing)** instead of rigid class boundaries.
-* **Class D**: Still active for multicast (e.g., streaming, routing protocols like OSPF).
-* **Class E**: Reserved/unused.
-
-### Decimal and Binary Converions
-
-<table class="study-table">
-<thead>
-<tr>
-<th style="text-align: center;">Position</th>
-<th style="text-align: center;">1</th>
-<th style="text-align: center;">2</th>
-<th style="text-align: center;">3</th>
-<th style="text-align: center;">4</th>
-<th style="text-align: center;">5</th>
-<th style="text-align: center;">6</th>
-<th style="text-align: center;">7</th>
-<th style="text-align: center;">8</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Decimal</td>
-<td style="text-align: center;">128</td>
-<td style="text-align: center;">64</td>
-<td style="text-align: center;">32</td>
-<td style="text-align: center;">16</td>
-<td style="text-align: center;">8</td>
-<td style="text-align: center;">4</td>
-<td style="text-align: center;">2</td>
-<td style="text-align: center;">1</td>
-</tr>
-<tr>
-<td>Representation</td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
+<td>Port scan</td>
+<td><code>nmap -sS 10.1.2.3</code></td>
 </tr>
 </tbody>
 </table>
 
 ---
 
-#### Convert `132` to Binary
+## 5. IP Addressing Basics
 
-Take the first octet of `132.12.1.23`.
+### 5.1 IPv4 Classes & Reservations
+- **Class A:** 0.0.0.0 – 127.255.255.255 (10.0.0.0/8 private, 127/8 loopback)  
+- **Class B:** 128.0.0.0 – 191.255.255.255 (172.16.0.0/12 private)  
+- **Class C:** 192.0.0.0 – 223.255.255.255 (192.168/16 private, TEST-NETs)  
+- **Class D:** 224.0.0.0 – 239.255.255.255 (multicast)  
+- **Class E:** 240.0.0.0 – 255.255.255.255 (experimental)  
 
-1. Start from **128** → 132 ≥ 128 → put **1**, remainder = 132 − 128 = 4.
-2. Next (64) → 4 < 64 → **0**.
-3. Next (32) → 4 < 32 → **0**.
-4. Next (16) → 4 < 16 → **0**.
-5. Next (8) → 4 < 8 → **0**.
-6. Next (4) → 4 ≥ 4 → **1**, remainder = 0.
-7. Next (2) → 0 < 2 → **0**.
-8. Next (1) → 0 < 1 → **0**.
+👉 Today we use **CIDR** instead of classful boundaries.
 
-Result row: **1 0 0 0 0 1 0 0**
-
-<table class="study-table">
-<thead>
-<tr>
-<th style="text-align: center;">Position</th>
-<th style="text-align: center;">1</th>
-<th style="text-align: center;">2</th>
-<th style="text-align: center;">3</th>
-<th style="text-align: center;">4</th>
-<th style="text-align: center;">5</th>
-<th style="text-align: center;">6</th>
-<th style="text-align: center;">7</th>
-<th style="text-align: center;">8</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Decimal</td>
-<td style="text-align: center;">128</td>
-<td style="text-align: center;">64</td>
-<td style="text-align: center;">32</td>
-<td style="text-align: center;">16</td>
-<td style="text-align: center;">8</td>
-<td style="text-align: center;">4</td>
-<td style="text-align: center;">2</td>
-<td style="text-align: center;">1</td>
-</tr>
-<tr>
-<td>Representation</td>
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-</tr>
-</tbody>
-</table>
-
-👉 So `132` in binary = **10000100**
-
-#### Convert 10000100 to Decimals
+### 5.1 Convert Binary to Decimal
 
 1. Take the binary `10000100`.
 2. Multiply each bit by its place value:
@@ -625,151 +530,111 @@ Result row: **1 0 0 0 0 1 0 0**
 
 👉 So `10000100` in decimal = **132**
 
+### 5.2 Convert Decimal to to Binary
+
+Take the first octet of `132.12.1.23`.
+
+1. Start from **128** → 132 ≥ 128 → put **1**, remainder = 132 − 128 = 4.
+2. Next (64) → 4 < 64 → **0**.
+3. Next (32) → 4 < 32 → **0**.
+4. Next (16) → 4 < 16 → **0**.
+5. Next (8) → 4 < 8 → **0**.
+6. Next (4) → 4 ≥ 4 → **1**, remainder = 0.
+7. Next (2) → 0 < 2 → **0**.
+8. Next (1) → 0 < 1 → **0**.
+
+Result row: **1 0 0 0 0 1 0 0**
+
+<table class="study-table">
+<thead>
+<tr>
+<th style="text-align: center;">Position</th>
+<th style="text-align: center;">1</th>
+<th style="text-align: center;">2</th>
+<th style="text-align: center;">3</th>
+<th style="text-align: center;">4</th>
+<th style="text-align: center;">5</th>
+<th style="text-align: center;">6</th>
+<th style="text-align: center;">7</th>
+<th style="text-align: center;">8</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Decimal</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>Representation</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+
+👉 So `132` in binary = **10000100**
+
 ---
 
-## 🌐 NAT (Network Address Translation)
+## 6. Advanced Networking Topics
 
-* Lets private IPs communicate with public IPs.
-* Originally designed to conserve IPv4 addresses, also adds security.
+### 6.1 NAT (Network Address Translation)
+
+* Allows private IPs (RFC1918) to communicate with public networks.  
+* Originally designed to conserve IPv4 addresses, also adds a basic security layer by hiding internal hosts.  
 * **Types:**
-  * **Static NAT** → 1 private ↔ 1 public mapping.
-  * **Dynamic NAT** → 1 private ↔ first available public from a pool (temporary).
-  * **PAT (Port Address Translation)** → Many private IPs share 1 public; NAT gateway tracks Source IP+Port and rewrites to Public IP+Port. Your home Router is a good example.
+  * **Static NAT** → Fixed 1:1 mapping (one private ↔ one public). Useful for servers that must be reachable externally.  
+  * **Dynamic NAT** → Private IPs mapped temporarily to an available public IP from a pool. Mapping changes each session.  
+  * **PAT (Port Address Translation)** → Many private hosts share a single public IP. NAT device rewrites source **IP+Port** to track flows. Example: home routers, AWS NAT Gateway.
 
----
+### 6.2 DDoS Attacks (3 categories)
 
-## 🛡️ DDoS Attacks (3 categories)
+1. **Volumetric** → Flood bandwidth with massive traffic (e.g., UDP floods, DNS/NTP amplification).  
+2. **Protocol** → Exploit L3/L4 weaknesses, exhausting connection state (e.g., SYN flood, Smurf attack, Ping of Death).  
+3. **Application** → Target app layer (L7) with valid-looking requests that overwhelm servers (e.g., HTTP floods, Slowloris).  
 
-1. **Volumetric** → Flood bandwidth.
-2. **Protocol** → Abuse protocol weaknesses (SYN flood, Smurf).
-3. **Application** → Target app layer (HTTP flood).
+### 6.3 BGP (Border Gateway Protocol)
 
----
+The internet is a **network of networks** (Autonomous Systems, or AS):
 
-## 🌍 BGP (Border Gateway Protocol)
+* **AS (Autonomous System):** Collection of IP prefixes under one admin domain.  
+* **ASN (Autonomous System Number):** Unique ID (Google = AS15169, Amazon = AS16509).  
+* **BGP Basics:** Protocol to exchange routing info between ASes (runs over TCP/179).  
+* **iBGP** → Routing **inside** an AS (e.g., Google’s internal backbone).  
+* **eBGP** → Routing **between** ASes (e.g., ISP ↔ Cloudflare).  
+* **ASPATH:** List of AS hops; shortest usually preferred.  
+* **Policies & Tricks:**  
+  * **ASPATH prepending** → make a path look less attractive.  
+  * **Route filtering** → accept/export only selected prefixes.  
+  * **Peering vs Transit** → prefer cheap/free peer routes over costly transit.
 
-Think of the internet as a **network of networks**:
+### 6.4 Jumbo Frames
 
-* Each big network (Google, Amazon, your ISP) is an **Autonomous System (AS)**.
-* Each AS has a unique number, called an **ASN** (e.g., Google = **AS15169**, Amazon = **AS16509**).
-* Inside an AS, the company controls all routing policies.
-* Between ASes, they must **talk to each other** → that’s what **BGP (Border Gateway Protocol)** does.
+* **Default MTU = 1500 bytes**, Jumbo Frames = ~9000 bytes.  
+* **Benefits:** Less overhead, fewer packets, higher throughput for large data transfers.  
+* **Limitations:** Must be supported end-to-end; mismatches cause fragmentation or drops.  
+* **Supported in:** Local networks, datacenter links, AWS Direct Connect, TGW, same-region peering.  
+* **Not supported in:** General internet, VPN over public internet, cross-region cloud traffic.  
 
-<table class="study-table">
-<thead>
-<tr>
-<th>Term</th>
-<th>What it Means</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>AS (Autonomous System)</td>
-<td>A collection of IP networks under one admin with one routing policy.</td>
-<td>Google's AS15169, Amazon's AS16509, Cloudflare's AS13335</td>
-</tr>
-<tr>
-<td>ASN</td>
-<td>Autonomous System Number (unique ID).</td>
-<td>Public (IANA/RIR assigned) / Private (64512–65534)</td>
-</tr>
-<tr>
-<td>BGP</td>
-<td>Protocol that connects ASes by exchanging route info.</td>
-<td>Runs over TCP/179</td>
-</tr>
-<tr>
-<td>iBGP</td>
-<td>Routing <strong>inside</strong> an AS.</td>
-<td>Google moving traffic between data centers.</td>
-</tr>
-<tr>
-<td>eBGP</td>
-<td>Routing <strong>between</strong> ASes.</td>
-<td>ISP ↔ Google ↔ Amazon connections.</td>
-</tr>
-<tr>
-<td>ASPATH</td>
-<td>A list of AS hops to reach a network (shortest path usually wins).</td>
-<td>Client → ISP (AS123) → Google (AS15169).</td>
-</tr>
-<tr>
-<td>Tricks/Policies</td>
-<td>Control routing with ASPATH prepending, filtering, or peering vs transit deals.</td>
-<td>ISP may "prefer" cheaper peering routes.</td>
-</tr>
-</tbody>
-</table>
+### 6.5 Layer 7 Firewalls
 
-
----
-
-## 📦 Jumbo Frames
-
-* Default MTU = 1500 bytes; Jumbo = 9000 bytes.
-* Benefits: less overhead, higher throughput.
-* **Limitations:** Not supported over internet, VPN, or inter-region peering.
-* **Supported:** Same-region peering, Direct Connect, TGW.
-
----
-
-## 🔐 Layer 7 - Firewall
-
-* Traditional firewalls work at L3/L4 (IP, ports) or L5 (stateful sessions).
-* **L7 Firewall:** Understands app protocols (HTTP, DNS, etc.).
-
-  * Detects protocol-specific attacks (e.g., HTTP floods).
-  * Can filter by headers, content, rates.
-* Example: AWS CloudFront with WAF for HTTP filtering.
-
----
-
-
-
-## Casting
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Cast Type</th>
-<th>Who Receives</th>
-<th>Example</th>
-<th>OSI Level</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Broadcast</strong></td>
-<td>Everyone in subnet</td>
-<td>ARP requests</td>
-<td>L2</td>
-</tr>
-<tr>
-<td><strong>Unicast</strong></td>
-<td>One specific host</td>
-<td>Accessing a website</td>
-<td>L3 (IP)</td>
-</tr>
-<tr>
-<td><strong>Multicast</strong></td>
-<td>Group of hosts (opt-in)</td>
-<td>IPTV, video conference</td>
-<td>L3 (IP Multicast)</td>
-</tr>
-<tr>
-<td><strong>Anycast</strong></td>
-<td>Closest host (routing)</td>
-<td>DNS root servers</td>
-<td>L3</td>
-</tr>
-<tr>
-<td><strong>Geocast</strong></td>
-<td>Hosts in a region</td>
-<td>Vehicle-to-vehicle alerts</td>
-<td>L3 (conceptual)</td>
-</tr>
-</tbody>
-</table>
-
-VLAN - Draws a invisible boundary inside the same Physical Switch, allowing L2 Broadcast to be "VLAN" Specific. This is done by VLAN tagging (IEEE 802.1Q) inserts a 4-byte header into the Ethernet frame between the Source MAC and EtherType, containing a 12-bit VLAN ID that tells switches which VLAN the frame belongs to.
+* Extend firewalls beyond L3/L4 (IP, port) to **application-aware filtering at L7**.  
+* Parse and inspect protocols (HTTP, DNS, SMTP, gRPC).  
+* **Capabilities:**  
+  * Block/allow traffic based on **URLs, headers, payloads**.  
+  * Detect and stop **application-layer DDoS** (HTTP floods, bots).  
+  * Enforce **auth/security policies** (tokens, TLS inspection).  
+* **Examples:** AWS WAF, Cloudflare WAF, Palo Alto NGFW, F5 ASM.  

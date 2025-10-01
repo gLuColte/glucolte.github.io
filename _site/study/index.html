@@ -155,6 +155,8 @@ Think of this page as your <strong>mental compass</strong> — quick reminders o
 
   
 
+  
+
 </div>
 
 <hr />
@@ -187,6 +189,8 @@ Think of this page as your <strong>mental compass</strong> — quick reminders o
         Architecture
       </div>
     </a>
+  
+
   
 
   
@@ -306,6 +310,8 @@ Think of this page as your <strong>mental compass</strong> — quick reminders o
   
 
   
+
+  
     <a href="/study/aiVectorDatabase" class="study-tile system-design">
       <div class="study-tile-title">
         <span class="study-tile-icon">🤖</span>
@@ -383,6 +389,8 @@ Think of this page as your <strong>mental compass</strong> — quick reminders o
 
 <div class="study-tiles">
 
+
+  
 
   
 
@@ -794,3 +802,16 @@ Think of this page as your <strong>mental compass</strong> — quick reminders o
   </script>
 </body>
 </html>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".diagram-caption").forEach(caption => {
+      const snippetId = caption.getAttribute("data-snippet-id");
+      const snippet = document.getElementById(snippetId);
+      if (snippet) {
+        caption.setAttribute("data-tooltip", snippet.textContent.trim());
+      }
+    });
+  });
+  </script>
+  

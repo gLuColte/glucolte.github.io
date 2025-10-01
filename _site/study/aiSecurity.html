@@ -327,3 +327,16 @@
   </script>
 </body>
 </html>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".diagram-caption").forEach(caption => {
+      const snippetId = caption.getAttribute("data-snippet-id");
+      const snippet = document.getElementById(snippetId);
+      if (snippet) {
+        caption.setAttribute("data-tooltip", snippet.textContent.trim());
+      }
+    });
+  });
+  </script>
+  

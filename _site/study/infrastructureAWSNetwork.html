@@ -252,7 +252,7 @@ end
 CloudFront = Anycast IP + CDN cache at edge → serve or fetch.
 Both run on the same physical AWS PoP racks inside 3rd-party DCs.</p>
 
-<p><img src="./assets/aws_network_pop.png" alt="Pop" /></p>
+<p><img src="/study/assets/aws_network_pop.png" alt="Pop" /></p>
 
 <h1 id="ipsec-vpn">IPSEC VPN</h1>
 
@@ -533,3 +533,16 @@ Both run on the same physical AWS PoP racks inside 3rd-party DCs.</p>
   </script>
 </body>
 </html>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".diagram-caption").forEach(caption => {
+      const snippetId = caption.getAttribute("data-snippet-id");
+      const snippet = document.getElementById(snippetId);
+      if (snippet) {
+        caption.setAttribute("data-tooltip", snippet.textContent.trim());
+      }
+    });
+  });
+  </script>
+  
