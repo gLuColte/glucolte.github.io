@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AWS Architecture Best Practices · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>AWS Architecture Best Practices | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="AWS Architecture Best Practices" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSArchitecture" />
+<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSArchitecture" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="AWS Architecture Best Practices" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS Architecture Best Practices","url":"http://localhost:4000/study/infrastructureAWSArchitecture"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">glucolte</a>
+    <nav class="nav">
+      <a href="/">home</a>
+      <a href="/principles">principles</a>
+      <a href="/rules">rules</a>
+      <a href="/stretches">stretches</a>
+      <a href="/study/">study</a>
+      <a href="/projects/">projects</a>
+      <a href="/setup/">setup</a>
+    </nav>
+    <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+      <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+      <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </button>
+  </header>
+
+  <main class="container">
+    <article class="content">
+      <h1 id="aws-architecture-best-practices">AWS Architecture Best Practices</h1>
+
+<p>Best practices and patterns for designing robust, scalable, and cost-effective AWS architectures.</p>
+
+<hr />
+
+<h2 id="network-architecture">Network Architecture</h2>
+
+<h3 id="vpc-design-principles">VPC Design Principles</h3>
+
+<h4 id="subnet-planning">Subnet Planning</h4>
+<ul>
+  <li><strong>Public Subnets</strong>: Internet-facing resources (ALB, NAT Gateway, Bastion)</li>
+  <li><strong>Private Subnets</strong>: Application servers, databases, internal services</li>
+  <li><strong>Database Subnets</strong>: Isolated database instances</li>
+  <li><strong>Management Subnets</strong>: Monitoring, logging, administrative tools</li>
+</ul>
+
+<h4 id="subnet-sizing-strategy">Subnet Sizing Strategy</h4>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/16 VPC (65,536 IPs)
+├── /20 Public Subnets (4,096 IPs each) - 3 AZs
+├── /20 Private Subnets (4,096 IPs each) - 3 AZs  
+├── /24 Database Subnets (256 IPs each) - 3 AZs
+└── /24 Management Subnets (256 IPs each) - 3 AZs
+</code></pre></div></div>
+
+<h4 id="multi-az-architecture">Multi-AZ Architecture</h4>
+<ul>
+  <li><strong>Minimum 2 AZs</strong>: For high availability</li>
+  <li><strong>Recommended 3 AZs</strong>: For better fault tolerance</li>
+  <li><strong>AZ Selection</strong>: Choose AZs with multiple instance types</li>
+  <li><strong>Cross-AZ Traffic</strong>: Minimize for cost optimization</li>
+</ul>
+
+<h3 id="network-security">Network Security</h3>
+
+<h4 id="security-groups">Security Groups</h4>
+<ul>
+  <li><strong>Principle of least privilege</strong>: Restrictive inbound rules</li>
+  <li><strong>Stateful filtering</strong>: Allow return traffic automatically</li>
+  <li><strong>Application-specific</strong>: Separate SGs for different tiers</li>
+  <li><strong>Regular review</strong>: Audit and update rules periodically</li>
+</ul>
+
+<h4 id="network-acls">Network ACLs</h4>
+<ul>
+  <li><strong>Stateless filtering</strong>: Explicit allow/deny for both directions</li>
+  <li><strong>Subnet-level</strong>: Additional layer of security</li>
+  <li><strong>Default deny</strong>: Block all traffic by default</li>
+  <li><strong>Rule ordering</strong>: Process rules in numerical order</li>
+</ul>
+
+<hr />
+
+<h2 id="high-availability-ha-design">High Availability (HA) Design</h2>
+
+<h3 id="application-layer-ha">Application Layer HA</h3>
+
+<h4 id="load-balancer-configuration">Load Balancer Configuration</h4>
+<ul>
+  <li><strong>Application Load Balancer (ALB)</strong>: Layer 7 routing, SSL termination</li>
+  <li><strong>Network Load Balancer (NLB)</strong>: Layer 4 routing, high performance</li>
+  <li><strong>Classic Load Balancer</strong>: Legacy, avoid for new deployments</li>
+  <li><strong>Health Checks</strong>: Configure appropriate thresholds and intervals</li>
+</ul>
+
+<h4 id="auto-scaling-groups">Auto Scaling Groups</h4>
+<ul>
+  <li><strong>Multi-AZ</strong>: Distribute instances across availability zones</li>
+  <li><strong>Health Check Types</strong>: EC2, ELB, or both</li>
+  <li><strong>Scaling Policies</strong>: Target tracking, step scaling, simple scaling</li>
+  <li><strong>Instance Refresh</strong>: Rolling updates with zero downtime</li>
+</ul>
+
+<h3 id="database-ha">Database HA</h3>
+
+<h4 id="rds-high-availability">RDS High Availability</h4>
+<ul>
+  <li><strong>Multi-AZ Deployment</strong>: Synchronous replication</li>
+  <li><strong>Read Replicas</strong>: Asynchronous replication for read scaling</li>
+  <li><strong>Backup Strategy</strong>: Automated backups, point-in-time recovery</li>
+  <li><strong>Maintenance Windows</strong>: Schedule during low-traffic periods</li>
+</ul>
+
+<h4 id="database-connection-management">Database Connection Management</h4>
+<ul>
+  <li><strong>Connection Pooling</strong>: RDS Proxy for connection management</li>
+  <li><strong>Failover Handling</strong>: Application-level retry logic</li>
+  <li><strong>Read/Write Splitting</strong>: Route reads to replicas</li>
+  <li><strong>Circuit Breakers</strong>: Prevent cascade failures</li>
+</ul>
+
+<hr />
+
+<h2 id="redundancy--disaster-recovery">Redundancy &amp; Disaster Recovery</h2>
+
+<h3 id="data-redundancy">Data Redundancy</h3>
+
+<h4 id="storage-redundancy">Storage Redundancy</h4>
+<ul>
+  <li><strong>S3 Cross-Region Replication</strong>: Disaster recovery</li>
+  <li><strong>EBS Snapshots</strong>: Point-in-time backups</li>
+  <li><strong>EFS Multi-AZ</strong>: Automatic replication</li>
+  <li><strong>RDS Automated Backups</strong>: 7-35 day retention</li>
+</ul>
+
+<h4 id="application-redundancy">Application Redundancy</h4>
+<ul>
+  <li><strong>Multi-Region Deployment</strong>: Active-passive or active-active</li>
+  <li><strong>Route 53 Health Checks</strong>: Automatic failover</li>
+  <li><strong>CloudFront</strong>: Global content delivery</li>
+  <li><strong>Lambda@Edge</strong>: Edge computing capabilities</li>
+</ul>
+
+<h3 id="disaster-recovery-strategies">Disaster Recovery Strategies</h3>
+
+<h4 id="rtorpo-planning">RTO/RPO Planning</h4>
+<ul>
+  <li><strong>Recovery Time Objective (RTO)</strong>: Target downtime</li>
+  <li><strong>Recovery Point Objective (RPO)</strong>: Acceptable data loss</li>
+  <li><strong>Cost vs. RTO/RPO</strong>: Balance requirements with budget</li>
+  <li><strong>Testing</strong>: Regular DR drills and validation</li>
+</ul>
+
+<h4 id="dr-patterns">DR Patterns</h4>
+<ul>
+  <li><strong>Backup and Restore</strong>: Lowest cost, highest RTO/RPO</li>
+  <li><strong>Pilot Light</strong>: Minimal infrastructure in DR region</li>
+  <li><strong>Warm Standby</strong>: Scaled-down version in DR region</li>
+  <li><strong>Multi-Site Active</strong>: Full redundancy across regions</li>
+</ul>
+
+<hr />
+
+<h2 id="security-architecture">Security Architecture</h2>
+
+<h3 id="identity-and-access-management">Identity and Access Management</h3>
+
+<h4 id="iam-best-practices">IAM Best Practices</h4>
+<ul>
+  <li><strong>Principle of least privilege</strong>: Minimum required permissions</li>
+  <li><strong>Role-based access</strong>: Use roles instead of users when possible</li>
+  <li><strong>MFA enforcement</strong>: Multi-factor authentication</li>
+  <li><strong>Regular access reviews</strong>: Audit and rotate credentials</li>
+</ul>
+
+<h4 id="resource-access-patterns">Resource Access Patterns</h4>
+<ul>
+  <li><strong>Cross-account access</strong>: Assume roles for cross-account resources</li>
+  <li><strong>Service-linked roles</strong>: AWS-managed roles for services</li>
+  <li><strong>Instance profiles</strong>: EC2 instance access to AWS services</li>
+  <li><strong>Lambda execution roles</strong>: Function-specific permissions</li>
+</ul>
+
+<h3 id="network-security-1">Network Security</h3>
+
+<h4 id="vpc-security">VPC Security</h4>
+<ul>
+  <li><strong>Private subnets</strong>: Keep databases and sensitive data private</li>
+  <li><strong>NAT Gateway</strong>: Outbound internet access for private subnets</li>
+  <li><strong>VPC Endpoints</strong>: Private connectivity to AWS services</li>
+  <li><strong>Transit Gateway</strong>: Centralized network management</li>
+</ul>
+
+<h4 id="encryption">Encryption</h4>
+<ul>
+  <li><strong>Encryption at rest</strong>: EBS, RDS, S3, EFS encryption</li>
+  <li><strong>Encryption in transit</strong>: TLS/SSL for all communications</li>
+  <li><strong>Key management</strong>: AWS KMS for encryption keys</li>
+  <li><strong>Certificate management</strong>: AWS Certificate Manager</li>
+</ul>
+
+<hr />
+
+<h2 id="performance-optimization">Performance Optimization</h2>
+
+<h3 id="compute-optimization">Compute Optimization</h3>
+
+<h4 id="ec2-instance-selection">EC2 Instance Selection</h4>
+<ul>
+  <li><strong>Instance families</strong>: General purpose, compute optimized, memory optimized</li>
+  <li><strong>Burstable performance</strong>: T3, T4g for variable workloads</li>
+  <li><strong>Graviton processors</strong>: ARM-based instances for cost savings</li>
+  <li><strong>Spot instances</strong>: Cost-effective for fault-tolerant workloads</li>
+</ul>
+
+<h4 id="auto-scaling-optimization">Auto Scaling Optimization</h4>
+<ul>
+  <li><strong>Predictive scaling</strong>: ML-based scaling predictions</li>
+  <li><strong>Target tracking</strong>: Maintain target metrics</li>
+  <li><strong>Scheduled scaling</strong>: Anticipate traffic patterns</li>
+  <li><strong>Cooldown periods</strong>: Prevent rapid scaling oscillations</li>
+</ul>
+
+<h3 id="storage-optimization">Storage Optimization</h3>
+
+<h4 id="ebs-optimization">EBS Optimization</h4>
+<ul>
+  <li><strong>GP3 vs GP2</strong>: Better price/performance with GP3</li>
+  <li><strong>Provisioned IOPS</strong>: For high-performance databases</li>
+  <li><strong>Throughput Optimized</strong>: For large, sequential workloads</li>
+  <li><strong>Cold HDD</strong>: For infrequently accessed data</li>
+</ul>
+
+<h4 id="s3-optimization">S3 Optimization</h4>
+<ul>
+  <li><strong>Storage classes</strong>: Intelligent tiering, lifecycle policies</li>
+  <li><strong>Transfer acceleration</strong>: CloudFront for faster uploads</li>
+  <li><strong>Multipart uploads</strong>: Large file uploads</li>
+  <li><strong>S3 Select</strong>: Query data without downloading</li>
+</ul>
+
+<hr />
+
+<h2 id="cost-optimization">Cost Optimization</h2>
+
+<h3 id="resource-right-sizing">Resource Right-Sizing</h3>
+
+<h4 id="compute-right-sizing">Compute Right-Sizing</h4>
+<ul>
+  <li><strong>CloudWatch metrics</strong>: Monitor utilization</li>
+  <li><strong>AWS Compute Optimizer</strong>: Recommendations for right-sizing</li>
+  <li><strong>Reserved instances</strong>: 1-3 year commitments for savings</li>
+  <li><strong>Savings Plans</strong>: Flexible pricing model</li>
+</ul>
+
+<h4 id="storage-right-sizing">Storage Right-Sizing</h4>
+<ul>
+  <li><strong>S3 lifecycle policies</strong>: Automatic transition to cheaper classes</li>
+  <li><strong>EBS optimization</strong>: Right-size volumes and IOPS</li>
+  <li><strong>Data archiving</strong>: Glacier for long-term storage</li>
+  <li><strong>Deduplication</strong>: Reduce storage costs</li>
+</ul>
+
+<h3 id="cost-management">Cost Management</h3>
+
+<h4 id="monitoring-and-alerting">Monitoring and Alerting</h4>
+<ul>
+  <li><strong>AWS Cost Explorer</strong>: Analyze spending patterns</li>
+  <li><strong>AWS Budgets</strong>: Set spending alerts and limits</li>
+  <li><strong>Cost allocation tags</strong>: Track costs by project/department</li>
+  <li><strong>Reserved instance reporting</strong>: Monitor RI utilization</li>
+</ul>
+
+<h4 id="optimization-strategies">Optimization Strategies</h4>
+<ul>
+  <li><strong>Spot instances</strong>: Up to 90% savings for fault-tolerant workloads</li>
+  <li><strong>Scheduled scaling</strong>: Scale down during off-hours</li>
+  <li><strong>Data transfer optimization</strong>: Minimize cross-region transfers</li>
+  <li><strong>Resource tagging</strong>: Better cost visibility and control</li>
+</ul>
+
+<hr />
+
+<h2 id="monitoring-and-observability">Monitoring and Observability</h2>
+
+<h3 id="cloudwatch-best-practices">CloudWatch Best Practices</h3>
+
+<h4 id="metrics-and-alarms">Metrics and Alarms</h4>
+<ul>
+  <li><strong>Custom metrics</strong>: Application-specific monitoring</li>
+  <li><strong>Composite alarms</strong>: Multiple conditions for alerts</li>
+  <li><strong>Anomaly detection</strong>: ML-based threshold detection</li>
+  <li><strong>Dashboard creation</strong>: Visualize key metrics</li>
+</ul>
+
+<h4 id="log-management">Log Management</h4>
+<ul>
+  <li><strong>CloudWatch Logs</strong>: Centralized log collection</li>
+  <li><strong>Log groups</strong>: Organize logs by application/service</li>
+  <li><strong>Log streams</strong>: Individual log sources</li>
+  <li><strong>Log insights</strong>: Query and analyze log data</li>
+</ul>
+
+<h3 id="application-performance-monitoring">Application Performance Monitoring</h3>
+
+<h4 id="x-ray-tracing">X-Ray Tracing</h4>
+<ul>
+  <li><strong>Distributed tracing</strong>: Track requests across services</li>
+  <li><strong>Service map</strong>: Visualize service dependencies</li>
+  <li><strong>Performance analysis</strong>: Identify bottlenecks</li>
+  <li><strong>Error tracking</strong>: Debug production issues</li>
+</ul>
+
+<h4 id="custom-monitoring">Custom Monitoring</h4>
+<ul>
+  <li><strong>Health checks</strong>: Application-level monitoring</li>
+  <li><strong>Synthetic monitoring</strong>: Proactive issue detection</li>
+  <li><strong>Real user monitoring</strong>: Actual user experience</li>
+  <li><strong>Business metrics</strong>: Track KPIs and SLAs</li>
+</ul>
+
+<hr />
+
+<h2 id="deployment-strategies">Deployment Strategies</h2>
+
+<h3 id="infrastructure-as-code">Infrastructure as Code</h3>
+
+<h4 id="aws-cloudformation">AWS CloudFormation</h4>
+<ul>
+  <li><strong>Template management</strong>: Version control and reuse</li>
+  <li><strong>Stack dependencies</strong>: Manage resource relationships</li>
+  <li><strong>Change sets</strong>: Preview changes before deployment</li>
+  <li><strong>Drift detection</strong>: Identify configuration changes</li>
+</ul>
+
+<h4 id="aws-cdk">AWS CDK</h4>
+<ul>
+  <li><strong>Programming languages</strong>: TypeScript, Python, Java, C#</li>
+  <li><strong>Higher-level constructs</strong>: Abstract common patterns</li>
+  <li><strong>Testing</strong>: Unit and integration tests</li>
+  <li><strong>CI/CD integration</strong>: Automated deployments</li>
+</ul>
+
+<h3 id="cicd-pipeline">CI/CD Pipeline</h3>
+
+<h4 id="aws-codepipeline">AWS CodePipeline</h4>
+<ul>
+  <li><strong>Source integration</strong>: GitHub, CodeCommit, S3</li>
+  <li><strong>Build stages</strong>: CodeBuild for compilation</li>
+  <li><strong>Deploy stages</strong>: CodeDeploy for application deployment</li>
+  <li><strong>Approval gates</strong>: Manual approval for production</li>
+</ul>
+
+<h4 id="deployment-strategies-1">Deployment Strategies</h4>
+<ul>
+  <li><strong>Blue/Green</strong>: Zero-downtime deployments</li>
+  <li><strong>Canary</strong>: Gradual traffic shifting</li>
+  <li><strong>Rolling</strong>: Update instances incrementally</li>
+  <li><strong>Immutable</strong>: Replace entire infrastructure</li>
+</ul>
+
+<hr />
+
+<h2 id="common-architecture-patterns">Common Architecture Patterns</h2>
+
+<h3 id="microservices-architecture">Microservices Architecture</h3>
+
+<h4 id="service-communication">Service Communication</h4>
+<ul>
+  <li><strong>API Gateway</strong>: Single entry point for clients</li>
+  <li><strong>Service mesh</strong>: Istio, App Mesh for service communication</li>
+  <li><strong>Event-driven</strong>: SQS, SNS for asynchronous communication</li>
+  <li><strong>Synchronous</strong>: Direct API calls for real-time communication</li>
+</ul>
+
+<h4 id="data-management">Data Management</h4>
+<ul>
+  <li><strong>Database per service</strong>: Isolated data stores</li>
+  <li><strong>Event sourcing</strong>: Store events, not state</li>
+  <li><strong>CQRS</strong>: Separate read/write models</li>
+  <li><strong>Saga pattern</strong>: Distributed transaction management</li>
+</ul>
+
+<h3 id="serverless-architecture">Serverless Architecture</h3>
+
+<h4 id="aws-lambda">AWS Lambda</h4>
+<ul>
+  <li><strong>Function design</strong>: Single responsibility principle</li>
+  <li><strong>Cold start optimization</strong>: Provisioned concurrency</li>
+  <li><strong>Error handling</strong>: Dead letter queues, retry logic</li>
+  <li><strong>Monitoring</strong>: CloudWatch, X-Ray integration</li>
+</ul>
+
+<h4 id="api-gateway">API Gateway</h4>
+<ul>
+  <li><strong>REST APIs</strong>: HTTP-based APIs</li>
+  <li><strong>WebSocket APIs</strong>: Real-time communication</li>
+  <li><strong>HTTP APIs</strong>: Lower cost, faster performance</li>
+  <li><strong>Request/response transformation</strong>: Data mapping</li>
+</ul>
+
+<hr />
+
+<h2 id="best-practices-summary">Best Practices Summary</h2>
+
+<h3 id="design-principles">Design Principles</h3>
+<ol>
+  <li><strong>Design for failure</strong>: Assume components will fail</li>
+  <li><strong>Implement elasticity</strong>: Auto-scale based on demand</li>
+  <li><strong>Leverage automation</strong>: Infrastructure as code</li>
+  <li><strong>Monitor everything</strong>: Comprehensive observability</li>
+  <li><strong>Optimize costs</strong>: Right-size and use appropriate services</li>
+</ol>
+
+<h3 id="implementation-guidelines">Implementation Guidelines</h3>
+<ol>
+  <li><strong>Start with well-architected framework</strong>: Operational excellence, security, reliability, performance, cost</li>
+  <li><strong>Use managed services</strong>: Reduce operational overhead</li>
+  <li><strong>Implement security by design</strong>: Security at every layer</li>
+  <li><strong>Plan for growth</strong>: Design for scale from the beginning</li>
+  <li><strong>Regular reviews</strong>: Continuously improve architecture</li>
+</ol>
+
+<h3 id="common-pitfalls-to-avoid">Common Pitfalls to Avoid</h3>
+<ol>
+  <li><strong>Single points of failure</strong>: Always design for redundancy</li>
+  <li><strong>Over-provisioning</strong>: Start small, scale as needed</li>
+  <li><strong>Security as afterthought</strong>: Build security in from the start</li>
+  <li><strong>No monitoring</strong>: Implement comprehensive monitoring</li>
+  <li><strong>Tight coupling</strong>: Design for loose coupling and high cohesion</li>
+</ol>
+
+    </article>
+  </main>
+
+  <!-- Floating Table of Contents -->
+  <div id="floating-toc" class="floating-toc">
+    <div class="toc-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"></line>
+        <line x1="8" y1="12" x2="21" y2="12"></line>
+        <line x1="8" y1="18" x2="21" y2="18"></line>
+        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+      </svg>
+    </div>
+    <div class="toc-content">
+      <div class="toc-header">
+        <span>Contents</span>
+        <button class="toc-close" aria-label="Close table of contents">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="toc-nav" id="toc-nav">
+        <!-- Generated by JavaScript -->
+      </nav>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Dark mode functionality
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      
+      // Check for saved theme preference or default to light mode
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      
+      // Toggle dark mode
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    
+    // Initialize dark mode immediately to prevent flash
+    initDarkMode();
+    
+    // Initialize highlight.js and floating TOC after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Floating TOC functionality - only show on sub-study pages
+      const floatingToc = document.getElementById('floating-toc');
+      const tocNav = document.getElementById('toc-nav');
+      const tocClose = document.querySelector('.toc-close');
+      
+      // Check if we're on a sub-study page (not the main study index)
+      const isSubStudyPage = window.location.pathname !== '/study/' && 
+                            window.location.pathname !== '/study' && 
+                            window.location.pathname.startsWith('/study/');
+      
+      if (floatingToc && tocNav && isSubStudyPage) {
+        // Generate TOC from headings
+        function generateTOC() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          if (headings.length === 0) {
+            floatingToc.style.display = 'none';
+            return;
+          }
+          
+          const tocList = document.createElement('ul');
+          let currentLevel = 0;
+          let currentList = tocList;
+          const listStack = [tocList];
+          
+          headings.forEach((heading, index) => {
+            const level = parseInt(heading.tagName.charAt(1));
+            const id = heading.id || `heading-${index}`;
+            
+            // Ensure heading has an ID
+            if (!heading.id) {
+              heading.id = id;
+            }
+            
+            // Create list item
+            const listItem = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = `#${id}`;
+            link.textContent = heading.textContent.trim();
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetElement = document.getElementById(id);
+              if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Close TOC after clicking
+                floatingToc.classList.remove('toc-open');
+              }
+            });
+            
+            listItem.appendChild(link);
+            
+            // Handle nesting
+            if (level > currentLevel) {
+              // Go deeper
+              for (let i = currentLevel; i < level; i++) {
+                const newList = document.createElement('ul');
+                currentList.appendChild(newList);
+                listStack.push(newList);
+                currentList = newList;
+              }
+            } else if (level < currentLevel) {
+              // Go shallower
+              for (let i = currentLevel; i > level; i--) {
+                listStack.pop();
+                currentList = listStack[listStack.length - 1];
+              }
+            }
+            
+            currentList.appendChild(listItem);
+            currentLevel = level;
+          });
+          
+          tocNav.appendChild(tocList);
+        }
+        
+        // Generate the TOC
+        generateTOC();
+        
+        // Handle close button
+        if (tocClose) {
+          tocClose.addEventListener('click', function() {
+            floatingToc.classList.remove('toc-open');
+          });
+        }
+        
+        // Handle click on icon to toggle
+        const tocIcon = document.querySelector('.toc-icon');
+        if (tocIcon) {
+          tocIcon.addEventListener('click', function() {
+            floatingToc.classList.toggle('toc-open');
+          });
+        }
+        
+        // Active section highlighting
+        function updateActiveSection() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          const tocLinks = tocNav.querySelectorAll('a');
+          
+          // Remove active class from all links
+          tocLinks.forEach(link => link.classList.remove('active'));
+          
+          // Find the current section
+          let currentHeading = null;
+          const scrollPosition = window.scrollY + 100; // Offset for better UX
+          
+          for (let i = headings.length - 1; i >= 0; i--) {
+            const heading = headings[i];
+            const headingTop = heading.offsetTop;
+            
+            if (headingTop <= scrollPosition) {
+              currentHeading = heading;
+              break;
+            }
+          }
+          
+          // Add active class to current section
+          if (currentHeading) {
+            const activeLink = tocNav.querySelector(`a[href="#${currentHeading.id}"]`);
+            if (activeLink) {
+              activeLink.classList.add('active');
+            }
+          }
+        }
+        
+        // Update active section on scroll
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+          if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+          }
+          scrollTimeout = setTimeout(updateActiveSection, 10);
+        });
+        
+        // Initial update
+        updateActiveSection();
+      } else if (floatingToc && !isSubStudyPage) {
+        // Hide floating TOC on main study page
+        floatingToc.style.display = 'none';
+      }
+      
+      // Legacy TOC functionality (for existing markdown TOCs)
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Hide the floating TOC if there's already a markdown TOC
+        if (floatingToc) {
+          floatingToc.style.display = 'none';
+        }
+        
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".diagram-caption").forEach(caption => {
+      const snippetId = caption.getAttribute("data-snippet-id");
+      const snippet = document.getElementById(snippetId);
+      if (snippet) {
+        caption.setAttribute("data-tooltip", snippet.textContent.trim());
+      }
+    });
+  });
+  </script>
+  

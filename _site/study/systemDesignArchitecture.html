@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Architecture · glucolte</title>
+  <title>Architecture Best Practices · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -12,9 +12,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Architecture | glucolte</title>
+<title>Architecture Best Practices | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="Architecture" />
+<meta property="og:title" content="Architecture Best Practices" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
@@ -23,9 +23,9 @@
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Architecture" />
+<meta property="twitter:title" content="Architecture Best Practices" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Architecture","url":"http://localhost:4000/study/systemDesignArchitecture"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Architecture Best Practices","url":"http://localhost:4000/study/systemDesignArchitecture"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -61,9 +61,320 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="architecture">Architecture</h1>
+      <h1 id="system-design-architecture">System Design Architecture</h1>
 
-<p>Placeholder</p>
+<p>Fundamental concepts and principles for designing scalable, reliable, and maintainable systems.</p>
+
+<hr />
+
+<h2 id="data-sources--types">Data Sources &amp; Types</h2>
+
+<h3 id="data-sources">Data Sources</h3>
+<ul>
+  <li><strong>User Input</strong>: Forms, APIs, real-time interactions</li>
+  <li><strong>External APIs</strong>: Third-party services, webhooks</li>
+  <li><strong>Databases</strong>: Existing data stores, legacy systems</li>
+  <li><strong>Files</strong>: Uploads, batch processing, logs</li>
+  <li><strong>Streams</strong>: Real-time data feeds, IoT devices</li>
+  <li><strong>Caches</strong>: Redis, Memcached, CDN data</li>
+</ul>
+
+<h3 id="data-types">Data Types</h3>
+<ul>
+  <li><strong>Structured</strong>: Relational databases, JSON, XML</li>
+  <li><strong>Semi-structured</strong>: NoSQL documents, logs</li>
+  <li><strong>Unstructured</strong>: Images, videos, text documents</li>
+  <li><strong>Time-series</strong>: Metrics, sensor data, financial data</li>
+  <li><strong>Graph</strong>: Social networks, recommendations</li>
+  <li><strong>Key-value</strong>: Session data, configuration</li>
+</ul>
+
+<hr />
+
+<h2 id="storage-considerations">Storage Considerations</h2>
+
+<h3 id="storage-types">Storage Types</h3>
+<ul>
+  <li><strong>Relational (ACID)</strong>: Financial transactions, user accounts</li>
+  <li><strong>NoSQL (BASE)</strong>: User profiles, product catalogs</li>
+  <li><strong>In-memory</strong>: Session data, real-time analytics</li>
+  <li><strong>File storage</strong>: Media files, documents</li>
+  <li><strong>Time-series</strong>: Metrics, logs, sensor data</li>
+  <li><strong>Search</strong>: Full-text search, recommendations</li>
+</ul>
+
+<h3 id="storage-patterns">Storage Patterns</h3>
+<ul>
+  <li><strong>Read-heavy</strong>: Caching, read replicas, CDN</li>
+  <li><strong>Write-heavy</strong>: Sharding, partitioning, async processing</li>
+  <li><strong>Mixed workload</strong>: Separate read/write paths</li>
+  <li><strong>Analytical</strong>: Data warehouses, OLAP systems</li>
+</ul>
+
+<hr />
+
+<h2 id="access-patterns">Access Patterns</h2>
+
+<h3 id="read-patterns">Read Patterns</h3>
+<ul>
+  <li><strong>Point queries</strong>: User profiles, product details</li>
+  <li><strong>Range queries</strong>: Time-based data, pagination</li>
+  <li><strong>Aggregations</strong>: Analytics, reporting, dashboards</li>
+  <li><strong>Full-text search</strong>: Search functionality</li>
+  <li><strong>Real-time</strong>: Live updates, notifications</li>
+</ul>
+
+<h3 id="write-patterns">Write Patterns</h3>
+<ul>
+  <li><strong>Single writes</strong>: User actions, form submissions</li>
+  <li><strong>Batch writes</strong>: Data imports, ETL processes</li>
+  <li><strong>Streaming</strong>: Real-time data ingestion</li>
+  <li><strong>Transactional</strong>: Multi-step operations</li>
+  <li><strong>Event-driven</strong>: Asynchronous processing</li>
+</ul>
+
+<hr />
+
+<h2 id="scalability-patterns">Scalability Patterns</h2>
+
+<h3 id="horizontal-scaling">Horizontal Scaling</h3>
+<ul>
+  <li><strong>Load balancing</strong>: Distribute traffic across instances</li>
+  <li><strong>Sharding</strong>: Partition data across multiple databases</li>
+  <li><strong>Microservices</strong>: Decompose monolithic applications</li>
+  <li><strong>Caching layers</strong>: Reduce database load</li>
+  <li><strong>CDN</strong>: Distribute static content globally</li>
+</ul>
+
+<h3 id="vertical-scaling">Vertical Scaling</h3>
+<ul>
+  <li><strong>Resource optimization</strong>: CPU, memory, storage upgrades</li>
+  <li><strong>Database tuning</strong>: Query optimization, indexing</li>
+  <li><strong>Application optimization</strong>: Code efficiency, algorithms</li>
+  <li><strong>Infrastructure</strong>: Faster hardware, better networks</li>
+</ul>
+
+<hr />
+
+<h2 id="consistency-models">Consistency Models</h2>
+
+<h3 id="strong-consistency">Strong Consistency</h3>
+<ul>
+  <li><strong>ACID properties</strong>: Atomicity, Consistency, Isolation, Durability</li>
+  <li><strong>Use cases</strong>: Financial transactions, critical data</li>
+  <li><strong>Trade-offs</strong>: Higher latency, lower availability</li>
+</ul>
+
+<h3 id="eventual-consistency">Eventual Consistency</h3>
+<ul>
+  <li><strong>BASE properties</strong>: Basically Available, Soft state, Eventual consistency</li>
+  <li><strong>Use cases</strong>: Social media, content delivery</li>
+  <li><strong>Trade-offs</strong>: Higher availability, potential inconsistency</li>
+</ul>
+
+<h3 id="consistency-levels">Consistency Levels</h3>
+<ul>
+  <li><strong>Strong</strong>: All nodes see same data immediately</li>
+  <li><strong>Weak</strong>: Nodes may have different data temporarily</li>
+  <li><strong>Eventual</strong>: Data becomes consistent over time</li>
+  <li><strong>Session</strong>: Consistency within user session</li>
+</ul>
+
+<hr />
+
+<h2 id="availability--reliability">Availability &amp; Reliability</h2>
+
+<h3 id="availability-patterns">Availability Patterns</h3>
+<ul>
+  <li><strong>Redundancy</strong>: Multiple instances, failover</li>
+  <li><strong>Circuit breakers</strong>: Prevent cascade failures</li>
+  <li><strong>Bulkheads</strong>: Isolate failures</li>
+  <li><strong>Health checks</strong>: Monitor system status</li>
+  <li><strong>Graceful degradation</strong>: Reduce functionality vs. total failure</li>
+</ul>
+
+<h3 id="reliability-metrics">Reliability Metrics</h3>
+<ul>
+  <li><strong>MTBF</strong>: Mean Time Between Failures</li>
+  <li><strong>MTTR</strong>: Mean Time To Recovery</li>
+  <li><strong>SLA</strong>: Service Level Agreement</li>
+  <li><strong>SLO</strong>: Service Level Objective</li>
+  <li><strong>SLI</strong>: Service Level Indicator</li>
+</ul>
+
+<hr />
+
+<h2 id="performance-considerations">Performance Considerations</h2>
+
+<h3 id="latency-optimization">Latency Optimization</h3>
+<ul>
+  <li><strong>Caching</strong>: Application, database, CDN</li>
+  <li><strong>Connection pooling</strong>: Reuse database connections</li>
+  <li><strong>Async processing</strong>: Non-blocking operations</li>
+  <li><strong>Compression</strong>: Reduce data transfer</li>
+  <li><strong>CDN</strong>: Geographic distribution</li>
+</ul>
+
+<h3 id="throughput-optimization">Throughput Optimization</h3>
+<ul>
+  <li><strong>Horizontal scaling</strong>: Add more instances</li>
+  <li><strong>Database optimization</strong>: Indexing, query tuning</li>
+  <li><strong>Load balancing</strong>: Distribute requests</li>
+  <li><strong>Batch processing</strong>: Group operations</li>
+  <li><strong>Connection multiplexing</strong>: Share connections</li>
+</ul>
+
+<hr />
+
+<h2 id="security-architecture">Security Architecture</h2>
+
+<h3 id="authentication--authorization">Authentication &amp; Authorization</h3>
+<ul>
+  <li><strong>Identity providers</strong>: OAuth, SAML, LDAP</li>
+  <li><strong>Role-based access</strong>: RBAC, ABAC</li>
+  <li><strong>API security</strong>: API keys, JWT tokens</li>
+  <li><strong>Session management</strong>: Secure session handling</li>
+</ul>
+
+<h3 id="data-protection">Data Protection</h3>
+<ul>
+  <li><strong>Encryption</strong>: At rest, in transit</li>
+  <li><strong>Data masking</strong>: PII protection</li>
+  <li><strong>Audit logging</strong>: Track access and changes</li>
+  <li><strong>Compliance</strong>: GDPR, HIPAA, SOX</li>
+</ul>
+
+<hr />
+
+<h2 id="monitoring--observability">Monitoring &amp; Observability</h2>
+
+<h3 id="metrics">Metrics</h3>
+<ul>
+  <li><strong>Application metrics</strong>: Response time, error rate</li>
+  <li><strong>Infrastructure metrics</strong>: CPU, memory, disk</li>
+  <li><strong>Business metrics</strong>: User engagement, revenue</li>
+  <li><strong>Custom metrics</strong>: Domain-specific KPIs</li>
+</ul>
+
+<h3 id="logging">Logging</h3>
+<ul>
+  <li><strong>Structured logging</strong>: JSON, key-value pairs</li>
+  <li><strong>Log aggregation</strong>: Centralized log collection</li>
+  <li><strong>Log analysis</strong>: Search, filtering, alerting</li>
+  <li><strong>Retention policies</strong>: Storage and compliance</li>
+</ul>
+
+<h3 id="tracing">Tracing</h3>
+<ul>
+  <li><strong>Distributed tracing</strong>: Request flow across services</li>
+  <li><strong>Performance profiling</strong>: Identify bottlenecks</li>
+  <li><strong>Error tracking</strong>: Debug production issues</li>
+  <li><strong>User journey</strong>: Track user interactions</li>
+</ul>
+
+<hr />
+
+<h2 id="design-patterns">Design Patterns</h2>
+
+<h3 id="microservices-patterns">Microservices Patterns</h3>
+<ul>
+  <li><strong>API Gateway</strong>: Single entry point</li>
+  <li><strong>Service Discovery</strong>: Dynamic service location</li>
+  <li><strong>Circuit Breaker</strong>: Fault tolerance</li>
+  <li><strong>Saga</strong>: Distributed transaction management</li>
+  <li><strong>CQRS</strong>: Command Query Responsibility Segregation</li>
+</ul>
+
+<h3 id="data-patterns">Data Patterns</h3>
+<ul>
+  <li><strong>Event Sourcing</strong>: Store events, not state</li>
+  <li><strong>CQRS</strong>: Separate read/write models</li>
+  <li><strong>Saga</strong>: Long-running transactions</li>
+  <li><strong>Outbox</strong>: Reliable event publishing</li>
+  <li><strong>Event-driven</strong>: Asynchronous communication</li>
+</ul>
+
+<hr />
+
+<h2 id="trade-offs--decision-framework">Trade-offs &amp; Decision Framework</h2>
+
+<h3 id="common-trade-offs">Common Trade-offs</h3>
+<ul>
+  <li><strong>Consistency vs. Availability</strong>: CAP theorem</li>
+  <li><strong>Latency vs. Throughput</strong>: Performance optimization</li>
+  <li><strong>Cost vs. Performance</strong>: Resource allocation</li>
+  <li><strong>Simplicity vs. Flexibility</strong>: Architecture complexity</li>
+  <li><strong>Development speed vs. Quality</strong>: Time to market</li>
+</ul>
+
+<h3 id="decision-framework">Decision Framework</h3>
+<ol>
+  <li><strong>Requirements</strong>: Functional and non-functional</li>
+  <li><strong>Constraints</strong>: Budget, timeline, team skills</li>
+  <li><strong>Trade-offs</strong>: Identify key decisions</li>
+  <li><strong>Prototyping</strong>: Validate assumptions</li>
+  <li><strong>Iteration</strong>: Continuous improvement</li>
+</ol>
+
+<hr />
+
+<h2 id="architecture-diagrams">Architecture Diagrams</h2>
+
+<h3 id="high-level-architecture">High-Level Architecture</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[Users] → [Load Balancer] → [API Gateway] → [Microservices]
+                                    ↓
+[Database] ← [Cache] ← [Message Queue] ← [External APIs]
+</code></pre></div></div>
+
+<h3 id="data-flow-architecture">Data Flow Architecture</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[Data Sources] → [Ingestion] → [Processing] → [Storage] → [Analytics]
+                      ↓              ↓           ↓
+[Real-time] → [Stream Processing] → [Cache] → [API] → [Users]
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="best-practices">Best Practices</h2>
+
+<h3 id="design-principles">Design Principles</h3>
+<ul>
+  <li><strong>Start simple</strong>: Begin with monolithic, evolve to microservices</li>
+  <li><strong>Design for failure</strong>: Assume components will fail</li>
+  <li><strong>Scale horizontally</strong>: Add more instances, not bigger ones</li>
+  <li><strong>Cache everything</strong>: Reduce database load</li>
+  <li><strong>Monitor everything</strong>: Visibility into system behavior</li>
+</ul>
+
+<h3 id="implementation-guidelines">Implementation Guidelines</h3>
+<ul>
+  <li><strong>API-first</strong>: Design APIs before implementation</li>
+  <li><strong>Database design</strong>: Normalize for consistency, denormalize for performance</li>
+  <li><strong>Error handling</strong>: Graceful degradation, proper error codes</li>
+  <li><strong>Testing</strong>: Unit, integration, load, and chaos testing</li>
+  <li><strong>Documentation</strong>: Keep architecture docs updated</li>
+</ul>
+
+<hr />
+
+<h2 id="common-anti-patterns">Common Anti-patterns</h2>
+
+<h3 id="avoid-these">Avoid These</h3>
+<ul>
+  <li><strong>God objects</strong>: Classes with too many responsibilities</li>
+  <li><strong>Database as integration</strong>: Using DB for service communication</li>
+  <li><strong>Synchronous everything</strong>: Blocking operations everywhere</li>
+  <li><strong>No caching</strong>: Repeated expensive operations</li>
+  <li><strong>Tight coupling</strong>: Services directly dependent on each other</li>
+</ul>
+
+<h3 id="red-flags">Red Flags</h3>
+<ul>
+  <li><strong>Single point of failure</strong>: No redundancy</li>
+  <li><strong>No monitoring</strong>: Flying blind in production</li>
+  <li><strong>Hard-coded values</strong>: Configuration in code</li>
+  <li><strong>No error handling</strong>: System crashes on errors</li>
+  <li><strong>No scalability plan</strong>: Cannot handle growth</li>
+</ul>
 
     </article>
   </main>

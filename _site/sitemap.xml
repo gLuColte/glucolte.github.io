@@ -52,6 +52,9 @@
 <loc>http://localhost:4000/</loc>
 </url>
 <url>
+<loc>http://localhost:4000/study/infrastructureAWSArchitecture</loc>
+</url>
+<url>
 <loc>http://localhost:4000/study/infrastructureAWSCompute</loc>
 </url>
 <url>
@@ -89,8 +92,5 @@
 </url>
 <url>
 <loc>http://localhost:4000/study/tmp_awsProStudyStorage.html</loc>
-</url>
-<url>
-<loc>http://localhost:4000/study/tmp_oldOsi.html</loc>
 </url>
 </urlset>
