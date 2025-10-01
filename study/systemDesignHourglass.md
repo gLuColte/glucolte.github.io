@@ -1,6 +1,6 @@
 ---
-title: Architecture Best Practices
-permalink: /study/systemDesignArchitecture
+title: Hourglass Design
+permalink: /study/systemDesignHourglass
 ---
 
 # System Design Architecture
