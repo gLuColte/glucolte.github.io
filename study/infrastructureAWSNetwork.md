@@ -906,7 +906,7 @@ DNS (Domain Name System) resolves human-readable domain names (e.g., `example.co
 <tr>
 <td><strong>Multi-Value</strong></td>
 <td>Return multiple IPs for LB/HA</td>
-<td>example.com → 192.0.2.1, 192.0.2.2</td>
+<td>example.com → 192.0.2 .1, 192.0.2.2</td>
 </tr>
 <tr>
 <td><strong>IP-based</strong></td>
