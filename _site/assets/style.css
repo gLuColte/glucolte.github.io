@@ -43,6 +43,11 @@ a:hover{text-decoration:none;border-bottom-color:transparent}
   margin-left:auto;
   flex-wrap:nowrap;
   background:var(--bg);
+  overflow-x:auto;
+  max-width:100%;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-inline:contain;
+  scroll-behavior:smooth;
 }
 .nav a{margin-left:14px; color:var(--muted); border-bottom:0; white-space:nowrap}
 .nav a:first-child{margin-left:0}
@@ -390,11 +395,12 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
   }
 
   .nav {
-    overflow-x: auto;
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 6px 0;
     max-width: calc(100vw - 120px);
-    padding: 4px 0;
     gap: 12px;
-    -webkit-overflow-scrolling: touch;
     touch-action: pan-x;
     scrollbar-width: thin;
     scrollbar-color: var(--line) transparent;
