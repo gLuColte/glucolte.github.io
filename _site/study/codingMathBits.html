@@ -149,7 +149,7 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
   const modal = document.getElementById('imageModal');
   const modalImg = document.getElementById('modalImage');
   const modalCaption = document.getElementById('modalCaption');
@@ -157,21 +157,70 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalPrev = document.querySelector('.modal-prev');
   const modalNext = document.querySelector('.modal-next');
 
+  const SCALE_STEP = 0.2;
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 3;
+
   let modalImages = [];
   let currentIndex = -1;
-  let currentScale = 1;
-  const scaleFactor = 0.1;
+  let currentScale = MIN_SCALE;
+  let translateX = 0;
+  let translateY = 0;
+  let isDragging = false;
+  let isTouchDragging = false;
+  let isPinching = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let pinchStartDistance = 0;
+  let pinchStartScale = MIN_SCALE;
+  let transitionTimeout;
 
   function refreshModalImages() {
     modalImages = Array.from(document.querySelectorAll('.modal-trigger'));
   }
 
-  function updateImageTransform() {
-    modalImg.style.transform = `scale(${currentScale})`;
-    modalImg.style.transition = 'transform 0.1s ease';
+  function applyTransform(withTransition = false) {
+    if (currentScale <= MIN_SCALE) {
+      currentScale = MIN_SCALE;
+      translateX = 0;
+      translateY = 0;
+    }
+
+    if (transitionTimeout) {
+      clearTimeout(transitionTimeout);
+      transitionTimeout = null;
+    }
+
+    modalImg.style.transition = withTransition ? 'transform 0.15s ease' : 'none';
+    modalImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+    modalImg.style.cursor = currentScale > MIN_SCALE
+      ? (isDragging || isTouchDragging ? 'grabbing' : 'grab')
+      : 'auto';
+
+    if (withTransition) {
+      transitionTimeout = setTimeout(() => {
+        modalImg.style.transition = 'none';
+      }, 160);
+    }
+  }
+
+  function resetTransform() {
+    currentScale = MIN_SCALE;
+    translateX = 0;
+    translateY = 0;
+    applyTransform(false);
+  }
+
+  function getDistance(touch1, touch2) {
+    return Math.hypot(
+      touch1.clientX - touch2.clientX,
+      touch1.clientY - touch2.clientY
+    );
   }
 
   function openModalAtIndex(index) {
+    refreshModalImages();
+
     if (!modalImages.length) {
       return;
     }
@@ -182,112 +231,117 @@ document.addEventListener('DOMContentLoaded', function() {
       index = 0;
     }
 
-    currentIndex = index;
-    const target = modalImages[currentIndex];
+    const target = modalImages[index];
     if (!target) {
       return;
     }
 
+    currentIndex = index;
     const src = target.dataset.modalSrc || target.src;
     const caption = target.getAttribute('data-caption') || target.alt;
 
     modalImg.src = src;
     modalCaption.textContent = caption || '';
     modal.classList.add('show');
-    currentScale = 1;
-    updateImageTransform();
     document.body.style.overflow = 'hidden';
+    resetTransform();
   }
 
   function closeModal() {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
     modal.classList.remove('show');
     document.body.style.overflow = '';
-    currentScale = 1;
     currentIndex = -1;
-    delete modal.dataset.initialDistance;
+    isDragging = false;
+    isTouchDragging = false;
+    isPinching = false;
+    resetTransform();
   }
 
   refreshModalImages();
 
-  document.addEventListener('click', function(e) {
-    if (!e.target.classList.contains('modal-trigger')) {
+  modalImg.addEventListener('dragstart', event => event.preventDefault());
+
+  document.addEventListener('click', event => {
+    const trigger = event.target.closest('.modal-trigger');
+    if (!trigger) {
       return;
     }
 
-    if (!modalImages.length) {
-      refreshModalImages();
-    }
-
-    let index = modalImages.indexOf(e.target);
-    if (index === -1) {
-      refreshModalImages();
-      index = modalImages.indexOf(e.target);
-    }
-
-    if (index === -1) {
-      return;
-    }
-
-    openModalAtIndex(index);
+    event.preventDefault();
+    refreshModalImages();
+    const index = modalImages.indexOf(trigger);
+    openModalAtIndex(index > -1 ? index : 0);
   });
 
-  modalClose.addEventListener('click', closeModal);
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
+  modalClose?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', event => {
+    if (event.target === modal) {
       closeModal();
     }
   });
 
-  document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', event => {
     if (!modal.classList.contains('show')) {
       return;
     }
 
-    switch (e.key) {
+    switch (event.key) {
       case 'Escape':
         closeModal();
         break;
       case 'ArrowLeft':
-        e.preventDefault();
+        event.preventDefault();
         openModalAtIndex(currentIndex - 1);
         break;
       case 'ArrowRight':
-        e.preventDefault();
+        event.preventDefault();
         openModalAtIndex(currentIndex + 1);
         break;
       case '+':
       case '=':
-        e.preventDefault();
-        currentScale = Math.min(currentScale + scaleFactor, 3);
-        updateImageTransform();
+        event.preventDefault();
+        currentScale = Math.min(MAX_SCALE, currentScale + SCALE_STEP);
+        applyTransform(true);
         break;
       case '-':
-        e.preventDefault();
-        currentScale = Math.max(currentScale - scaleFactor, 0.1);
-        updateImageTransform();
+        event.preventDefault();
+        currentScale = Math.max(MIN_SCALE, currentScale - SCALE_STEP);
+        applyTransform(true);
         break;
       case '0':
-        e.preventDefault();
-        currentScale = 1;
-        updateImageTransform();
+        event.preventDefault();
+        resetTransform();
+        applyTransform(true);
+        break;
+      default:
         break;
     }
   });
 
-  modal.addEventListener('wheel', function(e) {
+  modal.addEventListener('wheel', event => {
     if (!modal.classList.contains('show')) {
       return;
     }
 
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -scaleFactor : scaleFactor;
-    currentScale = Math.max(0.1, Math.min(3, currentScale + delta));
-    updateImageTransform();
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -SCALE_STEP : SCALE_STEP;
+    const nextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale + delta));
+
+    if (nextScale === currentScale) {
+      return;
+    }
+
+    currentScale = nextScale;
+    applyTransform(true);
   }, { passive: false });
 
   if (modalPrev) {
-    modalPrev.addEventListener('click', function(e) {
-      e.preventDefault();
+    modalPrev.addEventListener('click', event => {
+      event.preventDefault();
       if (currentIndex === -1) {
         return;
       }
@@ -296,8 +350,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   if (modalNext) {
-    modalNext.addEventListener('click', function(e) {
-      e.preventDefault();
+    modalNext.addEventListener('click', event => {
+      event.preventDefault();
       if (currentIndex === -1) {
         return;
       }
@@ -305,46 +359,127 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  modal.addEventListener('touchstart', function(e) {
+  modalImg.addEventListener('mousedown', event => {
+    if (!modal.classList.contains('show') || currentScale <= MIN_SCALE) {
+      return;
+    }
+
+    event.preventDefault();
+    isDragging = true;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    modalImg.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', event => {
+    if (!isDragging) {
+      return;
+    }
+
+    event.preventDefault();
+    translateX += event.clientX - dragStartX;
+    translateY += event.clientY - dragStartY;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    applyTransform(false);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) {
+      return;
+    }
+    isDragging = false;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modalImg.addEventListener('touchstart', event => {
     if (!modal.classList.contains('show')) {
       return;
     }
 
-    if (e.touches.length === 2) {
-      const [touch1, touch2] = e.touches;
-      modal.dataset.initialDistance = Math.hypot(
-        touch1.clientX - touch2.clientX,
-        touch1.clientY - touch2.clientY
-      );
-    } else {
-      e.preventDefault();
+    if (event.touches.length === 1 && currentScale > MIN_SCALE) {
+      event.preventDefault();
+      isTouchDragging = true;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      modalImg.style.cursor = 'grabbing';
+    } else if (event.touches.length === 2) {
+      event.preventDefault();
+      isTouchDragging = false;
+      isPinching = true;
+      pinchStartDistance = getDistance(event.touches[0], event.touches[1]);
+      pinchStartScale = currentScale;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
     }
   }, { passive: false });
 
-  modal.addEventListener('touchmove', function(e) {
-    if (!modal.classList.contains('show') || e.touches.length !== 2) {
+  modalImg.addEventListener('touchmove', event => {
+    if (!modal.classList.contains('show')) {
       return;
     }
 
-    e.preventDefault();
-    const [touch1, touch2] = e.touches;
-    const currentDistance = Math.hypot(
-      touch1.clientX - touch2.clientX,
-      touch1.clientY - touch2.clientY
-    );
-    const initialDistance = parseFloat(modal.dataset.initialDistance || '0');
-    if (initialDistance > 0) {
-      const scaleChange = (currentDistance - initialDistance) / initialDistance;
-      currentScale = Math.max(0.1, Math.min(3, currentScale + scaleChange * 0.5));
-      updateImageTransform();
-      modal.dataset.initialDistance = currentDistance;
+    if (isPinching && event.touches.length === 2) {
+      event.preventDefault();
+      const distance = getDistance(event.touches[0], event.touches[1]);
+      if (pinchStartDistance > 0) {
+        const scaleRatio = distance / pinchStartDistance;
+        currentScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchStartScale * scaleRatio));
+        applyTransform(false);
+      }
+    } else if (isTouchDragging && event.touches.length === 1) {
+      event.preventDefault();
+      translateX += event.touches[0].clientX - dragStartX;
+      translateY += event.touches[0].clientY - dragStartY;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      applyTransform(false);
     }
   }, { passive: false });
-});
 
-// PlantUML Hover Tooltip functionality
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('[data-snippet-id]').forEach(function(caption) {
+  modalImg.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.touches.length === 0) {
+      isTouchDragging = false;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+    }
+
+    if (event.touches.length < 2) {
+      isPinching = false;
+      pinchStartDistance = 0;
+      pinchStartScale = currentScale;
+    }
+  });
+
+  modalImg.addEventListener('touchcancel', () => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    isTouchDragging = false;
+    isPinching = false;
+    pinchStartDistance = 0;
+    pinchStartScale = currentScale;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modal.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.target === modal && event.changedTouches.length === 1 && !isTouchDragging && !isPinching) {
+      closeModal();
+    }
+  }, { passive: true });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-snippet-id]').forEach(caption => {
     const snippetId = caption.getAttribute('data-snippet-id');
     const snippetElement = document.getElementById(snippetId);
 

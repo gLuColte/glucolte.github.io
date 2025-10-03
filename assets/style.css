@@ -37,9 +37,15 @@ a:hover{text-decoration:none;border-bottom-color:transparent}
 }
 .brand{font-weight:700; letter-spacing:.2px; border-bottom:0 !important}
 .nav{
-  display:flex; align-items:center; gap:0; margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:0;
+  margin-left:auto;
+  flex-wrap:nowrap;
+  background:var(--bg);
 }
-.nav a{margin-left:14px; color:var(--muted); border-bottom:0}
+.nav a{margin-left:14px; color:var(--muted); border-bottom:0; white-space:nowrap}
+.nav a:first-child{margin-left:0}
 .nav a:hover{color:var(--ink)}
 
 /* Dark mode toggle */
@@ -375,4 +381,39 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
 .content h6 {
   /* Ensure hash navigation leaves room for the fixed header */
   scroll-margin-top: calc(var(--header-h) + 12px);
+}
+
+@media (max-width: 760px) {
+  .site-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .nav {
+    overflow-x: auto;
+    max-width: calc(100vw - 120px);
+    padding: 4px 0;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+
+  .nav::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .nav::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 999px;
+  }
+
+  [data-theme="dark"] .nav::-webkit-scrollbar-thumb {
+    background: #475569;
+  }
 }
