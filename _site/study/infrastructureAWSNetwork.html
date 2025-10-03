@@ -62,7 +62,7 @@
 
   <main class="container">
     <article class="content">
-      <h2 id="aws-network-overview">AWS Network Overview</h2>
+      <h2 id="section-1-aws-network-overview">1. AWS Network Overview</h2>
 
 <p>AWS operates one of the largest private <strong>fiber-optic backbones</strong> in the world. This backbone connects <strong>Data Centers</strong>, groups them into <strong>Availability Zones (AZs)</strong>, and links multiple AZs to form a <strong>Region</strong>. From there, AWS extends outwards through <strong>Points of Presence (PoPs)</strong>, which connect to the <strong>public internet</strong> or provide private connectivity via <strong>Direct Connect</strong>.</p>
 
@@ -103,9 +103,8 @@
 
 <hr />
 
-<h2 id="service-type-and-categories">Service Type and Categories</h2>
-
-<h3 id="internet-connectivity-ingress-egress">🌐 Internet Connectivity (Ingress / Egress)</h3>
+<h2 id="section-2-service-categories">2. Service Categories</h2>
+<h3 id="section-2-1-internet-connectivity-ingress-egress">2.1 Internet Connectivity (Ingress &amp; Egress)</h3>
 
 <table class="study-table">
 <thead>
@@ -115,6 +114,8 @@
 <th>OSI Layer</th>
 <th>Upstream</th>
 <th>Downstream</th>
+<th>Limitations</th>
+<th>Pricing</th>
 </tr>
 </thead>
 <tbody>
@@ -124,6 +125,8 @@
 <td>L3 – Network</td>
 <td>Public Subnet</td>
 <td>Internet</td>
+<td>• One IGW per VPC<br />• No filtering (not a firewall)</td>
+<td>Free</td>
 </tr>
 <tr>
 <td><strong>NAT Gateway</strong></td>
@@ -131,33 +134,49 @@
 <td>L3 – Network</td>
 <td>Private Subnet</td>
 <td>IGW / Internet</td>
+<td>• Outbound-only (no inbound)<br />• Not HA by default (deploy per AZ)</td>
+<td>Hourly charge + per GB data processing</td>
 </tr>
 <tr>
 <td><strong>Virtual Private Gateway (VGW)</strong></td>
-<td>VPN tunnel endpoint in AWS.</td>
+<td>AWS VPN tunnel endpoint for Site-to-Site VPN.</td>
 <td>L3 – Network</td>
-<td>On-prem VPN device</td>
+<td>On-prem VPN device (CGW)</td>
 <td>VPC Route Tables</td>
+<td>• One VGW per VPC<br />• Max ~1.25 Gbps per tunnel<br />• Cannot connect multiple VPCs directly</td>
+<td>Hourly VPN + data transfer</td>
+</tr>
+<tr>
+<td><strong>Customer Gateway (CGW)</strong></td>
+<td>Customer-managed device establishing VPN tunnels to AWS.</td>
+<td>L3 – Network</td>
+<td>On-prem Router/Firewall</td>
+<td>VGW / TGW</td>
+<td>• Managed by customer<br />• HA depends on design</td>
+<td>N/A (customer hardware cost)</td>
 </tr>
 <tr>
 <td><strong>Transit Gateway (TGW)</strong></td>
-<td>Central router between VPCs and VPN/Direct Connect.</td>
+<td>Central router between VPCs, VPNs, and Direct Connect.</td>
 <td>L3 – Network</td>
 <td>VPCs / VPN / DX</td>
 <td>VPCs / VPN / DX</td>
+<td>• One RT per attachment<br />• Propagation optional<br />• Default full mesh<br />• TGW Peering static routes only</td>
+<td>Per attachment + per GB data processed</td>
 </tr>
 <tr>
-<td><strong>Direct Connect</strong></td>
-<td>Dedicated physical link to AWS.</td>
+<td><strong>Direct Connect (DX)</strong></td>
+<td>Dedicated physical link to AWS, bypassing Internet.</td>
 <td>L1 – Physical</td>
 <td>On-prem Router/Switch</td>
 <td>VPC via TGW / VGW</td>
+<td>• Provisioning time weeks<br />• No encryption by default<br />• HA requires multiple DX</td>
+<td>Per port-hour + data transfer (lower than internet egress)</td>
 </tr>
 </tbody>
 </table>
 
-<h3 id="internal-vpc-private-service-communication">🔁 Internal VPC &amp; Private Service Communication</h3>
-
+<hr />
 <table class="study-table">
 <thead>
 <tr>
@@ -166,6 +185,8 @@
 <th>OSI Layer</th>
 <th>Upstream</th>
 <th>Downstream</th>
+<th>Limitations</th>
+<th>Pricing</th>
 </tr>
 </thead>
 <tbody>
@@ -175,25 +196,51 @@
 <td>L2 (abstracted)</td>
 <td>VPC A</td>
 <td>VPC B</td>
+<td>• No transitive routing<br />• Cannot use overlapping CIDRs</td>
+<td>Data transfer per GB (intra-Region cheaper, inter-Region higher)</td>
 </tr>
 <tr>
-<td><strong>PrivateLink / VPC Endpoint</strong></td>
-<td>Connects to AWS services privately within VPC.</td>
-<td>L3/L4</td>
+<td><strong>Gateway Endpoints</strong></td>
+<td>Route table entry to access <strong>S3/DynamoDB</strong> via AWS backbone.</td>
+<td>L3 – Network</td>
+<td>VPC Subnet</td>
+<td>S3 / DynamoDB</td>
+<td>• <strong>Only supports S3 and DynamoDB</strong><br />• One per route table<br />• Supports VPC endpoint policies</td>
+<td>Free</td>
+</tr>
+<tr>
+<td><strong>Interface Endpoints (PrivateLink)</strong></td>
+<td>ENI-based private access to other AWS services or partner services.</td>
+<td>L3 / L4</td>
 <td>VPC Subnet / ENI</td>
 <td>AWS Service ENI</td>
+<td>• <strong>Does NOT support S3/DynamoDB</strong> (use Gateway instead)<br />• One per AZ for HA<br />• Private DNS overrides service DNS<br />• Supports VPC endpoint policies</td>
+<td>Hourly ENI cost + per GB data processed</td>
 </tr>
 <tr>
-<td><strong>Route 53 Resolver</strong></td>
-<td>Resolves DNS inside VPC.</td>
+<td><strong>Route 53 Resolver (.2)</strong></td>
+<td>Built-in VPC DNS resolver (`.2` address in every subnet) for public zones and associated private zones.</td>
 <td>L3 – Network</td>
 <td>EC2 / Lambda / ENI</td>
-<td>Internal DNS Targets</td>
+<td>Internal DNS targets (via `.2`)</td>
+<td>• VPC-only (not accessible from on-prem)<br />• No customization<br />• Hybrid DNS requires endpoints</td>
+<td>Free (included with VPC)</td>
+</tr>
+<tr>
+<td><strong>Route 53 Resolver Endpoints</strong></td>
+<td>Extend DNS resolution across hybrid networks:<br />• <em>Inbound</em> – On-prem → VPC resolver<br />• <em>Outbound</em> – VPC → on-prem DNS</td>
+<td>L3 – Network</td>
+<td>On-prem DNS or VPC resources</td>
+<td>Route 53 Resolver / On-prem DNS</td>
+<td>• Requires ENIs in subnets<br />• One per AZ for HA<br />• Adds query latency vs. .2<br />• Query-based limits</td>
+<td>Hourly ENI cost + query-based pricing</td>
 </tr>
 </tbody>
 </table>
 
-<h3 id="load-balancing-traffic-distribution">⚖️ Load Balancing &amp; Traffic Distribution</h3>
+<hr />
+
+<h3 id="section-2-2-load-balancing-and-traffic-distribution">2.2 Load Balancing and Traffic Distribution</h3>
 
 <table class="study-table">
 <thead>
@@ -203,6 +250,8 @@
 <th>OSI Layer</th>
 <th>Upstream</th>
 <th>Downstream</th>
+<th>Limitations</th>
+<th>Pricing</th>
 </tr>
 </thead>
 <tbody>
@@ -212,6 +261,8 @@
 <td>L7 / L4</td>
 <td>Internet / CloudFront</td>
 <td>EC2 / Lambda / IPs</td>
+<td>• HTTP/HTTPS only<br />• No static IPs (unless behind GA)</td>
+<td>Hourly + per LCU + data processed</td>
 </tr>
 <tr>
 <td><strong>NLB (Network Load Balancer)</strong></td>
@@ -219,6 +270,8 @@
 <td>L4 – Transport</td>
 <td>Internet / Internal VPC</td>
 <td>EC2 / IPs</td>
+<td>• No advanced routing (L7)<br />• Health checks limited</td>
+<td>Hourly + per LCU + data processed</td>
 </tr>
 <tr>
 <td><strong>Gateway Load Balancer (GWLB)</strong></td>
@@ -226,18 +279,24 @@
 <td>L3 / L4</td>
 <td>IGW / NLB</td>
 <td>Security Appliance</td>
+<td>• Appliances must support GENEVE<br />• Adds latency</td>
+<td>Hourly + per LCU + data processed</td>
 </tr>
 <tr>
 <td><strong>Global Accelerator</strong></td>
-<td>Routes global traffic to optimal endpoint by introducing 2 dedicated Anycast IPs at edge.</td>
+<td>Routes global traffic via Anycast IPs.</td>
 <td>L4 – Transport</td>
 <td>End User</td>
 <td>NLB / ALB / IPs</td>
+<td>• Not a CDN<br />• No caching</td>
+<td>Per accelerator-hour + data transfer</td>
 </tr>
 </tbody>
 </table>
 
-<h3 id="security-access-control">🔐 Security &amp; Access Control</h3>
+<hr />
+
+<h3 id="section-2-3-security-and-access-control">2.3 Security and Access Control</h3>
 
 <table class="study-table">
 <thead>
@@ -247,6 +306,8 @@
 <th>OSI Layer</th>
 <th>Upstream</th>
 <th>Downstream</th>
+<th>Limitations</th>
+<th>Pricing</th>
 </tr>
 </thead>
 <tbody>
@@ -256,13 +317,17 @@
 <td>L7 – Application</td>
 <td>CloudFront / ALB</td>
 <td>ALB / API Gateway</td>
+<td>• L7 only<br />• Rule limits apply</td>
+<td>Per WCU (rule capacity unit) + requests</td>
 </tr>
 <tr>
 <td><strong>AWS Shield / Advanced</strong></td>
-<td>DDoS protection for infrastructure and apps.</td>
+<td>DDoS protection for infra/apps.</td>
 <td>L3–L7</td>
 <td>Internet / Edge</td>
 <td>VPC Entry Points</td>
+<td>• Shield Standard auto, Advanced = $$</td>
+<td>Shield Std free, Advanced fixed monthly fee</td>
 </tr>
 <tr>
 <td><strong>ACM</strong></td>
@@ -270,18 +335,24 @@
 <td>L6 – Presentation</td>
 <td>N/A (integrated)</td>
 <td>CloudFront / ALB / API GW</td>
+<td>• Only ACM-issued certs auto-renew</td>
+<td>Free for ACM-managed certs</td>
 </tr>
 <tr>
 <td><strong>Security Groups / NACLs</strong></td>
-<td>Allow/deny traffic at instance or subnet boundary.</td>
+<td>Allow/deny traffic at instance/subnet.</td>
 <td>L3 / L4</td>
-<td>Client or Peer Service</td>
+<td>Client / Peer Service</td>
 <td>EC2 / ENI / Subnet</td>
+<td>• SG stateful, NACL stateless<br />• NACL rules limit</td>
+<td>Free</td>
 </tr>
 </tbody>
 </table>
 
-<h3 id="edge-services-dns">🌍 Edge Services &amp; DNS</h3>
+<hr />
+
+<h3 id="section-2-4-edge-services-and-dns">2.4 Edge Services and DNS</h3>
 
 <table class="study-table">
 <thead>
@@ -291,6 +362,8 @@
 <th>OSI Layer</th>
 <th>Upstream</th>
 <th>Downstream</th>
+<th>Limitations</th>
+<th>Pricing</th>
 </tr>
 </thead>
 <tbody>
@@ -300,18 +373,24 @@
 <td>L7 – Application</td>
 <td>End Users</td>
 <td>ALB / S3 / API GW</td>
+<td>• Cache invalidation costs<br />• Regional edge cache not everywhere</td>
+<td>Per request + data transfer out</td>
 </tr>
 <tr>
 <td><strong>Route 53</strong></td>
-<td>DNS resolution with traffic routing features.</td>
+<td>DNS resolution with routing policies.</td>
 <td>L7 – Application</td>
 <td>End Users</td>
 <td>IP / ALB / CloudFront</td>
+<td>• Query costs<br />• Geo/latency policies add cost</td>
+<td>Per hosted zone + per query</td>
 </tr>
 </tbody>
 </table>
 
-<h3 id="api-microservice-communication">🧩 API &amp; Microservice Communication</h3>
+<hr />
+
+<h3 id="section-2-5-api-and-microservice-communication">2.5 API and Microservice Communication</h3>
 
 <table class="study-table">
 <thead>
@@ -321,27 +400,35 @@
 <th>OSI Layer</th>
 <th>Upstream</th>
 <th>Downstream</th>
+<th>Limitations</th>
+<th>Pricing</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>API Gateway</strong></td>
-<td>Expose and manage REST/HTTP/WebSocket APIs.</td>
+<td>Expose/manage REST/HTTP/WebSocket APIs.</td>
 <td>L7 – Application</td>
 <td>Client / CloudFront</td>
 <td>Lambda / Service Backend</td>
+<td>• Payload size limits<br />• Latency higher than ALB</td>
+<td>Per million requests + data processed</td>
 </tr>
 <tr>
 <td><strong>App Mesh</strong></td>
-<td>Controls and secures service-to-service traffic in a mesh.</td>
+<td>Controls service-to-service traffic in a mesh.</td>
 <td>L7 – Application</td>
 <td>Microservice A</td>
 <td>Microservice B</td>
+<td>• Envoy sidecar overhead<br />• Complexity</td>
+<td>Per Envoy proxy-hour</td>
 </tr>
 </tbody>
 </table>
 
-<h3 id="core-networking-components">🛠️ Core Networking Components</h3>
+<hr />
+
+<h3 id="section-2-6-core-networking-components">2.6 Core Networking Components</h3>
 
 <table class="study-table">
 <thead>
@@ -351,6 +438,8 @@
 <th>OSI Layer</th>
 <th>Upstream</th>
 <th>Downstream</th>
+<th>Limitations</th>
+<th>Pricing</th>
 </tr>
 </thead>
 <tbody>
@@ -360,6 +449,8 @@
 <td>L3 – Network</td>
 <td>Internet / VPN</td>
 <td>Subnets</td>
+<td>• Max 5,000 subnets<br />• CIDR block limits</td>
+<td>Free</td>
 </tr>
 <tr>
 <td><strong>Elastic Network Interface (ENI)</strong></td>
@@ -367,32 +458,45 @@
 <td>L2 – Data Link</td>
 <td>Subnet / VPC</td>
 <td>EC2 / Lambda</td>
+<td>• Limited ENIs per instance type</td>
+<td>Free (included in instance cost)</td>
 </tr>
 </tbody>
 </table>
 
 <hr />
 
-<h2 id="service-breakdown">Service Breakdown</h2>
+<h2 id="section-3-vpn">3. VPN</h2>
 
-<h2 id="vpn">VPN</h2>
+<p>Note VPN builds on top of IPSec, for details on how IPSec works, see <a href="/study/infrastructureOsiModel#layer-3-56---ipsec">3.4 Layer 3 &amp; 5–6 - IPsec</a></p>
 
-<h3 id="site-to-site-vpn">Site to Site VPN</h3>
+<h3 id="section-3-1-site-to-site-vpn">3.1 Site-to-Site VPN</h3>
+
+<ul>
+  <li><strong>Purpose</strong>:
+    <ul>
+      <li><strong>Site-to-Site VPN = Network ↔ Network</strong></li>
+      <li>Connects an entire on-premises network (via a CGW) to an AWS VPC network (via a VGW or TGW).</li>
+      <li>Used for <strong>hybrid cloud connectivity</strong>, extending datacenter or branch office networks into AWS.</li>
+      <li><strong>Example</strong>: Your office LAN can securely reach EC2 instances inside VPCs.</li>
+    </ul>
+  </li>
+</ul>
 
 <div class="image-wrapper">
   <img src="./assets/s2s_vpn.png" alt="S2S VPN Example" class="modal-trigger" data-caption="Site-to-Site VPN sequence showing CGW and VGW communication flow" />
   <div class="diagram-caption" data-snippet-id="s2s-snippet">
-    🔐 Site-to-Site VPN – Communication Sequence (hover to see PlantUML code)
+    🔐 Site-to-Site VPN – Communication Sequence
   </div>
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="s2s-snippet">
 @startuml
 title Classic VPN Setup with AWS Network (CGW and VGW)
 
-actor OnPrem as "On-Premises Network"
-actor ISP as "Internet Service Provider"
-actor Internet as "AWS Public Internet"
-actor VPC as "VPC (AWS Private Network)"
+participant OnPrem as "On-Premises Network"
+participant ISP as "Internet Service Provider"
+participant Internet as "AWS Public Internet"
+participant VPC as "VPC (AWS Private Network)"
 
 ' Classic VPN (VGW method)
 OnPrem -> ISP : From CGW: Request VPN Tunnel (IPsec Initiation)
@@ -424,271 +528,853 @@ end note
   </script>
 </div>
 
-<table>
-  <thead>
-    <tr>
-      <th><strong>VPN Type</strong></th>
-      <th><strong>On-Premise Side (CGW)</strong></th>
-      <th><strong>Amazon Side (VGW/TGW)</strong></th>
-      <th><strong>Description</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Classic VPN</strong></td>
-      <td><strong>CGW</strong> – Customer Gateway (hardware or software VPN device)</td>
-      <td><strong>VGW</strong> – Virtual Private Gateway (VPN endpoint on AWS side for the VPC)</td>
-      <td>Point-to-point VPN between on-premises and AWS using <strong>VGW</strong>. Route configuration can be <strong>static</strong> or <strong>dynamic</strong> (BGP).</td>
-    </tr>
-    <tr>
-      <td><strong>Scalable VPN</strong></td>
-      <td><strong>CGW</strong> – Customer Gateway (supports BGP for dynamic routing)</td>
-      <td><strong>TGW</strong> – Transit Gateway (centralized hub for connecting multiple VPCs and VPNs)</td>
-      <td>VPN for large-scale networks with <strong>BGP</strong> for dynamic routing and the ability to connect multiple VPCs via <strong>TGW</strong>.</td>
-    </tr>
-  </tbody>
+<h4 id="section-3-1-1-connectivity-types">3.1.1 Connectivity Types</h4>
+
+<p>Keep in mind, VPN connections traverse the public Internet before reaching AWS’s network. Because of this, the routing path and how routes are exchanged are critical.</p>
+
+<ul>
+  <li><strong>Static VPN</strong>
+    <ul>
+      <li><strong>Route</strong>: Static routes in route tables (manual setup).</li>
+      <li><strong>Pros</strong>: Simple setup.</li>
+      <li><strong>Cons</strong>: No load balancing or failover.</li>
+    </ul>
+  </li>
+  <li><strong>Dynamic VPN</strong>
+    <ul>
+      <li><strong>Route</strong>: Uses <strong>BGP</strong> for automatic route exchange.</li>
+      <li><strong>Pros</strong>: High availability, automatic failover, and load balancing.</li>
+      <li><strong>Cons</strong>: More complex setup.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="section-3-1-2-deployment-workflow">3.1.2 Deployment Workflow</h4>
+
+<ul>
+  <li><strong>Step 1: Create TGW and Attachments</strong>
+    <ul>
+      <li>Create TGW (default RT = <strong>Route Table A</strong>).</li>
+      <li>Attach: <strong>VPC1</strong>, <strong>VPC2</strong>, and <strong>On-premises</strong> (via VPN or Direct Connect).</li>
+      <li>Notes on VPN connectivity:
+        <ul>
+          <li>Uses the <strong>AWS Global Network</strong>, but tunnels still traverse the <strong>public Internet</strong>.</li>
+          <li>Provides <strong>2 resilient public endpoints</strong> with <strong>2 IPSec tunnels</strong> for redundancy.</li>
+          <li>Performance, latency, and consistency vary due to Internet hops.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>Step 2: Configure TGW Route Table &amp; Associations</strong>
+    <ul>
+      <li>By default, all attachments are <strong>associated</strong> with the TGW’s default route table (<strong>Route Table A</strong>).</li>
+      <li>You can create <strong>custom TGW route tables</strong> and associate attachments to them for segmentation (e.g., Dev vs Prod).</li>
+      <li>For this setup, keep <strong>VPC1</strong>, <strong>VPC2</strong>, and <strong>On-premises</strong> associated to <strong>Route Table A</strong>, but remove cross-VPC routes so <strong>VPC1 ↔ VPC2</strong> traffic is blocked.</li>
+    </ul>
+  </li>
+  <li><strong>Step 3: Configure VPC Route Tables</strong>
+    <ul>
+      <li><strong>VPC1 RT</strong>: Add <code class="language-plaintext highlighter-rouge">0.0.0.0/0</code> → TGW Attachment (for On-prem). No route to VPC2.</li>
+      <li><strong>VPC2 RT</strong>: Add <code class="language-plaintext highlighter-rouge">0.0.0.0/0</code> → TGW Attachment (for On-prem). No route to VPC1.</li>
+    </ul>
+  </li>
+  <li><strong>Step 4: On-premises Integration (Propagation)</strong>
+    <ul>
+      <li>Enable <strong>propagation</strong> from On-prem → TGW RT so both VPCs can learn routes automatically.</li>
+      <li>Ensure On-prem routes are advertised back to TGW.</li>
+      <li>Options to connect:
+        <ol>
+          <li><strong>VGW → CGW (1:1 VPC)</strong></li>
+          <li><strong>TGW → CGW (1:M VPCs)</strong></li>
+          <li><strong>Accelerated Site-to-Site VPN (TGW only)</strong></li>
+          <li><strong>Direct Connect (DX)</strong>:
+            <ul>
+              <li><strong>Private VIF</strong> → For VPC connectivity via TGW/VGW.</li>
+              <li><strong>Public VIF</strong> → For AWS public services (not VPC routing).</li>
+              <li><strong>Transit VIF</strong> → For scaling via TGW to multiple VPCs (enterprise-scale option).</li>
+            </ul>
+          </li>
+        </ol>
+      </li>
+    </ul>
+  </li>
+  <li><strong>Step 5: BGP Exchange Sequence (Dynamic VPN)</strong>
+    <ol>
+      <li><strong>On-Prem Router Configures BGP ASN</strong> → prepares to exchange routes.</li>
+      <li><strong>Advertises Internal Routes</strong> → on-prem router sends subnets (e.g., <code class="language-plaintext highlighter-rouge">192.168.1.0/24</code>).</li>
+      <li><strong>AWS VPN Gateway Setup</strong> → VPN tunnels established.</li>
+      <li><strong>BGP Peering</strong> → session formed between on-prem router and AWS VPN Gateway.</li>
+      <li><strong>Route Advertisement</strong> → AWS advertises VPC subnets to the on-prem router.</li>
+      <li><strong>Route Learning</strong> → on-prem router learns AWS subnets via BGP.</li>
+      <li><strong>Traffic to AWS</strong> → routed to TGW using BGP-learned paths.</li>
+      <li><strong>TGW Forwarding</strong> → TGW routes traffic to the correct VPC.</li>
+      <li><strong>Return Traffic from AWS</strong> → VPC → TGW → VPN tunnels → back to on-prem router.</li>
+    </ol>
+  </li>
+  <li><strong>Resulting Traffic Flows</strong>
+    <ul>
+      <li><strong>VPC1 → TGW → On-premises</strong> ✅</li>
+      <li><strong>VPC2 → TGW → On-premises</strong> ✅</li>
+      <li><strong>VPC1 ↔ VPC2</strong> ❌ (blocked by TGW RT config)</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="section-3-1-3-operational-considerations">3.1.3 Operational Considerations</h4>
+
+<ul>
+  <li><strong>Speed</strong>: Maximum throughput is <strong>1.25 Gbps</strong> per VPN tunnel.</li>
+  <li><strong>Latency</strong>: Varies and can be inconsistent, as traffic traverses the public Internet.</li>
+  <li><strong>Cost</strong>: Hourly charges per VPN connection, plus standard AWS data transfer fees (outbound GB).</li>
+  <li><strong>Provisioning Speed</strong>: Quick to set up, as VPNs are software-based and do not require physical circuits.</li>
+  <li><strong>High Availability</strong>:
+    <ul>
+      <li>Each VPN connection can support two tunnels for redundancy.</li>
+      <li>HA depends on having multiple on-premises customer gateways (e.g., in different locations).</li>
+    </ul>
+  </li>
+  <li><strong>Integration with Direct Connect</strong>:
+    <ul>
+      <li>VPNs can serve as a <strong>backup for DX</strong> (failover).</li>
+      <li>VPN and DX can be used together for <strong>hybrid redundancy</strong>.</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h3 id="section-3-2-client-vpn">3.2 Client VPN</h3>
+
+<p>AWS Client VPN is a <strong>fully managed OpenVPN-based service</strong> that allows <strong>individual users</strong> (laptops, developers, admins, remote workers) to securely connect to AWS resources and on-premises networks.</p>
+
+<ul>
+  <li><strong>Purpose</strong>:
+    <ul>
+      <li><strong>Client VPN = User ↔ Network</strong></li>
+      <li>Unlike Site-to-Site VPN (which connects entire networks), Client VPN provides <strong>user-level access</strong> into AWS.</li>
+    </ul>
+  </li>
+  <li><strong>Architecture</strong>:
+    <ul>
+      <li>Users connect to a <strong>Client VPN Endpoint</strong> deployed in a VPC.</li>
+      <li>The endpoint is associated with one or more <strong>subnets (ENIs)</strong> across AZs for high availability.</li>
+      <li>Billed based on the number of <strong>network associations</strong> and connected clients.</li>
+    </ul>
+  </li>
+  <li><strong>Use Cases</strong>:
+    <ul>
+      <li>Remote workforce access to AWS resources in a VPC.</li>
+      <li>Secure developer/admin access without requiring a full corporate VPN.</li>
+      <li>Extending access into on-premises networks if Client VPN is associated with a TGW or VGW.</li>
+    </ul>
+  </li>
+  <li><strong>VPN Types</strong>:
+    <ul>
+      <li><strong>Full Tunnel</strong>: All traffic (AWS + Internet) routes through the VPN.</li>
+      <li><strong>Split Tunnel</strong> (not default): Only AWS/VPC traffic routes through the VPN; Internet-bound traffic goes out locally.</li>
+    </ul>
+  </li>
+  <li><strong>Authentication</strong>:
+    <ul>
+      <li><strong>Certificate-based</strong> (via ACM).</li>
+      <li><strong>Identity-based</strong> (Active Directory, SAML, or federated IdPs).</li>
+    </ul>
+  </li>
+  <li><strong>Setup Workflow</strong>:
+    <ol>
+      <li><strong>Create Certificates in ACM</strong>
+        <ul>
+          <li>Server certificate for the VPN endpoint.</li>
+          <li>Client certificates for users.</li>
+          <li>Certificates are used to establish trust between client and server.</li>
+        </ul>
+      </li>
+      <li><strong>Create Client VPN Endpoint</strong> in AWS.</li>
+      <li><strong>Associate Subnets (ENIs)</strong> across AZs for HA.</li>
+      <li><strong>Configure Authorization Rules</strong> (which clients can access which networks).</li>
+      <li><strong>Add a DNS Server IP</strong> (so clients can resolve hostnames inside the VPC).</li>
+      <li><strong>Download/OpenVPN configuration file</strong> and distribute to clients.</li>
+      <li>Clients connect using an <strong>OpenVPN-compatible client</strong>.</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="section-3-2-1-connection-sequence">3.2.1 Connection Sequence</h4>
+
+<div class="image-wrapper">
+  <img src="./assets/client_vpn_general.png" alt="Client VPN Example" class="modal-trigger" data-caption="Client VPN sequence showing user connecting to AWS Client VPN Endpoint" />
+  <div class="diagram-caption" data-snippet-id="client-vpn-snippet">
+    🔐 Client VPN – Authentication &amp; Connection Flow
+  </div>
+  <!-- Keep your PlantUML raw here -->
+  <script type="text/plain" id="client-vpn-snippet">
+@startuml
+title AWS Client VPN Connection Flow
+
+actor User as "Client Device"
+participant VPNClient as "OpenVPN Client"
+participant ACM as "AWS ACM Certificates"
+participant ClientVPN as "AWS Client VPN Endpoint (ENI in VPC)"
+participant DNS as "DNS Server"
+participant VPC as "Target VPC Subnets"
+
+User -> VPNClient : Launch VPN client, provide cert/credentials
+VPNClient -> ACM : Verify certificates (Server & Client)
+ACM -> VPNClient : Certificate validation success
+VPNClient -> ClientVPN : Establish TLS/SSL Tunnel
+ClientVPN -> DNS : (Optional) Use configured DNS server
+ClientVPN -> VPC : Route traffic to AWS VPC Subnets
+
+note across
+  Split Tunnel Option:
+  - If enabled: Only AWS/VPC traffic goes through VPN.
+  - If disabled (Full Tunnel): All client traffic routes via VPN.
+end note
+@enduml
+  </script>
+</div>
+
+<hr />
+
+<h2 id="section-4-route-tables">4. Route Tables</h2>
+
+<ul>
+  <li><strong>VPC Route Tables</strong>: Decide routing inside each VPC.</li>
+  <li><strong>TGW Route Tables</strong>: Decide routing between VPCs, VPNs, and On-prem.</li>
+  <li><strong>Association</strong>: Each attachment (VPC, VPN, DX) can only be linked to <strong>one TGW RT</strong>.</li>
+  <li>
+    <p><strong>Propagation</strong>: Routes can automatically flow into TGW RTs (e.g., from VPN or On-prem).</p>
+  </li>
+  <li><strong>Routing Priority</strong>:
+    <ul>
+      <li>Inside VPC → VPC RT applies.</li>
+      <li>Across attachments → TGW RT applies.</li>
+      <li><strong>Longest prefix match</strong> always wins.</li>
+      <li><strong>Static routes</strong> take precedence over propagated routes.</li>
+      <li>If multiple propagated routes exist, AWS evaluates in this order:
+        <ol>
+          <li>Direct Connect (DX)</li>
+          <li>VPN Static</li>
+          <li>VPN BGP</li>
+          <li>AS_PATH length (shortest wins)</li>
+        </ol>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Subnet Association</strong>: Each subnet can only be associated with <strong>one RT</strong> (main or custom).</p>
+  </li>
+  <li><strong>CIDR Overlap</strong>:
+    <ul>
+      <li>Use separate RTs per subnet to send traffic to different VPCs with the same CIDR.</li>
+      <li>Or rely on more specific prefixes, since routing favors specificity.</li>
+    </ul>
+  </li>
+  <li><strong>Ingress Routing (Gateway Route Tables)</strong>:
+    <ul>
+      <li>Enables inspection/control of <strong>inbound traffic flows</strong>.</li>
+      <li>Previously, RTs only controlled <strong>outbound</strong> traffic; ingress routing extends this capability for security appliances.</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="section-5-direct-connect">5. Direct Connect</h2>
+
+<p>AWS Direct Connect (DX) provides a <strong>dedicated, private network connection</strong> between your on-premises environment and AWS. Unlike VPN (which traverses the Internet), DX offers <strong>consistent latency, predictable bandwidth, and enterprise-grade reliability</strong>.</p>
+
+<h3 id="section-5-1-direct-connect-physical-architecture">5.1 Direct Connect Physical Architecture</h3>
+
+<ul>
+  <li><strong>Port Speeds</strong>: 1 / 10 / 100 Gbps
+    <ul>
+      <li>1 Gbps → <code class="language-plaintext highlighter-rouge">1000BASE-LX</code> (1310 nm)</li>
+      <li>10 Gbps → <code class="language-plaintext highlighter-rouge">10GBASE-LR</code> (1310 nm)</li>
+      <li>100 Gbps → <code class="language-plaintext highlighter-rouge">100GBASE-LR4</code></li>
+    </ul>
+  </li>
+  <li><strong>Medium</strong>: Single-mode fiber only (no copper).</li>
+  <li><strong>Configuration</strong>: Auto-negotiation disabled → both ends must manually set <strong>speed</strong> and <strong>full-duplex</strong>.</li>
+  <li><strong>Routing</strong>: Uses <strong>BGP with MD5 authentication</strong>.</li>
+  <li><strong>Optional</strong>:
+    <ul>
+      <li><strong>MACsec (802.1AE)</strong> for Layer 2 encryption.</li>
+      <li><strong>Bidirectional Forwarding Detection (BFD)</strong> for fast failure detection.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-5-2-macsec-security-layer">5.2 MACsec Security Layer</h3>
+
+<p>DX traffic is not encrypted by default. <strong>MACsec</strong> secures the <strong>physical hop</strong> between your router and AWS’s DX router at the PoP.</p>
+
+<ul>
+  <li><strong>Scope</strong>: Frame-level encryption (Layer 2).</li>
+  <li><strong>Guarantees</strong>: Confidentiality, integrity, origin authentication, replay protection.</li>
+  <li><strong>Performance</strong>: Hardware-accelerated, minimal overhead at 10/100 Gbps.</li>
+  <li><strong>Mechanism</strong>: Secure Channels, Secure Associations, SCI identifiers, 16B tag + 16B ICV.</li>
+  <li><strong>Limitations</strong>: Not end-to-end; only protects between directly connected devices. Use <strong>IPsec over DX</strong> if end-to-end encryption is required.</li>
+</ul>
+
+<h3 id="section-5-3-direct-connect-provisioning-workflow">5.3 Direct Connect Provisioning Workflow</h3>
+
+<ol>
+  <li><strong>LOA-CFA (Letter of Authorization – Connecting Facility Assignment)</strong>
+    <ul>
+      <li>AWS allocates a port inside their cage at the DX location (PoP).</li>
+      <li>You receive LOA-CFA to hand to your provider or colo staff.</li>
+    </ul>
+  </li>
+  <li><strong>Physical Cross-Connect</strong>
+    <ul>
+      <li>Fiber is patched between your cage/router and the AWS DX router at the PoP.</li>
+      <li>Ports are set with matching speed/duplex.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="section-5-4-direct-connect-virtual-interfaces">5.4 Direct Connect Virtual Interfaces</h3>
+
+<p>DX is a <strong>Layer 2 link</strong>. To run multiple logical networks, DX uses <strong>802.1Q VLANs</strong>, each mapping to a <strong>Virtual Interface (VIF)</strong> on the AWS side.</p>
+<ul>
+  <li><strong>Each VIF = one VLAN + one BGP session.</strong></li>
+  <li>On the customer side: configure sub-interfaces (per VLAN) with BGP.</li>
+</ul>
+
+<p><strong>Types of VIFs</strong>:</p>
+<ol>
+  <li><strong>Private VIF</strong>
+    <ul>
+      <li>Connects to <strong>VGW</strong> (1 VPC) or <strong>TGW</strong> (multiple VPCs).</li>
+      <li>Used for <strong>private VPC IP ranges</strong>.</li>
+      <li>Region-specific (per DX location).</li>
+      <li>1 VIF = 1 VGW = 1 VPC (unless TGW is used).</li>
+      <li>No built-in encryption.</li>
+    </ul>
+  </li>
+  <li><strong>Public VIF</strong>
+    <ul>
+      <li>Connects to <strong>AWS public endpoints</strong> (e.g., S3, DynamoDB, STS).</li>
+      <li>AWS advertises <strong>all public IP prefixes</strong>; you advertise your <strong>public IPs</strong>.</li>
+      <li>Global scope (all AWS regions).</li>
+      <li>Not transitive: your prefixes are not re-shared by AWS.</li>
+      <li>Can combine with VPN for <strong>DX + VPN</strong> (low latency + encryption).</li>
+    </ul>
+  </li>
+  <li><strong>Transit VIF</strong>
+    <ul>
+      <li>Connects via <strong>DX Gateway (DXGW) → TGW</strong>.</li>
+      <li>Scales to <strong>multiple VPCs across accounts/regions</strong>.</li>
+      <li>Requires BGP.</li>
+      <li>Enterprise-scale hub-and-spoke hybrid connectivity.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="section-5-5-direct-connect-gateway">5.5 Direct Connect Gateway</h3>
+
+<ul>
+  <li>DX is <strong>per-region</strong>, but DXGW allows sharing across accounts and regions.</li>
+  <li><strong>Public VIFs</strong>: Can access all AWS regions (since public IPs are global).</li>
+  <li><strong>Private VIFs</strong>: Normally regional, but DXGW extends them to multiple regions via VGWs or TGWs.</li>
+  <li>Enables <strong>multi-account, multi-region hybrid architectures</strong>.</li>
+</ul>
+
+<h3 id="section-5-6-operational-considerations">5.6 Operational Considerations</h3>
+
+<ul>
+  <li><strong>Speed</strong>: Up to 100 Gbps, depending on DX location/provider.</li>
+  <li><strong>Encryption</strong>: Not built-in → use <strong>MACsec</strong> (L2 hop-by-hop) or <strong>VPN over DX</strong> (end-to-end).</li>
+  <li><strong>Resiliency</strong>: Use redundant DX links at different PoPs for HA.</li>
+  <li><strong>Cost</strong>: Port-hour charges + data transfer (cheaper than Internet egress).</li>
+  <li><strong>Provisioning</strong>: Weeks (physical cabling) vs minutes for VPN.</li>
+  <li><strong>Routing Priority</strong>:
+    <ul>
+      <li>Longest prefix match always wins.</li>
+      <li>Static &gt; propagated.</li>
+      <li>Typically, DX &gt; VPN for the same prefix.</li>
+    </ul>
+  </li>
+  <li><strong>Best Practice</strong>: DX + VPN (over DX Public VIF) = encrypted, resilient connectivity.</li>
+</ul>
+
+<h3 id="section-5-7-connection-sequence">5.7 Connection Sequence</h3>
+
+<div class="image-wrapper">
+  <img src="./assets/dx_general.png" alt="Direct Connect Flow" class="modal-trigger" data-caption="Direct Connect sequence flow (on-premises to AWS)" />
+  <div class="diagram-caption" data-snippet-id="dx-snippet">
+    🔌 Direct Connect – Physical + VIF Sequence
+  </div>
+  <script type="text/plain" id="dx-snippet">
+@startuml
+title AWS Direct Connect – VLAN to VIF Mapping
+
+participant OnPrem as "On-Prem Router"
+entity DXPort as "AWS DX Router (PoP Port)"
+entity VIF_Private as "Private VIF (VLAN 101)"
+entity VIF_Public as "Public VIF (VLAN 102)"
+entity VIF_Transit as "Transit VIF (VLAN 103)"
+entity VGW as "VGW (VPC)"
+entity PublicAWS as "AWS Public Services"
+entity TGW as "Transit Gateway"
+
+OnPrem -> DXPort : Establish physical DX connection (Fiber, 1/10/100 Gbps)
+
+== VLAN Segregation on On-Prem Router ==
+OnPrem -> DXPort : Tag traffic with VLAN 101 (Private)\n+ configure sub-interface + BGP
+OnPrem -> DXPort : Tag traffic with VLAN 102 (Public)\n+ configure sub-interface + BGP
+OnPrem -> DXPort : Tag traffic with VLAN 103 (Transit)\n+ configure sub-interface + BGP
+
+== VIF Mapping in AWS Console ==
+DXPort -> VIF_Private : Map VLAN 101 → Private VIF
+DXPort -> VIF_Public : Map VLAN 102 → Public VIF
+DXPort -> VIF_Transit : Map VLAN 103 → Transit VIF
+
+== Routing Outcomes ==
+VIF_Private -> VGW : Routes to one VPC (via VGW) or multiple VPCs (via TGW)
+VIF_Public -> PublicAWS : Routes to global AWS public services
+VIF_Transit -> TGW : Routes to multiple VPCs via TGW/DXGW
+
+note right of DXPort
+Each VLAN = one isolated logical path
+Each VIF = AWS-side construct\nterminating that VLAN
+Each VIF requires a BGP session
+end note
+@enduml
+  </script>
+</div>
+
+<hr />
+
+<h2 id="section-6-domain-name-system-dns">6. Domain Name System (DNS)</h2>
+
+<p>DNS (Domain Name System) resolves human-readable domain names (e.g., <code class="language-plaintext highlighter-rouge">example.com</code>) into IP addresses or service endpoints. In AWS, <strong>Route 53</strong> provides DNS hosting, routing policies, and integration with AWS resources (via Alias records).</p>
+
+<p>👉 <strong>Important distinction</strong>:</p>
+<ul>
+  <li><strong>DNS Hosting</strong>: Runs authoritative DNS servers that store and answer queries for your domain’s records.
+    <ul>
+      <li>Stores <strong>zone files</strong> (the authoritative set of DNS records for your domain).</li>
+      <li>Uses <strong>name servers (NS records)</strong>, which are basically the servers that host and respond with your zone file data.</li>
+      <li>Examples: Route 53, Cloudflare, GoDaddy DNS.</li>
+    </ul>
+  </li>
+  <li><strong>TLD Registry / Registrar</strong>: Manages ownership of domain names under a top-level domain (TLD), like <code class="language-plaintext highlighter-rouge">.com</code> or <code class="language-plaintext highlighter-rouge">.org</code>.
+    <ul>
+      <li>The <strong>registry</strong> (e.g., Verisign for <code class="language-plaintext highlighter-rouge">.com</code>, PIR for <code class="language-plaintext highlighter-rouge">.org</code>) maintains the authoritative database of who owns each domain.</li>
+      <li>The <strong>registrar</strong> (e.g., GoDaddy, Namecheap) is where you register, renew, or transfer domains.</li>
+    </ul>
+  </li>
+  <li>These can be provided by the <strong>same company</strong> (e.g., GoDaddy = registrar + DNS host) or by <strong>different ones</strong> (e.g., register with Namecheap, host DNS with Route 53).</li>
+</ul>
+
+<h3 id="section-6-1-common-dns-record-types">6.1 Common DNS Record Types</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Record Type</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>Maps domain → IPv4 address</td>
+<td><code>example.com. IN A 192.0.2.1</code></td>
+</tr>
+<tr>
+<td><strong>AAAA</strong></td>
+<td>Maps domain → IPv6 address</td>
+<td><code>example.com. IN AAAA 2001:db8::1</code></td>
+</tr>
+<tr>
+<td><strong>CNAME</strong></td>
+<td>Alias to another domain (not IP)</td>
+<td><code>www.example.com. IN CNAME example.globalcdn.com.</code></td>
+</tr>
+<tr>
+<td><strong>Alias</strong></td>
+<td>AWS-only alias to ELB, CloudFront, S3, etc. Works at root domain.</td>
+<td><code>example.com. IN A Alias abc123.cloudfront.net</code></td>
+</tr>
+<tr>
+<td><strong>MX</strong></td>
+<td>Mail routing</td>
+<td><code>example.com. IN MX 10 mail1.google.com.</code></td>
+</tr>
+<tr>
+<td><strong>TXT</strong></td>
+<td>Metadata (SPF, DKIM, domain verification)</td>
+<td><code>example.com. IN TXT "v=spf1 include:_spf.google.com ~all"</code></td>
+</tr>
+<tr>
+<td><strong>NS</strong></td>
+<td>Authoritative nameservers for zone</td>
+<td><code>example.com. IN NS ns1.dnsprovider.com.</code></td>
+</tr>
+<tr>
+<td><strong>SOA</strong></td>
+<td>Zone info (serial, refresh, retry)</td>
+<td><code>example.com. IN SOA ns1 hostmaster 2025010101 3600 1800 1209600 86400</code></td>
+</tr>
+<tr>
+<td><strong>PTR</strong></td>
+<td>Reverse DNS (IP → domain)</td>
+<td><code>1.2.0.192.in-addr.arpa. IN PTR example.com.</code></td>
+</tr>
+<tr>
+<td><strong>CAA</strong></td>
+<td>Restricts which CAs can issue certificates</td>
+<td><code>example.com. IN CAA 0 issue "letsencrypt.org"</code></td>
+</tr>
+<tr>
+<td><strong>SRV</strong></td>
+<td>Service-specific record (e.g., SIP, LDAP)</td>
+<td><code>_sip._tcp.example.com. IN SRV 10 60 5060 sipserver.example.com.</code></td>
+</tr>
+</tbody>
 </table>
 
-<p><strong>Static VPN</strong></p>
+<h3 id="section-6-2-apex-naked-domains">6.2 Apex (Naked) Domains</h3>
 
 <ul>
-  <li><strong>Route</strong>: Static routes in route tables (manual setup).</li>
-  <li><strong>Pros</strong>: Simple setup.</li>
-  <li><strong>Cons</strong>: No load balancing or failover.</li>
+  <li>A <strong>naked domain</strong> = root (e.g., <code class="language-plaintext highlighter-rouge">example.com</code>) without subdomain.</li>
+  <li>CNAMEs <strong>cannot</strong> be used at the root.</li>
+  <li>In AWS → use <strong>Alias records</strong> to map apex domains to AWS resources (e.g., ELB, CloudFront).</li>
+  <li>For non-apex domains (<code class="language-plaintext highlighter-rouge">www.example.com</code>), use <strong>CNAME</strong>.</li>
 </ul>
 
-<p><strong>Dynamic VPN</strong></p>
+<h3 id="section-6-3-route-53-routing-policies">6.3 Route 53 Routing Policies</h3>
 
-<ul>
-  <li><strong>Route</strong>: Uses <strong>BGP</strong> for automatic route exchange.</li>
-  <li><strong>Pros</strong>: HA, automatic failover, and load balancing.</li>
-  <li><strong>Cons</strong>: More complex setup.</li>
-</ul>
+<table class="study-table">
+<thead>
+<tr>
+<th>Routing Policy</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Simple</strong></td>
+<td>Single record → single resource</td>
+<td><code>example.com → 192.0.2.1</code></td>
+</tr>
+<tr>
+<td><strong>Weighted</strong></td>
+<td>Split traffic by % between resources</td>
+<td><code>80% → server1, 20% → server2</code></td>
+</tr>
+<tr>
+<td><strong>Latency</strong></td>
+<td>Route to lowest-latency region</td>
+<td>US users → us-east-1, EU users → eu-west-1</td>
+</tr>
+<tr>
+<td><strong>Failover</strong></td>
+<td>Primary resource + backup on failure</td>
+<td>Main site → backup site</td>
+</tr>
+<tr>
+<td><strong>Geolocation</strong></td>
+<td>Route by user’s country/region</td>
+<td>US → 192.0.2.1, UK → 192.0.2.2</td>
+</tr>
+<tr>
+<td><strong>Geoproximity</strong></td>
+<td>Route by distance + optional bias</td>
+<td>East Coast users → NJ DC, West Coast → CA DC</td>
+</tr>
+<tr>
+<td><strong>Multi-Value</strong></td>
+<td>Return multiple IPs for LB/HA</td>
+<td>example.com → 192.0.2.1, 192.0.2.2</td>
+</tr>
+<tr>
+<td><strong>IP-based</strong></td>
+<td>Route by client IP blocks</td>
+<td>Corp IP range → private endpoint</td>
+</tr>
+</tbody>
+</table>
 
-<p><strong>VPN Considerations</strong></p>
-
-<ul>
-  <li><strong>Speed</strong>: Max <strong>1.25 Gbps</strong>.</li>
-  <li><strong>Latency</strong>: Inconsistent due to public internet routing.</li>
-  <li><strong>Cost</strong>: Hourly charges + data transfer fees.</li>
-  <li><strong>Setup Speed</strong>: Fast, software-based.</li>
-  <li><strong>Backup for DX</strong>: Can be used as a failover for Direct Connect.</li>
-  <li><strong>Direct Connect</strong>: Can work with Direct Connect for redundancy.</li>
-</ul>
-
-<p>Here’s a concise summary:</p>
+<h3 id="section-6-4-dns-resolution-flow">6.4 DNS Resolution Flow</h3>
 
 <ol>
-  <li>
-    <p><strong>VPC Route Tables</strong>: Each VPC has its own route table that determines how traffic within the VPC is routed. By default, the VPC route table takes priority for traffic originating from within that VPC.</p>
-  </li>
-  <li>
-    <p><strong>Transit Gateway (TGW)</strong>: TGW acts as a central hub for connecting multiple VPCs, VPNs, and Direct Connect links. Each TGW has a <strong>default route table</strong> (RT) and supports <strong>route propagation</strong> and <strong>association</strong>.</p>
-  </li>
-  <li>
-    <p><strong>Association</strong>:</p>
-
+  <li>You create a <strong>Hosted Zone</strong> in Route 53 for your domain (<code class="language-plaintext highlighter-rouge">example.com</code>).</li>
+  <li>Route 53 assigns <strong>4 authoritative name servers (NS records)</strong> for the domain.</li>
+  <li>You add DNS records (A, CNAME, MX, TXT, etc.) inside the hosted zone.</li>
+  <li>When a client queries <code class="language-plaintext highlighter-rouge">example.com</code>, the DNS resolver follows the chain:
     <ul>
-      <li><strong>Associating a route table to an attachment</strong> (e.g., a VPC or VPN) means specifying which <strong>subnets or attachments</strong> use that route table for routing decisions.</li>
-      <li>Each attachment (VPC, VPN, Direct Connect) can <strong>only</strong> be associated with <strong>one route table</strong> at a time.</li>
+      <li>Root → TLD → <strong>Route 53 authoritative NS</strong> (Amazon-managed).</li>
     </ul>
   </li>
-  <li>
-    <p><strong>Propagation</strong>:</p>
-
-    <ul>
-      <li><strong>Propagation</strong> automatically adds routes to a route table. For example, routes from a <strong>VPC</strong> or <strong>VPN</strong> can be propagated into the <strong>TGW route table</strong>, making it dynamic.</li>
-      <li>Without propagation, routes are <strong>static</strong> and must be manually added.</li>
-    </ul>
-  </li>
-  <li>
-    <p><strong>Routing Priority</strong>:</p>
-
-    <ul>
-      <li>Traffic originating within a <strong>VPC</strong> follows the <strong>VPC route table</strong>.</li>
-      <li>For traffic routed to or from other VPCs via TGW, the <strong>TGW route table</strong> is used.</li>
-      <li><strong>Specific routes</strong> (longest prefix match) take priority when multiple route tables have entries for the same destination.</li>
-    </ul>
-  </li>
-  <li>
-    <p><strong>Multiple Route Tables</strong>:</p>
-
-    <ul>
-      <li><strong>Multiple route tables</strong> can be created in a TGW for more advanced routing, like segmenting traffic for different environments (e.g., Dev, Prod).</li>
-      <li>Each attachment can only be associated with one route table, but one route table can support multiple attachments.</li>
-    </ul>
-  </li>
+  <li>Route 53 authoritative servers return the DNS record (e.g., A record with an IP).</li>
+  <li>Resolver caches and returns result to user → user connects to the target resource.</li>
 </ol>
 
-<p>In short, <strong>association</strong> determines <strong>which route table is used</strong>, and <strong>propagation</strong> allows <strong>automatic updates</strong> of route tables with new routes based on connections.</p>
+<div class="image-wrapper">
+  <img src="./assets/dns_resolution_flow.png" alt="DNS Resolution Flow" class="modal-trigger" data-caption="DNS resolution sequence flow (user to AWS Route 53)" />
+  <div class="diagram-caption" data-snippet-id="dns-snippet">
+    🌐 DNS Resolution – Query to Answer
+  </div>
+  <script type="text/plain" id="dns-snippet">
+@startuml
+title DNS Resolution Flow (Normal + DNSSEC)
+
+actor User
+participant Resolver as "DNS Resolver (Recursive)"
+participant Root as "Root DNS (.)"
+participant TLD as "TLD DNS (.com - Parent Zone)"
+participant Authoritative as "Authoritative DNS (Route 53 for example.com)"
+
+== Normal DNS Resolution ==
+User -> Resolver : Query "example.com"
+
+note right of Resolver : Step 1: Resolver receives query from User.
+
+Resolver -> Root : Ask for NS of ".com"
+Root --> Resolver : Referral: TLD servers for .com
+
+note right of Resolver : Step 2: Resolver learns TLD servers.
+
+Resolver -> TLD : Ask for NS of "example.com"
+TLD --> Resolver : Referral: NS for "example.com" (Authoritative)
+
+note right of Resolver : Step 3: Resolver learns authoritative NS.
+
+Resolver -> Authoritative : Query DNS records (A, MX) for "example.com"
+Authoritative --> Resolver : Return records (A, MX)
+
+Resolver --> User : Return resolved records (e.g., A = 203.0.113.10)
+User -> Authoritative : Connect using resolved IP
+@enduml
+  </script>
+</div>
+
+<h3 id="section-6-5-dnssec-overview">6.5 DNSSEC Overview</h3>
+
+<p><strong>DNSSEC (Domain Name System Security Extensions)</strong> adds a <strong>security layer</strong> to DNS. Normal DNS just maps names → IPs, but DNSSEC ensures responses are <strong>authentic</strong> and <strong>untampered</strong> by digitally signing DNS records.</p>
+
+<blockquote>
+  <p>🔑 <strong>Why we need DNSSEC</strong>: Without it, DNS is vulnerable to <strong>cache poisoning, spoofing, and MITM attacks</strong>.<br />
+✅ <strong>DNSSEC prevents this</strong> by providing a <strong>cryptographic chain of trust</strong> from the <strong>Root</strong> → <strong>TLD</strong> → <strong>Authoritative server</strong>.<br />
+⚠️ <strong>Note</strong>: DNSSEC does <strong>not encrypt traffic</strong> (unlike HTTPS). It only guarantees <strong>authenticity + integrity</strong>, not confidentiality.</p>
+</blockquote>
+
+<h4 id="section-6-5-1-key-concepts">6.5.1 Key Concepts</h4>
+
+<ul>
+  <li><strong>Digital Signatures</strong>:
+    <ul>
+      <li><strong>Authoritative servers</strong> sign records with a <strong>private key</strong>.</li>
+      <li><strong>Resolvers</strong> validate them with the <strong>public key</strong>.</li>
+    </ul>
+  </li>
+  <li><strong>DNSSEC Records</strong>:
+    <ul>
+      <li><strong>DNSKEY</strong> → Public key of a DNS zone.</li>
+      <li><strong>DS (Delegation Signer)</strong> → Stored in the parent zone, links child zone’s key.</li>
+      <li><strong>RRSIG</strong> → Digital signature attached to DNS records.</li>
+    </ul>
+  </li>
+  <li><strong>Chain of Trust</strong>:
+    <ul>
+      <li>Starts at the <strong>Root zone</strong> (trust anchor),</li>
+      <li>Delegates to <strong>TLD (.com)</strong>,</li>
+      <li>Passes down to the <strong>Authoritative DNS</strong> (e.g., Route 53).</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="section-6-5-2-roles-and-responsibilities">6.5.2 Roles and Responsibilities</h4>
+
+<ul>
+  <li><strong>Root &amp; TLD Operators (ICANN, Verisign, etc.)</strong> → Maintain signed root/TLD zones.</li>
+  <li><strong>Domain Owners</strong> → Enable DNSSEC in their DNS service (e.g., Route 53), publish DS record at registrar.</li>
+  <li><strong>Resolvers (e.g., ISP, Google DNS, Cloudflare)</strong> → Validate signatures automatically.</li>
+  <li><strong>End Users</strong> → Do nothing; they just benefit from secure DNS responses.</li>
+</ul>
+
+<h4 id="section-6-5-3-dnssec-resolution-flow">6.5.3 DNSSEC Resolution Flow</h4>
+
+<div class="image-wrapper">
+  <img src="./assets/dnssec_resolution_flow.png" alt="DNSSEC Resolution Flow" class="modal-trigger" data-caption="DNSSEC resolution flow with chain of trust" />
+  <div class="diagram-caption" data-snippet-id="dnssec-snippet">
+    🔐 DNSSEC Resolution – Validating DNS records with chain of trust
+  </div>
+  <script type="text/plain" id="dnssec-snippet">
+@startuml
+title DNS Resolution Flow (DNSSEC-enabled)
+
+actor User
+participant Resolver as "DNS Resolver (Recursive)"
+participant Root as "Root DNS (.) - ICANN"
+participant TLD as "TLD DNS (.com - Registry Operator)"
+participant Authoritative as "Authoritative DNS (e.g., Route 53 for example.com)"
+
+User -> Resolver : Query "example.com" (with DNSSEC enabled)
+
+' Step 1 - Ask Parent
+Resolver -> TLD : Query DS for "example.com"
+TLD --> Resolver : DS + RRSIG (signed by TLD key)
+
+' Step 2 - Get DNSKEY from child zone
+Resolver -> Authoritative : Query DNSKEY for "example.com"
+Authoritative --> Resolver : DNSKEY + RRSIG (signed by zone key)
+
+note over Resolver
+Validate DNSKEY using DS from TLD.  
+Root trust anchor → TLD → Authoritative zone.  
+If mismatch → reject response.
+end note
+
+' Step 3 - Query actual record
+Resolver -> Authoritative : Query A for "example.com"
+Authoritative --> Resolver : A record + RRSIG
+
+note over Resolver
+Verify A record using DNSKEY + RRSIG.  
+If valid → accept.  
+If invalid → discard.
+end note
+
+Resolver --> User : Return validated DNS record (IP for example.com)
+@enduml
+  </script>
+</div>
+
+<h3 id="section-6-6-route53-resolver-endpoints">6.6 Route 53 Resolver and Endpoints</h3>
+
+<p>By default, every <strong>VPC</strong> has an <strong>Amazon-managed DNS resolver</strong> at the reserved IP <code class="language-plaintext highlighter-rouge">VPC-CIDR+.2</code> (e.g., <code class="language-plaintext highlighter-rouge">10.0.0.2</code>).</p>
+<ul>
+  <li>Accessible from <strong>all subnets</strong> in the VPC.</li>
+  <li>Resolves <strong>public DNS records</strong> and <strong>private hosted zones</strong> linked to the VPC.</li>
+  <li>No setup required — it’s built-in.</li>
+</ul>
+
+<p>👉 Limitation: The default <code class="language-plaintext highlighter-rouge">.2</code> resolver only works <strong>inside the VPC</strong>. It cannot be queried from on-premises networks or other VPCs directly.</p>
+
+<p>To integrate DNS across hybrid or multi-VPC environments, AWS provides <strong>Route 53 Resolver Endpoints</strong>:</p>
+
+<ul>
+  <li><strong>Inbound Endpoint</strong>:
+    <ul>
+      <li>On-premises DNS servers → query AWS <code class="language-plaintext highlighter-rouge">.2</code> resolver via an ENI in the VPC.</li>
+    </ul>
+  </li>
+  <li><strong>Outbound Endpoint</strong>:
+    <ul>
+      <li>VPC resources → forward queries to on-premises DNS servers.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>These endpoints solve the <strong>DNS boundary problem</strong> where VPC and on-prem DNS could not previously resolve each other.</p>
+
+<div class="image-wrapper">
+  <img src="./assets/route53_resolver_flow.png" alt="Route 53 Resolver Endpoints Flow" class="modal-trigger" data-caption="Route 53 Resolver inbound and outbound flow between on-premises and AWS VPC" />
+  <div class="diagram-caption" data-snippet-id="resolver-snippet">
+    🔄 Route 53 Resolver – Inbound &amp; Outbound Endpoint Flow
+  </div>
+  <script type="text/plain" id="resolver-snippet">
+@startuml
+title Route 53 Resolver Endpoints Flow
+
+participant OnPremDNS as "On-Premises DNS Server"
+participant Inbound as "Route 53 Resolver Inbound Endpoint (VPC ENI)"
+participant Resolver as "VPC .2 Resolver (Amazon-managed)"
+participant Outbound as "Route 53 Resolver Outbound Endpoint (VPC ENI)"
+participant CorpDNS as "On-Premises Corporate DNS"
+participant EC2 as "VPC Resource (EC2/Lambda)"
+
+== Inbound Query (On-Prem → VPC/.2) ==
+OnPremDNS -> Inbound : DNS Query "db.aws.local"
+Inbound -> Resolver : Forward to .2 Resolver
+Resolver --> Inbound : Resolve record (private/public zone)
+Inbound --> OnPremDNS : Return DNS answer
+
+== Outbound Query (VPC → On-Prem) ==
+Resolver -> Outbound : Forward query "corp.local"
+Outbound -> CorpDNS : Send DNS request
+CorpDNS --> Outbound : Return corporate record
+Outbound --> Resolver : Forward answer to .2
+Resolver --> EC2 : Deliver response to VPC resource
+
+@enduml
+  </script>
+</div>
 
 <hr />
-<p>Alright, let’s break this down step-by-step for your scenario. You want <strong>VPC1</strong> and <strong>VPC2</strong> to both have access to <strong>on-premises</strong>, but you don’t want <strong>VPC1</strong> to communicate with <strong>VPC2</strong>. To achieve this, we need to carefully set up <strong>Transit Gateway (TGW)</strong>, <strong>VPC route tables</strong>, <strong>TGW route tables</strong>, and <strong>VPC attachments</strong> to control the traffic flow and routing.</p>
 
-<h3 id="step-1-create-transit-gateway-tgw-and-attachments">Step 1: <strong>Create Transit Gateway (TGW) and Attachments</strong></h3>
+<h2 id="section-7-ipv6-in-aws">7. IPv6 in AWS</h2>
 
-<ol>
-  <li>
-    <p><strong>Create the Transit Gateway (TGW)</strong>:</p>
+<p>AWS VPCs support <strong>dual-stack networking</strong> (IPv4 + IPv6). Unlike IPv4, IPv6 is <strong>globally unique and publicly routable</strong>, which removes the need for NAT but requires careful access control.</p>
 
-    <ul>
-      <li>This creates a <strong>TGW route table</strong> (default route table, <strong>Route Table A</strong>) that will be used by all connected attachments by default.</li>
-    </ul>
-  </li>
-  <li>
-    <p><strong>Attach VPCs and On-premises to TGW</strong>:</p>
-
-    <ul>
-      <li>Attach <strong>VPC1</strong>, <strong>VPC2</strong>, and <strong>On-premises</strong> to the <strong>TGW</strong>. Each attachment creates a link between the <strong>TGW</strong> and the connected resources.</li>
-      <li>
-        <p>For example:</p>
-
-        <ul>
-          <li><strong>VPC1 Attachment</strong></li>
-          <li><strong>VPC2 Attachment</strong></li>
-          <li><strong>On-premises Attachment</strong> (this can be a VPN or Direct Connect attachment)</li>
-        </ul>
-      </li>
-    </ul>
-
-    <p>These attachments don’t have individual route tables themselves, but they will be part of the <strong>TGW route table</strong> and can use <strong>propagation</strong> or be <strong>associated</strong> to different route tables.</p>
-  </li>
-</ol>
-
-<h3 id="step-2-set-up-tgw-route-table">Step 2: <strong>Set Up TGW Route Table</strong></h3>
+<h3 id="section-7-1-key-points">7.1 Key Points</h3>
 
 <ul>
-  <li><strong>By default</strong>, the <strong>TGW route table</strong> (<strong>Route Table A</strong>) is used for all attachments. This means that initially, <strong>VPC1</strong>, <strong>VPC2</strong>, and <strong>On-premises</strong> will all be able to communicate with each other because the default TGW route table allows traffic between these attachments.</li>
-  <li>However, you want to prevent <strong>VPC1</strong> from talking to <strong>VPC2</strong>. So, we’ll modify the TGW route table to achieve this.</li>
-</ul>
-
-<h3 id="step-3-set-up-vpc-route-tables">Step 3: <strong>Set Up VPC Route Tables</strong></h3>
-
-<p>Each VPC (VPC1 and VPC2) has its own <strong>route table</strong> (which is managed separately).</p>
-
-<ol>
-  <li>
-    <p><strong>VPC1 Route Table</strong>:</p>
-
+  <li><strong>CIDR Allocation</strong>:
     <ul>
-      <li>Initially, <strong>VPC1</strong> will have a default route table that will route any traffic destined for <strong>On-premises</strong> through the <strong>TGW attachment</strong>.</li>
-      <li>
-        <p><strong>Add a Route in VPC1’s Route Table</strong>:</p>
-
-        <ul>
-          <li>Route: <code class="language-plaintext highlighter-rouge">0.0.0.0/0</code> → <strong>TGW Attachment</strong> (for On-premises access)</li>
-        </ul>
-      </li>
-    </ul>
-
-    <p>VPC1 <strong>will not have a route to VPC2</strong> at this stage, so any traffic to VPC2 will be blocked.</p>
-  </li>
-  <li>
-    <p><strong>VPC2 Route Table</strong>:</p>
-
-    <ul>
-      <li>Similarly, <strong>VPC2</strong> will have a default route table that routes traffic for <strong>On-premises</strong> through the <strong>TGW attachment</strong>.</li>
-      <li>
-        <p><strong>Add a Route in VPC2’s Route Table</strong>:</p>
-
-        <ul>
-          <li>Route: <code class="language-plaintext highlighter-rouge">0.0.0.0/0</code> → <strong>TGW Attachment</strong> (for On-premises access)</li>
-        </ul>
-      </li>
-    </ul>
-
-    <p>VPC2 <strong>will not have a route to VPC1</strong> by default.</p>
-  </li>
-</ol>
-
-<h3 id="step-4-control-communication-between-vpcs-using-tgw-route-tables">Step 4: <strong>Control Communication Between VPCs Using TGW Route Tables</strong></h3>
-
-<p>Now let’s address the part where <strong>VPC1</strong> should <strong>not</strong> communicate with <strong>VPC2</strong>.</p>
-
-<ol>
-  <li>
-    <p><strong>Modify TGW Route Table</strong>:</p>
-
-    <ul>
-      <li>Go to <strong>Route Table A</strong> in the <strong>TGW</strong> and explicitly <strong>remove the route</strong> that allows traffic from <strong>VPC1</strong> to <strong>VPC2</strong>.</li>
-      <li><strong>VPC1 to VPC2 route</strong>: Remove any route entries in <strong>Route Table A</strong> that would allow traffic from <strong>VPC1</strong> to <strong>VPC2</strong>. This will prevent <strong>VPC1</strong> from routing traffic to <strong>VPC2</strong> via the TGW.</li>
+      <li>Each VPC gets an <strong>Amazon-provided /56 IPv6 block</strong>.</li>
+      <li>Each subnet automatically receives a <strong>/64 range</strong> (one per subnet, up to 256 subnets per VPC).</li>
     </ul>
   </li>
-  <li>
-    <p><strong>Route Propagation for On-premises</strong>:</p>
-
+  <li><strong>Routing</strong>:
     <ul>
-      <li>Allow <strong>propagation</strong> from <strong>On-premises</strong> to <strong>TGW</strong>, so both <strong>VPC1</strong> and <strong>VPC2</strong> can reach <strong>On-premises</strong>. Propagation ensures that when On-premises is attached to TGW, its routes are automatically added to the TGW route table, allowing all connected VPCs to access On-premises.</li>
+      <li>IPv6 routes appear separately in route tables alongside IPv4 routes.</li>
+      <li>Works with the same routing constructs (IGW, TGW, VGW, etc.), but must be explicitly added.</li>
     </ul>
   </li>
-</ol>
-
-<h3 id="step-5-attachment-and-propagation-for-on-premises">Step 5: <strong>Attachment and Propagation for On-premises</strong></h3>
-
-<ul>
-  <li>
-    <p><strong>On-premises Attachment</strong>: The <strong>On-premises</strong> network will be attached to the <strong>TGW</strong> with its own <strong>VPC attachment</strong>.</p>
-
+  <li><strong>Gateways</strong>:
     <ul>
-      <li>This <strong>attachment</strong> will allow <strong>VPC1</strong>, <strong>VPC2</strong>, and <strong>On-premises</strong> to communicate.</li>
-      <li>For routing, the <strong>On-premises route table</strong> will propagate routes back into the TGW route table (so <strong>VPC1</strong> and <strong>VPC2</strong> can reach <strong>On-premises</strong>).</li>
+      <li><strong>Internet Gateway (IGW)</strong> → allows <strong>bidirectional IPv4 + IPv6</strong>.</li>
+      <li><strong>Egress-Only IGW</strong> → outbound-only for IPv6 (blocks unsolicited inbound).</li>
+    </ul>
+  </li>
+  <li><strong>Service Support</strong>:
+    <ul>
+      <li>Must be enabled per VPC, subnet, and ENI.</li>
+      <li>Not all AWS services support IPv6 (check service docs before enabling).</li>
+    </ul>
+  </li>
+  <li><strong>No NAT Needed</strong>:
+    <ul>
+      <li>NAT Gateway is not required for IPv6 since all IPv6 addresses are globally routable. For IPv4, a NAT Gateway is needed because of address space limitations and the use of address masquerading (NAT) to share public IPs.</li>
+      <li>Security relies on <strong>Security Groups / NACLs</strong> instead of NAT hiding.</li>
     </ul>
   </li>
 </ul>
 
-<h3 id="summary-flow">Summary Flow:</h3>
-
-<ol>
-  <li>
-    <p><strong>VPC1 → TGW → On-premises</strong>:</p>
-
-    <ul>
-      <li><strong>VPC1’s Route Table</strong>: Routes traffic destined for <strong>On-premises</strong> via <strong>TGW</strong>.</li>
-      <li><strong>TGW Route Table A</strong>: Forwards traffic to <strong>On-premises</strong>.</li>
-      <li><strong>On-premises</strong>: Receives traffic and responds.</li>
-    </ul>
-  </li>
-  <li>
-    <p><strong>VPC2 → TGW → On-premises</strong>:</p>
-
-    <ul>
-      <li><strong>VPC2’s Route Table</strong>: Routes traffic destined for <strong>On-premises</strong> via <strong>TGW</strong>.</li>
-      <li><strong>TGW Route Table A</strong>: Forwards traffic to <strong>On-premises</strong>.</li>
-      <li><strong>On-premises</strong>: Receives traffic and responds.</li>
-    </ul>
-  </li>
-  <li>
-    <p><strong>VPC1 and VPC2 cannot talk to each other</strong> because the <strong>TGW route table</strong> has no routes allowing <strong>VPC1 to communicate with VPC2</strong>.</p>
-  </li>
-</ol>
-
-<h3 id="key-points">Key Points:</h3>
+<h3 id="section-7-2-considerations">7.2 Considerations</h3>
 
 <ul>
-  <li><strong>VPCs</strong> have their own <strong>route tables</strong>, and each <strong>subnet</strong> in a VPC is associated with a route table.</li>
-  <li><strong>TGW</strong> has its own route table to manage routing between attached VPCs and external networks.</li>
-  <li><strong>Attachments</strong> link VPCs and other resources (like On-premises) to the TGW but don’t have route tables themselves.</li>
-  <li><strong>Propagation</strong> allows routes to be automatically added to the TGW route table from attached resources (like <strong>On-premises</strong>), but you <strong>control communication</strong> between VPCs by modifying the <strong>TGW route table</strong>.</li>
-  <li>By <strong>not propagating</strong> routes between VPC1 and VPC2, you can prevent them from communicating.</li>
+  <li>Plan dual-stack carefully: some workloads may remain IPv4-only.</li>
+  <li>Use <strong>Egress-Only IGW</strong> to protect IPv6 workloads from unsolicited inbound traffic.</li>
+  <li>Validate which AWS services support IPv6 before rollout (e.g., some managed services may lag behind).</li>
+  <li>IPv6 helps with <strong>address exhaustion</strong> but introduces new <strong>security + monitoring challenges</strong>.</li>
 </ul>
 
-<hr />
+<p>⚡ <strong>Takeaway</strong>:<br />
+IPv6 in AWS = <strong>globally routable addresses, no NAT, /56 per VPC, /64 per subnet, explicit routing, and egress-only IGW for outbound-only control</strong>.</p>
 
-<p>Let me know if this helps, or if you need any additional clarification!</p>
+    </article>
+  </main>
 
-<!-- Image Modal -->
-<div id="imageModal" class="image-modal">
+  <div id="imageModal" class="image-modal">
   <div class="modal-content">
     <span class="modal-close">&times;</span>
     <button class="modal-nav modal-prev">&#8249;</button>
     <button class="modal-nav modal-next">&#8250;</button>
-    <img id="modalImage" src="" alt="" />
+    <img id="modalImage" src="" alt="">
     <div id="modalCaption"></div>
   </div>
 </div>
 
 <script>
-// Image Modal functionality
 document.addEventListener('DOMContentLoaded', function() {
   const modal = document.getElementById('imageModal');
   const modalImg = document.getElementById('modalImage');
@@ -696,126 +1382,188 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalClose = document.querySelector('.modal-close');
   const modalPrev = document.querySelector('.modal-prev');
   const modalNext = document.querySelector('.modal-next');
-  
-  // Handle scroll zoom functionality
+
+  let modalImages = [];
+  let currentIndex = -1;
   let currentScale = 1;
   const scaleFactor = 0.1;
-  
-  // Function to update image transform
+
+  function refreshModalImages() {
+    modalImages = Array.from(document.querySelectorAll('.modal-trigger'));
+  }
+
   function updateImageTransform() {
     modalImg.style.transform = `scale(${currentScale})`;
     modalImg.style.transition = 'transform 0.1s ease';
   }
-  
-  // Modal open function
-  function openModal(imageSrc, caption) {
-    modalImg.src = imageSrc;
-    if (caption) {
-      modalCaption.textContent = caption;
-    } else {
-      modalCaption.textContent = '';
+
+  function openModalAtIndex(index) {
+    if (!modalImages.length) {
+      return;
     }
+
+    if (index < 0) {
+      index = modalImages.length - 1;
+    } else if (index >= modalImages.length) {
+      index = 0;
+    }
+
+    currentIndex = index;
+    const target = modalImages[currentIndex];
+    if (!target) {
+      return;
+    }
+
+    const src = target.dataset.modalSrc || target.src;
+    const caption = target.getAttribute('data-caption') || target.alt;
+
+    modalImg.src = src;
+    modalCaption.textContent = caption || '';
     modal.classList.add('show');
     currentScale = 1;
     updateImageTransform();
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
   }
-  
-  // Modal close function
+
   function closeModal() {
     modal.classList.remove('show');
-    document.body.style.overflow = ''; // Restore scrolling
+    document.body.style.overflow = '';
     currentScale = 1;
+    currentIndex = -1;
+    delete modal.dataset.initialDistance;
   }
-  
-  // Handle image clicks
+
+  refreshModalImages();
+
   document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('modal-trigger')) {
-      const src = e.target.src;
-      const caption = e.target.getAttribute('data-caption') || e.target.alt;
-      openModal(src, caption);
+    if (!e.target.classList.contains('modal-trigger')) {
+      return;
     }
+
+    if (!modalImages.length) {
+      refreshModalImages();
+    }
+
+    let index = modalImages.indexOf(e.target);
+    if (index === -1) {
+      refreshModalImages();
+      index = modalImages.indexOf(e.target);
+    }
+
+    if (index === -1) {
+      return;
+    }
+
+    openModalAtIndex(index);
   });
-  
-  // Close modal when clicking X or outside the image
+
   modalClose.addEventListener('click', closeModal);
   modal.addEventListener('click', function(e) {
     if (e.target === modal) {
       closeModal();
     }
   });
-  
-  // Handle keyboard navigation
+
   document.addEventListener('keydown', function(e) {
-    if (modal.classList.contains('show')) {
-      switch(e.key) {
-        case 'Escape':
-          closeModal();
-          break;
-        case 'ArrowLeft':
-          modalPrev.click();
-          break;
-        case 'ArrowRight':
-          modalNext.click();
-          break;
-        case '+':
-        case '=':
-          e.preventDefault();
-          currentScale = Math.min(currentScale + scaleFactor, 3);
-          updateImageTransform();
-          break;
-        case '-':
-          e.preventDefault();
-          currentScale = Math.max(currentScale - scaleFactor, 0.1);
-          updateImageTransform();
-          break;
-        case '0':
-          e.preventDefault();
-          currentScale = 1;
-          updateImageTransform();
-          break;
-      }
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    switch (e.key) {
+      case 'Escape':
+        closeModal();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        openModalAtIndex(currentIndex - 1);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        openModalAtIndex(currentIndex + 1);
+        break;
+      case '+':
+      case '=':
+        e.preventDefault();
+        currentScale = Math.min(currentScale + scaleFactor, 3);
+        updateImageTransform();
+        break;
+      case '-':
+        e.preventDefault();
+        currentScale = Math.max(currentScale - scaleFactor, 0.1);
+        updateImageTransform();
+        break;
+      case '0':
+        e.preventDefault();
+        currentScale = 1;
+        updateImageTransform();
+        break;
     }
   });
-  
-  // Handle scroll wheel for zoom
+
   modal.addEventListener('wheel', function(e) {
-    if (modal.classList.contains('show')) {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -scaleFactor : scaleFactor;
-      currentScale = Math.max(0.1, Math.min(3, currentScale + delta));
-      updateImageTransform();
+    if (!modal.classList.contains('show')) {
+      return;
     }
-  });
-  
-  // Prevent default touch behavior on mobile
+
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -scaleFactor : scaleFactor;
+    currentScale = Math.max(0.1, Math.min(3, currentScale + delta));
+    updateImageTransform();
+  }, { passive: false });
+
+  if (modalPrev) {
+    modalPrev.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex - 1);
+    });
+  }
+
+  if (modalNext) {
+    modalNext.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex + 1);
+    });
+  }
+
   modal.addEventListener('touchstart', function(e) {
-    if (modal.classList.contains('show')) {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (e.touches.length === 2) {
+      const [touch1, touch2] = e.touches;
+      modal.dataset.initialDistance = Math.hypot(
+        touch1.clientX - touch2.clientX,
+        touch1.clientY - touch2.clientY
+      );
+    } else {
       e.preventDefault();
     }
   }, { passive: false });
-  
-  // Handle pinch zoom for mobile
-  let initialDistance = 0;
-  modal.addEventListener('touchstart', function(e) {
-    if (modal.classList.contains('show') && e.touches.length === 2) {
-      initialDistance = Math.sqrt(
-        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
-        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
-      );
-    }
-  });
-  
+
   modal.addEventListener('touchmove', function(e) {
-    if (modal.classList.contains('show') && e.touches.length === 2) {
-      e.preventDefault();
-      const currentDistance = Math.sqrt(
-        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
-        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
-      );
+    if (!modal.classList.contains('show') || e.touches.length !== 2) {
+      return;
+    }
+
+    e.preventDefault();
+    const [touch1, touch2] = e.touches;
+    const currentDistance = Math.hypot(
+      touch1.clientX - touch2.clientX,
+      touch1.clientY - touch2.clientY
+    );
+    const initialDistance = parseFloat(modal.dataset.initialDistance || '0');
+    if (initialDistance > 0) {
       const scaleChange = (currentDistance - initialDistance) / initialDistance;
       currentScale = Math.max(0.1, Math.min(3, currentScale + scaleChange * 0.5));
       updateImageTransform();
+      modal.dataset.initialDistance = currentDistance;
     }
   }, { passive: false });
 });
@@ -825,24 +1573,16 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-snippet-id]').forEach(function(caption) {
     const snippetId = caption.getAttribute('data-snippet-id');
     const snippetElement = document.getElementById(snippetId);
-    
+
     if (snippetElement) {
-      // Replace double quotes with &quot; for proper HTML display
       const content = snippetElement.textContent.replace(/"/g, '&quot;');
-      
-      // Set the tooltip content as a data attribute
       caption.setAttribute('data-tooltip', content);
-      
-      // Add hover functionality
       caption.classList.add('diagram-caption');
     }
   });
 });
 </script>
 
-
-    </article>
-  </main>
 
   <!-- Floating Table of Contents -->
   <div id="floating-toc" class="floating-toc">
@@ -1146,16 +1886,3 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".diagram-caption").forEach(caption => {
-      const snippetId = caption.getAttribute("data-snippet-id");
-      const snippet = document.getElementById(snippetId);
-      if (snippet) {
-        caption.setAttribute("data-tooltip", snippet.textContent.trim());
-      }
-    });
-  });
-  </script>
-  

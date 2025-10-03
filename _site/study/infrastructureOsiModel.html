@@ -70,7 +70,7 @@
 
 <hr />
 
-<h2 id="the-7-layers">The 7 Layers</h2>
+<h2 id="section-1-the-7-layers">1. The 7 Layers</h2>
 
 <table class="study-table">
 <thead>
@@ -149,7 +149,7 @@
 
 <hr />
 
-<h2 id="devices-at-each-layer">Devices at Each Layer</h2>
+<h2 id="section-2-devices-at-each-layer">2. Devices at Each Layer</h2>
 
 <table class="study-table">
 <thead>
@@ -202,16 +202,16 @@
 
 <hr />
 
-<h2 id="layer-interactions">Layer Interactions</h2>
+<h2 id="section-3-layer-interactions">3. Layer Interactions</h2>
 
-<h3 id="layer-2-arp">Layer 2 – ARP</h3>
+<h3 id="section-3-1-layer-2-arp">3.1 Layer 2 – ARP</h3>
 
 <p>Maps IP → MAC via broadcast request and unicast reply.</p>
 
 <div class="image-wrapper">
   <img src="./assets/l2_arp.png" alt="L2 ARP Example" class="modal-trigger" data-caption="ARP (Address Resolution Protocol) sequence diagram showing IP to MAC address resolution" />
   <div class="diagram-caption" data-snippet-id="arp-snippet">
-    🖼️ ARP – Address Resolution Protocol Sequence (hover to see PlantUML code)
+    🖼️ ARP – Address Resolution Protocol Sequence
   </div>
     <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="arp-snippet">
@@ -239,7 +239,7 @@ note over A,B: Now Host A can send data directly to Host B
   </script>
 </div>
 
-<h3 id="layer-2-vlans-trunks">Layer 2 – VLANs &amp; Trunks</h3>
+<h3 id="section-3-2-layer-2-vlans-trunks">3.2 Layer 2 – VLANs &amp; Trunks</h3>
 <p>VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains, and efficiently carry multiple logical networks over the same physical infrastructure.</p>
 
 <ul>
@@ -266,13 +266,13 @@ note over A,B: Now Host A can send data directly to Host B
 
 <p>👉 All three work at <strong>Layer 2 (Frames)</strong> to logically separate traffic over shared physical networks.</p>
 
-<h3 id="layer-3-routing">Layer 3 – Routing</h3>
+<h3 id="section-3-3-layer-3-routing">3.3 Layer 3 – Routing</h3>
 <p>Routers strip old frames, keep IP header, attach new MAC header for next hop.</p>
 
 <div class="image-wrapper">
   <img src="./assets/l3_routing.png" alt="L3 Routing Example" class="modal-trigger" data-caption="L3 Routing sequence diagram showing packet routing through different networks" />
   <div class="diagram-caption" data-snippet-id="routing-snippet">
-    🖼️ L3 Routing – Packet Routing Sequence (hover to see PlantUML code)
+    🖼️ L3 Routing – Packet Routing Sequence
   </div>
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="routing-snippet">
@@ -302,7 +302,7 @@ note right of D: Frame removed, IP packet delivered up the stack
   </script>
 </div>
 
-<h3 id="layer-3-56---ipsec">Layer 3 &amp; 5–6 - IPsec</h3>
+<h3 id="section-3-4-layer-3-56---ipsec">3.4 Layer 3 &amp; 5–6 - IPsec</h3>
 <p>IPsec = encrypted <strong>network tunnels</strong>.</p>
 <ul>
   <li><strong>IKE (control plane)</strong> negotiates SAs and keys (<strong>Layer 5–6</strong>, over UDP/500 or UDP/4500 for NAT-T).</li>
@@ -314,7 +314,7 @@ note right of D: Frame removed, IP packet delivered up the stack
 <div class="image-wrapper">
   <img src="./assets/ipsec_handshake.png" alt="IPsec Example" class="modal-trigger" data-caption="IPsec handshake sequence showing IKE phase 1 and 2 negotiations" />
   <div class="diagram-caption" data-snippet-id="ipsec-snippet">
-    🖼️ IPsec – IKE Handshake Sequence (hover to see PlantUML code)
+    🖼️ IPsec – IKE Handshake Sequence
   </div>
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="ipsec-snippet">
@@ -357,7 +357,7 @@ end
   <p>Elliptic Curve Diffie–Hellman Ephemeral provides <strong>Perfect Forward Secrecy (PFS)</strong> by using a fresh, temporary key pair per session. Even if a server’s long-term private key is later compromised, past sessions remain confidential. Both TLS and IPsec commonly prefer ECDHE for key exchange.</p>
 </blockquote>
 
-<h3 id="layer-56---tls">Layer 5–6 - TLS</h3>
+<h3 id="section-3-5-layer-56---tls">3.5 Layer 5–6 - TLS</h3>
 <p>TLS = encrypted <strong>application sessions</strong>.</p>
 <ul>
   <li>Runs above TCP (L4) and below Application (L7).</li>
@@ -369,7 +369,7 @@ end
 <div class="image-wrapper">
   <img src="./assets/tls_handshake.png" alt="TLS Example" class="modal-trigger" data-caption="TLS handshake sequence showing client hello, server hello, certificate exchange, and key creation" />
   <div class="diagram-caption" data-snippet-id="tls-snippet">
-    🖼️ TLS – Secure Handshake Sequence (hover to see PlantUML code)
+    🖼️ TLS – Secure Handshake Sequence
   </div>
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="tls-snippet">
@@ -402,7 +402,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
   </script>
 </div>
 
-<h3 id="traffic-addressing-modes-unicast-broadcast-multicast-anycast-geocast">Traffic Addressing Modes (Unicast, Broadcast, Multicast, Anycast, Geocast)</h3>
+<h3 id="section-3-6-traffic-addressing-modes-unicast-broadcast-multicast-anycast-geocast">3.6 Traffic Addressing Modes (Unicast, Broadcast, Multicast, Anycast, Geocast)</h3>
 
 <p>How frames/packets are addressed determines who receives them and how the network treats them.</p>
 
@@ -457,7 +457,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
 
 <hr />
 
-<h2 id="commands-by-osi-layer">Commands by OSI Layer</h2>
+<h2 id="section-4-commands-by-osi-layer">4. Commands by OSI Layer</h2>
 
 <table class="study-table">
 <thead>
@@ -522,9 +522,9 @@ Server -> Client: TLS record { Application Data: HTTP Response }
 
 <hr />
 
-<h2 id="ip-addressing-basics">IP Addressing Basics</h2>
+<h2 id="section-5-ip-addressing-basics">5. IP Addressing Basics</h2>
 
-<h3 id="ipv4-classes-reservations">IPv4 Classes &amp; Reservations</h3>
+<h3 id="section-5-1-ipv4-classes-reservations">5.1 IPv4 Classes &amp; Reservations</h3>
 <ul>
   <li><strong>Class A:</strong> 0.0.0.0 – 127.255.255.255 (10.0.0.0/8 private, 127/8 loopback)</li>
   <li><strong>Class B:</strong> 128.0.0.0 – 191.255.255.255 (172.16.0.0/12 private)</li>
@@ -535,7 +535,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
 
 <p>👉 Today we use <strong>CIDR</strong> instead of classful boundaries.</p>
 
-<h3 id="convert-binary-to-decimal">Convert Binary to Decimal</h3>
+<h3 id="section-5-2-convert-binary-to-decimal">5.2 Convert Binary to Decimal</h3>
 
 <ol>
   <li>Take the binary <code class="language-plaintext highlighter-rouge">10000100</code>.</li>
@@ -606,7 +606,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
 
 <p>👉 So <code class="language-plaintext highlighter-rouge">10000100</code> in decimal = <strong>132</strong></p>
 
-<h3 id="convert-decimal-to-to-binary">Convert Decimal to to Binary</h3>
+<h3 id="section-5-3-convert-decimal-to-to-binary">5.3 Convert Decimal to to Binary</h3>
 
 <p>Take the first octet of <code class="language-plaintext highlighter-rouge">132.12.1.23</code>.</p>
 
@@ -667,9 +667,9 @@ Server -> Client: TLS record { Application Data: HTTP Response }
 
 <hr />
 
-<h2 id="advanced-networking-topics">Advanced Networking Topics</h2>
+<h2 id="section-6-advanced-networking-topics">6. Advanced Networking Topics</h2>
 
-<h3 id="nat-network-address-translation">NAT (Network Address Translation)</h3>
+<h3 id="section-6-1-nat-network-address-translation">6.1 NAT (Network Address Translation)</h3>
 
 <ul>
   <li>Allows private IPs (RFC1918) to communicate with public networks.</li>
@@ -683,7 +683,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
   </li>
 </ul>
 
-<h3 id="ddos-attacks-3-categories">DDoS Attacks (3 categories)</h3>
+<h3 id="section-6-2-ddos-attacks-3-categories">6.2 DDoS Attacks (3 categories)</h3>
 
 <ol>
   <li><strong>Volumetric</strong> → Flood bandwidth with massive traffic (e.g., UDP floods, DNS/NTP amplification).</li>
@@ -691,7 +691,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
   <li><strong>Application</strong> → Target app layer (L7) with valid-looking requests that overwhelm servers (e.g., HTTP floods, Slowloris).</li>
 </ol>
 
-<h3 id="bgp-border-gateway-protocol">BGP (Border Gateway Protocol)</h3>
+<h3 id="section-6-3-bgp-border-gateway-protocol">6.3 BGP (Border Gateway Protocol)</h3>
 
 <p>The internet is a <strong>network of networks</strong> (Autonomous Systems, or AS):</p>
 
@@ -711,7 +711,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
   </li>
 </ul>
 
-<h3 id="jumbo-frames">Jumbo Frames</h3>
+<h3 id="section-6-4-jumbo-frames">6.4 Jumbo Frames</h3>
 
 <ul>
   <li><strong>Default MTU = 1500 bytes</strong>, Jumbo Frames = ~9000 bytes.</li>
@@ -721,7 +721,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
   <li><strong>Not supported in:</strong> General internet, VPN over public internet, cross-region cloud traffic.</li>
 </ul>
 
-<h3 id="layer-7-firewalls">Layer 7 Firewalls</h3>
+<h3 id="section-6-5-layer-7-firewalls">6.5 Layer 7 Firewalls</h3>
 
 <ul>
   <li>Extend firewalls beyond L3/L4 (IP, port) to <strong>application-aware filtering at L7</strong>.</li>
@@ -736,19 +736,20 @@ Server -> Client: TLS record { Application Data: HTTP Response }
   <li><strong>Examples:</strong> AWS WAF, Cloudflare WAF, Palo Alto NGFW, F5 ASM.</li>
 </ul>
 
-<!-- Image Modal -->
-<div id="imageModal" class="image-modal">
+    </article>
+  </main>
+
+  <div id="imageModal" class="image-modal">
   <div class="modal-content">
     <span class="modal-close">&times;</span>
     <button class="modal-nav modal-prev">&#8249;</button>
     <button class="modal-nav modal-next">&#8250;</button>
-    <img id="modalImage" src="" alt="" />
+    <img id="modalImage" src="" alt="">
     <div id="modalCaption"></div>
   </div>
 </div>
 
 <script>
-// Image Modal functionality
 document.addEventListener('DOMContentLoaded', function() {
   const modal = document.getElementById('imageModal');
   const modalImg = document.getElementById('modalImage');
@@ -756,126 +757,188 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalClose = document.querySelector('.modal-close');
   const modalPrev = document.querySelector('.modal-prev');
   const modalNext = document.querySelector('.modal-next');
-  
-  // Handle scroll zoom functionality
+
+  let modalImages = [];
+  let currentIndex = -1;
   let currentScale = 1;
   const scaleFactor = 0.1;
-  
-  // Function to update image transform
+
+  function refreshModalImages() {
+    modalImages = Array.from(document.querySelectorAll('.modal-trigger'));
+  }
+
   function updateImageTransform() {
     modalImg.style.transform = `scale(${currentScale})`;
     modalImg.style.transition = 'transform 0.1s ease';
   }
-  
-  // Modal open function
-  function openModal(imageSrc, caption) {
-    modalImg.src = imageSrc;
-    if (caption) {
-      modalCaption.textContent = caption;
-    } else {
-      modalCaption.textContent = '';
+
+  function openModalAtIndex(index) {
+    if (!modalImages.length) {
+      return;
     }
+
+    if (index < 0) {
+      index = modalImages.length - 1;
+    } else if (index >= modalImages.length) {
+      index = 0;
+    }
+
+    currentIndex = index;
+    const target = modalImages[currentIndex];
+    if (!target) {
+      return;
+    }
+
+    const src = target.dataset.modalSrc || target.src;
+    const caption = target.getAttribute('data-caption') || target.alt;
+
+    modalImg.src = src;
+    modalCaption.textContent = caption || '';
     modal.classList.add('show');
     currentScale = 1;
     updateImageTransform();
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
   }
-  
-  // Modal close function
+
   function closeModal() {
     modal.classList.remove('show');
-    document.body.style.overflow = ''; // Restore scrolling
+    document.body.style.overflow = '';
     currentScale = 1;
+    currentIndex = -1;
+    delete modal.dataset.initialDistance;
   }
-  
-  // Handle image clicks
+
+  refreshModalImages();
+
   document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('modal-trigger')) {
-      const src = e.target.src;
-      const caption = e.target.getAttribute('data-caption') || e.target.alt;
-      openModal(src, caption);
+    if (!e.target.classList.contains('modal-trigger')) {
+      return;
     }
+
+    if (!modalImages.length) {
+      refreshModalImages();
+    }
+
+    let index = modalImages.indexOf(e.target);
+    if (index === -1) {
+      refreshModalImages();
+      index = modalImages.indexOf(e.target);
+    }
+
+    if (index === -1) {
+      return;
+    }
+
+    openModalAtIndex(index);
   });
-  
-  // Close modal when clicking X or outside the image
+
   modalClose.addEventListener('click', closeModal);
   modal.addEventListener('click', function(e) {
     if (e.target === modal) {
       closeModal();
     }
   });
-  
-  // Handle keyboard navigation
+
   document.addEventListener('keydown', function(e) {
-    if (modal.classList.contains('show')) {
-      switch(e.key) {
-        case 'Escape':
-          closeModal();
-          break;
-        case 'ArrowLeft':
-          modalPrev.click();
-          break;
-        case 'ArrowRight':
-          modalNext.click();
-          break;
-        case '+':
-        case '=':
-          e.preventDefault();
-          currentScale = Math.min(currentScale + scaleFactor, 3);
-          updateImageTransform();
-          break;
-        case '-':
-          e.preventDefault();
-          currentScale = Math.max(currentScale - scaleFactor, 0.1);
-          updateImageTransform();
-          break;
-        case '0':
-          e.preventDefault();
-          currentScale = 1;
-          updateImageTransform();
-          break;
-      }
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    switch (e.key) {
+      case 'Escape':
+        closeModal();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        openModalAtIndex(currentIndex - 1);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        openModalAtIndex(currentIndex + 1);
+        break;
+      case '+':
+      case '=':
+        e.preventDefault();
+        currentScale = Math.min(currentScale + scaleFactor, 3);
+        updateImageTransform();
+        break;
+      case '-':
+        e.preventDefault();
+        currentScale = Math.max(currentScale - scaleFactor, 0.1);
+        updateImageTransform();
+        break;
+      case '0':
+        e.preventDefault();
+        currentScale = 1;
+        updateImageTransform();
+        break;
     }
   });
-  
-  // Handle scroll wheel for zoom
+
   modal.addEventListener('wheel', function(e) {
-    if (modal.classList.contains('show')) {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -scaleFactor : scaleFactor;
-      currentScale = Math.max(0.1, Math.min(3, currentScale + delta));
-      updateImageTransform();
+    if (!modal.classList.contains('show')) {
+      return;
     }
-  });
-  
-  // Prevent default touch behavior on mobile
+
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -scaleFactor : scaleFactor;
+    currentScale = Math.max(0.1, Math.min(3, currentScale + delta));
+    updateImageTransform();
+  }, { passive: false });
+
+  if (modalPrev) {
+    modalPrev.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex - 1);
+    });
+  }
+
+  if (modalNext) {
+    modalNext.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex + 1);
+    });
+  }
+
   modal.addEventListener('touchstart', function(e) {
-    if (modal.classList.contains('show')) {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (e.touches.length === 2) {
+      const [touch1, touch2] = e.touches;
+      modal.dataset.initialDistance = Math.hypot(
+        touch1.clientX - touch2.clientX,
+        touch1.clientY - touch2.clientY
+      );
+    } else {
       e.preventDefault();
     }
   }, { passive: false });
-  
-  // Handle pinch zoom for mobile
-  let initialDistance = 0;
-  modal.addEventListener('touchstart', function(e) {
-    if (modal.classList.contains('show') && e.touches.length === 2) {
-      initialDistance = Math.sqrt(
-        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
-        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
-      );
-    }
-  });
-  
+
   modal.addEventListener('touchmove', function(e) {
-    if (modal.classList.contains('show') && e.touches.length === 2) {
-      e.preventDefault();
-      const currentDistance = Math.sqrt(
-        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
-        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
-      );
+    if (!modal.classList.contains('show') || e.touches.length !== 2) {
+      return;
+    }
+
+    e.preventDefault();
+    const [touch1, touch2] = e.touches;
+    const currentDistance = Math.hypot(
+      touch1.clientX - touch2.clientX,
+      touch1.clientY - touch2.clientY
+    );
+    const initialDistance = parseFloat(modal.dataset.initialDistance || '0');
+    if (initialDistance > 0) {
       const scaleChange = (currentDistance - initialDistance) / initialDistance;
       currentScale = Math.max(0.1, Math.min(3, currentScale + scaleChange * 0.5));
       updateImageTransform();
+      modal.dataset.initialDistance = currentDistance;
     }
   }, { passive: false });
 });
@@ -885,24 +948,16 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-snippet-id]').forEach(function(caption) {
     const snippetId = caption.getAttribute('data-snippet-id');
     const snippetElement = document.getElementById(snippetId);
-    
+
     if (snippetElement) {
-      // Replace double quotes with &quot; for proper HTML display
       const content = snippetElement.textContent.replace(/"/g, '&quot;');
-      
-      // Set the tooltip content as a data attribute
       caption.setAttribute('data-tooltip', content);
-      
-      // Add hover functionality
       caption.classList.add('diagram-caption');
     }
   });
 });
 </script>
 
-
-    </article>
-  </main>
 
   <!-- Floating Table of Contents -->
   <div id="floating-toc" class="floating-toc">
@@ -1206,16 +1261,3 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".diagram-caption").forEach(caption => {
-      const snippetId = caption.getAttribute("data-snippet-id");
-      const snippet = document.getElementById(snippetId);
-      if (snippet) {
-        caption.setAttribute("data-tooltip", snippet.textContent.trim());
-      }
-    });
-  });
-  </script>
-  

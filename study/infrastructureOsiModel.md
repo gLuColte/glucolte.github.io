@@ -11,7 +11,7 @@ By separating responsibilities, the OSI model makes it easier to design, trouble
 
 ---
 
-## The 7 Layers {#the-7-layers}
+## 1. The 7 Layers {#section-1-the-7-layers}
 
 <table class="study-table">
 <thead>
@@ -93,7 +93,7 @@ By separating responsibilities, the OSI model makes it easier to design, trouble
 
 ---
 
-## Devices at Each Layer {#devices-at-each-layer}
+## 2. Devices at Each Layer {#section-2-devices-at-each-layer}
 
 <table class="study-table">
 <thead>
@@ -146,16 +146,16 @@ By separating responsibilities, the OSI model makes it easier to design, trouble
 
 ---
 
-## Layer Interactions {#layer-interactions}
+## 3. Layer Interactions {#section-3-layer-interactions}
 
-### Layer 2 – ARP {#layer-2-arp}
+### 3.1 Layer 2 – ARP {#section-3-1-layer-2-arp}
 
 Maps IP → MAC via broadcast request and unicast reply.  
 
 <div class="image-wrapper">
   <img src="./assets/l2_arp.png" alt="L2 ARP Example" class="modal-trigger" data-caption="ARP (Address Resolution Protocol) sequence diagram showing IP to MAC address resolution">
   <div class="diagram-caption" data-snippet-id="arp-snippet">
-    🖼️ ARP – Address Resolution Protocol Sequence (hover to see PlantUML code)
+    🖼️ ARP – Address Resolution Protocol Sequence
   </div>
     <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="arp-snippet">
@@ -183,7 +183,7 @@ note over A,B: Now Host A can send data directly to Host B
   </script>
 </div>
 
-### Layer 2 – VLANs & Trunks {#layer-2-vlans-trunks}
+### 3.2 Layer 2 – VLANs & Trunks {#section-3-2-layer-2-vlans-trunks}
 VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains, and efficiently carry multiple logical networks over the same physical infrastructure.
 
 * **VLAN (802.1Q):**
@@ -201,13 +201,13 @@ VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains,
 
 👉 All three work at **Layer 2 (Frames)** to logically separate traffic over shared physical networks.
 
-### Layer 3 – Routing {#layer-3-routing}
+### 3.3 Layer 3 – Routing {#section-3-3-layer-3-routing}
 Routers strip old frames, keep IP header, attach new MAC header for next hop.  
 
 <div class="image-wrapper">
   <img src="./assets/l3_routing.png" alt="L3 Routing Example" class="modal-trigger" data-caption="L3 Routing sequence diagram showing packet routing through different networks">
   <div class="diagram-caption" data-snippet-id="routing-snippet">
-    🖼️ L3 Routing – Packet Routing Sequence (hover to see PlantUML code)
+    🖼️ L3 Routing – Packet Routing Sequence
   </div>
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="routing-snippet">
@@ -237,7 +237,7 @@ note right of D: Frame removed, IP packet delivered up the stack
   </script>
 </div>
 
-### Layer 3 & 5–6 - IPsec {#layer-3-56---ipsec} 
+### 3.4 Layer 3 & 5–6 - IPsec {#section-3-4-layer-3-56---ipsec}
 IPsec = encrypted **network tunnels**.  
 - **IKE (control plane)** negotiates SAs and keys (**Layer 5–6**, over UDP/500 or UDP/4500 for NAT-T).  
 - **ESP/AH (data plane)** protects IP packets at **Layer 3**.  
@@ -247,7 +247,7 @@ IPsec = encrypted **network tunnels**.
 <div class="image-wrapper">
   <img src="./assets/ipsec_handshake.png" alt="IPsec Example" class="modal-trigger" data-caption="IPsec handshake sequence showing IKE phase 1 and 2 negotiations">
   <div class="diagram-caption" data-snippet-id="ipsec-snippet">
-    🖼️ IPsec – IKE Handshake Sequence (hover to see PlantUML code)
+    🖼️ IPsec – IKE Handshake Sequence
   </div>
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="ipsec-snippet">
@@ -288,7 +288,7 @@ end
 </div>
 > Elliptic Curve Diffie–Hellman Ephemeral provides **Perfect Forward Secrecy (PFS)** by using a fresh, temporary key pair per session. Even if a server’s long-term private key is later compromised, past sessions remain confidential. Both TLS and IPsec commonly prefer ECDHE for key exchange.
 
-### Layer 5–6 - TLS {#layer-56---tls}
+### 3.5 Layer 5–6 - TLS {#section-3-5-layer-56---tls}
 TLS = encrypted **application sessions**.  
 - Runs above TCP (L4) and below Application (L7).  
 - Provides confidentiality, integrity, authentication.  
@@ -299,7 +299,7 @@ TLS = encrypted **application sessions**.
 <div class="image-wrapper">
   <img src="./assets/tls_handshake.png" alt="TLS Example" class="modal-trigger" data-caption="TLS handshake sequence showing client hello, server hello, certificate exchange, and key creation">
   <div class="diagram-caption" data-snippet-id="tls-snippet">
-    🖼️ TLS – Secure Handshake Sequence (hover to see PlantUML code)
+    🖼️ TLS – Secure Handshake Sequence
   </div>
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="tls-snippet">
@@ -332,7 +332,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
   </script>
 </div>
 
-### Traffic Addressing Modes (Unicast, Broadcast, Multicast, Anycast, Geocast) {#traffic-addressing-modes-unicast-broadcast-multicast-anycast-geocast}
+### 3.6 Traffic Addressing Modes (Unicast, Broadcast, Multicast, Anycast, Geocast) {#section-3-6-traffic-addressing-modes-unicast-broadcast-multicast-anycast-geocast}
 
 How frames/packets are addressed determines who receives them and how the network treats them.
 
@@ -387,7 +387,7 @@ How frames/packets are addressed determines who receives them and how the networ
 
 ---
 
-## Commands by OSI Layer {#commands-by-osi-layer}
+## 4. Commands by OSI Layer {#section-4-commands-by-osi-layer}
 
 <table class="study-table">
 <thead>
@@ -452,9 +452,9 @@ How frames/packets are addressed determines who receives them and how the networ
 
 ---
 
-## IP Addressing Basics {#ip-addressing-basics}
+## 5. IP Addressing Basics {#section-5-ip-addressing-basics}
 
-### IPv4 Classes & Reservations {#ipv4-classes-reservations}
+### 5.1 IPv4 Classes & Reservations {#section-5-1-ipv4-classes-reservations}
 - **Class A:** 0.0.0.0 – 127.255.255.255 (10.0.0.0/8 private, 127/8 loopback)  
 - **Class B:** 128.0.0.0 – 191.255.255.255 (172.16.0.0/12 private)  
 - **Class C:** 192.0.0.0 – 223.255.255.255 (192.168/16 private, TEST-NETs)  
@@ -463,7 +463,7 @@ How frames/packets are addressed determines who receives them and how the networ
 
 👉 Today we use **CIDR** instead of classful boundaries.
 
-### Convert Binary to Decimal {#convert-binary-to-decimal}
+### 5.2 Convert Binary to Decimal {#section-5-2-convert-binary-to-decimal}
 
 1. Take the binary `10000100`.
 2. Multiply each bit by its place value:
@@ -528,7 +528,7 @@ How frames/packets are addressed determines who receives them and how the networ
 
 👉 So `10000100` in decimal = **132**
 
-### Convert Decimal to to Binary {#convert-decimal-to-to-binary}
+### 5.3 Convert Decimal to to Binary {#section-5-3-convert-decimal-to-to-binary}
 
 Take the first octet of `132.12.1.23`.
 
@@ -587,9 +587,9 @@ Result row: **1 0 0 0 0 1 0 0**
 
 ---
 
-## Advanced Networking Topics {#advanced-networking-topics}
+## 6. Advanced Networking Topics {#section-6-advanced-networking-topics}
 
-### NAT (Network Address Translation) {#nat-network-address-translation}
+### 6.1 NAT (Network Address Translation) {#section-6-1-nat-network-address-translation}
 
 * Allows private IPs (RFC1918) to communicate with public networks.  
 * Originally designed to conserve IPv4 addresses, also adds a basic security layer by hiding internal hosts.  
@@ -598,13 +598,13 @@ Result row: **1 0 0 0 0 1 0 0**
   * **Dynamic NAT** → Private IPs mapped temporarily to an available public IP from a pool. Mapping changes each session.  
   * **PAT (Port Address Translation)** → Many private hosts share a single public IP. NAT device rewrites source **IP+Port** to track flows. Example: home routers, AWS NAT Gateway.
 
-### DDoS Attacks (3 categories) {#ddos-attacks-3-categories}
+### 6.2 DDoS Attacks (3 categories) {#section-6-2-ddos-attacks-3-categories}
 
 1. **Volumetric** → Flood bandwidth with massive traffic (e.g., UDP floods, DNS/NTP amplification).  
 2. **Protocol** → Exploit L3/L4 weaknesses, exhausting connection state (e.g., SYN flood, Smurf attack, Ping of Death).  
 3. **Application** → Target app layer (L7) with valid-looking requests that overwhelm servers (e.g., HTTP floods, Slowloris).  
 
-### BGP (Border Gateway Protocol) {#bgp-border-gateway-protocol}
+### 6.3 BGP (Border Gateway Protocol) {#section-6-3-bgp-border-gateway-protocol}
 
 The internet is a **network of networks** (Autonomous Systems, or AS):
 
@@ -619,7 +619,7 @@ The internet is a **network of networks** (Autonomous Systems, or AS):
   * **Route filtering** → accept/export only selected prefixes.  
   * **Peering vs Transit** → prefer cheap/free peer routes over costly transit.
 
-### Jumbo Frames {#jumbo-frames}
+### 6.4 Jumbo Frames {#section-6-4-jumbo-frames}
 
 * **Default MTU = 1500 bytes**, Jumbo Frames = ~9000 bytes.  
 * **Benefits:** Less overhead, fewer packets, higher throughput for large data transfers.  
@@ -627,7 +627,7 @@ The internet is a **network of networks** (Autonomous Systems, or AS):
 * **Supported in:** Local networks, datacenter links, AWS Direct Connect, TGW, same-region peering.  
 * **Not supported in:** General internet, VPN over public internet, cross-region cloud traffic.  
 
-### Layer 7 Firewalls {#layer-7-firewalls}
+### 6.5 Layer 7 Firewalls {#section-6-5-layer-7-firewalls}
 
 * Extend firewalls beyond L3/L4 (IP, port) to **application-aware filtering at L7**.  
 * Parse and inspect protocols (HTTP, DNS, SMTP, gRPC).  
@@ -636,167 +636,3 @@ The internet is a **network of networks** (Autonomous Systems, or AS):
   * Detect and stop **application-layer DDoS** (HTTP floods, bots).  
   * Enforce **auth/security policies** (tokens, TLS inspection).  
 * **Examples:** AWS WAF, Cloudflare WAF, Palo Alto NGFW, F5 ASM.  
-
-<!-- Image Modal -->
-<div id="imageModal" class="image-modal">
-  <div class="modal-content">
-    <span class="modal-close">&times;</span>
-    <button class="modal-nav modal-prev">&#8249;</button>
-    <button class="modal-nav modal-next">&#8250;</button>
-    <img id="modalImage" src="" alt="">
-    <div id="modalCaption"></div>
-  </div>
-</div>
-
-<script>
-// Image Modal functionality
-document.addEventListener('DOMContentLoaded', function() {
-  const modal = document.getElementById('imageModal');
-  const modalImg = document.getElementById('modalImage');
-  const modalCaption = document.getElementById('modalCaption');
-  const modalClose = document.querySelector('.modal-close');
-  const modalPrev = document.querySelector('.modal-prev');
-  const modalNext = document.querySelector('.modal-next');
-  
-  // Handle scroll zoom functionality
-  let currentScale = 1;
-  const scaleFactor = 0.1;
-  
-  // Function to update image transform
-  function updateImageTransform() {
-    modalImg.style.transform = `scale(${currentScale})`;
-    modalImg.style.transition = 'transform 0.1s ease';
-  }
-  
-  // Modal open function
-  function openModal(imageSrc, caption) {
-    modalImg.src = imageSrc;
-    if (caption) {
-      modalCaption.textContent = caption;
-    } else {
-      modalCaption.textContent = '';
-    }
-    modal.classList.add('show');
-    currentScale = 1;
-    updateImageTransform();
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
-  }
-  
-  // Modal close function
-  function closeModal() {
-    modal.classList.remove('show');
-    document.body.style.overflow = ''; // Restore scrolling
-    currentScale = 1;
-  }
-  
-  // Handle image clicks
-  document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('modal-trigger')) {
-      const src = e.target.src;
-      const caption = e.target.getAttribute('data-caption') || e.target.alt;
-      openModal(src, caption);
-    }
-  });
-  
-  // Close modal when clicking X or outside the image
-  modalClose.addEventListener('click', closeModal);
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
-      closeModal();
-    }
-  });
-  
-  // Handle keyboard navigation
-  document.addEventListener('keydown', function(e) {
-    if (modal.classList.contains('show')) {
-      switch(e.key) {
-        case 'Escape':
-          closeModal();
-          break;
-        case 'ArrowLeft':
-          modalPrev.click();
-          break;
-        case 'ArrowRight':
-          modalNext.click();
-          break;
-        case '+':
-        case '=':
-          e.preventDefault();
-          currentScale = Math.min(currentScale + scaleFactor, 3);
-          updateImageTransform();
-          break;
-        case '-':
-          e.preventDefault();
-          currentScale = Math.max(currentScale - scaleFactor, 0.1);
-          updateImageTransform();
-          break;
-        case '0':
-          e.preventDefault();
-          currentScale = 1;
-          updateImageTransform();
-          break;
-      }
-    }
-  });
-  
-  // Handle scroll wheel for zoom
-  modal.addEventListener('wheel', function(e) {
-    if (modal.classList.contains('show')) {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -scaleFactor : scaleFactor;
-      currentScale = Math.max(0.1, Math.min(3, currentScale + delta));
-      updateImageTransform();
-    }
-  });
-  
-  // Prevent default touch behavior on mobile
-  modal.addEventListener('touchstart', function(e) {
-    if (modal.classList.contains('show')) {
-      e.preventDefault();
-    }
-  }, { passive: false });
-  
-  // Handle pinch zoom for mobile
-  let initialDistance = 0;
-  modal.addEventListener('touchstart', function(e) {
-    if (modal.classList.contains('show') && e.touches.length === 2) {
-      initialDistance = Math.sqrt(
-        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
-        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
-      );
-    }
-  });
-  
-  modal.addEventListener('touchmove', function(e) {
-    if (modal.classList.contains('show') && e.touches.length === 2) {
-      e.preventDefault();
-      const currentDistance = Math.sqrt(
-        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
-        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
-      );
-      const scaleChange = (currentDistance - initialDistance) / initialDistance;
-      currentScale = Math.max(0.1, Math.min(3, currentScale + scaleChange * 0.5));
-      updateImageTransform();
-    }
-  }, { passive: false });
-});
-
-// PlantUML Hover Tooltip functionality
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('[data-snippet-id]').forEach(function(caption) {
-    const snippetId = caption.getAttribute('data-snippet-id');
-    const snippetElement = document.getElementById(snippetId);
-    
-    if (snippetElement) {
-      // Replace double quotes with &quot; for proper HTML display
-      const content = snippetElement.textContent.replace(/"/g, '&quot;');
-      
-      // Set the tooltip content as a data attribute
-      caption.setAttribute('data-tooltip', content);
-      
-      // Add hover functionality
-      caption.classList.add('diagram-caption');
-    }
-  });
-});
-</script>
