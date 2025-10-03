@@ -3,7 +3,7 @@ title: dynamic programming
 permalink: /study/codingDynamicProgramming
 ---
 
-# Dynamic Programming
+# Dynamic Programming {#dynamic-programming}
 
 **Patterns to know:**  
 - 1D DP (Fibonacci, House Robber).  
@@ -30,7 +30,7 @@ permalink: /study/codingDynamicProgramming
 
 -----
 
-## 1. Climbing Stairs - Easy
+## Climbing Stairs - Easy {#climbing-stairs---easy}
 
 [Leetcode Link](https://leetcode.com/problems/climbing-stairs/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -100,7 +100,7 @@ class Solution:
 
 
 
-## 2. Pascal's Triangle - Easy
+## Pascal's Triangle - Easy {#pascals-triangle---easy}
 
 [Leetcode Link](https://leetcode.com/problems/pascals-triangle/description/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -147,7 +147,7 @@ class Solution:
         # Space = O(n^2) -> If you store all rows (like in output_list), you’re storing ~ n(n+1)/2 integers.
 ```
 
-## 3. Pascal's Triangle II - Easy
+## Pascal's Triangle II - Easy {#pascals-triangle-ii---easy}
 
 [Leetcode Link](https://leetcode.com/problems/pascals-triangle-ii/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -197,7 +197,7 @@ class Solution:
 
 ```
 
-## 4. Counting Bits - Easy
+## Counting Bits - Easy {#counting-bits---easy}
 
 [Leetcode Link](https://leetcode.com/problems/counting-bits/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -265,7 +265,7 @@ class Solution:
 ```
 
 
-## 5. Unique Paths - Medium
+## Unique Paths - Medium {#unique-paths---medium}
 
 [Leetcode Link](https://leetcode.com/problems/unique-paths/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -316,7 +316,7 @@ class Solution:
         return dp[m-1][n-1]
 ```
 
-## 6. Unique Paths II - Medium
+## Unique Paths II - Medium {#unique-paths-ii---medium}
 
 [Leetcode Link](https://leetcode.com/problems/unique-paths-ii/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -391,7 +391,7 @@ class Solution:
 
 ```
 
-## 7. Minimum Path Sum - Medium
+## Minimum Path Sum - Medium {#minimum-path-sum---medium}
 
 [Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -439,7 +439,7 @@ class Solution:
 ```
 
 
-## 8. Is Subsequence - Easy
+## Is Subsequence - Easy {#is-subsequence---easy}
 
 [Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -499,7 +499,7 @@ class Solution:
             # s_pointer == len(s) -> Return True
 ```
 
-## 9. Fibonacci Number - Easy
+## Fibonacci Number - Easy {#fibonacci-number---easy}
 
 [Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -538,7 +538,7 @@ class Solution:
 
 ```
 
-## 10. Nth Tribonacci Number
+## Nth Tribonacci Number {#nth-tribonacci-number}
 
 [Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
 
@@ -562,7 +562,7 @@ class Solution:
         # Space - O(n)
 ```
 
-## 11. Maximum Repeating Substring - Easy
+## Maximum Repeating Substring - Easy {#maximum-repeating-substring---easy}
 
 [Leetcode Link](https://leetcode.com/problems/unique-paths-ii/description/?envType=problem-list-v2&envId=dynamic-programming)
 

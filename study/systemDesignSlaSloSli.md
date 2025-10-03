@@ -3,13 +3,13 @@ title: SLA, SLO & SLI
 permalink: /study/systemDesignSlaSloSli
 ---
 
-# SLA, SLO & SLI
+# SLA, SLO & SLI {#sla-slo-sli}
 
 An **SLA (Service Level Agreement)** is a formal commitment between a service provider and its customers. It defines what level of service will be delivered, often with financial or contractual penalties if the provider fails to meet it. To design reliable systems, you start by defining SLAs and then architect infrastructure to meet those guarantees.
 
 ---
 
-## SLA vs SLO vs SLI
+## SLA vs SLO vs SLI {#sla-vs-slo-vs-sli}
 
 * **SLI (Service Level Indicator):** The actual metric being measured.  
   * Example: Percentage of HTTP 200 responses under 300ms.
@@ -22,7 +22,7 @@ An **SLA (Service Level Agreement)** is a formal commitment between a service pr
 
 ---
 
-## Key SLA Components
+## Key SLA Components {#key-sla-components}
 
 1. **Availability**  
    Defines uptime guarantees.  
@@ -53,7 +53,7 @@ An **SLA (Service Level Agreement)** is a formal commitment between a service pr
 
 ---
 
-## SLA and System Design
+## SLA and System Design {#sla-and-system-design}
 
 1. **SLA First, Architecture Second**  
 * A 99.9% SLA means tolerating up to 8.77 hrs downtime/year.  
@@ -73,9 +73,9 @@ An **SLA (Service Level Agreement)** is a formal commitment between a service pr
 
 ---
 
-## Example: E-Commerce Platform
+## Example: E-Commerce Platform {#example-e-commerce-platform}
 
-### Step 1: Define SLIs (What to Measure)
+### Step 1: Define SLIs (What to Measure) {#step-1-define-slis-what-to-measure}
 
 * **Availability:** % of successful HTTPS responses (measured at the edge via Route 53).  
 * **Performance:**  
@@ -90,7 +90,7 @@ An **SLA (Service Level Agreement)** is a formal commitment between a service pr
 
 ---
 
-### Step 2: Define SLOs (Targets for Each SLI)
+### Step 2: Define SLOs (Targets for Each SLI) {#step-2-define-slos-targets-for-each-sli}
 
 Each SLO directly maps to an SLI in Step 1:
 
@@ -104,7 +104,7 @@ Each SLO directly maps to an SLI in Step 1:
 
 ---
 
-### Step 3: Define SLA (Customer-Facing Contract)
+### Step 3: Define SLA (Customer-Facing Contract) {#step-3-define-sla-customer-facing-contract}
 
 Only a subset of SLOs become contractual:  
 
@@ -116,7 +116,7 @@ Only a subset of SLOs become contractual:
 
 ---
 
-### Step 4: Architecture to Meet SLA
+### Step 4: Architecture to Meet SLA {#step-4-architecture-to-meet-sla}
 
 The system is engineered to satisfy the SLA (Step 3) by aligning infrastructure to the SLOs (Step 2):
 
@@ -131,7 +131,7 @@ The system is engineered to satisfy the SLA (Step 3) by aligning infrastructure 
 
 ---
 
-### Customer-Facing SLA (External View)
+### Customer-Facing SLA (External View) {#customer-facing-sla-external-view}
 
 * **Metric**: % of successful HTTPS requests (Route 53 checks).  
 * **Promise**: ≥ **99.95% uptime** per month.  
@@ -141,7 +141,7 @@ The system is engineered to satisfy the SLA (Step 3) by aligning infrastructure 
 
 ---
 
-### Internal SLA Baseline (AWS as Our Provider)
+### Internal SLA Baseline (AWS as Our Provider) {#internal-sla-baseline-aws-as-our-provider}
 
 As AWS customers, we rely on **provider SLAs** to know our lower bound:  
 
@@ -202,7 +202,7 @@ That’s why AWS often markets **Multi-AZ RDS or EC2 setups** as “highly avail
 
 ---
 
-### Engineering roll-up (approx)
+### Engineering roll-up (approx) {#engineering-roll-up-approx}
 
 When combining multiple services, the system’s effective availability is roughly the product of each component’s availability:
 
@@ -216,7 +216,7 @@ System Availability ≈ CloudFront × ALB × EC2(Multi-AZ) × RDS(Multi-AZ) × S
 
 ---
 
-### Key Insight
+### Key Insight {#key-insight}
 
 * **Externally:** SLA is measured end-to-end at the edge → customer outcomes.  
 * **Internally:** Engineers validate feasibility by multiplying provider SLAs.  

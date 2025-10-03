@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Global Accelerator VS Cloud Front · glucolte</title>
+  <title>IPSEC VPN {#ipsec-vpn} · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,9 +13,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Global Accelerator VS Cloud Front | glucolte</title>
+<title>IPSEC VPN {#ipsec-vpn} | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="Global Accelerator VS Cloud Front" />
+<meta property="og:title" content="IPSEC VPN {#ipsec-vpn}" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
@@ -24,9 +24,9 @@
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Global Accelerator VS Cloud Front" />
+<meta property="twitter:title" content="IPSEC VPN {#ipsec-vpn}" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Global Accelerator VS Cloud Front","url":"http://localhost:4000/study/tmp_awsProStudyNetwork.html"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"IPSEC VPN {#ipsec-vpn}","url":"http://localhost:4000/study/tmp_awsProStudyNetwork.html"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -63,36 +63,6 @@
   <main class="container">
     <article class="content">
       
-<h2 id="global-accelerator-vs-cloud-front">Global Accelerator VS Cloud Front</h2>
-
-<ul>
-  <li>Global Accelerator:
-    <ul>
-      <li>Start with 2 anycast IP addresses (1.2.3.4 and 4.3.2.1)</li>
-      <li>Anycast: Allow a single ip to be in multiple locations, routing moves traffic to closest location
-        <ul>
-          <li>Once the customer hits the closest Location</li>
-          <li>It transit that data to the destination over AWS dedicated fibre link (Less Hops)</li>
-        </ul>
-      </li>
-      <li>Moves AWS network closer to Customer to hit the original Destination</li>
-      <li>Network Product -&gt; TCP/UDP  only
-        <ul>
-          <li>DOES NOT CACH ANYTHING</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li>Cloudfront:
-    <ul>
-      <li>Put the distribution to the edge closer to the customer</li>
-      <li>Caching it at edge location, moves content closer</li>
-      <li>BUT it does not use the fibre link</li>
-      <li>Application Layer -&gt; HTTP only</li>
-    </ul>
-  </li>
-</ul>
-
 <h2 id="ipsec-vpn">IPSEC VPN</h2>
 <ul>
   <li>Symmetric - Fast</li>
@@ -384,7 +354,7 @@ Priorities:</li>
   </li>
 </ul>
 
-<h1 id="networking--hybrid">Networking &amp; Hybrid</h1>
+<h1 id="networking-hybrid">Networking &amp; Hybrid</h1>
 <ul>
   <li>Basically Any Gateway should come with a RT</li>
   <li>RT can Associate or propagate
@@ -641,7 +611,7 @@ Priorities:</li>
 
 <hr />
 
-<h3 id="-direct-connect-gateway-dxgw-vs-virtual-private-gateway-vgw-vs-transit-gateway-tgw--decision-table">✅ <strong>Direct Connect Gateway (DXGW) vs. Virtual Private Gateway (VGW) vs. Transit Gateway (TGW) – Decision Table</strong></h3>
+<h3 id="direct-connect-gateway-dxgw-vs-virtual-private-gateway-vgw-vs-transit-gateway-tgw-decision-table">✅ <strong>Direct Connect Gateway (DXGW) vs. Virtual Private Gateway (VGW) vs. Transit Gateway (TGW) – Decision Table</strong></h3>
 
 <table>
   <thead>

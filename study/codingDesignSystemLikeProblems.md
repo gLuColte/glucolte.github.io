@@ -3,7 +3,7 @@ title: design problems
 permalink: /study/codingDesign
 ---
 
-# Design Problems
+# Design Problems {#design-problems}
 
 **Patterns to know:**  
 - LRU Cache (LinkedHashMap or Doubly Linked List).  

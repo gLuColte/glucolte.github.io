@@ -4,14 +4,14 @@ permalink: /study/systemDesignHourglass
 ---
 
 
-## 🧠 "Hour Glass"
+## 🧠 "Hour Glass" {#hour-glass}
 
 > An iterative, decision-driven guide to building scalable and reliable systems.
 > In a way you are transforming the data and make it "what the clients" want to see
 
 ---
 
-### 1. 🟪 Source (Data Origin & Ingress)
+### 🟪 Source (Data Origin & Ingress) {#source-data-origin-ingress}
 
 **Goal**: Identify the nature, rate, and reliability of data entering the system.
 
@@ -25,7 +25,7 @@ permalink: /study/systemDesignHourglass
 
 ---
 
-### 2. 🟩 Type (Schema, Format, Encoding)
+### 🟩 Type (Schema, Format, Encoding) {#type-schema-format-encoding}
 
 **Goal**: Determine how the data is structured and what formats affect storage/querying.
 
@@ -38,7 +38,7 @@ permalink: /study/systemDesignHourglass
 
 ---
 
-### 3. 🟥 Storage (Scale, Structure, and Retention)
+### 🟥 Storage (Scale, Structure, and Retention) {#storage-scale-structure-and-retention}
 
 **Goal**: Pick the right engine based on size, write pattern, and query behavior.
 
@@ -52,7 +52,7 @@ permalink: /study/systemDesignHourglass
 
 ---
 
-### 4. 🟨 Access Pattern (Read Behavior & Consumers)
+### 🟨 Access Pattern (Read Behavior & Consumers) {#access-pattern-read-behavior-consumers}
 
 **Goal**: Understand **how data is queried**, to shape indexing and compute needs.
 
@@ -73,7 +73,7 @@ Note for ingestion:
 
 ---
 
-### 5. 🟧 API (Interface & Access Protocols)
+### 🟧 API (Interface & Access Protocols) {#api-interface-access-protocols}
 
 **Goal**: Choose interface method based on interaction style and latency needs.
 
@@ -86,7 +86,7 @@ Note for ingestion:
 
 ---
 
-### 6. 🟦 Frontend / Client Needs
+### 🟦 Frontend / Client Needs {#frontend-client-needs}
 
 **Goal**: Understand client-side data behavior, rendering, and interactivity.
 
@@ -100,7 +100,7 @@ Note for ingestion:
 
 ---
 
-### 7. 🔐 Security (Auth, Privacy, Protection)
+### 🔐 Security (Auth, Privacy, Protection) {#security-auth-privacy-protection}
 
 **Goal**: Define minimum protection and tenant isolation.
 
@@ -113,7 +113,7 @@ Note for ingestion:
 
 ---
 
-### 8. 📈 Scalability (Throughput & Growth)
+### 📈 Scalability (Throughput & Growth) {#scalability-throughput-growth}
 
 **Goal**: Forecast data/traffic growth and proactively plan for scale-out.
 
@@ -126,7 +126,7 @@ Note for ingestion:
 
 ---
 
-### 9. 🔁 Reliability & Fault Tolerance
+### 🔁 Reliability & Fault Tolerance {#reliability-fault-tolerance}
 
 **Goal**: Ensure continuity of service and graceful degradation.
 
@@ -139,7 +139,7 @@ Note for ingestion:
 
 ---
 
-### 10. 🪵 Observability (Monitoring, Logging, Tracing)
+### 🪵 Observability (Monitoring, Logging, Tracing) {#observability-monitoring-logging-tracing}
 
 **Goal**: Expose system behavior and enable root-cause analysis.
 
@@ -152,7 +152,7 @@ Note for ingestion:
 
 ---
 
-### 11. 🚀 Deployment & Infrastructure
+### 🚀 Deployment & Infrastructure {#deployment-infrastructure}
 
 **Goal**: Define environment, rollout strategy, and deployment control.
 
@@ -165,7 +165,7 @@ Note for ingestion:
 
 ---
 
-## Scenario 1: Realtime Temperature Monitoring with IoT Sensors
+## Scenario 1: Realtime Temperature Monitoring with IoT Sensors {#scenario-1-realtime-temperature-monitoring-with-iot-sensors}
 
 Design a system that collects temperature data from 1 million IoT devices across NSW and publishes:
 
@@ -173,7 +173,7 @@ Design a system that collects temperature data from 1 million IoT devices across
 - A historical dashboard with daily/weekly/monthly min/max temperatures per region.
 - Historical retention: 6 months.
 
-### 1. **Source**
+### **Source** {#source}
 
 **What produces the data?**
 
@@ -195,7 +195,7 @@ Design a system that collects temperature data from 1 million IoT devices across
 
 ---
 
-### 2. **Type**
+### **Type** {#type}
 
 **What kind of data?**
 
@@ -205,11 +205,11 @@ Design a system that collects temperature data from 1 million IoT devices across
 
 ---
 
-### 3. **Storage**
+### **Storage** {#storage}
 
 **How is the data stored, and what format?**
 
-#### a. **Real-Time Table**
+#### a. **Real-Time Table** {#a-real-time-table}
 
 | Field        | Type   | Size               |
 | ------------ | ------ | ------------------ |
@@ -220,7 +220,7 @@ Design a system that collects temperature data from 1 million IoT devices across
 
 → `1M devices * 16B = 16 MB` (not GB!)
 
-#### b. **Historical Data**
+#### b. **Historical Data** {#b-historical-data}
 
 For each sensor:
 
@@ -231,7 +231,7 @@ Add device metadata table:
 
 - device_id, uuid, lat, long → 20B × 1M → **\~20 MB**
 
-#### ✅ Final Estimation:
+#### ✅ Final Estimation: {#final-estimation}
 
 | Table           | Estimated Size |
 | --------------- | -------------- |
@@ -243,7 +243,7 @@ Add device metadata table:
 
 ---
 
-### 4. **Preprocessing / Compute**
+### **Preprocessing / Compute** {#preprocessing-compute}
 
 **What processing is done pre-store or during ingestion?**
 
@@ -259,7 +259,7 @@ Add device metadata table:
 
 ---
 
-### 5. **API (Data Interface)**
+### **API (Data Interface)** {#api-data-interface}
 
 **How does the frontend consume the data?**
 
@@ -280,7 +280,7 @@ Add device metadata table:
 
 ---
 
-### 6. **Client / Presentation**
+### **Client / Presentation** {#client-presentation}
 
 **What are the frontend requirements?**
 
@@ -290,7 +290,7 @@ Add device metadata table:
 
 ---
 
-### 7. **Security**
+### **Security** {#security}
 
 - No login needed, but:
   - Throttle API to avoid DoS (e.g., CloudFront + WAF)
@@ -298,7 +298,7 @@ Add device metadata table:
 
 ---
 
-### 8. **Scalability**
+### **Scalability** {#scalability}
 
 - Write-heavy system (1M writes every 10s = \~100K writes/sec)
 - Use **Kafka** or **Kinesis** as buffer between MQTT and DB
@@ -307,7 +307,7 @@ Add device metadata table:
 
 ---
 
-### 9. **Reliability**
+### **Reliability** {#reliability}
 
 - MQTT → At Least Once delivery
 - Ingest pipeline retry logic
@@ -316,7 +316,7 @@ Add device metadata table:
 
 ---
 
-### 10. **Observability**
+### **Observability** {#observability}
 
 - Metrics:
 
@@ -332,7 +332,7 @@ Add device metadata table:
 
 ---
 
-### 11. **Environment / Infra**
+### **Environment / Infra** {#environment-infra}
 
 - Cloud-native (AWS):
 
@@ -345,7 +345,7 @@ Add device metadata table:
 
 ---
 
-### Summary Table
+### Summary Table {#summary-table}
 
 | Block         | Design Choice                              | Justification                      |
 | ------------- | ------------------------------------------ | ---------------------------------- |
@@ -363,6 +363,6 @@ Add device metadata table:
 
 ---
 
-## Scenario 2: Twitter Platform
+## Scenario 2: Twitter Platform {#scenario-2-twitter-platform}
 
-## Scenario 3: eCommerce Platform
+## Scenario 3: eCommerce Platform {#scenario-3-ecommerce-platform}

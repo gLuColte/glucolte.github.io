@@ -3,14 +3,14 @@ title: study
 permalink: /study/
 ---
 
-# /study
+# /study {#study}
 
 A home for study resources, with a focus on **coding interview prep**.  
 Think of this page as your **mental compass** — quick reminders on *how to think* before diving into the categories.
 
 ---
 
-## Infrastructure & Cloud
+## Infrastructure & Cloud {#infrastructure-cloud}
 
 The following are infrastructure and cloud services study pages:
 
@@ -30,7 +30,7 @@ The following are infrastructure and cloud services study pages:
 
 ---
 
-## System Design Fundamentals
+## System Design Fundamentals {#system-design-fundamentals}
 
 The following are system design fundamentals study pages:
 
@@ -51,7 +51,7 @@ The following are system design fundamentals study pages:
 
 ---
 
-## AI
+## AI {#ai}
 
 The following are AI study pages:
 
@@ -71,7 +71,7 @@ The following are AI study pages:
 
 ---
 
-## Troubleshooting Practices
+## Troubleshooting Practices {#troubleshooting-practices}
 
 Practice your debugging and troubleshooting skills with hands-on Linux server challenges:
 
@@ -89,7 +89,7 @@ Practice your debugging and troubleshooting skills with hands-on Linux server ch
 
 ---
 
-## LeetCode
+## LeetCode {#leetcode}
 
 The following are topic-specific coding interview study pages:
 

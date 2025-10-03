@@ -3,23 +3,23 @@ title: AWS Best Practices
 permalink: /study/infrastructureAWSArchitecture
 ---
 
-# AWS Architecture Best Practices
+# AWS Architecture Best Practices {#aws-architecture-best-practices}
 
 Best practices and patterns for designing robust, scalable, and cost-effective AWS architectures.
 
 ---
 
-## Network Architecture
+## Network Architecture {#network-architecture}
 
-### VPC Design Principles
+### VPC Design Principles {#vpc-design-principles}
 
-#### Subnet Planning
+#### Subnet Planning {#subnet-planning}
 - **Public Subnets**: Internet-facing resources (ALB, NAT Gateway, Bastion)
 - **Private Subnets**: Application servers, databases, internal services
 - **Database Subnets**: Isolated database instances
 - **Management Subnets**: Monitoring, logging, administrative tools
 
-#### Subnet Sizing Strategy
+#### Subnet Sizing Strategy {#subnet-sizing-strategy}
 ```
 /16 VPC (65,536 IPs)
 ├── /20 Public Subnets (4,096 IPs each) - 3 AZs
@@ -28,21 +28,21 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 └── /24 Management Subnets (256 IPs each) - 3 AZs
 ```
 
-#### Multi-AZ Architecture
+#### Multi-AZ Architecture {#multi-az-architecture}
 - **Minimum 2 AZs**: For high availability
 - **Recommended 3 AZs**: For better fault tolerance
 - **AZ Selection**: Choose AZs with multiple instance types
 - **Cross-AZ Traffic**: Minimize for cost optimization
 
-### Network Security
+### Network Security {#network-security}
 
-#### Security Groups
+#### Security Groups {#security-groups}
 - **Principle of least privilege**: Restrictive inbound rules
 - **Stateful filtering**: Allow return traffic automatically
 - **Application-specific**: Separate SGs for different tiers
 - **Regular review**: Audit and update rules periodically
 
-#### Network ACLs
+#### Network ACLs {#network-acls}
 - **Stateless filtering**: Explicit allow/deny for both directions
 - **Subnet-level**: Additional layer of security
 - **Default deny**: Block all traffic by default
@@ -50,31 +50,31 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 
 ---
 
-## High Availability (HA) Design
+## High Availability (HA) Design {#high-availability-ha-design}
 
-### Application Layer HA
+### Application Layer HA {#application-layer-ha}
 
-#### Load Balancer Configuration
+#### Load Balancer Configuration {#load-balancer-configuration}
 - **Application Load Balancer (ALB)**: Layer 7 routing, SSL termination
 - **Network Load Balancer (NLB)**: Layer 4 routing, high performance
 - **Classic Load Balancer**: Legacy, avoid for new deployments
 - **Health Checks**: Configure appropriate thresholds and intervals
 
-#### Auto Scaling Groups
+#### Auto Scaling Groups {#auto-scaling-groups}
 - **Multi-AZ**: Distribute instances across availability zones
 - **Health Check Types**: EC2, ELB, or both
 - **Scaling Policies**: Target tracking, step scaling, simple scaling
 - **Instance Refresh**: Rolling updates with zero downtime
 
-### Database HA
+### Database HA {#database-ha}
 
-#### RDS High Availability
+#### RDS High Availability {#rds-high-availability}
 - **Multi-AZ Deployment**: Synchronous replication
 - **Read Replicas**: Asynchronous replication for read scaling
 - **Backup Strategy**: Automated backups, point-in-time recovery
 - **Maintenance Windows**: Schedule during low-traffic periods
 
-#### Database Connection Management
+#### Database Connection Management {#database-connection-management}
 - **Connection Pooling**: RDS Proxy for connection management
 - **Failover Handling**: Application-level retry logic
 - **Read/Write Splitting**: Route reads to replicas
@@ -82,31 +82,31 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 
 ---
 
-## Redundancy & Disaster Recovery
+## Redundancy & Disaster Recovery {#redundancy-disaster-recovery}
 
-### Data Redundancy
+### Data Redundancy {#data-redundancy}
 
-#### Storage Redundancy
+#### Storage Redundancy {#storage-redundancy}
 - **S3 Cross-Region Replication**: Disaster recovery
 - **EBS Snapshots**: Point-in-time backups
 - **EFS Multi-AZ**: Automatic replication
 - **RDS Automated Backups**: 7-35 day retention
 
-#### Application Redundancy
+#### Application Redundancy {#application-redundancy}
 - **Multi-Region Deployment**: Active-passive or active-active
 - **Route 53 Health Checks**: Automatic failover
 - **CloudFront**: Global content delivery
 - **Lambda@Edge**: Edge computing capabilities
 
-### Disaster Recovery Strategies
+### Disaster Recovery Strategies {#disaster-recovery-strategies}
 
-#### RTO/RPO Planning
+#### RTO/RPO Planning {#rtorpo-planning}
 - **Recovery Time Objective (RTO)**: Target downtime
 - **Recovery Point Objective (RPO)**: Acceptable data loss
 - **Cost vs. RTO/RPO**: Balance requirements with budget
 - **Testing**: Regular DR drills and validation
 
-#### DR Patterns
+#### DR Patterns {#dr-patterns}
 - **Backup and Restore**: Lowest cost, highest RTO/RPO
 - **Pilot Light**: Minimal infrastructure in DR region
 - **Warm Standby**: Scaled-down version in DR region
@@ -114,31 +114,31 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 
 ---
 
-## Security Architecture
+## Security Architecture {#security-architecture}
 
-### Identity and Access Management
+### Identity and Access Management {#identity-and-access-management}
 
-#### IAM Best Practices
+#### IAM Best Practices {#iam-best-practices}
 - **Principle of least privilege**: Minimum required permissions
 - **Role-based access**: Use roles instead of users when possible
 - **MFA enforcement**: Multi-factor authentication
 - **Regular access reviews**: Audit and rotate credentials
 
-#### Resource Access Patterns
+#### Resource Access Patterns {#resource-access-patterns}
 - **Cross-account access**: Assume roles for cross-account resources
 - **Service-linked roles**: AWS-managed roles for services
 - **Instance profiles**: EC2 instance access to AWS services
 - **Lambda execution roles**: Function-specific permissions
 
-### Network Security
+### Network Security {#network-security-2}
 
-#### VPC Security
+#### VPC Security {#vpc-security}
 - **Private subnets**: Keep databases and sensitive data private
 - **NAT Gateway**: Outbound internet access for private subnets
 - **VPC Endpoints**: Private connectivity to AWS services
 - **Transit Gateway**: Centralized network management
 
-#### Encryption
+#### Encryption {#encryption}
 - **Encryption at rest**: EBS, RDS, S3, EFS encryption
 - **Encryption in transit**: TLS/SSL for all communications
 - **Key management**: AWS KMS for encryption keys
@@ -146,31 +146,31 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 
 ---
 
-## Performance Optimization
+## Performance Optimization {#performance-optimization}
 
-### Compute Optimization
+### Compute Optimization {#compute-optimization}
 
-#### EC2 Instance Selection
+#### EC2 Instance Selection {#ec2-instance-selection}
 - **Instance families**: General purpose, compute optimized, memory optimized
 - **Burstable performance**: T3, T4g for variable workloads
 - **Graviton processors**: ARM-based instances for cost savings
 - **Spot instances**: Cost-effective for fault-tolerant workloads
 
-#### Auto Scaling Optimization
+#### Auto Scaling Optimization {#auto-scaling-optimization}
 - **Predictive scaling**: ML-based scaling predictions
 - **Target tracking**: Maintain target metrics
 - **Scheduled scaling**: Anticipate traffic patterns
 - **Cooldown periods**: Prevent rapid scaling oscillations
 
-### Storage Optimization
+### Storage Optimization {#storage-optimization}
 
-#### EBS Optimization
+#### EBS Optimization {#ebs-optimization}
 - **GP3 vs GP2**: Better price/performance with GP3
 - **Provisioned IOPS**: For high-performance databases
 - **Throughput Optimized**: For large, sequential workloads
 - **Cold HDD**: For infrequently accessed data
 
-#### S3 Optimization
+#### S3 Optimization {#s3-optimization}
 - **Storage classes**: Intelligent tiering, lifecycle policies
 - **Transfer acceleration**: CloudFront for faster uploads
 - **Multipart uploads**: Large file uploads
@@ -178,31 +178,31 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 
 ---
 
-## Cost Optimization
+## Cost Optimization {#cost-optimization}
 
-### Resource Right-Sizing
+### Resource Right-Sizing {#resource-right-sizing}
 
-#### Compute Right-Sizing
+#### Compute Right-Sizing {#compute-right-sizing}
 - **CloudWatch metrics**: Monitor utilization
 - **AWS Compute Optimizer**: Recommendations for right-sizing
 - **Reserved instances**: 1-3 year commitments for savings
 - **Savings Plans**: Flexible pricing model
 
-#### Storage Right-Sizing
+#### Storage Right-Sizing {#storage-right-sizing}
 - **S3 lifecycle policies**: Automatic transition to cheaper classes
 - **EBS optimization**: Right-size volumes and IOPS
 - **Data archiving**: Glacier for long-term storage
 - **Deduplication**: Reduce storage costs
 
-### Cost Management
+### Cost Management {#cost-management}
 
-#### Monitoring and Alerting
+#### Monitoring and Alerting {#monitoring-and-alerting}
 - **AWS Cost Explorer**: Analyze spending patterns
 - **AWS Budgets**: Set spending alerts and limits
 - **Cost allocation tags**: Track costs by project/department
 - **Reserved instance reporting**: Monitor RI utilization
 
-#### Optimization Strategies
+#### Optimization Strategies {#optimization-strategies}
 - **Spot instances**: Up to 90% savings for fault-tolerant workloads
 - **Scheduled scaling**: Scale down during off-hours
 - **Data transfer optimization**: Minimize cross-region transfers
@@ -210,31 +210,31 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 
 ---
 
-## Monitoring and Observability
+## Monitoring and Observability {#monitoring-and-observability}
 
-### CloudWatch Best Practices
+### CloudWatch Best Practices {#cloudwatch-best-practices}
 
-#### Metrics and Alarms
+#### Metrics and Alarms {#metrics-and-alarms}
 - **Custom metrics**: Application-specific monitoring
 - **Composite alarms**: Multiple conditions for alerts
 - **Anomaly detection**: ML-based threshold detection
 - **Dashboard creation**: Visualize key metrics
 
-#### Log Management
+#### Log Management {#log-management}
 - **CloudWatch Logs**: Centralized log collection
 - **Log groups**: Organize logs by application/service
 - **Log streams**: Individual log sources
 - **Log insights**: Query and analyze log data
 
-### Application Performance Monitoring
+### Application Performance Monitoring {#application-performance-monitoring}
 
-#### X-Ray Tracing
+#### X-Ray Tracing {#x-ray-tracing}
 - **Distributed tracing**: Track requests across services
 - **Service map**: Visualize service dependencies
 - **Performance analysis**: Identify bottlenecks
 - **Error tracking**: Debug production issues
 
-#### Custom Monitoring
+#### Custom Monitoring {#custom-monitoring}
 - **Health checks**: Application-level monitoring
 - **Synthetic monitoring**: Proactive issue detection
 - **Real user monitoring**: Actual user experience
@@ -242,31 +242,31 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 
 ---
 
-## Deployment Strategies
+## Deployment Strategies {#deployment-strategies}
 
-### Infrastructure as Code
+### Infrastructure as Code {#infrastructure-as-code}
 
-#### AWS CloudFormation
+#### AWS CloudFormation {#aws-cloudformation}
 - **Template management**: Version control and reuse
 - **Stack dependencies**: Manage resource relationships
 - **Change sets**: Preview changes before deployment
 - **Drift detection**: Identify configuration changes
 
-#### AWS CDK
+#### AWS CDK {#aws-cdk}
 - **Programming languages**: TypeScript, Python, Java, C#
 - **Higher-level constructs**: Abstract common patterns
 - **Testing**: Unit and integration tests
 - **CI/CD integration**: Automated deployments
 
-### CI/CD Pipeline
+### CI/CD Pipeline {#cicd-pipeline}
 
-#### AWS CodePipeline
+#### AWS CodePipeline {#aws-codepipeline}
 - **Source integration**: GitHub, CodeCommit, S3
 - **Build stages**: CodeBuild for compilation
 - **Deploy stages**: CodeDeploy for application deployment
 - **Approval gates**: Manual approval for production
 
-#### Deployment Strategies
+#### Deployment Strategies {#deployment-strategies-2}
 - **Blue/Green**: Zero-downtime deployments
 - **Canary**: Gradual traffic shifting
 - **Rolling**: Update instances incrementally
@@ -274,31 +274,31 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 
 ---
 
-## Common Architecture Patterns
+## Common Architecture Patterns {#common-architecture-patterns}
 
-### Microservices Architecture
+### Microservices Architecture {#microservices-architecture}
 
-#### Service Communication
+#### Service Communication {#service-communication}
 - **API Gateway**: Single entry point for clients
 - **Service mesh**: Istio, App Mesh for service communication
 - **Event-driven**: SQS, SNS for asynchronous communication
 - **Synchronous**: Direct API calls for real-time communication
 
-#### Data Management
+#### Data Management {#data-management}
 - **Database per service**: Isolated data stores
 - **Event sourcing**: Store events, not state
 - **CQRS**: Separate read/write models
 - **Saga pattern**: Distributed transaction management
 
-### Serverless Architecture
+### Serverless Architecture {#serverless-architecture}
 
-#### AWS Lambda
+#### AWS Lambda {#aws-lambda}
 - **Function design**: Single responsibility principle
 - **Cold start optimization**: Provisioned concurrency
 - **Error handling**: Dead letter queues, retry logic
 - **Monitoring**: CloudWatch, X-Ray integration
 
-#### API Gateway
+#### API Gateway {#api-gateway}
 - **REST APIs**: HTTP-based APIs
 - **WebSocket APIs**: Real-time communication
 - **HTTP APIs**: Lower cost, faster performance
@@ -306,23 +306,23 @@ Best practices and patterns for designing robust, scalable, and cost-effective A
 
 ---
 
-## Best Practices Summary
+## Best Practices Summary {#best-practices-summary}
 
-### Design Principles
+### Design Principles {#design-principles}
 1. **Design for failure**: Assume components will fail
 2. **Implement elasticity**: Auto-scale based on demand
 3. **Leverage automation**: Infrastructure as code
 4. **Monitor everything**: Comprehensive observability
 5. **Optimize costs**: Right-size and use appropriate services
 
-### Implementation Guidelines
+### Implementation Guidelines {#implementation-guidelines}
 1. **Start with well-architected framework**: Operational excellence, security, reliability, performance, cost
 2. **Use managed services**: Reduce operational overhead
 3. **Implement security by design**: Security at every layer
 4. **Plan for growth**: Design for scale from the beginning
 5. **Regular reviews**: Continuously improve architecture
 
-### Common Pitfalls to Avoid
+### Common Pitfalls to Avoid {#common-pitfalls-to-avoid}
 1. **Single points of failure**: Always design for redundancy
 2. **Over-provisioning**: Start small, scale as needed
 3. **Security as afterthought**: Build security in from the start

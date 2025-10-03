@@ -3,7 +3,7 @@ title: graphs
 permalink: /study/codingGraphs
 ---
 
-# Graphs
+# Graphs {#graphs}
 
 **Patterns to know:**  
 - BFS/DFS traversal.  

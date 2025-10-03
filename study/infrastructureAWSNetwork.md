@@ -3,7 +3,7 @@ title: AWS Network Services
 permalink: /study/infrastructureAWSNetwork
 ---
 
-## AWS Network Overview  
+## AWS Network Overview {#aws-network-overview}  
 
 AWS operates one of the largest private **fiber-optic backbones** in the world. This backbone connects **Data Centers**, groups them into **Availability Zones (AZs)**, and links multiple AZs to form a **Region**. From there, AWS extends outwards through **Points of Presence (PoPs)**, which connect to the **public internet** or provide private connectivity via **Direct Connect**.  
 
@@ -34,9 +34,9 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 
 ---
 
-## Service Type and Categories
+## Service Type and Categories {#service-type-and-categories}
 
-### 1. 🌐 Internet Connectivity (Ingress / Egress)
+### 🌐 Internet Connectivity (Ingress / Egress) {#internet-connectivity-ingress-egress}
 
 <table class="study-table">
 <thead>
@@ -87,7 +87,7 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 </tbody>
 </table>
 
-### 2. 🔁 Internal VPC & Private Service Communication
+### 🔁 Internal VPC & Private Service Communication {#internal-vpc-private-service-communication}
 
 <table class="study-table">
 <thead>
@@ -124,7 +124,7 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 </tbody>
 </table>
 
-### 3. ⚖️ Load Balancing & Traffic Distribution
+### ⚖️ Load Balancing & Traffic Distribution {#load-balancing-traffic-distribution}
 
 <table class="study-table">
 <thead>
@@ -160,7 +160,7 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 </tr>
 <tr>
 <td><strong>Global Accelerator</strong></td>
-<td>Routes global traffic to optimal endpoint.</td>
+<td>Routes global traffic to optimal endpoint by introducing 2 dedicated Anycast IPs at edge.</td>
 <td>L4 – Transport</td>
 <td>End User</td>
 <td>NLB / ALB / IPs</td>
@@ -168,7 +168,7 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 </tbody>
 </table>
 
-### 4. 🔐 Security & Access Control
+### 🔐 Security & Access Control {#security-access-control}
 
 <table class="study-table">
 <thead>
@@ -212,7 +212,7 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 </tbody>
 </table>
 
-### 5. 🌍 Edge Services & DNS
+### 🌍 Edge Services & DNS {#edge-services-dns}
 
 <table class="study-table">
 <thead>
@@ -227,7 +227,7 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 <tbody>
 <tr>
 <td><strong>CloudFront</strong></td>
-<td>Distributes and caches content globally.</td>
+<td>Distributes and caches content globally at PoP.</td>
 <td>L7 – Application</td>
 <td>End Users</td>
 <td>ALB / S3 / API GW</td>
@@ -242,7 +242,7 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 </tbody>
 </table>
 
-### 6. 🧩 API & Microservice Communication
+### 🧩 API & Microservice Communication {#api-microservice-communication}
 
 <table class="study-table">
 <thead>
@@ -272,7 +272,7 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 </tbody>
 </table>
 
-### 7. 🛠️ Core Networking Components
+### 🛠️ Core Networking Components {#core-networking-components}
 
 <table class="study-table">
 <thead>
@@ -304,15 +304,15 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 
 ---
 
-## Service Breakdown
+## Service Breakdown {#service-breakdown}
 
 
 
 
 
-## VPN
+## VPN {#vpn}
 
-### Site to Site VPN
+### Site to Site VPN {#site-to-site-vpn}
 
 <div class="image-wrapper">
   <img src="./assets/s2s_vpn.png" alt="S2S VPN Example" class="modal-trigger" data-caption="Site-to-Site VPN sequence showing CGW and VGW communication flow">
@@ -424,7 +424,7 @@ In short, **association** determines **which route table is used**, and **propag
 ---
 Alright, let’s break this down step-by-step for your scenario. You want **VPC1** and **VPC2** to both have access to **on-premises**, but you don't want **VPC1** to communicate with **VPC2**. To achieve this, we need to carefully set up **Transit Gateway (TGW)**, **VPC route tables**, **TGW route tables**, and **VPC attachments** to control the traffic flow and routing.
 
-### Step 1: **Create Transit Gateway (TGW) and Attachments**
+### Step 1: **Create Transit Gateway (TGW) and Attachments** {#step-1-create-transit-gateway-tgw-and-attachments}
 
 1. **Create the Transit Gateway (TGW)**:
 
@@ -440,12 +440,12 @@ Alright, let’s break this down step-by-step for your scenario. You want **VPC1
 
    These attachments don't have individual route tables themselves, but they will be part of the **TGW route table** and can use **propagation** or be **associated** to different route tables.
 
-### Step 2: **Set Up TGW Route Table**
+### Step 2: **Set Up TGW Route Table** {#step-2-set-up-tgw-route-table}
 
 * **By default**, the **TGW route table** (**Route Table A**) is used for all attachments. This means that initially, **VPC1**, **VPC2**, and **On-premises** will all be able to communicate with each other because the default TGW route table allows traffic between these attachments.
 * However, you want to prevent **VPC1** from talking to **VPC2**. So, we'll modify the TGW route table to achieve this.
 
-### Step 3: **Set Up VPC Route Tables**
+### Step 3: **Set Up VPC Route Tables** {#step-3-set-up-vpc-route-tables}
 
 Each VPC (VPC1 and VPC2) has its own **route table** (which is managed separately).
 
@@ -467,7 +467,7 @@ Each VPC (VPC1 and VPC2) has its own **route table** (which is managed separatel
 
    VPC2 **will not have a route to VPC1** by default.
 
-### Step 4: **Control Communication Between VPCs Using TGW Route Tables**
+### Step 4: **Control Communication Between VPCs Using TGW Route Tables** {#step-4-control-communication-between-vpcs-using-tgw-route-tables}
 
 Now let’s address the part where **VPC1** should **not** communicate with **VPC2**.
 
@@ -480,14 +480,14 @@ Now let’s address the part where **VPC1** should **not** communicate with **VP
 
    * Allow **propagation** from **On-premises** to **TGW**, so both **VPC1** and **VPC2** can reach **On-premises**. Propagation ensures that when On-premises is attached to TGW, its routes are automatically added to the TGW route table, allowing all connected VPCs to access On-premises.
 
-### Step 5: **Attachment and Propagation for On-premises**
+### Step 5: **Attachment and Propagation for On-premises** {#step-5-attachment-and-propagation-for-on-premises}
 
 * **On-premises Attachment**: The **On-premises** network will be attached to the **TGW** with its own **VPC attachment**.
 
   * This **attachment** will allow **VPC1**, **VPC2**, and **On-premises** to communicate.
   * For routing, the **On-premises route table** will propagate routes back into the TGW route table (so **VPC1** and **VPC2** can reach **On-premises**).
 
-### Summary Flow:
+### Summary Flow: {#summary-flow}
 
 1. **VPC1 → TGW → On-premises**:
 
@@ -503,7 +503,7 @@ Now let’s address the part where **VPC1** should **not** communicate with **VP
 
 3. **VPC1 and VPC2 cannot talk to each other** because the **TGW route table** has no routes allowing **VPC1 to communicate with VPC2**.
 
-### Key Points:
+### Key Points: {#key-points}
 
 * **VPCs** have their own **route tables**, and each **subnet** in a VPC is associated with a route table.
 * **TGW** has its own route table to manage routing between attached VPCs and external networks.

@@ -3,7 +3,7 @@ title: linked lists
 permalink: /study/codingLinkedLists
 ---
 
-# Linked Lists
+# Linked Lists {#linked-lists}
 
 **Patterns to know:**  
 - Fast/Slow Pointers (detect cycle, find middle).  

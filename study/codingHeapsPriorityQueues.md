@@ -3,7 +3,7 @@ title: heaps and priority queues
 permalink: /study/codingHeaps
 ---
 
-# Heaps & Priority Queues
+# Heaps & Priority Queues {#heaps-priority-queues}
 
 **Patterns to know:**  
 - Kth Largest / Smallest Element.  
@@ -17,7 +17,7 @@ permalink: /study/codingHeaps
 - Merging sorted streams.  
 
 
-## 1. Largest Number after Digit Swaps by Parity - Easy
+## Largest Number after Digit Swaps by Parity - Easy {#largest-number-after-digit-swaps-by-parity---easy}
 
 [Leetcode Link](https://leetcode.com/problems/largest-number-after-digit-swaps-by-parity/description/)
 

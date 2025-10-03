@@ -3,7 +3,7 @@ title: arrays and strings
 permalink: /study/codingArraysStrings
 ---
 
-# Arrays & Strings
+# Arrays & Strings {#arrays-strings}
 
 **Patterns to know:**  
 - Two Pointers (fast/slow, inward/outward).  
@@ -24,7 +24,7 @@ permalink: /study/codingArraysStrings
 
 -----
 
-## 1. Two Sums - Easy
+## Two Sums - Easy {#two-sums---easy}
 
 [Leetcode Link](https://leetcode.com/problems/two-sum/description/?envType=problem-list-v2&envId=array&)
 
@@ -66,7 +66,7 @@ class Solution:
         # The worst case is finding the compliment as the last item
 ```
 
-## 2. 3Sum Closest - Medium
+## 3Sum Closest - Medium {#3sum-closest---medium}
 
 [Leetcode Link](https://leetcode.com/problems/3sum-closest/?envType=problem-list-v2&envId=array&)
 
@@ -123,7 +123,7 @@ class Solution:
 ```
 
 
-## 3. 4Sum - Medium
+## 4Sum - Medium {#4sum---medium}
 
 [Leetcode Link](https://leetcode.com/problems/4sum/submissions/1753588794/?envType=problem-list-v2&envId=array&)
 
@@ -240,7 +240,7 @@ class Solution:
 ```
 
 
-## 4. Remove Duplicates from Sorted Array - Easy
+## Remove Duplicates from Sorted Array - Easy {#remove-duplicates-from-sorted-array---easy}
 
 [Leetcode Link](https://leetcode.com/problems/remove-duplicates-from-sorted-array/description/?envType=problem-list-v2&envId=array&)
 
@@ -280,7 +280,7 @@ class Solution:
 ```
 
 
-## 5. Remove Element - Easy
+## Remove Element - Easy {#remove-element---easy}
 
 [Leetcode Link](https://leetcode.com/problems/remove-element/description/?envType=problem-list-v2&envId=array&)
 
@@ -310,7 +310,7 @@ class Solution:
         # Space = O(1) -> No such thing as Nil
 ```
 
-## 6. Maximum Sum of an Hourglass - Medium
+## Maximum Sum of an Hourglass - Medium {#maximum-sum-of-an-hourglass---medium}
 
 [Leetcode Link](https://leetcode.com/problems/maximum-sum-of-an-hourglass/description/)
 
@@ -372,7 +372,7 @@ class Solution:
 ```
 
 
-## 7. Grumpy Bookstore Owner - Medium
+## Grumpy Bookstore Owner - Medium {#grumpy-bookstore-owner---medium}
 
 [Leetcode Link](https://leetcode.com/problems/grumpy-bookstore-owner/description/)
 
@@ -449,7 +449,7 @@ class Solution:
 ```
 
 
-## 8. Longest Consecutive Sequence - Medium
+## Longest Consecutive Sequence - Medium {#longest-consecutive-sequence---medium}
 
 [Leetcode Link](https://leetcode.com/problems/longest-consecutive-sequence/?envType=problem-list-v2&envId=oizxjoit&)
 
@@ -540,7 +540,7 @@ class Solution:
 
 
 
-## 9. Longest Substring Without Repeating Characters - Medium
+## Longest Substring Without Repeating Characters - Medium {#longest-substring-without-repeating-characters---medium}
 
 [Leetcode Link](https://leetcode.com/problems/longest-substring-without-repeating-characters/?envType=problem-list-v2&envId=oizxjoit&)
 

@@ -3,7 +3,7 @@ title: math and bit manipulation
 permalink: /study/codingMathBits
 ---
 
-# Math & Bit Manipulation
+# Math & Bit Manipulation {#math-bit-manipulation}
 
 **Patterns to know:**  
 - GCD / LCM.  
@@ -17,7 +17,7 @@ permalink: /study/codingMathBits
 - Input constraints very large (10^9) → need log-time math.  
 - "Subsets" and n ≤ 20 → bitmask.  
 
-## 1. Sum of All Subset XOR Totals - Easy
+## Sum of All Subset XOR Totals - Easy {#sum-of-all-subset-xor-totals---easy}
 
 [Leetcode Link](https://leetcode.com/problems/sum-of-all-subset-xor-totals/)
 
@@ -50,7 +50,7 @@ class Solution:
         # O(1)cioj
 ```
 
-## 2. Convert integer to the Sum of Two No-Zero Integers - Easy
+## Convert integer to the Sum of Two No-Zero Integers - Easy {#convert-integer-to-the-sum-of-two-no-zero-integers---easy}
 
 [Leetcode Link](https://leetcode.com/problems/convert-integer-to-the-sum-of-two-no-zero-integers/description/?envType=daily-question&envId=2025-09-08)
 

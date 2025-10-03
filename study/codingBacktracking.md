@@ -3,7 +3,7 @@ title: backtracking
 permalink: /study/codingBacktracking
 ---
 
-# Backtracking
+# Backtracking {#backtracking}
 
 **Patterns to know:**  
 - Subsets / Combinations.  

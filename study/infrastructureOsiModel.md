@@ -3,7 +3,7 @@ title: OSI Model
 permalink: /study/infrastructureOsiModel
 ---
 
-# OSI Model
+# OSI Model {#osi-model}
 
 The **OSI (Open Systems Interconnection) Model** is a conceptual framework that describes how data moves across a network. It breaks communication into **seven layers**, each with a distinct role—from physical signals up to human-facing applications.  
 
@@ -11,7 +11,7 @@ By separating responsibilities, the OSI model makes it easier to design, trouble
 
 ---
 
-## 1. The 7 Layers
+## The 7 Layers {#the-7-layers}
 
 <table class="study-table">
 <thead>
@@ -93,7 +93,7 @@ By separating responsibilities, the OSI model makes it easier to design, trouble
 
 ---
 
-## 2. Devices at Each Layer
+## Devices at Each Layer {#devices-at-each-layer}
 
 <table class="study-table">
 <thead>
@@ -146,9 +146,9 @@ By separating responsibilities, the OSI model makes it easier to design, trouble
 
 ---
 
-## 3. Layer Interactions
+## Layer Interactions {#layer-interactions}
 
-### 3.1 Layer 2 – ARP
+### Layer 2 – ARP {#layer-2-arp}
 
 Maps IP → MAC via broadcast request and unicast reply.  
 
@@ -183,7 +183,7 @@ note over A,B: Now Host A can send data directly to Host B
   </script>
 </div>
 
-### 3.2 Layer 2 – VLANs & Trunks
+### Layer 2 – VLANs & Trunks {#layer-2-vlans-trunks}
 VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains, and efficiently carry multiple logical networks over the same physical infrastructure.
 
 * **VLAN (802.1Q):**
@@ -201,7 +201,7 @@ VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains,
 
 👉 All three work at **Layer 2 (Frames)** to logically separate traffic over shared physical networks.
 
-### 3.3 Layer 3 – Routing
+### Layer 3 – Routing {#layer-3-routing}
 Routers strip old frames, keep IP header, attach new MAC header for next hop.  
 
 <div class="image-wrapper">
@@ -237,7 +237,7 @@ note right of D: Frame removed, IP packet delivered up the stack
   </script>
 </div>
 
-### 3.4 Layer 3 & 5–6 - IPsec
+### Layer 3 & 5–6 - IPsec {#layer-3-56---ipsec} 
 IPsec = encrypted **network tunnels**.  
 - **IKE (control plane)** negotiates SAs and keys (**Layer 5–6**, over UDP/500 or UDP/4500 for NAT-T).  
 - **ESP/AH (data plane)** protects IP packets at **Layer 3**.  
@@ -288,7 +288,7 @@ end
 </div>
 > Elliptic Curve Diffie–Hellman Ephemeral provides **Perfect Forward Secrecy (PFS)** by using a fresh, temporary key pair per session. Even if a server’s long-term private key is later compromised, past sessions remain confidential. Both TLS and IPsec commonly prefer ECDHE for key exchange.
 
-### 3.5 Layer 5–6 - TLS
+### Layer 5–6 - TLS {#layer-56---tls}
 TLS = encrypted **application sessions**.  
 - Runs above TCP (L4) and below Application (L7).  
 - Provides confidentiality, integrity, authentication.  
@@ -332,7 +332,7 @@ Server -> Client: TLS record { Application Data: HTTP Response }
   </script>
 </div>
 
-### 3.6 Traffic Addressing Modes (Unicast, Broadcast, Multicast, Anycast, Geocast)
+### Traffic Addressing Modes (Unicast, Broadcast, Multicast, Anycast, Geocast) {#traffic-addressing-modes-unicast-broadcast-multicast-anycast-geocast}
 
 How frames/packets are addressed determines who receives them and how the network treats them.
 
@@ -387,7 +387,7 @@ How frames/packets are addressed determines who receives them and how the networ
 
 ---
 
-## 4. Commands by OSI Layer
+## Commands by OSI Layer {#commands-by-osi-layer}
 
 <table class="study-table">
 <thead>
@@ -452,9 +452,9 @@ How frames/packets are addressed determines who receives them and how the networ
 
 ---
 
-## 5. IP Addressing Basics
+## IP Addressing Basics {#ip-addressing-basics}
 
-### 5.1 IPv4 Classes & Reservations
+### IPv4 Classes & Reservations {#ipv4-classes-reservations}
 - **Class A:** 0.0.0.0 – 127.255.255.255 (10.0.0.0/8 private, 127/8 loopback)  
 - **Class B:** 128.0.0.0 – 191.255.255.255 (172.16.0.0/12 private)  
 - **Class C:** 192.0.0.0 – 223.255.255.255 (192.168/16 private, TEST-NETs)  
@@ -463,7 +463,7 @@ How frames/packets are addressed determines who receives them and how the networ
 
 👉 Today we use **CIDR** instead of classful boundaries.
 
-### 5.1 Convert Binary to Decimal
+### Convert Binary to Decimal {#convert-binary-to-decimal}
 
 1. Take the binary `10000100`.
 2. Multiply each bit by its place value:
@@ -528,7 +528,7 @@ How frames/packets are addressed determines who receives them and how the networ
 
 👉 So `10000100` in decimal = **132**
 
-### 5.2 Convert Decimal to to Binary
+### Convert Decimal to to Binary {#convert-decimal-to-to-binary}
 
 Take the first octet of `132.12.1.23`.
 
@@ -587,9 +587,9 @@ Result row: **1 0 0 0 0 1 0 0**
 
 ---
 
-## 6. Advanced Networking Topics
+## Advanced Networking Topics {#advanced-networking-topics}
 
-### 6.1 NAT (Network Address Translation)
+### NAT (Network Address Translation) {#nat-network-address-translation}
 
 * Allows private IPs (RFC1918) to communicate with public networks.  
 * Originally designed to conserve IPv4 addresses, also adds a basic security layer by hiding internal hosts.  
@@ -598,13 +598,13 @@ Result row: **1 0 0 0 0 1 0 0**
   * **Dynamic NAT** → Private IPs mapped temporarily to an available public IP from a pool. Mapping changes each session.  
   * **PAT (Port Address Translation)** → Many private hosts share a single public IP. NAT device rewrites source **IP+Port** to track flows. Example: home routers, AWS NAT Gateway.
 
-### 6.2 DDoS Attacks (3 categories)
+### DDoS Attacks (3 categories) {#ddos-attacks-3-categories}
 
 1. **Volumetric** → Flood bandwidth with massive traffic (e.g., UDP floods, DNS/NTP amplification).  
 2. **Protocol** → Exploit L3/L4 weaknesses, exhausting connection state (e.g., SYN flood, Smurf attack, Ping of Death).  
 3. **Application** → Target app layer (L7) with valid-looking requests that overwhelm servers (e.g., HTTP floods, Slowloris).  
 
-### 6.3 BGP (Border Gateway Protocol)
+### BGP (Border Gateway Protocol) {#bgp-border-gateway-protocol}
 
 The internet is a **network of networks** (Autonomous Systems, or AS):
 
@@ -619,7 +619,7 @@ The internet is a **network of networks** (Autonomous Systems, or AS):
   * **Route filtering** → accept/export only selected prefixes.  
   * **Peering vs Transit** → prefer cheap/free peer routes over costly transit.
 
-### 6.4 Jumbo Frames
+### Jumbo Frames {#jumbo-frames}
 
 * **Default MTU = 1500 bytes**, Jumbo Frames = ~9000 bytes.  
 * **Benefits:** Less overhead, fewer packets, higher throughput for large data transfers.  
@@ -627,7 +627,7 @@ The internet is a **network of networks** (Autonomous Systems, or AS):
 * **Supported in:** Local networks, datacenter links, AWS Direct Connect, TGW, same-region peering.  
 * **Not supported in:** General internet, VPN over public internet, cross-region cloud traffic.  
 
-### 6.5 Layer 7 Firewalls
+### Layer 7 Firewalls {#layer-7-firewalls}
 
 * Extend firewalls beyond L3/L4 (IP, port) to **application-aware filtering at L7**.  
 * Parse and inspect protocols (HTTP, DNS, SMTP, gRPC).  

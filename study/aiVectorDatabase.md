@@ -3,6 +3,6 @@ title: Vector Databases
 permalink: /study/aiVectorDatabase
 ---
 
-# Vector Databases
+# Vector Databases {#vector-databases}
 
 Placeholder
