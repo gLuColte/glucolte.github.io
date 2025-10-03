@@ -37,19 +37,11 @@ a:hover{text-decoration:none;border-bottom-color:transparent}
 }
 .brand{font-weight:700; letter-spacing:.2px; border-bottom:0 !important}
 .nav{
-  display:flex;
-  align-items:center;
-  gap:0;
-  margin-left:auto;
-  flex-wrap:nowrap;
-  background:var(--bg);
-  overflow-x:auto;
-  max-width:100%;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior-inline:contain;
-  scroll-behavior:smooth;
+  display:flex; align-items:center; gap:0; margin-left:auto; flex-wrap:nowrap; background:var(--bg);
 }
+
 .nav a{margin-left:14px; color:var(--muted); border-bottom:0; white-space:nowrap}
+
 .nav a:first-child{margin-left:0}
 .nav a:hover{color:var(--ink)}
 
@@ -390,18 +382,21 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
 
 @media (max-width: 760px) {
   .site-header {
-    align-items: flex-start;
-    gap: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
 
   .nav {
     margin-left: 0;
     width: 100%;
     justify-content: flex-start;
-    padding: 6px 0;
-    max-width: calc(100vw - 120px);
-    gap: 12px;
+    padding: 6px 4px 10px;
+    gap: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     touch-action: pan-x;
+    overscroll-behavior-inline: contain;
     scrollbar-width: thin;
     scrollbar-color: var(--line) transparent;
   }
@@ -421,5 +416,14 @@ hr{border:0; border-top:1px solid var(--line); margin:24px 0}
 
   [data-theme="dark"] .nav::-webkit-scrollbar-thumb {
     background: #475569;
+  }
+
+  .nav a {
+    flex: 0 0 auto;
+    margin-left: 0;
+  }
+
+  .dark-mode-toggle {
+    align-self: flex-end;
   }
 }
