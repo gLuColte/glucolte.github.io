@@ -5,408 +5,252 @@ permalink: /study/systemDesignHourglass
 
 # Hourglass Design {#hour-glass}
 
-An iterative, decision-driven guide to building scalable and reliable systems.  
-The process transforms raw data into the **shape that clients and consumers require**.
+The **Hourglass Design** is something I came up with as a way to think about system design without falling into endless loops of detail. At the top sit the **Sources**—devices, services, or users—each producing data in different forms and rhythms. That raw input is defined by its **Type**, the schema, format, and encoding that determine how data is understood and carried forward. From there, the flow narrows through the **Access Pattern**, where you decide how data can be searched, filtered, or aggregated, and through the **Core API** that governs how the business interacts with **Storage**. This middle is the waist of the hourglass: a stable contract that gives freedom to change databases, pipelines, or infrastructure without rewriting the entire system.  
+
+At the bottom is the **Presentation layer**, where data is delivered outward again—whether to people (UI) or to other systems (External APIs). Around the glass, the cross-cutting forces—**Scalability, Security, Reliability, Observability, and Deployment**—define how well each component can expand, resist failure, and stay operable in practice. The shape is simple but powerful: many inputs narrow through one clear contract before expanding again into many outputs.  
+
+<div class="image-wrapper">
+  <img src="./assets/hourglass.png" alt="Hourglass Structure" class="modal-trigger">
+  <div class="image-caption">Hourglass Overview</div>
+</div>
 
 ---
 
-### 1. Source (Data Origin & Ingress) {#section-1-source-data-origin-ingress}
-
-**Goal**: Identify the nature, rate, and reliability of incoming data.
-
 <table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>How many sources, and what type (IoT, user, system)?</td>
-<td>Determines protocol and scale: MQTT/Kafka for IoT, REST for users</td>
-</tr>
-<tr>
-<td>Is the source push or pull?</td>
-<td>Push → queue/broker required<br>Pull → scheduler or polling logic</td>
-</tr>
-<tr>
-<td>How frequent is the data?</td>
-<td>Sub-second → streaming system<br>Low-frequency → batch jobs</td>
-</tr>
-<tr>
-<td>Can the source apply pre-compute or filtering?</td>
-<td>Yes → reduce load and noise<br>No → all filtering must be server-side</td>
-</tr>
-<tr>
-<td>Is each source uniquely identifiable?</td>
-<td>Yes → partitioning/sharding<br>No → risk of duplication or tracking issues</td>
-</tr>
-</tbody>
+  <thead>
+    <tr>
+      <th>Critical Question</th>
+      <th>Impact on Design</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <!-- Source -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Source (Data Origin &amp; Ingress)</strong></td></tr>
+    <tr>
+      <td>Who are the producers (IoT, user, service)?</td>
+      <td>Protocol &amp; scale: MQTT/Kafka for IoT; REST/gRPC for apps; webhooks for partners.</td>
+    </tr>
+    <tr>
+      <td>Push or pull?</td>
+      <td>Push → broker/queue; Pull → scheduler/poller with backoff.</td>
+    </tr>
+    <tr>
+      <td>How frequent (stream vs batch)?</td>
+      <td>Stream → streaming pipeline &amp; backpressure; Batch → ETL windows &amp; SLAs.</td>
+    </tr>
+    <tr>
+      <td>Can sources pre-filter or pre-compute?</td>
+      <td>Yes → lower ingest cost/noise; No → server-side filtering &amp; enrichment.</td>
+    </tr>
+    <tr>
+      <td>Are sources uniquely identifiable?</td>
+      <td>Stable IDs enable partitioning, idempotency, and lineage.</td>
+    </tr>
+
+    <!-- Type -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Type (Schema, Format, Encoding)</strong></td></tr>
+    <tr>
+      <td>Is schema enforced?</td>
+      <td>Yes → SQL or registry (Avro/Protobuf); No → JSON/NoSQL/object storage.</td>
+    </tr>
+    <tr>
+      <td>Narrow or wide payload?</td>
+      <td>Narrow → time-series stores; Wide → columnar OLAP.</td>
+    </tr>
+    <tr>
+      <td>Compact or human-readable?</td>
+      <td>Compact (Avro/Protobuf) vs readable (JSON/CSV) affects cost &amp; DX.</td>
+    </tr>
+    <tr>
+      <td>Nested or flat values?</td>
+      <td>Nested → JSONB/NoSQL; Flat → relational with indexes.</td>
+    </tr>
+
+    <!-- Storage -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Storage (Scale, Structure, Retention)</strong></td></tr>
+    <tr>
+      <td>Daily volume &amp; retention?</td>
+      <td>High/long → tiered storage (S3 + hot DB) &amp; lifecycle policies.</td>
+    </tr>
+    <tr>
+      <td>Write pattern: hot or cold?</td>
+      <td>Hot → append logs/stream DB; Cold → relational with indices.</td>
+    </tr>
+    <tr>
+      <td>Mutable or immutable?</td>
+      <td>Mutable → versioning/locks; Immutable → event store/compaction.</td>
+    </tr>
+    <tr>
+      <td>Joins vs time filters?</td>
+      <td>Joins → relational; Time-range → TSDB/partitioned tables.</td>
+    </tr>
+    <tr>
+      <td>Consistency needs?</td>
+      <td>Strong → RDBMS; Eventual → NoSQL/object storage.</td>
+    </tr>
+
+    <!-- Access Pattern -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Access Pattern (Read Behavior &amp; Consumers)</strong></td></tr>
+    <tr>
+      <td>Real-time, periodic, or ad-hoc?</td>
+      <td>Real-time → cache/precompute; Ad-hoc → OLAP/query planner.</td>
+    </tr>
+    <tr>
+      <td>Read by ID, time, or search?</td>
+      <td>ID → key-value; Time → TSDB; Search → inverted index.</td>
+    </tr>
+    <tr>
+      <td>Global or scoped (user/region)?</td>
+      <td>Partitioning, row-level access, tenant isolation.</td>
+    </tr>
+    <tr>
+      <td>Do consumers need aggregates?</td>
+      <td>Pre-aggregated/materialized views improve latency &amp; cost.</td>
+    </tr>
+
+    <!-- API -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Core API (Interface &amp; Protocols)</strong></td></tr>
+    <tr>
+      <td>User-triggered or system-triggered?</td>
+      <td>User → REST/GraphQL; System → webhooks, MQTT, Kafka.</td>
+    </tr>
+    <tr>
+      <td>Is real-time push needed?</td>
+      <td>Yes → WebSocket/SSE/MQTT; No → polling with ETags &amp; caching.</td>
+    </tr>
+    <tr>
+      <td>Precompute or on-demand?</td>
+      <td>Precompute → Redis/materialized views; On-demand → compute budget.</td>
+    </tr>
+    <tr>
+      <td>Large/batch downloads?</td>
+      <td>Async job + signed URL; otherwise paginated endpoints.</td>
+    </tr>
+
+    <!-- Presentation -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Presentation (Frontend/Analytics)</strong></td></tr>
+    <tr>
+      <td>Need low-latency/live updates?</td>
+      <td>Push or fast polling; optimistic UI.</td>
+    </tr>
+    <tr>
+      <td>Large lists/maps?</td>
+      <td>Pagination, infinite scroll, viewport virtualization.</td>
+    </tr>
+    <tr>
+      <td>Advanced search/filter?</td>
+      <td>Search engine (Typesense/Meilisearch/Elasticsearch).</td>
+    </tr>
+    <tr>
+      <td>Offline or flaky networks?</td>
+      <td>Service Workers, IndexedDB/LocalStorage, sync queues.</td>
+    </tr>
+    <tr>
+      <td>Personalized views?</td>
+      <td>RBAC + query-level filters.</td>
+    </tr>
+
+    <!-- Security -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Security (Auth, Privacy, Protection)</strong></td></tr>
+    <tr>
+      <td>Who can access what?</td>
+      <td>Public read vs private scopes; IAM/JWT/API keys; WAF.</td>
+    </tr>
+    <tr>
+      <td>Tenant or user boundaries?</td>
+      <td>Row-level security, per-tenant schemas/keys, encryption.</td>
+    </tr>
+    <tr>
+      <td>Is access audited?</td>
+      <td>Append-only audit logs, forwarding &amp; retention.</td>
+    </tr>
+    <tr>
+      <td>Abuse protection?</td>
+      <td>Rate limits, CAPTCHA, throttling/backoff.</td>
+    </tr>
+
+    <!-- Scalability -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Scalability (Throughput &amp; Growth)</strong></td></tr>
+    <tr>
+      <td>Growth: linear or exponential?</td>
+      <td>Plan sharding/partitions early; avoid single-writer bottlenecks.</td>
+    </tr>
+    <tr>
+      <td>CPU, memory, or I/O bound?</td>
+      <td>Match scaling: workers, queues/backpressure, caches/batching.</td>
+    </tr>
+    <tr>
+      <td>Horizontal scale possible?</td>
+      <td>Stateless services, partitioned DBs, idempotent handlers.</td>
+    </tr>
+    <tr>
+      <td>Natural partition keys?</td>
+      <td>Device ID, region, tenant → predictable scale-out.</td>
+    </tr>
+
+    <!-- Reliability -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Reliability</strong></td></tr>
+    <tr>
+      <td>Impact of a component failure?</td>
+      <td>Retries with jitter, fallbacks, circuit breakers, graceful degradation.</td>
+    </tr>
+    <tr>
+      <td>Are retries safe?</td>
+      <td>Idempotency keys, sequence numbers; avoid duplicate side effects.</td>
+    </tr>
+    <tr>
+      <td>Durability vs availability?</td>
+      <td>Sync replication/WAL/backups vs looser RPO/RTO.</td>
+    </tr>
+    <tr>
+      <td>Dependency isolation?</td>
+      <td>Bulkheads, timeouts, rate limits, queues.</td>
+    </tr>
+
+    <!-- Observability -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Observability (Monitoring, Logging, Tracing)</strong></td></tr>
+    <tr>
+      <td>Alert on the right signals?</td>
+      <td>Golden signals &amp; anomaly detection; dead-man’s switch for silence.</td>
+    </tr>
+    <tr>
+      <td>Trace across services?</td>
+      <td>Correlation IDs, OpenTelemetry, X-Ray/Jaeger.</td>
+    </tr>
+    <tr>
+      <td>Structured, centralized logs?</td>
+      <td>ELK/Loki/Datadog; consistent fields &amp; sampling.</td>
+    </tr>
+    <tr>
+      <td>Business KPIs as metrics?</td>
+      <td>Emit product KPIs alongside infra metrics.</td>
+    </tr>
+
+    <!-- Deployment -->
+    <tr><td colspan="2" style="text-align:center;"><strong>Infrastructure</strong></td></tr>
+    <tr>
+      <td>Cloud, hybrid, or on-prem?</td>
+      <td>Managed services vs portable containers/orchestration.</td>
+    </tr>
+    <tr>
+      <td>Multi-region?</td>
+      <td>Global DNS, replication strategy, active-active/DR.</td>
+    </tr>
+    <tr>
+      <td>IaC &amp; CI/CD?</td>
+      <td>Terraform/CDK + pipelines; policy as code.</td>
+    </tr>
+    <tr>
+      <td>Release safety?</td>
+      <td>Canary, feature flags, rollbacks; infra drift detection.</td>
+    </tr>
+
+  </tbody>
 </table>
+
 
 ---
-
-### 2. Type (Schema, Format, Encoding) {#section-2-type-schema-format-encoding}
-
-**Goal**: Define how data is structured and encoded for storage and querying.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Is schema known and enforced?</td>
-<td>Yes → SQL or schema registry (Avro/Protobuf)<br>No → NoSQL or S3 object storage</td>
-</tr>
-<tr>
-<td>Is the payload narrow or wide?</td>
-<td>Narrow → Time-series DB<br>Wide → OLAP columnar store</td>
-</tr>
-<tr>
-<td>Do you need compact storage or human-readable?</td>
-<td>Compact → Protobuf, Avro<br>Readable → JSON, CSV</td>
-</tr>
-<tr>
-<td>Are values nested or flat?</td>
-<td>Nested → NoSQL/JSONB<br>Flat → SQL</td>
-</tr>
-</tbody>
-</table>
-
----
-
-### 3. Storage (Scale, Structure, Retention) {#section-3-storage-scale-structure-retention}
-
-**Goal**: Choose the right storage engine based on size, retention, and query patterns.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>What’s the expected daily volume and retention?</td>
-<td>High volume or long retention → Cold storage or tiered design (S3 + DB)</td>
-</tr>
-<tr>
-<td>Are writes frequent or infrequent?</td>
-<td>Hot → Streaming DB or append log<br>Cold → SQL with indices</td>
-</tr>
-<tr>
-<td>Is data mutable or immutable?</td>
-<td>Mutable → SQL, versioning<br>Immutable → Append-only, event store</td>
-</tr>
-<tr>
-<td>Do queries require joins or time-based filters?</td>
-<td>Joins → SQL<br>Time filtering → Time-series DB or partitioning</td>
-</tr>
-<tr>
-<td>What consistency level is required?</td>
-<td>Strong → SQL<br>Eventual → NoSQL or object storage</td>
-</tr>
-</tbody>
-</table>
-
----
-
-### 4. Access Pattern (Read Behavior & Consumers) {#section-4-access-pattern-read-behavior-consumers}
-
-**Goal**: Understand how data will be queried and consumed.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Are reads real-time, periodic, or ad-hoc?</td>
-<td>Real-time → Cache or precompute<br>Ad-hoc → OLAP or query planner</td>
-</tr>
-<tr>
-<td>Do consumers read by ID, time, or search?</td>
-<td>ID → Key-value<br>Time → Time-series DB<br>Search → Inverted index (Elasticsearch)</td>
-</tr>
-<tr>
-<td>Is access global or scoped (user/region)?</td>
-<td>Scoped → Partitioned tables or row-level access</td>
-</tr>
-<tr>
-<td>Do consumers expect summaries/aggregates?</td>
-<td>Yes → Pre-aggregated views or OLAP materialization</td>
-</tr>
-</tbody>
-</table>
-
-**Ingestion Guideline**:
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Use Case</th>
-<th>Best Option</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>&lt; 1K messages/sec, low fan-out</td>
-<td>SQS/SNS</td>
-</tr>
-<tr>
-<td>1K–10K messages/sec, occasional fan-out</td>
-<td>Kinesis</td>
-</tr>
-<tr>
-<td>&gt;10K messages/sec, multi-consumer, replayable</td>
-<td>Kafka or Kinesis</td>
-</tr>
-</tbody>
-</table>
-
----
-
-### 5. API (Interface & Access Protocols) {#section-5-api-interface-access-protocols}
-
-**Goal**: Select interaction method and latency model.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Are responses user- or system-triggered?</td>
-<td>User → REST/GraphQL<br>System → Webhook, Kafka, MQTT</td>
-</tr>
-<tr>
-<td>Is real-time push required?</td>
-<td>Yes → WebSocket, SSE, MQTT<br>No → REST polling</td>
-</tr>
-<tr>
-<td>Can responses be precomputed?</td>
-<td>Yes → Redis, materialized views<br>No → On-demand compute</td>
-</tr>
-<tr>
-<td>Do clients need batch or large downloads?</td>
-<td>Yes → Async job + signed URL<br>No → Paginated API</td>
-</tr>
-</tbody>
-</table>
-
----
-
-### 6. Frontend / Client Needs {#section-6-frontend-client-needs}
-
-**Goal**: Ensure smooth rendering and interactive experience.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Does the UI need low-latency/live updates?</td>
-<td>Yes → Push (WebSocket/SSE) or fast polling</td>
-</tr>
-<tr>
-<td>Does client render large lists/maps?</td>
-<td>Yes → Pagination, infinite scroll, viewport filtering</td>
-</tr>
-<tr>
-<td>Is advanced filtering or search required?</td>
-<td>Yes → Search engines (Typesense, Meilisearch, Elasticsearch)</td>
-</tr>
-<tr>
-<td>Is offline access required?</td>
-<td>Yes → Service Workers + IndexedDB/LocalStorage</td>
-</tr>
-<tr>
-<td>Are views personalized per user/role?</td>
-<td>Yes → RBAC and query-level filters</td>
-</tr>
-</tbody>
-</table>
-
----
-
-### 7. Security (Auth, Privacy, Protection) {#section-7-security-auth-privacy-protection}
-
-**Goal**: Define minimum protection and tenant isolation.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Who can access the data?</td>
-<td>Public → Read-only APIs + WAF<br>Private → Auth (JWT/API Key, IAM)</td>
-</tr>
-<tr>
-<td>Does data belong to specific users/orgs?</td>
-<td>Yes → Row-level security or tenant-specific schemas</td>
-</tr>
-<tr>
-<td>Is access logged/monitored?</td>
-<td>Yes → Append-only audit trail, log forwarding</td>
-</tr>
-<tr>
-<td>Do you need abuse protection?</td>
-<td>Yes → Throttling, WAF, API Gateway, CAPTCHA</td>
-</tr>
-</tbody>
-</table>
-
----
-
-### 8. Scalability (Throughput & Growth) {#section-8-scalability-throughput-growth}
-
-**Goal**: Forecast growth and plan scale-out.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Is growth linear or exponential?</td>
-<td>Exponential → Plan early sharding, avoid monoliths</td>
-</tr>
-<tr>
-<td>Is workload CPU, memory, or I/O bound?</td>
-<td>CPU → Worker scaling<br>I/O → Queue or backpressure<br>Memory → Cache or batching</td>
-</tr>
-<tr>
-<td>Can the system scale horizontally?</td>
-<td>Yes → Stateless microservices, partitioned DBs</td>
-</tr>
-<tr>
-<td>Are there natural partition keys?</td>
-<td>Yes → Device ID, region, tenant → scalable sharding</td>
-</tr>
-</tbody>
-</table>
-
----
-
-### 9. Reliability & Fault Tolerance {#section-9-reliability-fault-tolerance}
-
-**Goal**: Ensure continuity of service and graceful degradation.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>What is the impact of a failed service/component?</td>
-<td>High → Retries, failover, fallback, circuit breakers</td>
-</tr>
-<tr>
-<td>Can events be retried safely?</td>
-<td>Yes → Idempotency keys, sequence markers</td>
-</tr>
-<tr>
-<td>Is durability more important than availability?</td>
-<td>Yes → Sync replication, WAL, backups</td>
-</tr>
-<tr>
-<td>How are dependencies isolated?</td>
-<td>Queues, bulkheads, rate limits, timeouts</td>
-</tr>
-</tbody>
-</table>
-
----
-
-### 10. Observability (Monitoring, Logging, Tracing) {#section-10-observability-monitoring-logging-tracing}
-
-**Goal**: Enable root-cause analysis and system visibility.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Do you need alerts on abnormal behavior?</td>
-<td>Yes → Metrics, anomaly detection, dead man’s switch</td>
-</tr>
-<tr>
-<td>Can you trace requests across systems?</td>
-<td>Yes → Correlation IDs, OpenTelemetry, AWS X-Ray</td>
-</tr>
-<tr>
-<td>Is structured logging important?</td>
-<td>Yes → Central log collector (Loki, ELK, Datadog)</td>
-</tr>
-<tr>
-<td>Are business-level metrics needed?</td>
-<td>Yes → Emit custom application KPIs</td>
-</tr>
-</tbody>
-</table>
-
----
-
-### 11. Deployment & Infrastructure {#section-11-deployment-infrastructure}
-
-**Goal**: Define environment and rollout strategy.
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Critical Question</th>
-<th>Impact on Design</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Is it cloud-native, hybrid, or on-prem?</td>
-<td>Cloud → Use managed services<br>Hybrid → Consider containers, orchestration</td>
-</tr>
-<tr>
-<td>Is multi-region required?</td>
-<td>Yes → Global DNS, active-active, replication</td>
-</tr>
-<tr>
-<td>Is IaC/CI/CD expected?</td>
-<td>Yes → Terraform/CDK, pipelines (GitHub Actions, ArgoCD)</td>
-</tr>
-<tr>
-<td>How fast must changes deploy?</td>
-<td>Fast → Canary releases, feature flags, rollback support</td>
-</tr>
-</tbody>
-</table>
 
 # System Design Scenarios {#system-design-scenarios}
 
@@ -452,12 +296,12 @@ Each table follows the same structure: **Block → Design Choice → Justificati
 <td>Low latency ingest + efficient aggregation</td>
 </tr>
 <tr>
-<td><strong>API</strong></td>
+<td><strong>Core API</strong></td>
 <td>REST polling every 10s (map)<br>REST queries (historical)</td>
 <td>Polling is simple, cost-efficient for low concurrency</td>
 </tr>
 <tr>
-<td><strong>Client</strong></td>
+<td><strong>Presentation</strong></td>
 <td>Web map grid updated every 10s<br>Historical dashboard with calendar filter</td>
 <td>Lightweight visualization for end users</td>
 </tr>
@@ -528,12 +372,12 @@ Each table follows the same structure: **Block → Design Choice → Justificati
 <td>Decouples writes from personalized feed building</td>
 </tr>
 <tr>
-<td><strong>API</strong></td>
+<td><strong>Core API</strong></td>
 <td>REST (post, follow)<br>WebSocket/GraphQL (feed updates)</td>
 <td>REST reliable for writes; streaming API for low-latency feeds</td>
 </tr>
 <tr>
-<td><strong>Client</strong></td>
+<td><strong>Presentation</strong></td>
 <td>Web + mobile apps<br>Infinite scroll timeline, notifications</td>
 <td>Optimized UX for engagement</td>
 </tr>
@@ -604,12 +448,12 @@ Each table follows the same structure: **Block → Design Choice → Justificati
 <td>Event-driven ensures reliable order flow</td>
 </tr>
 <tr>
-<td><strong>API</strong></td>
+<td><strong>Core API</strong></td>
 <td>REST (catalog, cart, order)<br>GraphQL (flexible queries for product search)</td>
 <td>REST for critical workflows; GraphQL for frontend flexibility</td>
 </tr>
 <tr>
-<td><strong>Client</strong></td>
+<td><strong>Presentation</strong></td>
 <td>Web + mobile storefront<br>Search, cart, checkout flows</td>
 <td>Responsive UX, optimized conversions</td>
 </tr>
@@ -680,12 +524,12 @@ Each table follows the same structure: **Block → Design Choice → Justificati
 <td>Collision avoidance; decouple hot path from analytics</td>
 </tr>
 <tr>
-<td><strong>API</strong></td>
+<td><strong>Core API</strong></td>
 <td>REST + 301/302 redirect; rate-limits per owner</td>
 <td>Browser-native redirect semantics; abuse protection</td>
 </tr>
 <tr>
-<td><strong>Client</strong></td>
+<td><strong>Presentation</strong></td>
 <td>Simple web console + CLI; QR export</td>
 <td>Low-friction creation and sharing</td>
 </tr>
@@ -756,12 +600,12 @@ Each table follows the same structure: **Block → Design Choice → Justificati
 <td>Higher relevance; fast refresh with partial updates</td>
 </tr>
 <tr>
-<td><strong>API</strong></td>
+<td><strong>Core API</strong></td>
 <td>Search REST: q, filters, sort; autosuggest endpoint</td>
 <td>Standard search UX; low-latency responses</td>
 </tr>
 <tr>
-<td><strong>Client</strong></td>
+<td><strong>Presentation</strong></td>
 <td>Web UI: search box, facets, highlighting; pagination</td>
 <td>Discoverability and relevance feedback</td>
 </tr>
@@ -832,12 +676,12 @@ Each table follows the same structure: **Block → Design Choice → Justificati
 <td>Low-latency decisions; adaptive pricing</td>
 </tr>
 <tr>
-<td><strong>API</strong></td>
+<td><strong>Core API</strong></td>
 <td>REST: request/cancel trip, quote; WebSocket: live driver ETA/track</td>
 <td>Seamless UX for requests + realtime updates</td>
 </tr>
 <tr>
-<td><strong>Client</strong></td>
+<td><strong>Presentation</strong></td>
 <td>Mobile map with live driver markers; push notifications</td>
 <td>High-frequency updates with low battery impact</td>
 </tr>
