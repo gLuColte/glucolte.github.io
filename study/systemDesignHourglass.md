@@ -5,8 +5,6 @@ permalink: /study/systemDesignHourglass
 
 # Hourglass Design {#hour-glass}
 
-## Hourglass Process {#hourglass-process}
-
 An iterative, decision-driven guide to building scalable and reliable systems.  
 The process transforms raw data into the **shape that clients and consumers require**.
 
