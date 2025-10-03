@@ -79,12 +79,13 @@ By separating responsibilities, the OSI model makes it easier to design, trouble
 🔁 **Encapsulation order:**  
 `Application Data → Segment → Packet → Frame → Bits`
 
-<div style="text-align: center; margin: 20px 0;">
+<div class="image-wrapper">
   <img src="https://assets.bytebytego.com/diagrams/0295-osi-model.jpeg" 
        alt="ByteByteGo OSI Model" 
-       style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-  <div style="margin-top: 8px; font-size: 0.9em; color: #555;">
-    <a href="https://bytebytego.com/guides/what-is-osi-model/" target="_blank" style="text-decoration: none; color: #3366cc;">
+       class="modal-trigger" 
+       data-caption="OSI Model Layers explained with protocols and data flow">
+  <div class="image-caption">
+    <a href="https://bytebytego.com/guides/what-is-osi-model/" target="_blank" style="text-decoration: none; color: var(--accent);">
       📖 Source: OSI Model Explained – Byte Byte Go
     </a>
   </div>
@@ -151,14 +152,12 @@ By separating responsibilities, the OSI model makes it easier to design, trouble
 
 Maps IP → MAC via broadcast request and unicast reply.  
 
-<div class="diagram-wrapper">
-  <img src="./assets/l2_arp.png" alt="L2 ARP Example">
-
+<div class="image-wrapper">
+  <img src="./assets/l2_arp.png" alt="L2 ARP Example" class="modal-trigger" data-caption="ARP (Address Resolution Protocol) sequence diagram showing IP to MAC address resolution">
   <div class="diagram-caption" data-snippet-id="arp-snippet">
-    🖼️ ARP – Sequence (hover to see PlantUML code)
+    🖼️ ARP – Address Resolution Protocol Sequence (hover to see PlantUML code)
   </div>
-
-  <!-- Keep your PlantUML raw here -->
+    <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="arp-snippet">
 @startuml
 actor "Host A\n(133.33.3.7)" as A
@@ -205,13 +204,11 @@ VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains,
 ### 3.3 Layer 3 – Routing
 Routers strip old frames, keep IP header, attach new MAC header for next hop.  
 
-<div class="diagram-wrapper">
-  <img src="./assets/l3_routing.png" alt="L3 Routing Example">
-
+<div class="image-wrapper">
+  <img src="./assets/l3_routing.png" alt="L3 Routing Example" class="modal-trigger" data-caption="L3 Routing sequence diagram showing packet routing through different networks">
   <div class="diagram-caption" data-snippet-id="routing-snippet">
-    🖼️ Routing – Sequence (hover to see PlantUML code)
+    🖼️ L3 Routing – Packet Routing Sequence (hover to see PlantUML code)
   </div>
-
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="routing-snippet">
 @startuml
@@ -247,10 +244,10 @@ IPsec = encrypted **network tunnels**.
 - Commonly used for site-to-site and remote-access VPNs.  
 - Protects *all traffic* (HTTP, SSH, DNS, ICMP, etc.), independent of app protocol.
 
-<div class="diagram-wrapper">
-  <img src="./assets/ipsec_handshake.png" alt="IPsec Example">
+<div class="image-wrapper">
+  <img src="./assets/ipsec_handshake.png" alt="IPsec Example" class="modal-trigger" data-caption="IPsec handshake sequence showing IKE phase 1 and 2 negotiations">
   <div class="diagram-caption" data-snippet-id="ipsec-snippet">
-    🖼️ IPsec – Sequence (hover to see PlantUML code)
+    🖼️ IPsec – IKE Handshake Sequence (hover to see PlantUML code)
   </div>
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="ipsec-snippet">
@@ -298,10 +295,11 @@ TLS = encrypted **application sessions**.
 - Examples: HTTPS, SMTPS, IMAPS.  
 - Protects *specific app protocols*, not all traffic.
 
-<div class="diagram-wrapper">
-  <img src="./assets/tls_handshake.png" alt="TLS Example">
+ 
+<div class="image-wrapper">
+  <img src="./assets/tls_handshake.png" alt="TLS Example" class="modal-trigger" data-caption="TLS handshake sequence showing client hello, server hello, certificate exchange, and key creation">
   <div class="diagram-caption" data-snippet-id="tls-snippet">
-    🖼️ TLS – Sequence (hover to see PlantUML code)
+    🖼️ TLS – Secure Handshake Sequence (hover to see PlantUML code)
   </div>
   <!-- Keep your PlantUML raw here -->
   <script type="text/plain" id="tls-snippet">
@@ -638,3 +636,167 @@ The internet is a **network of networks** (Autonomous Systems, or AS):
   * Detect and stop **application-layer DDoS** (HTTP floods, bots).  
   * Enforce **auth/security policies** (tokens, TLS inspection).  
 * **Examples:** AWS WAF, Cloudflare WAF, Palo Alto NGFW, F5 ASM.  
+
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <button class="modal-nav modal-prev">&#8249;</button>
+    <button class="modal-nav modal-next">&#8250;</button>
+    <img id="modalImage" src="" alt="">
+    <div id="modalCaption"></div>
+  </div>
+</div>
+
+<script>
+// Image Modal functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('imageModal');
+  const modalImg = document.getElementById('modalImage');
+  const modalCaption = document.getElementById('modalCaption');
+  const modalClose = document.querySelector('.modal-close');
+  const modalPrev = document.querySelector('.modal-prev');
+  const modalNext = document.querySelector('.modal-next');
+  
+  // Handle scroll zoom functionality
+  let currentScale = 1;
+  const scaleFactor = 0.1;
+  
+  // Function to update image transform
+  function updateImageTransform() {
+    modalImg.style.transform = `scale(${currentScale})`;
+    modalImg.style.transition = 'transform 0.1s ease';
+  }
+  
+  // Modal open function
+  function openModal(imageSrc, caption) {
+    modalImg.src = imageSrc;
+    if (caption) {
+      modalCaption.textContent = caption;
+    } else {
+      modalCaption.textContent = '';
+    }
+    modal.classList.add('show');
+    currentScale = 1;
+    updateImageTransform();
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+  }
+  
+  // Modal close function
+  function closeModal() {
+    modal.classList.remove('show');
+    document.body.style.overflow = ''; // Restore scrolling
+    currentScale = 1;
+  }
+  
+  // Handle image clicks
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-trigger')) {
+      const src = e.target.src;
+      const caption = e.target.getAttribute('data-caption') || e.target.alt;
+      openModal(src, caption);
+    }
+  });
+  
+  // Close modal when clicking X or outside the image
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+  
+  // Handle keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (modal.classList.contains('show')) {
+      switch(e.key) {
+        case 'Escape':
+          closeModal();
+          break;
+        case 'ArrowLeft':
+          modalPrev.click();
+          break;
+        case 'ArrowRight':
+          modalNext.click();
+          break;
+        case '+':
+        case '=':
+          e.preventDefault();
+          currentScale = Math.min(currentScale + scaleFactor, 3);
+          updateImageTransform();
+          break;
+        case '-':
+          e.preventDefault();
+          currentScale = Math.max(currentScale - scaleFactor, 0.1);
+          updateImageTransform();
+          break;
+        case '0':
+          e.preventDefault();
+          currentScale = 1;
+          updateImageTransform();
+          break;
+      }
+    }
+  });
+  
+  // Handle scroll wheel for zoom
+  modal.addEventListener('wheel', function(e) {
+    if (modal.classList.contains('show')) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -scaleFactor : scaleFactor;
+      currentScale = Math.max(0.1, Math.min(3, currentScale + delta));
+      updateImageTransform();
+    }
+  });
+  
+  // Prevent default touch behavior on mobile
+  modal.addEventListener('touchstart', function(e) {
+    if (modal.classList.contains('show')) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  // Handle pinch zoom for mobile
+  let initialDistance = 0;
+  modal.addEventListener('touchstart', function(e) {
+    if (modal.classList.contains('show') && e.touches.length === 2) {
+      initialDistance = Math.sqrt(
+        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
+        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
+      );
+    }
+  });
+  
+  modal.addEventListener('touchmove', function(e) {
+    if (modal.classList.contains('show') && e.touches.length === 2) {
+      e.preventDefault();
+      const currentDistance = Math.sqrt(
+        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
+        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
+      );
+      const scaleChange = (currentDistance - initialDistance) / initialDistance;
+      currentScale = Math.max(0.1, Math.min(3, currentScale + scaleChange * 0.5));
+      updateImageTransform();
+    }
+  }, { passive: false });
+});
+
+// PlantUML Hover Tooltip functionality
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[data-snippet-id]').forEach(function(caption) {
+    const snippetId = caption.getAttribute('data-snippet-id');
+    const snippetElement = document.getElementById(snippetId);
+    
+    if (snippetElement) {
+      // Replace double quotes with &quot; for proper HTML display
+      const content = snippetElement.textContent.replace(/"/g, '&quot;');
+      
+      // Set the tooltip content as a data attribute
+      caption.setAttribute('data-tooltip', content);
+      
+      // Add hover functionality
+      caption.classList.add('diagram-caption');
+    }
+  });
+});
+</script>

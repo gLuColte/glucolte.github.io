@@ -1,5 +1,5 @@
 ---
-title: AWS Architecture Best Practices
+title: AWS Best Practices
 permalink: /study/infrastructureAWSArchitecture
 ---
 

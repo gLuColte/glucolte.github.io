@@ -3,263 +3,366 @@ title: Hourglass Design
 permalink: /study/systemDesignHourglass
 ---
 
-# System Design Architecture
 
-Fundamental concepts and principles for designing scalable, reliable, and maintainable systems.
+## 🧠 "Hour Glass"
 
----
-
-## Data Sources & Types
-
-### Data Sources
-- **User Input**: Forms, APIs, real-time interactions
-- **External APIs**: Third-party services, webhooks
-- **Databases**: Existing data stores, legacy systems
-- **Files**: Uploads, batch processing, logs
-- **Streams**: Real-time data feeds, IoT devices
-- **Caches**: Redis, Memcached, CDN data
-
-### Data Types
-- **Structured**: Relational databases, JSON, XML
-- **Semi-structured**: NoSQL documents, logs
-- **Unstructured**: Images, videos, text documents
-- **Time-series**: Metrics, sensor data, financial data
-- **Graph**: Social networks, recommendations
-- **Key-value**: Session data, configuration
+> An iterative, decision-driven guide to building scalable and reliable systems.
+> In a way you are transforming the data and make it "what the clients" want to see
 
 ---
 
-## Storage Considerations
+### 1. 🟪 Source (Data Origin & Ingress)
 
-### Storage Types
-- **Relational (ACID)**: Financial transactions, user accounts
-- **NoSQL (BASE)**: User profiles, product catalogs
-- **In-memory**: Session data, real-time analytics
-- **File storage**: Media files, documents
-- **Time-series**: Metrics, logs, sensor data
-- **Search**: Full-text search, recommendations
+**Goal**: Identify the nature, rate, and reliability of data entering the system.
 
-### Storage Patterns
-- **Read-heavy**: Caching, read replicas, CDN
-- **Write-heavy**: Sharding, partitioning, async processing
-- **Mixed workload**: Separate read/write paths
-- **Analytical**: Data warehouses, OLAP systems
+| Critical Question                                    | Impact on Design                                                               |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------ |
+| How many sources, and what type (IoT, user, system)? | Determines protocol and scale: MQTT/Kafka for IoT, REST for users              |
+| Is the source push or pull?                          | Push → queue/broker needed. Pull → periodic scheduler or polling logic.        |
+| How frequent is the data (ms, sec, min)?             | Sub-second → stream system<br>Low-freq → batch/job                             |
+| Can the source apply compute (pre-filter)?           | Yes → reduce load and noise<br>No → all logic must be server-side              |
+| Is each source uniquely identifiable?                | Yes → partitioning/sharding<br>No → risk of duplication or tracking complexity |
 
 ---
 
-## Access Patterns
+### 2. 🟩 Type (Schema, Format, Encoding)
 
-### Read Patterns
-- **Point queries**: User profiles, product details
-- **Range queries**: Time-based data, pagination
-- **Aggregations**: Analytics, reporting, dashboards
-- **Full-text search**: Search functionality
-- **Real-time**: Live updates, notifications
+**Goal**: Determine how the data is structured and what formats affect storage/querying.
 
-### Write Patterns
-- **Single writes**: User actions, form submissions
-- **Batch writes**: Data imports, ETL processes
-- **Streaming**: Real-time data ingestion
-- **Transactional**: Multi-step operations
-- **Event-driven**: Asynchronous processing
+| Critical Question                                         | Impact on Design                                                 |
+| --------------------------------------------------------- | ---------------------------------------------------------------- |
+| Is schema known and enforced?                             | Yes → SQL or schema registry (Avro/Protobuf)<br>No → NoSQL or S3 |
+| Is the payload narrow (few fields) or wide (many fields)? | Narrow → Time-series DB<br>Wide → OLAP column store              |
+| Do you need compact storage or human-readable?            | Compact → Protobuf, Avro<br>Readable → JSON, CSV                 |
+| Are values nested or flat?                                | Nested → NoSQL/JSONB<br>Flat → SQL                               |
 
 ---
 
-## Scalability Patterns
+### 3. 🟥 Storage (Scale, Structure, and Retention)
 
-### Horizontal Scaling
-- **Load balancing**: Distribute traffic across instances
-- **Sharding**: Partition data across multiple databases
-- **Microservices**: Decompose monolithic applications
-- **Caching layers**: Reduce database load
-- **CDN**: Distribute static content globally
+**Goal**: Pick the right engine based on size, write pattern, and query behavior.
 
-### Vertical Scaling
-- **Resource optimization**: CPU, memory, storage upgrades
-- **Database tuning**: Query optimization, indexing
-- **Application optimization**: Code efficiency, algorithms
-- **Infrastructure**: Faster hardware, better networks
+| Critical Question                                        | Impact on Design                                                        |
+| -------------------------------------------------------- | ----------------------------------------------------------------------- |
+| What’s the expected daily volume and retention duration? | High volume or long retention → Cold storage or tiered design (S3 + DB) |
+| Are writes frequent (hot) or infrequent (cold)?          | Hot → Streaming DB or Append log<br>Cold → SQL with indices             |
+| Is data mutable or immutable?                            | Mutable → SQL, versioning<br>Immutable → Append-only, event stores      |
+| Do queries require joins or time-based filters?          | Joins → SQL<br>Time-filtering → Time-series or partitioned DB           |
+| What consistency level is required?                      | Strong → SQL<br>Eventual → NoSQL or object storage                      |
 
 ---
 
-## Consistency Models
+### 4. 🟨 Access Pattern (Read Behavior & Consumers)
 
-### Strong Consistency
-- **ACID properties**: Atomicity, Consistency, Isolation, Durability
-- **Use cases**: Financial transactions, critical data
-- **Trade-offs**: Higher latency, lower availability
+**Goal**: Understand **how data is queried**, to shape indexing and compute needs.
 
-### Eventual Consistency
-- **BASE properties**: Basically Available, Soft state, Eventual consistency
-- **Use cases**: Social media, content delivery
-- **Trade-offs**: Higher availability, potential inconsistency
+| Critical Question                               | Impact on Design                                                  |
+| ----------------------------------------------- | ----------------------------------------------------------------- |
+| Are reads real-time, periodic, or ad-hoc?       | Real-time → Cache or precompute<br>Ad-hoc → OLAP or query planner |
+| Do consumers read by ID, time range, or search? | ID → Key-value<br>Time → TSDB<br>Search → Inverted index/Elastic  |
+| Is access global or scoped (by user/region)?    | Scoped → Partitioned tables or row-level access                   |
+| Do consumers expect computed summaries?         | Yes → Pre-aggregated views, OLAP tables, materialized views       |
 
-### Consistency Levels
-- **Strong**: All nodes see same data immediately
-- **Weak**: Nodes may have different data temporarily
-- **Eventual**: Data becomes consistent over time
-- **Session**: Consistency within user session
+Note for ingestion:
 
----
-
-## Availability & Reliability
-
-### Availability Patterns
-- **Redundancy**: Multiple instances, failover
-- **Circuit breakers**: Prevent cascade failures
-- **Bulkheads**: Isolate failures
-- **Health checks**: Monitor system status
-- **Graceful degradation**: Reduce functionality vs. total failure
-
-### Reliability Metrics
-- **MTBF**: Mean Time Between Failures
-- **MTTR**: Mean Time To Recovery
-- **SLA**: Service Level Agreement
-- **SLO**: Service Level Objective
-- **SLI**: Service Level Indicator
+| Use Case                                      | Best Option   |
+| --------------------------------------------- | ------------- |
+| < 1K messages/sec, low fan-out                | SQS/SNS       |
+| 1K–10K messages/sec, occasional fan-out       | Kinesis       |
+| >10K messages/sec, multi-consumer, replayable | Kafka/Kinesis |
 
 ---
 
-## Performance Considerations
+### 5. 🟧 API (Interface & Access Protocols)
 
-### Latency Optimization
-- **Caching**: Application, database, CDN
-- **Connection pooling**: Reuse database connections
-- **Async processing**: Non-blocking operations
-- **Compression**: Reduce data transfer
-- **CDN**: Geographic distribution
+**Goal**: Choose interface method based on interaction style and latency needs.
 
-### Throughput Optimization
-- **Horizontal scaling**: Add more instances
-- **Database optimization**: Indexing, query tuning
-- **Load balancing**: Distribute requests
-- **Batch processing**: Group operations
-- **Connection multiplexing**: Share connections
+| Critical Question                                 | Impact on Design                                              |
+| ------------------------------------------------- | ------------------------------------------------------------- |
+| Are responses user-triggered or system-triggered? | User → REST/GraphQL<br>System → Webhook, Kafka, MQTT          |
+| Is real-time push required?                       | Yes → WebSocket, SSE, MQTT<br>No → REST polling               |
+| Can responses be precomputed?                     | Yes → Redis/materialized views<br>No → On-demand DB or Lambda |
+| Do clients need batch/massive downloads?          | Yes → Async job + link<br>No → Paginated API                  |
 
 ---
 
-## Security Architecture
+### 6. 🟦 Frontend / Client Needs
 
-### Authentication & Authorization
-- **Identity providers**: OAuth, SAML, LDAP
-- **Role-based access**: RBAC, ABAC
-- **API security**: API keys, JWT tokens
-- **Session management**: Secure session handling
+**Goal**: Understand client-side data behavior, rendering, and interactivity.
 
-### Data Protection
-- **Encryption**: At rest, in transit
-- **Data masking**: PII protection
-- **Audit logging**: Track access and changes
-- **Compliance**: GDPR, HIPAA, SOX
+| Critical Question                              | Impact on Design                                                        |
+| ---------------------------------------------- | ----------------------------------------------------------------------- |
+| Does the UI require low-latency/live updates?  | Yes → Push via WebSocket/SSE or fast polling                            |
+| Does the client render large lists/maps/feeds? | Yes → Use pagination, infinite scroll, viewport filtering               |
+| Is there advanced filtering or search?         | Yes → Use client-friendly search engines (Typesense, Meilisearch, etc.) |
+| Do users expect offline access or sync?        | Yes → Service Workers + LocalStorage / IndexedDB                        |
+| Are client views customized per user/role?     | Yes → Personalization and RBAC filtering at query-level                 |
 
 ---
 
-## Monitoring & Observability
+### 7. 🔐 Security (Auth, Privacy, Protection)
 
-### Metrics
-- **Application metrics**: Response time, error rate
-- **Infrastructure metrics**: CPU, memory, disk
-- **Business metrics**: User engagement, revenue
-- **Custom metrics**: Domain-specific KPIs
+**Goal**: Define minimum protection and tenant isolation.
 
-### Logging
-- **Structured logging**: JSON, key-value pairs
-- **Log aggregation**: Centralized log collection
-- **Log analysis**: Search, filtering, alerting
-- **Retention policies**: Storage and compliance
-
-### Tracing
-- **Distributed tracing**: Request flow across services
-- **Performance profiling**: Identify bottlenecks
-- **Error tracking**: Debug production issues
-- **User journey**: Track user interactions
+| Critical Question                        | Impact on Design                                                 |
+| ---------------------------------------- | ---------------------------------------------------------------- |
+| Who can access the data and how?         | Public → Read-only APIs + WAF<br>Private → Auth with JWT/API Key |
+| Does data belong to specific users/orgs? | Yes → Row-level security or schema-per-tenant                    |
+| Is access logged and monitored?          | Yes → Append-only audit trail or log forwarding                  |
+| Do you need protection from abuse?       | Yes → Throttling, WAF, API gateway, CAPTCHA                      |
 
 ---
 
-## Design Patterns
+### 8. 📈 Scalability (Throughput & Growth)
 
-### Microservices Patterns
-- **API Gateway**: Single entry point
-- **Service Discovery**: Dynamic service location
-- **Circuit Breaker**: Fault tolerance
-- **Saga**: Distributed transaction management
-- **CQRS**: Command Query Responsibility Segregation
+**Goal**: Forecast data/traffic growth and proactively plan for scale-out.
 
-### Data Patterns
-- **Event Sourcing**: Store events, not state
-- **CQRS**: Separate read/write models
-- **Saga**: Long-running transactions
-- **Outbox**: Reliable event publishing
-- **Event-driven**: Asynchronous communication
+| Critical Question                                              | Impact on Design                                                                |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Is data or traffic expected to grow linearly or exponentially? | Exponential → Shard early, avoid monoliths                                      |
+| Is the workload CPU, memory, or I/O bound?                     | CPU → Worker scale<br>I/O → Queue or backpressure<br>Memory → Cache or batching |
+| Can the system be horizontally scaled easily?                  | Yes → Stateless microservices, partitioned DBs, autoscaling nodes               |
+| Are there natural partitioning keys?                           | Yes → Device ID, region, tenant → enables scalable sharding                     |
 
 ---
 
-## Trade-offs & Decision Framework
+### 9. 🔁 Reliability & Fault Tolerance
 
-### Common Trade-offs
-- **Consistency vs. Availability**: CAP theorem
-- **Latency vs. Throughput**: Performance optimization
-- **Cost vs. Performance**: Resource allocation
-- **Simplicity vs. Flexibility**: Architecture complexity
-- **Development speed vs. Quality**: Time to market
+**Goal**: Ensure continuity of service and graceful degradation.
 
-### Decision Framework
-1. **Requirements**: Functional and non-functional
-2. **Constraints**: Budget, timeline, team skills
-3. **Trade-offs**: Identify key decisions
-4. **Prototyping**: Validate assumptions
-5. **Iteration**: Continuous improvement
+| Critical Question                                | Impact on Design                                         |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| What’s the impact of a failed service/component? | High → Use retries, failover, fallback, circuit breakers |
+| Can events be retried safely?                    | Yes → Idempotency keys or sequence markers               |
+| Is durability more important than availability?  | Yes → Synchronous replication, WAL, backups              |
+| How are dependent services isolated?             | Queues, bulkheads, rate limits, timeouts                 |
 
 ---
 
-## Architecture Diagrams
+### 10. 🪵 Observability (Monitoring, Logging, Tracing)
 
-### High-Level Architecture
-```
-[Users] → [Load Balancer] → [API Gateway] → [Microservices]
-                                    ↓
-[Database] ← [Cache] ← [Message Queue] ← [External APIs]
-```
+**Goal**: Expose system behavior and enable root-cause analysis.
 
-### Data Flow Architecture
-```
-[Data Sources] → [Ingestion] → [Processing] → [Storage] → [Analytics]
-                      ↓              ↓           ↓
-[Real-time] → [Stream Processing] → [Cache] → [API] → [Users]
-```
+| Critical Question                        | Impact on Design                                              |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| Do you need alerts on abnormal behavior? | Yes → Metric thresholds, anomaly detection, dead man’s switch |
+| Can you trace requests across systems?   | Yes → Correlation IDs, OpenTelemetry, X-Ray                   |
+| Is structured logging important?         | Yes → Use centralized log collector (Loki, ELK, Datadog)      |
+| Are business-level metrics required?     | Yes → Emit custom app metrics, not just infra metrics         |
 
 ---
 
-## Best Practices
+### 11. 🚀 Deployment & Infrastructure
 
-### Design Principles
-- **Start simple**: Begin with monolithic, evolve to microservices
-- **Design for failure**: Assume components will fail
-- **Scale horizontally**: Add more instances, not bigger ones
-- **Cache everything**: Reduce database load
-- **Monitor everything**: Visibility into system behavior
+**Goal**: Define environment, rollout strategy, and deployment control.
 
-### Implementation Guidelines
-- **API-first**: Design APIs before implementation
-- **Database design**: Normalize for consistency, denormalize for performance
-- **Error handling**: Graceful degradation, proper error codes
-- **Testing**: Unit, integration, load, and chaos testing
-- **Documentation**: Keep architecture docs updated
+| Critical Question                         | Impact on Design                                                                  |
+| ----------------------------------------- | --------------------------------------------------------------------------------- |
+| Is this cloud-native, hybrid, or on-prem? | Cloud → Use managed services<br>Hybrid/on-prem → Consider container orchestration |
+| Is multi-region a hard requirement?       | Yes → Global DNS, active-active setup, replication strategy                       |
+| Is IaC and CI/CD expected?                | Yes → Use Terraform/CDK, GitHub Actions/ArgoCD for pipelines                      |
+| How fast do changes need to deploy?       | Fast → Canary releases, feature flags, rollback support                           |
 
 ---
 
-## Common Anti-patterns
+## Scenario 1: Realtime Temperature Monitoring with IoT Sensors
 
-### Avoid These
-- **God objects**: Classes with too many responsibilities
-- **Database as integration**: Using DB for service communication
-- **Synchronous everything**: Blocking operations everywhere
-- **No caching**: Repeated expensive operations
-- **Tight coupling**: Services directly dependent on each other
+Design a system that collects temperature data from 1 million IoT devices across NSW and publishes:
 
-### Red Flags
-- **Single point of failure**: No redundancy
-- **No monitoring**: Flying blind in production
-- **Hard-coded values**: Configuration in code
-- **No error handling**: System crashes on errors
-- **No scalability plan**: Cannot handle growth
+- A real-time pixelated temperature heatmap (~10s latency).
+- A historical dashboard with daily/weekly/monthly min/max temperatures per region.
+- Historical retention: 6 months.
+
+### 1. **Source**
+
+**What produces the data?**
+
+- **1M IoT devices** deployed across NSW
+- Each emits a temperature reading every **10 seconds**
+- Format:
+
+  ```json
+  {
+    "device_id": "abc123",
+    "timestamp": 1723049840,
+    "temperature": 26.5
+  }
+  ```
+
+**Protocol Chosen**: `MQTT`
+
+**Why**: Lightweight, supports millions of persistent low-power clients, ideal for IoT telemetry.
+
+---
+
+### 2. **Type**
+
+**What kind of data?**
+
+- **Structured, time-series**
+- Schema is **fixed** and simple
+- JSON at ingest, but stored in optimized binary
+
+---
+
+### 3. **Storage**
+
+**How is the data stored, and what format?**
+
+#### a. **Real-Time Table**
+
+| Field        | Type   | Size               |
+| ------------ | ------ | ------------------ |
+| device_id    | UInt32 | 4B                 |
+| temp         | Float  | 4B                 |
+| last_updated | UnixTS | 8B                 |
+| Total        |        | **16B** per device |
+
+→ `1M devices * 16B = 16 MB` (not GB!)
+
+#### b. **Historical Data**
+
+For each sensor:
+
+- Store **daily min/max** → 2 floats + 2 timestamps
+  → 16B per day → `1M * 180 days * 16B = 2.88 GB`
+
+Add device metadata table:
+
+- device_id, uuid, lat, long → 20B × 1M → **\~20 MB**
+
+#### ✅ Final Estimation:
+
+| Table           | Estimated Size |
+| --------------- | -------------- |
+| Realtime Table  | \~16 MB        |
+| Daily Table     | \~2.88 GB      |
+| Weekly/Monthly  | Aggregated     |
+| Device Metadata | \~20 MB        |
+| **Total**       | **\~3.5 GB**   |
+
+---
+
+### 4. **Preprocessing / Compute**
+
+**What processing is done pre-store or during ingestion?**
+
+- Real-time table: **UPDATE on each incoming reading**
+- Daily table: compare reading to current min/max → update if necessary
+- Weekly/monthly: daily aggregation jobs (batch via scheduled job)
+
+**Tech Suggestion**:
+
+- AWS Lambda or ECS service for MQTT message processing
+- Use `Redis` for fast in-memory compare/write for real-time updates
+- Then batch-write to TimescaleDB / Postgres
+
+---
+
+### 5. **API (Data Interface)**
+
+**How does the frontend consume the data?**
+
+- **Realtime map**:
+
+  - Uses **REST API** with client polling every 10 seconds
+  - Endpoint hits `realtime_table`
+
+- **Historical dashboard**:
+
+  - REST endpoint to query `daily_table`, `weekly_table`
+
+**Why polling over WebSocket?**
+
+- Map is pixelated & low-resolution, not per-device → avoid 1M WebSocket updates
+- 100 users/hour is low load
+- Polling at 10s interval is simpler, cheaper to maintain, and sufficient
+
+---
+
+### 6. **Client / Presentation**
+
+**What are the frontend requirements?**
+
+- Web map view: grid overlay updated every 10s
+- Historical dashboard with calendar filter
+- No user authentication
+
+---
+
+### 7. **Security**
+
+- No login needed, but:
+  - Throttle API to avoid DoS (e.g., CloudFront + WAF)
+- Edge - MQTT broker authentication with certs
+
+---
+
+### 8. **Scalability**
+
+- Write-heavy system (1M writes every 10s = \~100K writes/sec)
+- Use **Kafka** or **Kinesis** as buffer between MQTT and DB
+- DB partitioned on `device_id` and time
+- Stateless API → auto-scalable
+
+---
+
+### 9. **Reliability**
+
+- MQTT → At Least Once delivery
+- Ingest pipeline retry logic
+- If device fails → last_seen timestamp in DB
+- If aggregation job fails → re-run from daily table
+
+---
+
+### 10. **Observability**
+
+- Metrics:
+
+  - MQTT message rate
+  - Write latency
+  - Failed writes
+  - Last_seen_age per sensor
+
+- Logs:
+
+  - Ingestion pipeline
+  - API access logs
+
+---
+
+### 11. **Environment / Infra**
+
+- Cloud-native (AWS):
+
+  - **MQTT**: AWS IoT Core or EMQX
+  - **Buffer**: Kinesis or Kafka
+  - **Processing**: ECS, Fargate, or Lambda
+  - **Storage**: PostgreSQL + TimescaleDB
+  - **API**: FastAPI or Flask on Fargate
+  - **Infra**: IaC with Terraform/CDK
+
+---
+
+### Summary Table
+
+| Block         | Design Choice                              | Justification                      |
+| ------------- | ------------------------------------------ | ---------------------------------- |
+| Source        | MQTT sensors                               | Lightweight, IoT standard          |
+| Type          | Fixed JSON schema                          | Efficient parsing                  |
+| Storage       | PostgreSQL + Timescale                     | Time-series optimized              |
+| Compute       | Real-time update + daily aggregation jobs  | Low-latency + batch                |
+| API           | REST (polling every 10s)                   | Simpler infra, 100 users only      |
+| Client        | Grid map + calendar dashboard              | Low interaction                    |
+| Security      | Public API with WAF + MQTT certs           | Lightweight protection             |
+| Scalability   | Kafka → TimescaleDB                        | Decouples writes, horizontal scale |
+| Reliability   | Retry + health checks + last seen tracking | Graceful failure handling          |
+| Observability | Metrics + alerts + logs                    | Easy monitoring                    |
+| Environment   | AWS IoT Core, ECS, Terraform               | Modular & reproducible             |
+
+---
+
+## Scenario 2: Twitter Platform
+
+## Scenario 3: eCommerce Platform

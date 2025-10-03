@@ -6,6 +6,7 @@
   <title>AWS Network Services · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="shortcut icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/favicon.png">
@@ -61,216 +62,784 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="aws-network-services-by-osi-model">AWS Network Services By OSI Model</h1>
+      <h2 id="aws-network-overview">AWS Network Overview</h2>
+
+<p>AWS operates one of the largest private <strong>fiber-optic backbones</strong> in the world. This backbone connects <strong>Data Centers</strong>, groups them into <strong>Availability Zones (AZs)</strong>, and links multiple AZs to form a <strong>Region</strong>. From there, AWS extends outwards through <strong>Points of Presence (PoPs)</strong>, which connect to the <strong>public internet</strong> or provide private connectivity via <strong>Direct Connect</strong>.</p>
+
+<ol>
+  <li><strong>Data Centers, AZs, and Regions</strong>
+    <ul>
+      <li><strong>Data Centers</strong> are the physical foundation.</li>
+      <li>A group of data centers = an <strong>Availability Zone (AZ)</strong>.</li>
+      <li>Several AZs = a <strong>Region</strong>, interconnected by the AWS backbone for <strong>low-latency, fault-tolerant networking</strong>.</li>
+    </ul>
+  </li>
+  <li><strong>Points of Presence (PoPs)</strong>
+    <ul>
+      <li>AWS racks hosted inside <strong>third-party colocation sites</strong> (e.g., <em>Equinix, Digital Realty</em>).</li>
+      <li>Link the AWS backbone to <strong>local ISPs</strong> and <strong>IXPs</strong>.</li>
+      <li>Run edge services such as <strong>CloudFront</strong> (CDN caching) and <strong>Global Accelerator</strong> (traffic optimization).</li>
+    </ul>
+  </li>
+  <li><strong>Public Internet Connectivity</strong>
+    <ul>
+      <li>PoPs handle AWS traffic <strong>in and out of the public internet</strong>.</li>
+      <li>Customers reach AWS services through <strong>public endpoints</strong> (e.g., <em>S3, EC2 APIs</em>).</li>
+    </ul>
+  </li>
+  <li><strong>Direct Connect (DX)</strong>
+    <ul>
+      <li>A <strong>dedicated private link</strong> that bypasses the internet.</li>
+      <li>Provisioned at a PoP, giving you a <strong>physical port on AWS gear</strong>.</li>
+      <li>Delivers <strong>lower latency, higher reliability, and consistent bandwidth</strong> for hybrid cloud workloads.</li>
+    </ul>
+  </li>
+</ol>
+
+<div class="image-wrapper">
+  <img src="./assets/aws_network_general.png" alt="AWS Network Overview" class="modal-trigger" data-caption="AWS network architecture showing Data Centers, AZs, Regions, PoPs, and Direct Connect connectivity" />
+  <div class="image-caption">🌐 AWS Network Overview</div>
+</div>
+
+<hr />
+
+<h2 id="service-type-and-categories">Service Type and Categories</h2>
+
+<h3 id="1--internet-connectivity-ingress--egress">1. 🌐 Internet Connectivity (Ingress / Egress)</h3>
 
 <table class="study-table">
 <thead>
 <tr>
-<th>OSI Layer</th>
 <th>AWS Service</th>
-<th>What It Does</th>
+<th>Purpose</th>
+<th>OSI Layer</th>
+<th>Upstream</th>
+<th>Downstream</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>L7 Application</strong></td>
-<td>CloudFront</td>
-<td>Content Delivery Network (CDN) for caching and accelerating web traffic.</td>
+<td><strong>Internet Gateway (IGW)</strong></td>
+<td>Enables VPC to access the internet.</td>
+<td>L3 – Network</td>
+<td>Public Subnet</td>
+<td>Internet</td>
 </tr>
 <tr>
-<td></td>
-<td>Route 53</td>
-<td>DNS resolution, domain registration, routing policies (latency, geo, failover).</td>
+<td><strong>NAT Gateway</strong></td>
+<td>Allows private subnets to reach the internet.</td>
+<td>L3 – Network</td>
+<td>Private Subnet</td>
+<td>IGW / Internet</td>
 </tr>
 <tr>
-<td></td>
-<td>WAF</td>
-<td>Web Application Firewall filtering Layer 7 attacks (SQLi, XSS).</td>
+<td><strong>Virtual Private Gateway (VGW)</strong></td>
+<td>VPN tunnel endpoint in AWS.</td>
+<td>L3 – Network</td>
+<td>On-prem VPN device</td>
+<td>VPC Route Tables</td>
 </tr>
 <tr>
-<td></td>
-<td>API Gateway</td>
-<td>Expose/manage APIs, request/response routing.</td>
+<td><strong>Transit Gateway (TGW)</strong></td>
+<td>Central router between VPCs and VPN/Direct Connect.</td>
+<td>L3 – Network</td>
+<td>VPCs / VPN / DX</td>
+<td>VPCs / VPN / DX</td>
 </tr>
 <tr>
-<td></td>
-<td>App Mesh</td>
-<td>Service mesh for microservice-to-microservice communication.</td>
+<td><strong>Direct Connect</strong></td>
+<td>Dedicated physical link to AWS.</td>
+<td>L1 – Physical</td>
+<td>On-prem Router/Switch</td>
+<td>VPC via TGW / VGW</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="2--internal-vpc--private-service-communication">2. 🔁 Internal VPC &amp; Private Service Communication</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>AWS Service</th>
+<th>Purpose</th>
+<th>OSI Layer</th>
+<th>Upstream</th>
+<th>Downstream</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VPC Peering</strong></td>
+<td>Connects two VPCs privately.</td>
+<td>L2 (abstracted)</td>
+<td>VPC A</td>
+<td>VPC B</td>
 </tr>
 <tr>
-<td><strong>L6 Presentation</strong></td>
-<td>ACM (Certificate Manager)</td>
-<td>Manages and deploys SSL/TLS certificates for encryption.</td>
+<td><strong>PrivateLink / VPC Endpoint</strong></td>
+<td>Connects to AWS services privately within VPC.</td>
+<td>L3/L4</td>
+<td>VPC Subnet / ENI</td>
+<td>AWS Service ENI</td>
 </tr>
 <tr>
-<td></td>
-<td>AWS Shield Advanced</td>
-<td>DDoS protection including SSL/TLS-based attack mitigation.</td>
+<td><strong>Route 53 Resolver</strong></td>
+<td>Resolves DNS inside VPC.</td>
+<td>L3 – Network</td>
+<td>EC2 / Lambda / ENI</td>
+<td>Internal DNS Targets</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="3-️-load-balancing--traffic-distribution">3. ⚖️ Load Balancing &amp; Traffic Distribution</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>AWS Service</th>
+<th>Purpose</th>
+<th>OSI Layer</th>
+<th>Upstream</th>
+<th>Downstream</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ALB (Application Load Balancer)</strong></td>
+<td>Routes HTTP/HTTPS traffic.</td>
+<td>L7 / L4</td>
+<td>Internet / CloudFront</td>
+<td>EC2 / Lambda / IPs</td>
 </tr>
 <tr>
-<td><strong>L5 Session</strong></td>
-<td>Site-to-Site VPN</td>
-<td>IPSec tunnels for connecting on-prem to AWS securely.</td>
+<td><strong>NLB (Network Load Balancer)</strong></td>
+<td>Balances TCP/UDP traffic.</td>
+<td>L4 – Transport</td>
+<td>Internet / Internal VPC</td>
+<td>EC2 / IPs</td>
 </tr>
 <tr>
-<td></td>
-<td>Client VPN</td>
-<td>VPN for end-users to securely connect into AWS resources.</td>
+<td><strong>Gateway Load Balancer (GWLB)</strong></td>
+<td>Sends traffic to firewalls/appliances.</td>
+<td>L3 / L4</td>
+<td>IGW / NLB</td>
+<td>Security Appliance</td>
 </tr>
 <tr>
-<td></td>
-<td>Direct Connect</td>
-<td>Dedicated physical link for stable private connectivity into AWS.</td>
+<td><strong>Global Accelerator</strong></td>
+<td>Routes global traffic to optimal endpoint.</td>
+<td>L4 – Transport</td>
+<td>End User</td>
+<td>NLB / ALB / IPs</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="4--security--access-control">4. 🔐 Security &amp; Access Control</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>AWS Service</th>
+<th>Purpose</th>
+<th>OSI Layer</th>
+<th>Upstream</th>
+<th>Downstream</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>WAF</strong></td>
+<td>Filters HTTP/HTTPS requests.</td>
+<td>L7 – Application</td>
+<td>CloudFront / ALB</td>
+<td>ALB / API Gateway</td>
 </tr>
 <tr>
-<td><strong>L4 Transport</strong></td>
-<td>Global Accelerator</td>
-<td>Anycast routing to improve global TCP/UDP performance and availability.</td>
+<td><strong>AWS Shield / Advanced</strong></td>
+<td>DDoS protection for infrastructure and apps.</td>
+<td>L3–L7</td>
+<td>Internet / Edge</td>
+<td>VPC Entry Points</td>
 </tr>
 <tr>
-<td></td>
-<td>Elastic Load Balancer – NLB</td>
-<td>Balances TCP/UDP traffic at connection level.</td>
+<td><strong>ACM</strong></td>
+<td>Manages SSL/TLS certificates.</td>
+<td>L6 – Presentation</td>
+<td>N/A (integrated)</td>
+<td>CloudFront / ALB / API GW</td>
 </tr>
 <tr>
-<td></td>
-<td>Elastic Load Balancer – ALB</td>
-<td>Balances HTTP/HTTPS traffic (can inspect at L7, but transport at L4 too).</td>
+<td><strong>Security Groups / NACLs</strong></td>
+<td>Allow/deny traffic at instance or subnet boundary.</td>
+<td>L3 / L4</td>
+<td>Client or Peer Service</td>
+<td>EC2 / ENI / Subnet</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="5--edge-services--dns">5. 🌍 Edge Services &amp; DNS</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>AWS Service</th>
+<th>Purpose</th>
+<th>OSI Layer</th>
+<th>Upstream</th>
+<th>Downstream</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CloudFront</strong></td>
+<td>Distributes and caches content globally.</td>
+<td>L7 – Application</td>
+<td>End Users</td>
+<td>ALB / S3 / API GW</td>
 </tr>
 <tr>
-<td></td>
-<td>Transit Gateway</td>
-<td>Hub-and-spoke model for connecting multiple VPCs and on-premises.</td>
+<td><strong>Route 53</strong></td>
+<td>DNS resolution with traffic routing features.</td>
+<td>L7 – Application</td>
+<td>End Users</td>
+<td>IP / ALB / CloudFront</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="6--api--microservice-communication">6. 🧩 API &amp; Microservice Communication</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>AWS Service</th>
+<th>Purpose</th>
+<th>OSI Layer</th>
+<th>Upstream</th>
+<th>Downstream</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>API Gateway</strong></td>
+<td>Expose and manage REST/HTTP/WebSocket APIs.</td>
+<td>L7 – Application</td>
+<td>Client / CloudFront</td>
+<td>Lambda / Service Backend</td>
 </tr>
 <tr>
-<td><strong>L3 Network</strong></td>
-<td>VPC</td>
-<td>Logical isolated network with routing tables, subnets, ACLs.</td>
+<td><strong>App Mesh</strong></td>
+<td>Controls and secures service-to-service traffic in a mesh.</td>
+<td>L7 – Application</td>
+<td>Microservice A</td>
+<td>Microservice B</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="7-️-core-networking-components">7. 🛠️ Core Networking Components</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Component</th>
+<th>Purpose</th>
+<th>OSI Layer</th>
+<th>Upstream</th>
+<th>Downstream</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VPC</strong></td>
+<td>Isolated virtual network with subnets and routing.</td>
+<td>L3 – Network</td>
+<td>Internet / VPN</td>
+<td>Subnets</td>
 </tr>
 <tr>
-<td></td>
-<td>Internet Gateway (IGW)</td>
-<td>Provides L3 connectivity between VPC and the public internet.</td>
-</tr>
-<tr>
-<td></td>
-<td>NAT Gateway</td>
-<td>Enables private instances to access the internet while hiding private IPs.</td>
-</tr>
-<tr>
-<td></td>
-<td>Virtual Private Gateway (VGW)</td>
-<td>Endpoint for VPN connections into VPC.</td>
-</tr>
-<tr>
-<td></td>
-<td>Route 53 Resolver</td>
-<td>DNS resolver inside a VPC for L3 name resolution.</td>
-</tr>
-<tr>
-<td><strong>L2 Data Link</strong></td>
-<td>Elastic Network Interface (ENI)</td>
-<td>Virtual network card with MAC address, supporting multiple IPs.</td>
-</tr>
-<tr>
-<td></td>
-<td>VPC Peering (L2-ish abstraction)</td>
-<td>Connects VPCs directly, routing frames/packets transparently.</td>
-</tr>
-<tr>
-<td><strong>L1 Physical</strong></td>
-<td>AWS Global Network Backbone</td>
-<td>AWS's optical fiber, submarine cables, and data center cabling. Not exposed but forms the physical medium.</td>
+<td><strong>Elastic Network Interface (ENI)</strong></td>
+<td>Virtual NIC attached to resources.</td>
+<td>L2 – Data Link</td>
+<td>Subnet / VPC</td>
+<td>EC2 / Lambda</td>
 </tr>
 </tbody>
 </table>
 
 <hr />
 
-<h2 id="gateways-and-their-osi-layer">Gateways and Their OSI Layer</h2>
-<table class="study-table">
-<thead>
-<tr>
-<th>AWS Gateway</th>
-<th>OSI Layer</th>
-<th>What It Does</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Internet Gateway (IGW)</strong></td>
-<td>L3 Network</td>
-<td>Connects VPC to the public internet. Translates between private routing in VPC and global routing.</td>
-</tr>
-<tr>
-<td><strong>NAT Gateway</strong></td>
-<td>L3 Network</td>
-<td>Lets private instances reach the internet. Performs IP + port translation (PAT).</td>
-</tr>
-<tr>
-<td><strong>Virtual Private Gateway (VGW)</strong></td>
-<td>L3 Network</td>
-<td>VPN endpoint on AWS side; routes encrypted traffic into/out of VPC.</td>
-</tr>
-<tr>
-<td><strong>Transit Gateway (TGW)</strong></td>
-<td>L3 Network</td>
-<td>Acts as a <strong>router hub</strong>: interconnects multiple VPCs, VPNs, and Direct Connect links using routing tables.</td>
-</tr>
-<tr>
-<td><strong>PrivateLink / VPC Endpoint</strong></td>
-<td>L3/L4</td>
-<td>Provides private connectivity to AWS services over the VPC network. Works with DNS and TCP ports.</td>
-</tr>
-<tr>
-<td><strong>Gateway Load Balancer (GWLB)</strong></td>
-<td>L3/L4</td>
-<td>Passes traffic to security appliances transparently, often used for firewalls/inspection.</td>
-</tr>
-</tbody>
+<h2 id="service-breakdown">Service Breakdown</h2>
+
+<h2 id="vpn">VPN</h2>
+
+<h3 id="site-to-site-vpn">Site to Site VPN</h3>
+
+<div class="image-wrapper">
+  <img src="./assets/s2s_vpn.png" alt="S2S VPN Example" class="modal-trigger" data-caption="Site-to-Site VPN sequence showing CGW and VGW communication flow" />
+  <div class="diagram-caption" data-snippet-id="s2s-snippet">
+    🔐 Site-to-Site VPN – Communication Sequence (hover to see PlantUML code)
+  </div>
+  <!-- Keep your PlantUML raw here -->
+  <script type="text/plain" id="s2s-snippet">
+@startuml
+title Classic VPN Setup with AWS Network (CGW and VGW)
+
+actor OnPrem as "On-Premises Network"
+actor ISP as "Internet Service Provider"
+actor Internet as "AWS Public Internet"
+actor VPC as "VPC (AWS Private Network)"
+
+' Classic VPN (VGW method)
+OnPrem -> ISP : From CGW: Request VPN Tunnel (IPsec Initiation)
+ISP -> Internet : Forwards Tunnel Request
+Internet -> VPC : Forwards Request to VGW
+VPC -> Internet : From VGW: Sends Tunnel Setup Acknowledgement
+Internet -> ISP : Sends Acknowledgement
+ISP -> OnPrem : Tunnel Setup Confirmation to CGW
+
+alt High Availability
+    OnPrem -> ISP : Switch to Backup Tunnel (Tunnel 2)
+    ISP -> Internet : Forwards Traffic to Backup Tunnel
+    Internet -> VPC : Routes Traffic to Backup Tunnel
+end
+
+OnPrem -> VPC : Routes Traffic to VPC
+OnPrem -> VPC : Continuous keep-alive messages
+VPC -> VPC : Acknowledges Keep-alive
+
+' Floating note at the very bottom
+note across
+  If you replace VGW with TGW (Transit Gateway),  
+  the VPN becomes a scalable solution that can connect to multiple VPCs.  
+  This allows a central hub (TGW) to route traffic between various VPCs,  
+  providing more flexibility and scalability in larger environments.
+end note
+
+@enduml
+  </script>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>VPN Type</strong></th>
+      <th><strong>On-Premise Side (CGW)</strong></th>
+      <th><strong>Amazon Side (VGW/TGW)</strong></th>
+      <th><strong>Description</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Classic VPN</strong></td>
+      <td><strong>CGW</strong> – Customer Gateway (hardware or software VPN device)</td>
+      <td><strong>VGW</strong> – Virtual Private Gateway (VPN endpoint on AWS side for the VPC)</td>
+      <td>Point-to-point VPN between on-premises and AWS using <strong>VGW</strong>. Route configuration can be <strong>static</strong> or <strong>dynamic</strong> (BGP).</td>
+    </tr>
+    <tr>
+      <td><strong>Scalable VPN</strong></td>
+      <td><strong>CGW</strong> – Customer Gateway (supports BGP for dynamic routing)</td>
+      <td><strong>TGW</strong> – Transit Gateway (centralized hub for connecting multiple VPCs and VPNs)</td>
+      <td>VPN for large-scale networks with <strong>BGP</strong> for dynamic routing and the ability to connect multiple VPCs via <strong>TGW</strong>.</td>
+    </tr>
+  </tbody>
 </table>
 
-<h1 id="understanding-pop">Understanding PoP</h1>
+<p><strong>Static VPN</strong></p>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@startuml
-actor Client
+<ul>
+  <li><strong>Route</strong>: Static routes in route tables (manual setup).</li>
+  <li><strong>Pros</strong>: Simple setup.</li>
+  <li><strong>Cons</strong>: No load balancing or failover.</li>
+</ul>
 
-Client -&gt; "ISP Router" : Send packet to Anycast IP / CF domain
-"ISP Router" -&gt; "AWS Edge PoP (rack in 3rd-party DC)" : Forward via peering
+<p><strong>Dynamic VPN</strong></p>
 
-alt Route 53 DNS
-  Client -&gt; "Route 53 at Edge PoP" : DNS query
-  "Route 53 at Edge PoP" --&gt; Client : DNS response
-end
+<ul>
+  <li><strong>Route</strong>: Uses <strong>BGP</strong> for automatic route exchange.</li>
+  <li><strong>Pros</strong>: HA, automatic failover, and load balancing.</li>
+  <li><strong>Cons</strong>: More complex setup.</li>
+</ul>
 
-alt Global Accelerator path
-  "AWS Edge PoP (rack in 3rd-party DC)" -&gt; "Edge Router + GA logic" : Nearest Anycast IP match
-  "Edge Router + GA logic" -&gt; "AWS Backbone" : On-ramp
-  "AWS Backbone" -&gt; "AWS Region" : Forward to ALB / NLB / EC2
-end
+<p><strong>VPN Considerations</strong></p>
 
-alt CloudFront path
-  "AWS Edge PoP (rack in 3rd-party DC)" -&gt; "CloudFront Cache" : HTTPS request
-  alt Cache Hit
-    "CloudFront Cache" --&gt; Client : Serve object
-  else Cache Miss
-    "CloudFront Cache" -&gt; "AWS Backbone" : Fetch from origin
-    "AWS Backbone" -&gt; "AWS Region" : Request origin (S3 / ALB / EC2)
-    "AWS Region" --&gt; "CloudFront Cache" : Response stored
-    "CloudFront Cache" --&gt; Client : Serve object
-  end
-end
-@enduml
+<ul>
+  <li><strong>Speed</strong>: Max <strong>1.25 Gbps</strong>.</li>
+  <li><strong>Latency</strong>: Inconsistent due to public internet routing.</li>
+  <li><strong>Cost</strong>: Hourly charges + data transfer fees.</li>
+  <li><strong>Setup Speed</strong>: Fast, software-based.</li>
+  <li><strong>Backup for DX</strong>: Can be used as a failover for Direct Connect.</li>
+  <li><strong>Direct Connect</strong>: Can work with Direct Connect for redundancy.</li>
+</ul>
 
-</code></pre></div></div>
+<p>Here’s a concise summary:</p>
 
-<p>Global Accelerator = Anycast IP + routing into backbone → your Region.
-CloudFront = Anycast IP + CDN cache at edge → serve or fetch.
-Both run on the same physical AWS PoP racks inside 3rd-party DCs.</p>
+<ol>
+  <li>
+    <p><strong>VPC Route Tables</strong>: Each VPC has its own route table that determines how traffic within the VPC is routed. By default, the VPC route table takes priority for traffic originating from within that VPC.</p>
+  </li>
+  <li>
+    <p><strong>Transit Gateway (TGW)</strong>: TGW acts as a central hub for connecting multiple VPCs, VPNs, and Direct Connect links. Each TGW has a <strong>default route table</strong> (RT) and supports <strong>route propagation</strong> and <strong>association</strong>.</p>
+  </li>
+  <li>
+    <p><strong>Association</strong>:</p>
 
-<p><img src="/study/assets/aws_network_pop.png" alt="Pop" /></p>
+    <ul>
+      <li><strong>Associating a route table to an attachment</strong> (e.g., a VPC or VPN) means specifying which <strong>subnets or attachments</strong> use that route table for routing decisions.</li>
+      <li>Each attachment (VPC, VPN, Direct Connect) can <strong>only</strong> be associated with <strong>one route table</strong> at a time.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Propagation</strong>:</p>
 
-<h1 id="ipsec-vpn">IPSEC VPN</h1>
+    <ul>
+      <li><strong>Propagation</strong> automatically adds routes to a route table. For example, routes from a <strong>VPC</strong> or <strong>VPN</strong> can be propagated into the <strong>TGW route table</strong>, making it dynamic.</li>
+      <li>Without propagation, routes are <strong>static</strong> and must be manually added.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Routing Priority</strong>:</p>
+
+    <ul>
+      <li>Traffic originating within a <strong>VPC</strong> follows the <strong>VPC route table</strong>.</li>
+      <li>For traffic routed to or from other VPCs via TGW, the <strong>TGW route table</strong> is used.</li>
+      <li><strong>Specific routes</strong> (longest prefix match) take priority when multiple route tables have entries for the same destination.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Multiple Route Tables</strong>:</p>
+
+    <ul>
+      <li><strong>Multiple route tables</strong> can be created in a TGW for more advanced routing, like segmenting traffic for different environments (e.g., Dev, Prod).</li>
+      <li>Each attachment can only be associated with one route table, but one route table can support multiple attachments.</li>
+    </ul>
+  </li>
+</ol>
+
+<p>In short, <strong>association</strong> determines <strong>which route table is used</strong>, and <strong>propagation</strong> allows <strong>automatic updates</strong> of route tables with new routes based on connections.</p>
+
+<hr />
+<p>Alright, let’s break this down step-by-step for your scenario. You want <strong>VPC1</strong> and <strong>VPC2</strong> to both have access to <strong>on-premises</strong>, but you don’t want <strong>VPC1</strong> to communicate with <strong>VPC2</strong>. To achieve this, we need to carefully set up <strong>Transit Gateway (TGW)</strong>, <strong>VPC route tables</strong>, <strong>TGW route tables</strong>, and <strong>VPC attachments</strong> to control the traffic flow and routing.</p>
+
+<h3 id="step-1-create-transit-gateway-tgw-and-attachments">Step 1: <strong>Create Transit Gateway (TGW) and Attachments</strong></h3>
+
+<ol>
+  <li>
+    <p><strong>Create the Transit Gateway (TGW)</strong>:</p>
+
+    <ul>
+      <li>This creates a <strong>TGW route table</strong> (default route table, <strong>Route Table A</strong>) that will be used by all connected attachments by default.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Attach VPCs and On-premises to TGW</strong>:</p>
+
+    <ul>
+      <li>Attach <strong>VPC1</strong>, <strong>VPC2</strong>, and <strong>On-premises</strong> to the <strong>TGW</strong>. Each attachment creates a link between the <strong>TGW</strong> and the connected resources.</li>
+      <li>
+        <p>For example:</p>
+
+        <ul>
+          <li><strong>VPC1 Attachment</strong></li>
+          <li><strong>VPC2 Attachment</strong></li>
+          <li><strong>On-premises Attachment</strong> (this can be a VPN or Direct Connect attachment)</li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>These attachments don’t have individual route tables themselves, but they will be part of the <strong>TGW route table</strong> and can use <strong>propagation</strong> or be <strong>associated</strong> to different route tables.</p>
+  </li>
+</ol>
+
+<h3 id="step-2-set-up-tgw-route-table">Step 2: <strong>Set Up TGW Route Table</strong></h3>
+
+<ul>
+  <li><strong>By default</strong>, the <strong>TGW route table</strong> (<strong>Route Table A</strong>) is used for all attachments. This means that initially, <strong>VPC1</strong>, <strong>VPC2</strong>, and <strong>On-premises</strong> will all be able to communicate with each other because the default TGW route table allows traffic between these attachments.</li>
+  <li>However, you want to prevent <strong>VPC1</strong> from talking to <strong>VPC2</strong>. So, we’ll modify the TGW route table to achieve this.</li>
+</ul>
+
+<h3 id="step-3-set-up-vpc-route-tables">Step 3: <strong>Set Up VPC Route Tables</strong></h3>
+
+<p>Each VPC (VPC1 and VPC2) has its own <strong>route table</strong> (which is managed separately).</p>
+
+<ol>
+  <li>
+    <p><strong>VPC1 Route Table</strong>:</p>
+
+    <ul>
+      <li>Initially, <strong>VPC1</strong> will have a default route table that will route any traffic destined for <strong>On-premises</strong> through the <strong>TGW attachment</strong>.</li>
+      <li>
+        <p><strong>Add a Route in VPC1’s Route Table</strong>:</p>
+
+        <ul>
+          <li>Route: <code class="language-plaintext highlighter-rouge">0.0.0.0/0</code> → <strong>TGW Attachment</strong> (for On-premises access)</li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>VPC1 <strong>will not have a route to VPC2</strong> at this stage, so any traffic to VPC2 will be blocked.</p>
+  </li>
+  <li>
+    <p><strong>VPC2 Route Table</strong>:</p>
+
+    <ul>
+      <li>Similarly, <strong>VPC2</strong> will have a default route table that routes traffic for <strong>On-premises</strong> through the <strong>TGW attachment</strong>.</li>
+      <li>
+        <p><strong>Add a Route in VPC2’s Route Table</strong>:</p>
+
+        <ul>
+          <li>Route: <code class="language-plaintext highlighter-rouge">0.0.0.0/0</code> → <strong>TGW Attachment</strong> (for On-premises access)</li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>VPC2 <strong>will not have a route to VPC1</strong> by default.</p>
+  </li>
+</ol>
+
+<h3 id="step-4-control-communication-between-vpcs-using-tgw-route-tables">Step 4: <strong>Control Communication Between VPCs Using TGW Route Tables</strong></h3>
+
+<p>Now let’s address the part where <strong>VPC1</strong> should <strong>not</strong> communicate with <strong>VPC2</strong>.</p>
+
+<ol>
+  <li>
+    <p><strong>Modify TGW Route Table</strong>:</p>
+
+    <ul>
+      <li>Go to <strong>Route Table A</strong> in the <strong>TGW</strong> and explicitly <strong>remove the route</strong> that allows traffic from <strong>VPC1</strong> to <strong>VPC2</strong>.</li>
+      <li><strong>VPC1 to VPC2 route</strong>: Remove any route entries in <strong>Route Table A</strong> that would allow traffic from <strong>VPC1</strong> to <strong>VPC2</strong>. This will prevent <strong>VPC1</strong> from routing traffic to <strong>VPC2</strong> via the TGW.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Route Propagation for On-premises</strong>:</p>
+
+    <ul>
+      <li>Allow <strong>propagation</strong> from <strong>On-premises</strong> to <strong>TGW</strong>, so both <strong>VPC1</strong> and <strong>VPC2</strong> can reach <strong>On-premises</strong>. Propagation ensures that when On-premises is attached to TGW, its routes are automatically added to the TGW route table, allowing all connected VPCs to access On-premises.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="step-5-attachment-and-propagation-for-on-premises">Step 5: <strong>Attachment and Propagation for On-premises</strong></h3>
+
+<ul>
+  <li>
+    <p><strong>On-premises Attachment</strong>: The <strong>On-premises</strong> network will be attached to the <strong>TGW</strong> with its own <strong>VPC attachment</strong>.</p>
+
+    <ul>
+      <li>This <strong>attachment</strong> will allow <strong>VPC1</strong>, <strong>VPC2</strong>, and <strong>On-premises</strong> to communicate.</li>
+      <li>For routing, the <strong>On-premises route table</strong> will propagate routes back into the TGW route table (so <strong>VPC1</strong> and <strong>VPC2</strong> can reach <strong>On-premises</strong>).</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="summary-flow">Summary Flow:</h3>
+
+<ol>
+  <li>
+    <p><strong>VPC1 → TGW → On-premises</strong>:</p>
+
+    <ul>
+      <li><strong>VPC1’s Route Table</strong>: Routes traffic destined for <strong>On-premises</strong> via <strong>TGW</strong>.</li>
+      <li><strong>TGW Route Table A</strong>: Forwards traffic to <strong>On-premises</strong>.</li>
+      <li><strong>On-premises</strong>: Receives traffic and responds.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>VPC2 → TGW → On-premises</strong>:</p>
+
+    <ul>
+      <li><strong>VPC2’s Route Table</strong>: Routes traffic destined for <strong>On-premises</strong> via <strong>TGW</strong>.</li>
+      <li><strong>TGW Route Table A</strong>: Forwards traffic to <strong>On-premises</strong>.</li>
+      <li><strong>On-premises</strong>: Receives traffic and responds.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>VPC1 and VPC2 cannot talk to each other</strong> because the <strong>TGW route table</strong> has no routes allowing <strong>VPC1 to communicate with VPC2</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="key-points">Key Points:</h3>
+
+<ul>
+  <li><strong>VPCs</strong> have their own <strong>route tables</strong>, and each <strong>subnet</strong> in a VPC is associated with a route table.</li>
+  <li><strong>TGW</strong> has its own route table to manage routing between attached VPCs and external networks.</li>
+  <li><strong>Attachments</strong> link VPCs and other resources (like On-premises) to the TGW but don’t have route tables themselves.</li>
+  <li><strong>Propagation</strong> allows routes to be automatically added to the TGW route table from attached resources (like <strong>On-premises</strong>), but you <strong>control communication</strong> between VPCs by modifying the <strong>TGW route table</strong>.</li>
+  <li>By <strong>not propagating</strong> routes between VPC1 and VPC2, you can prevent them from communicating.</li>
+</ul>
+
+<hr />
+
+<p>Let me know if this helps, or if you need any additional clarification!</p>
+
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <button class="modal-nav modal-prev">&#8249;</button>
+    <button class="modal-nav modal-next">&#8250;</button>
+    <img id="modalImage" src="" alt="" />
+    <div id="modalCaption"></div>
+  </div>
+</div>
+
+<script>
+// Image Modal functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('imageModal');
+  const modalImg = document.getElementById('modalImage');
+  const modalCaption = document.getElementById('modalCaption');
+  const modalClose = document.querySelector('.modal-close');
+  const modalPrev = document.querySelector('.modal-prev');
+  const modalNext = document.querySelector('.modal-next');
+  
+  // Handle scroll zoom functionality
+  let currentScale = 1;
+  const scaleFactor = 0.1;
+  
+  // Function to update image transform
+  function updateImageTransform() {
+    modalImg.style.transform = `scale(${currentScale})`;
+    modalImg.style.transition = 'transform 0.1s ease';
+  }
+  
+  // Modal open function
+  function openModal(imageSrc, caption) {
+    modalImg.src = imageSrc;
+    if (caption) {
+      modalCaption.textContent = caption;
+    } else {
+      modalCaption.textContent = '';
+    }
+    modal.classList.add('show');
+    currentScale = 1;
+    updateImageTransform();
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+  }
+  
+  // Modal close function
+  function closeModal() {
+    modal.classList.remove('show');
+    document.body.style.overflow = ''; // Restore scrolling
+    currentScale = 1;
+  }
+  
+  // Handle image clicks
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-trigger')) {
+      const src = e.target.src;
+      const caption = e.target.getAttribute('data-caption') || e.target.alt;
+      openModal(src, caption);
+    }
+  });
+  
+  // Close modal when clicking X or outside the image
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+  
+  // Handle keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (modal.classList.contains('show')) {
+      switch(e.key) {
+        case 'Escape':
+          closeModal();
+          break;
+        case 'ArrowLeft':
+          modalPrev.click();
+          break;
+        case 'ArrowRight':
+          modalNext.click();
+          break;
+        case '+':
+        case '=':
+          e.preventDefault();
+          currentScale = Math.min(currentScale + scaleFactor, 3);
+          updateImageTransform();
+          break;
+        case '-':
+          e.preventDefault();
+          currentScale = Math.max(currentScale - scaleFactor, 0.1);
+          updateImageTransform();
+          break;
+        case '0':
+          e.preventDefault();
+          currentScale = 1;
+          updateImageTransform();
+          break;
+      }
+    }
+  });
+  
+  // Handle scroll wheel for zoom
+  modal.addEventListener('wheel', function(e) {
+    if (modal.classList.contains('show')) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -scaleFactor : scaleFactor;
+      currentScale = Math.max(0.1, Math.min(3, currentScale + delta));
+      updateImageTransform();
+    }
+  });
+  
+  // Prevent default touch behavior on mobile
+  modal.addEventListener('touchstart', function(e) {
+    if (modal.classList.contains('show')) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  // Handle pinch zoom for mobile
+  let initialDistance = 0;
+  modal.addEventListener('touchstart', function(e) {
+    if (modal.classList.contains('show') && e.touches.length === 2) {
+      initialDistance = Math.sqrt(
+        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
+        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
+      );
+    }
+  });
+  
+  modal.addEventListener('touchmove', function(e) {
+    if (modal.classList.contains('show') && e.touches.length === 2) {
+      e.preventDefault();
+      const currentDistance = Math.sqrt(
+        Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) +
+        Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2)
+      );
+      const scaleChange = (currentDistance - initialDistance) / initialDistance;
+      currentScale = Math.max(0.1, Math.min(3, currentScale + scaleChange * 0.5));
+      updateImageTransform();
+    }
+  }, { passive: false });
+});
+
+// PlantUML Hover Tooltip functionality
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[data-snippet-id]').forEach(function(caption) {
+    const snippetId = caption.getAttribute('data-snippet-id');
+    const snippetElement = document.getElementById(snippetId);
+    
+    if (snippetElement) {
+      // Replace double quotes with &quot; for proper HTML display
+      const content = snippetElement.textContent.replace(/"/g, '&quot;');
+      
+      // Set the tooltip content as a data attribute
+      caption.setAttribute('data-tooltip', content);
+      
+      // Add hover functionality
+      caption.classList.add('diagram-caption');
+    }
+  });
+});
+</script>
+
 
     </article>
   </main>

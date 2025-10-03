@@ -6,6 +6,7 @@
   <title>glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="shortcut icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/favicon.png">
@@ -61,7 +62,763 @@
 
   <main class="container">
     <article class="content">
-      
+      <table>
+  <thead>
+    <tr>
+      <th>Layer</th>
+      <th>What It Exposes</th>
+      <th>How It Writes</th>
+      <th>Effect on Blocks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Block Device</strong></td>
+      <td>Raw LBAs (block #0…n)</td>
+      <td>Direct I/O: write 4KB block</td>
+      <td>Overwrites block as-is, no meaning</td>
+    </tr>
+    <tr>
+      <td><strong>File System</strong></td>
+      <td>Files, dirs, metadata</td>
+      <td>Splits file → inodes + data blocks</td>
+      <td>Mix of metadata + file data stored in blocks</td>
+    </tr>
+    <tr>
+      <td><strong>Object Store</strong></td>
+      <td>Object (key + metadata + blob)</td>
+      <td>Stores object chunks + metadata index</td>
+      <td>Objects split → chunks across blocks (hidden)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>File = metadata + data mixed into the same block storage.</p>
+
+<p>Object = metadata kept separately (DB/index), data chunks spread across block devices).</p>
+
+<p><img src="/study/assets/storage.png" alt="Storage" /></p>
+
+<p>Need to edit FS tab file in lINux for mounting</p>
+
+<p>FSx for Windows</p>
+<ul>
+  <li>Windows Features:
+    <ul>
+      <li>VSS (Volume Snapshot Service) - User Driven Restores
+        <ul>
+          <li>File level backup (Versioning)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Over SMB</li>
+  <li>Windows Permission Model</li>
+  <li>Supports DFS - Scale out file share structure</li>
+  <li>FSX allows you to create one without Server admin</li>
+  <li>Integraes with DS and you own directory</li>
+  <li>8MB/s to …..???</li>
+</ul>
+
+<p>FSx for Lustre</p>
+<ul>
+  <li>For High Performance Compute (HPC) Linux</li>
+  <li>100 GBs and sub milisecond latency</li>
+  <li>Persistent VS scratch
+    <ul>
+      <li>Persistent -&gt; Long term</li>
+      <li>Scratch -&gt; Short term no replication</li>
+    </ul>
+  </li>
+  <li>You can use S3 as foundation initially:
+    <ul>
+      <li>Data is lazy loaded from s3 into FSx Lustre as its needed
+        <ul>
+          <li>FSx Luster is where data lives</li>
+        </ul>
+      </li>
+      <li>You can Sync vis hsm_archive</li>
+      <li>ANd use s3 as backup for 0-35 days retention</li>
+    </ul>
+  </li>
+  <li>How it works?
+    <ul>
+      <li>Meta Data is stored on Metadata Targets (MST)</li>
+      <li>Objects are stored on called Object Storage Targets (OSTs)</li>
+      <li>Baselin performance based on Size of you rstorage
+        <ul>
+          <li>Size -min 1.2TiB then increments of 2.4Tib</li>
+        </ul>
+      </li>
+      <li>FOr Scratch -&gt; 200 MB/s per TiB ===&gt; PURE PERFORMANCE FOR SHORT TEM AND TEMP
+        <ul>
+          <li>NO HA or REPLICATION AT ALL</li>
+          <li>Larger file systems means more servers and more disks which means more failure</li>
+        </ul>
+      </li>
+      <li>For Persistent -&gt; 50Mb/100/200 per Tib of storage ===&gt;
+        <ul>
+          <li>REPLICATION within a SINGLE AZ (prevents from Hardware failure, but not AZ failure)</li>
+          <li>Auto heals</li>
+        </ul>
+      </li>
+      <li>Can BURST up to 1,300 MB/s</li>
+    </ul>
+  </li>
+  <li>Under the hood
+    <ul>
+      <li>Deploys Servers and storage volumes (Disks)</li>
+      <li>You then connect via ENI</li>
+      <li>In Memory Cache is on the servers</li>
+    </ul>
+  </li>
+</ul>
+
+<p>EFS</p>
+<ul>
+  <li>NFSv4</li>
+  <li>Filesystems can be mounted in linux</li>
+  <li>Shared between MANY EC2</li>
+  <li>Private service via mount targets</li>
+  <li>accessible from VPN/DX</li>
+  <li>POSIC Permissions</li>
+  <li>access via MOUNT TARGET (can be different IP for different subnet, but basically they hit the managed EFS)
+= FOR LINUX ONLY instance
+    <ul>
+      <li>General Purpose</li>
+      <li>MAX I/O</li>
+    </ul>
+  </li>
+  <li>Burst and Provisioned Throughputs</li>
+  <li>Standard VS Infrequent Access</li>
+</ul>
+
+<p>S3:</p>
+<ul>
+  <li>Cost (three main parts)
+    <ul>
+      <li>storage per GB/month fee</li>
+      <li>Data OUT per GB fee</li>
+      <li>Request per 1000 requests</li>
+    </ul>
+  </li>
+  <li>Tiers
+    <ul>
+      <li>Standard:
+        <ul>
+          <li>Replicates across 3 AZs</li>
+          <li>Millisecond for first byte</li>
+          <li>For requetly accessed data that is important and non Replacible</li>
+          <li>No specific Retrieval fee, no minimum duration, no minimu size</li>
+        </ul>
+      </li>
+      <li>Standard-IA:
+        <ul>
+          <li>similar to above</li>
+          <li>Storage cost is much cheaper comparing to Standard</li>
+          <li>Added an pre GB data per retrieval fee
+            <ul>
+              <li>If you use frequently, this retrieval will ramp up</li>
+            </ul>
+          </li>
+          <li>minimum charge duration of 30 days</li>
+          <li>minimum capacity charge of 128KB</li>
+          <li>For long lived data, which is important but infrequent accessed</li>
+        </ul>
+      </li>
+      <li>S3 One ZONE - IA:
+        <ul>
+          <li>Cheaper than all above</li>
+          <li>Similar charging to Standard-IA
+            <ul>
+              <li>BUT only stored in 1 AZ</li>
+              <li>which gives cheaper storage</li>
+            </ul>
+          </li>
+          <li>For long lived data, NON Critical and REPLACEABLE but infrequent accessed</li>
+          <li>ANYTHING IN OR OUT IA NEEDS 30days
+            <ul>
+              <li>e.g. 30days in Standard to be moved to IA</li>
+              <li>e.g. 30days in IA to be moved to glacier</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>S3 Glacier - Instant
+        <ul>
+          <li>Like Standard IA but MORE expensive for retriveal</li>
+          <li>minimum duration charge of 90 days</li>
+          <li>For long lived data, accessd once per QUarter and millisecond access</li>
+        </ul>
+      </li>
+      <li>S3 Glacier - Flexible
+        <ul>
+          <li>They are “cold” stores</li>
+          <li>Adding an “operation” to warm the objects
+            <ul>
+              <li>this make it NOT publicly accessible</li>
+            </ul>
+          </li>
+          <li>Retreival jobs
+            <ul>
+              <li>Glacier Flexible is retrieved and move files to S3 IA for access:
+                <ul>
+                  <li>minutes to hours</li>
+                  <li>bulk up to 12 hours</li>
+                  <li>the “close to minute” the expensiver the retreival</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>First Byte latency = minutes or hours</li>
+          <li>For Archival data, where frequent or realtime access isnt needed</li>
+          <li>You are ok with Minutes-hours retreival</li>
+        </ul>
+      </li>
+      <li>S3 Glacier - deep archive
+        <ul>
+          <li>Objects are “Frozen”</li>
+          <li>Similar to S3 Glacier FLexible</li>
+          <li>Moving from Glacier to Standard IA for access:
+            <ul>
+              <li>Standard = 12 hours</li>
+              <li>bulks = up to 48 hours</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Intelligent-Tiering
+    <ul>
+      <li>Does the “tiering for you”</li>
+      <li>Monitor usage and adjust tiering for you
+        <ul>
+          <li>moves any objects no accessed for 30 day to a low cost IA tier</li>
+          <li>Eventually if 90 days, move to archive instant access
+            <ul>
+              <li>90-270 &gt; archive access</li>
+              <li>180 - 730 -&gt; deep archive</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>adds the “automation” management cost</li>
+      <li>no retreival fess</li>
+    </ul>
+  </li>
+</ul>
+
+<p>S3 Life cycle configuraiton</p>
+<ul>
+  <li>Set of rules that performs actions</li>
+  <li>Can apply for whole bucket or groups of objects</li>
+  <li>Transition Actions
+    <ul>
+      <li>e.g. Moving objects to Tiering</li>
+      <li>Smaller object can cost more</li>
+      <li>Minimum 30 days before ANY transition</li>
+      <li>A single rule cannot transition to IA or One zone ia then go to glacier classes
+        <ul>
+          <li>You have to be in IA/one zone at least 30 days</li>
+          <li>though you can have two rules</li>
+        </ul>
+      </li>
+      <li>this follows the water flow below</li>
+    </ul>
+  </li>
+  <li>Expiration Actions
+    <ul>
+      <li>e.g. delete object after a few days</li>
+    </ul>
+  </li>
+</ul>
+
+<p>S3 Replication Configuration</p>
+<ul>
+  <li>Can be in Same or Different Account</li>
+  <li>Source to Destination Buckets
+    <ul>
+      <li>IAM Role is used to give permission to READ and Replicate through Encrypted SSL</li>
+      <li>If it is same account
+        <ul>
+          <li>by default the role is trusted</li>
+        </ul>
+      </li>
+      <li>If it is cross account
+        <ul>
+          <li>You need to be able to “assume” the correct role</li>
+          <li>You need to add a bucket policy for the role TOO to destination</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Configurable:
+    <ul>
+      <li>All Objects or Subset</li>
+      <li>Storage Class to be used in Destination
+        <ul>
+          <li>e.g. cheaper tiering if it is not often used</li>
+        </ul>
+      </li>
+      <li>Define Ownership
+        <ul>
+          <li>by default it will be the same SOurce bucket owner
+            <ul>
+              <li>might be an issue if it is Cross account</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Replication Time Control (RTC)
+        <ul>
+          <li>Guarantee level of time to copied</li>
+          <li>otherwise is best effort</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Considerations
+    <ul>
+      <li>You need Versioing in order to enable replication
+        <ul>
+          <li>Both Source/Destination</li>
+        </ul>
+      </li>
+      <li>Can use batch replication</li>
+      <li>Not Retroactive
+        <ul>
+          <li>meaning, if you swithc on existing, you won’t  touch any pre-existing objects</li>
+        </ul>
+      </li>
+      <li>one way replication (Source to destination)
+        <ul>
+          <li>Additional setting if you want bi-directional</li>
+        </ul>
+      </li>
+      <li>Can handle:
+        <ul>
+          <li>Unencrypted</li>
+          <li>Encrypted: SSE-S3 &amp; SSE-KMS, SSE-C</li>
+        </ul>
+      </li>
+      <li>No replicate System events/ GLacier or Deep Archive</li>
+    </ul>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Why use it? (Same Region Replication - SRR</td>
+          <td>Cross Region Replication - CRR)</td>
+        </tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>SRR - Log Aggregation</li>
+      <li>SRR - Sync between environments</li>
+      <li>SRR - Resilence with strict Sovereignty Requirements</li>
+      <li>CRR - Global Resilence Improvements</li>
+      <li>CRR - Latency Reduction</li>
+    </ul>
+  </li>
+</ul>
+
+<p>S3 Encryption</p>
+<ul>
+  <li>Objects are encrypted at rest</li>
+  <li>Data to s3 or from s3 are also encrypted in transit by default</li>
+  <li>Client Side Encryption
+    <ul>
+      <li>User Encrypted - More processing on YOUR SIDE</li>
+      <li>S3 sends the Encrypted to Strage</li>
+    </ul>
+  </li>
+  <li>Server Side Encryption (SSE)
+    <ul>
+      <li>Raw data to S3</li>
+      <li>S3 Encrypt it to storage</li>
+      <li>e.g. SSE-S3 or SSE-KMS or SSE-C
+        <ul>
+          <li>SSE-C -&gt; Customer bring</li>
+          <li>SSE-S3 -&gt; Auto key using AWS256
+            <ul>
+              <li>You dont get to choose, and the key is used to create per object key</li>
+            </ul>
+          </li>
+          <li>SSE-KMS -&gt; you create a key in KMS
+            <ul>
+              <li>You get to choose, and isolated permissions</li>
+              <li>You have control, and gives you rotation/auditing and so on</li>
+              <li>You have control who has access to the keys</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>KMS Encryptiong (with out Bucket Key)
+        <ul>
+          <li>Each Data Encryption Key (DEK) is an API call to KMS</li>
+          <li>Unique DEK is stored with Object</li>
+          <li>Calls to KMS have a cost and levels where throttling happens</li>
+          <li>using a single KMS key results in scaling limit for PUTs</li>
+        </ul>
+      </li>
+      <li>KMS Encryption (with Bucket Key)
+        <ul>
+          <li>Time limited Bucket key used to generate DEKs within S3</li>
+          <li>Pushes the Timie limited key to S3 side
+            <ul>
+              <li>S3 NO Need to call KMS API</li>
+            </ul>
+          </li>
+          <li>Cloud trail shows the Bucket events (Reduced events)</li>
+          <li>Works with same region replication
+            <ul>
+              <li>If replicating plaintext to a bucket using bucket keys the object is encryped at the destination side (etag changes)</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>S3 Presigned URL
+= Private Bucket
+    - Only authenticated user
+    - For unauthenticate, traditionally:
+        - 1. give identity
+        - 2. aws credentials
+        - 3. make public
+    - hence Preseigned URL
+        - encoded URL that contains expriy, key and so on
+        - User pass it to unauthneticated user
+    - Can be used for GET or PUT
+    - For remote worker
+    - You can create Presigned URL for object you don’t have access to
+    - When you using the URL
+        - The permissions match the idnentity which generated it
+        - Access Denied could mean the Identity generaed the URL does not have access
+    -DONT generate with a role
+        - Role expires
+        - And since you use role to encrypt and create an URL
+        - Then the URL would also expire
+    - Always use a long term user identity</p>
+
+<p>S3 Select and Glacier Select</p>
+<ul>
+  <li>S3 can store up to 5TB</li>
+  <li>Normally
+    <ul>
+      <li>you retrieve often the entire object</li>
+      <li>Retreiving 5TB object takes time</li>
+      <li>filtering at the client side doesnt reduce (CLIENT SIDE MEANS your local or application)</li>
+    </ul>
+  </li>
+  <li>Select allows you to use “SQL LIke statement” to select part of the object
+    <ul>
+      <li>Introduce “a filter AT S3 Server side”</li>
+      <li>Pre-filtered by S3
+        <ul>
+          <li>No need to pass WHOLE object to client</li>
+        </ul>
+      </li>
+      <li>File format allowed:
+        <ul>
+          <li>CSV/JSON/Parequet..structured data</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>S3 Access Points</p>
+<ul>
+  <li>Simplify Managing access to S3 bucket
+    <ul>
+      <li>Buckets with Billison of object</li>
+      <li>Access by hundreds of user</li>
+    </ul>
+  </li>
+  <li>Rather than 1 bucket with 1 bucket policy</li>
+  <li>Create many access points
+    <ul>
+      <li>Each with different policies (e.g. prefixes…etc)</li>
+      <li>Ech with different Network access controls
+        <ul>
+          <li>e.g. VPC Origin, Internet Origin</li>
+        </ul>
+      </li>
+      <li>Each has its own endpoint</li>
+    </ul>
+  </li>
+  <li>e.g. aws s3control create-access-point</li>
+</ul>
+
+<p>S3 Object Lock</p>
+<ul>
+  <li>Object Lock enabled on new s3 buckets</li>
+  <li>Write Once Read Many (WORM) - No Delete, No Overwrite</li>
+  <li>Requires Versioning - it is actually indivdual version locked
+    <ul>
+      <li>once turn on, you can not disable Object lock nor Versioning</li>
+    </ul>
+  </li>
+  <li>Object locking type:
+    <ul>
+      <li>1 - retention period
+  = Specfiy DAYS/YEARS
+  Types:
+  = Complicance -&gt; Can’t be adjusted/deleted/overwritten to the settings 
+              -&gt; Even ROOT User CAN NOT change
+      = You have to wait until retention expires
+      = Use case -&gt; Compliancy and so on
+  = GOVERANCE -&gt; special permissions can be granted allowing lock settings to be adjusted
+      = s3:ByPassGovernanceRetention
+      = x-amz-bypass-governance-retention:true</li>
+      <li>2 - Legal Hold
+  = No period/retention
+  = Its either ON or OFF
+  = once ON
+      - No DELETES or CHANGES until LOCK is removed
+  = S3:PutObjectLegalHold is required ot add/remove</li>
+    </ul>
+  </li>
+  <li>bucket can have a default</li>
+</ul>
+
+<p>Macie</p>
+<ul>
+  <li>Data Security and Data Privacy Service</li>
+  <li>Discover, Monitor and Protect Data stored in S3 Buckets</li>
+  <li>Automated discovery of data e.g. PII/PHI/Finance</li>
+  <li>Identifiers:
+    <ul>
+      <li>Managed Data Identifier -&gt; Built-in ML/Patterns
+        <ul>
+          <li>Maintained by AWS</li>
+        </ul>
+      </li>
+      <li>Custom Data Identifier -&gt; Propreitary -&gt; e.g. Regex Based
+        <ul>
+          <li>Maintained by you</li>
+          <li>e.g. adding keyword (maximum match distance), Ignore words</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Set Discovery Jobs to run:
+    <ul>
+      <li>Integrates with Security Hub/Finding Events to Event bridge
+  e.g. EventBridge -&gt; Send to SNS -&gt; Do things</li>
+    </ul>
+  </li>
+  <li>Centrally Managed -&gt; aka Central account owns the service
+    <ul>
+      <li>AWS ORG or via MACIE Account</li>
+    </ul>
+  </li>
+  <li>Findings (Result from Macie):
+    <ul>
+      <li>Policy -&gt; things that reduced accessibility security for s3
+        <ul>
+          <li>e.g. S3BlockPublicAccessDisabled/S3EncryptionDisabled/S3BucketPublic/S3BucketSharedExternally</li>
+        </ul>
+      </li>
+      <li>Sensitive -&gt; things that includes credentials or exposure to content relating to PII/PHI/finance
+        <ul>
+          <li>e.g. S3Object/credentials/S3Object/CustomerIdentifer/Finsancila/Multiple/Personal</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>EBS</p>
+<ul>
+  <li>General Purpose (GP2)
+    <ul>
+      <li>1GB &lt; x  &lt; 16 TB</li>
+      <li>IO Credit = 16KB
+        <ul>
+          <li>IOPS = 1 IO in 1 seconds
+  -If no credeit, means no IO</li>
+        </ul>
+      </li>
+      <li>IO Credeit Bucket
+        <ul>
+          <li>Capacity 5.4 million IO credeits (Fills at rate of baseline performance)
+            <ul>
+              <li>FULL at a start</li>
+              <li>meaning 30 minutes @ 3000 IOPS for boots and initial workloads</li>
+            </ul>
+          </li>
+          <li>Bucket FIlls with Min 100 Credeits per second (Regardless of size)</li>
+        </ul>
+      </li>
+      <li>Beyond the 100 minimum the bucket fills with 3 IO credts per second per GB of volume</li>
+      <li>Burst up to 3000 IOPS be depleting the bucket</li>
+      <li>If you are running faster than that, then you are decreasing</li>
+      <li>Basically you need manage “these CREDEITs</li>
+      <li>For large volumes (1000GB)
+        <ul>
+          <li>basineline is above burst, you always achive baseline</li>
+          <li>Up to maximum for GP2 of 16,000</li>
+        </ul>
+      </li>
+      <li>Good for Boot volume</li>
+    </ul>
+  </li>
+  <li>GP3
+    <ul>
+      <li>Removes Credeit bucket architecture</li>
+      <li>Starts with standard 3000 IOPS &amp; 125 MiB/s Standard</li>
+      <li>20% Cheaper to GP2
+        <ul>
+          <li>If you need performance, you can pay more for IOPS</li>
+          <li>Up to 4x Faster Max Throughput vs GP2</li>
+        </ul>
+      </li>
+      <li>its a combination of GP2 and IO1</li>
+      <li>Good for Boot/Low latency INteractive apps</li>
+    </ul>
+  </li>
+  <li>Provisioned IO1/2
+    <ul>
+      <li>Configurable independetly of size</li>
+      <li>Consistent Low Latency and JItter</li>
+      <li>Up to:
+        <ul>
+          <li>64,000 IOPS per volume (4x GP2/3)</li>
+          <li>256,000 IOPS per volume (Block Express)</li>
+          <li>1GB/s thorughput</li>
+          <li>4GB/s througput for Block Express</li>
+          <li>io1 - 50 IOPS/GB</li>
+          <li>io2 - 500 IOPS/GB
+  Block Express 1000 IOPS/GB</li>
+        </ul>
+      </li>
+      <li>Per Instance Performance
+        <ul>
+          <li>you need multiple instance to meet the IOPS (?)
+            <ul>
+              <li>????? &lt; Need to Clarify &gt;</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>HDD Based
+    <ul>
+      <li>Mechanical arms</li>
+      <li>Types:
+        <ul>
+          <li>st1 - throughput Optimzed
+            <ul>
+              <li>Cheap</li>
+              <li>Sequential Access Data
+                <ul>
+                  <li>Frequent Access / Throughput intensive</li>
+                </ul>
+              </li>
+              <li>125GB to 16TB</li>
+              <li>MAX 500 IOPS (1MB)</li>
+              <li>MAX 500 MB/s</li>
+              <li>Basline -&gt; 40 MB/s/TB Base</li>
+              <li>Burst -&gt; 250 MD/s/TB Burst</li>
+            </ul>
+          </li>
+          <li>sc1 - Cold
+            <ul>
+              <li>Cheaper</li>
+              <li>Lowest cost HDD volume designed for less frequently accessed workloads</li>
+              <li>MAX 250 IOPS (1MB)</li>
+              <li>MAX 250 MB/s</li>
+              <li>Basline -&gt; 12 MB/s/TB</li>
+              <li>Burst -&gt; 80 MB/s/TB</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>Instance Store VOlumes</p>
+<ul>
+  <li>BLock Storage Devices</li>
+  <li>Similar to EBS, but its local (ephemeral volumes)</li>
+  <li>Physically connected to one EC2 Host, and can only be add at launch</li>
+  <li>Instances on that host can access them
+    <ul>
+      <li>Lost when move/resize/hardware failure</li>
+    </ul>
+  </li>
+  <li>HIGHEST performance in AWS
+    <ul>
+      <li>e.g. 2 million IOPS</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Choose between EC2 Instance Store and EBS</p>
+<ul>
+  <li>Persistence - EBS</li>
+  <li>Resilience - EBS</li>
+  <li>Isolated from instance Life Cycle - EBS</li>
+  <li>High Performance - Instance Store</li>
+  <li>Cost - Instance Store</li>
+</ul>
+
+<p>–&gt; Cheap = ST1/SC1 
+==&gt; Througput Streaming = ST1
+–&gt; Boot = Not ST1 or SC1
+–&gt; Gp2/3 - up to 16,000 IOPS
+–&gt; IO1/2 - 64,000 IOPS (to reach 256000 you need LARGE Instance)
+–&gt; Raid0 + EBS up to 260, 000 IOPs (io1/2) 
+–&gt; More than 260,000 IOPS -&gt; Instance Store</p>
+
+<p>(MAKE A NOTE ON THESE)</p>
+
+<p>AWS Transfer Family</p>
+<ul>
+  <li>Transfer files into and out of AWS Storage Services S3 and EFS (TO or FROM)</li>
+  <li>Protocols:
+    <ul>
+      <li>File Transfer Protocol (FTP)</li>
+      <li>File Transfer Protocol Secure (FTPS) - TLS</li>
+      <li>Secure Shell File Transfer Protocol (SFTP) - over ssh</li>
+      <li>Applicability Statement 2 (AS2) - Structured B2B data</li>
+    </ul>
+  </li>
+  <li>Identities - Service Managed, DS or Custom</li>
+  <li>
+    <p>Managed File Transfer Workflow (MFTW)</p>
+  </li>
+  <li>Endpoint Options
+    <ul>
+      <li>Public - Sits on AWS Public
+  -&gt; SFTP
+  -&gt; Dynamic IP 
+      - means you can’t control access
+  -&gt; Managed by AWS</li>
+      <li>VPC - Internet
+  -&gt; SFTP or FTPS
+  -&gt; Accesible via DX/VPN
+  -&gt; Assigned EIP (Static Public IP for access)</li>
+      <li>VPC - Internal Only
+  -&gt; SFTP or FTP or FTPS
+      -&gt; NOTE FTP &gt; as it is internal
+  -&gt; Accesible via DX/VPN</li>
+    </ul>
+  </li>
+  <li>Multi AZ by nature -&gt; Resilient and scalable</li>
+  <li>No Upfront Cost</li>
+  <li>Only Server per hour and data transfer cost</li>
+</ul>
+
+<p>-&gt; FTP and FTPS - Directory Service Or Custom IDP only</p>
 
     </article>
   </main>

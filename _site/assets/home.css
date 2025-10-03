@@ -1,0 +1,149 @@
+/* Home layout styling */
+
+.home-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin: 16px 0 40px;
+}
+
+.home-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(100%, 520px);
+}
+
+.home-row-top .home-card {
+  align-items: flex-start;
+}
+
+.home-row-top .visual-card {
+  flex: 0 0 auto;
+}
+
+.home-row-top .intro-card {
+  flex: 1 1 0;
+  width: auto;
+}
+
+.home-row-bottom .home-card {
+  flex: 1 1 0;
+  max-width: none;
+  width: auto;
+}
+
+.visual-card {
+  width: auto;
+  max-width: 280px;
+  gap: 12px;
+}
+
+.visual-frame {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.visual-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.intro-card h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--ink);
+}
+
+.intro-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.social {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  align-items: center;
+  color: var(--muted);
+}
+
+.social a {
+  color: var(--accent);
+  border-bottom: 0;
+}
+
+.social span {
+  opacity: 0.5;
+}
+
+.achievements-card h2,
+.skills-card h2 {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.list li + li {
+  margin-top: 6px;
+}
+
+.skill-group {
+  margin-bottom: 16px;
+}
+
+.skill-group h3 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.skills {
+  margin: 0;
+  padding-left: 18px;
+  list-style: none;
+  color: var(--muted);
+}
+
+.skills li + li {
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .home-card {
+    width: 100%;
+    max-width: none;
+  }
+
+  .visual-card {
+    align-items: center;
+  }
+
+  .visual-frame {
+    width: 180px;
+    height: 180px;
+  }
+}

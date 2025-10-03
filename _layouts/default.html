@@ -6,6 +6,11 @@
   <title>{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}</title>
   <meta name="description" content="{{ page.excerpt | strip_html | strip_newlines | truncate: 160 | default: site.description }}">
   <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
+  {% if page.styles %}
+    {% for stylesheet in page.styles %}
+  <link rel="stylesheet" href="{{ stylesheet | relative_url }}">
+    {% endfor %}
+  {% endif %}
   <link rel="icon" type="image/svg+xml" href="{{ '/favicon.svg' | relative_url }}">
   <link rel="shortcut icon" href="{{ '/favicon.ico' | relative_url }}">
   <link rel="apple-touch-icon" href="{{ '/favicon.png' | relative_url }}">
@@ -15,7 +20,6 @@
   <header class="site-header">
     <a class="brand" href="{{ '/' | relative_url }}">{{ site.title }}</a>
     <nav class="nav">
-      <a href="{{ '/' | relative_url }}">home</a>
       <a href="{{ '/principles' | relative_url }}">principles</a>
       <a href="{{ '/rules' | relative_url }}">rules</a>
       <a href="{{ '/stretches' | relative_url }}">stretches</a>
