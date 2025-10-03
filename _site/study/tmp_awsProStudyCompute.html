@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/tmp_awsProStudyNetwork.html" />
-<meta property="og:url" content="http://localhost:4000/study/tmp_awsProStudyNetwork.html" />
+<link rel="canonical" href="http://localhost:4000/study/tmp_awsProStudyCompute.html" />
+<meta property="og:url" content="http://localhost:4000/study/tmp_awsProStudyCompute.html" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="glucolte" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"glucolte","url":"http://localhost:4000/study/tmp_awsProStudyNetwork.html"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"glucolte","url":"http://localhost:4000/study/tmp_awsProStudyCompute.html"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -63,86 +63,6 @@
   <main class="container">
     <article class="content">
       
-<p>Leetcode is also about training your mindset with coding</p>
-<ul>
-  <li>You are certain about the implication of your algorithm</li>
-</ul>
-
-<h1 id="important-to-have-a-separate-page-for-designs">IMPORTANT TO HAVE A SEPARATE PAGE FOR DESIGNS</h1>
-<p>How Many AZs? —&gt; How to design Highly Availabile</p>
-<ul>
-  <li>How to design subnets?</li>
-  <li>If an application requires minimum 6 instances to run stably
-    <ul>
-      <li>Meaning each subnet should have 6 instance (100% cost)
-        <ul>
-          <li>You need to think about if a subnet fails</li>
-        </ul>
-      </li>
-      <li>this is overprovisioning - Least cost optimal, but HIGHLY available</li>
-    </ul>
-  </li>
-  <li>Most COST Optimal answer:
-    <ul>
-      <li>e.g. use 3 AZs, and each have 3
-        <ul>
-          <li>Now, if an AZ fail, we still have 6</li>
-        </ul>
-      </li>
-      <li>but only cost extra 3 extra instance = 50%</li>
-    </ul>
-  </li>
-  <li>How Much resilence do we need?
-    <ul>
-      <li>How many AZ-failures have to be torelered? -&gt; usually 1 Buffer AZ</li>
-      <li>AZ’s in region (6) minus buffer AZs (1) = 5 (Nominal AZs)</li>
-      <li>Minimum App Requirements =&gt;  5 Nominal Instances</li>
-      <li>Nominal Instances / Nominal AZs (5/5) = Optimal 1 Per AZ
-        <ul>
-          <li>Means each AZ have 1 instance</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-</ul>
-
-<p>How Many Subnets and Tiers?</p>
-<ul>
-  <li>Traditional applications use a N-TIER architecture - &gt; Each Tier is responsilbe for a specific part of the app functionality
-    <ul>
-      <li>e.g. PResentation / Logic /Data</li>
-    </ul>
-  </li>
-  <li>Historically, each tier had its own networking/security configuration
-    <ul>
-      <li>Physical networking and security if on premieses</li>
-    </ul>
-  </li>
-  <li>But these are “On Premises”</li>
-  <li>For CLOUD -&gt; DONT MIMIC THESE IN AWS
-    <ul>
-      <li>1 Tier in 3 AZ = 3 Subnet Design</li>
-      <li>By default subnet is created based on AZs
-  -&gt; Putting things in Public Subnet
-  -&gt; You can avoid allocate Public IP to avoid access
-  -&gt; You can alaso add Security Group/ENI around the Resouce INSIDE the PUBLIC SUBNET 
-  -&gt; We introduce Private, if it is specifically saying that, YOU CAN NO HAVE SHARING SUBNETS for DATABASES
-  -&gt; this might be valid due to Security or compliance
-  -&gt; this will lead to 2 Tier in 3 AZ = 6 subnet design
-  -&gt; Now if you want traffic to flow, means you need RT to point to the “new subnets”
-  -&gt; You also can’t have NAT gateway in Private -&gt; Hence you need Public
-      -&gt; Gateway in one subnet
-  -&gt; different Subnets -&gt; allow granular ROUTING for different purpose
--&gt; Ignore HA to start with 
-  -&gt; How many Subnet does your application need
--&gt; Public and Private addressing, security can be controlled with one subnet
--&gt; Different Routing -&gt; Multiple Subnets
--&gt; Internet-facing ALBs can communicate with private instances
-—&gt; BASICALLY REQUIREMENT FIRST, then think about AVAILABILTY (UNLESS SECURITY is needed to address)
--&gt; Number of APP Subnets * AZs = number of subnets needed</li>
-    </ul>
-  </li>
-</ul>
 
     </article>
   </main>
