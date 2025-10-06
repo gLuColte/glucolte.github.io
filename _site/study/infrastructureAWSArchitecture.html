@@ -64,40 +64,95 @@
     <article class="content">
       <h1 id="aws-architecture-best-practices">AWS Architecture Best Practices</h1>
 
-<p>Concise study notes for designing reliable, secure, and cost-optimized AWS architectures — aligned with Professional Certification.</p>
+<p>Concise, practical notes for designing AWS systems that are reliable, secure, and cost-efficient — aligned with AWS Solutions Architect Professional standards.</p>
 
 <hr />
 
 <h2 id="network-architecture">1. Network Architecture</h2>
 
-<h3 id="11-vpc-design-principles">1.1 VPC Design Principles</h3>
-<ul>
-  <li>Public subnets → internet-facing resources (ALB, NAT, bastion)</li>
-  <li>Private subnets → application servers, internal services</li>
-  <li>Database subnets → isolated, no internet access</li>
-  <li>Management subnets → monitoring, logging, admin tools</li>
-</ul>
+<h3 id="11-designing-a-vpc">1.1 Designing a VPC</h3>
 
-<p>Subnet sizing example:</p>
+<p>Think of your VPC as a city — each subnet is a district with its own purpose.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/16 VPC <span class="o">(</span>65,536 IPs<span class="o">)</span>
-├── /20 public subnets – 3 AZs
-├── /20 private subnets – 3 AZs
-├── /24 database subnets – 3 AZs
-└── /24 management subnets – 3 AZs
+<table>
+  <thead>
+    <tr>
+      <th>Subnet Type</th>
+      <th>Purpose</th>
+      <th>Example Components</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Public</strong></td>
+      <td>Internet-facing resources</td>
+      <td>ALB, NAT Gateway, Bastion Host</td>
+    </tr>
+    <tr>
+      <td><strong>Private</strong></td>
+      <td>Internal app and API layers</td>
+      <td>EC2, ECS Tasks</td>
+    </tr>
+    <tr>
+      <td><strong>Database</strong></td>
+      <td>Isolated storage layer</td>
+      <td>RDS, Aurora</td>
+    </tr>
+    <tr>
+      <td><strong>Management</strong></td>
+      <td>Monitoring and admin tools</td>
+      <td>Prometheus, Grafana</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Example layout:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/16 VPC (65,536 IPs)
+├── /20 public subnets – across 3 AZs
+├── /20 private subnets – across 3 AZs
+├── /24 database subnets – across 3 AZs
+└── /24 management subnets – across 3 AZs
 </code></pre></div></div>
 
-<p>Multi-AZ:</p>
+<p><strong>Design tips:</strong></p>
 <ul>
-  <li>At least 2 AZs (recommended 3)</li>
-  <li>Minimize cross-AZ traffic (adds cost + latency)</li>
+  <li>Use at least <strong>two AZs</strong> (three preferred).</li>
+  <li>Keep cross-AZ traffic low (reduces latency and cost).</li>
+  <li>Use <strong>NAT Gateways</strong> for private subnet outbound access.</li>
+  <li>Use <strong>VPC Endpoints</strong> to reach AWS services privately.</li>
 </ul>
 
+<hr />
+
 <h3 id="12-network-security">1.2 Network Security</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Control</th>
+      <th>Scope</th>
+      <th>Behavior</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Security Groups</strong></td>
+      <td>Instance-level</td>
+      <td>Stateful, only “allow” rules.</td>
+    </tr>
+    <tr>
+      <td><strong>NACLs</strong></td>
+      <td>Subnet-level</td>
+      <td>Stateless, supports allow and deny.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Additional practices:</p>
 <ul>
-  <li>Security groups → stateful, least privilege</li>
-  <li>NACLs → stateless, subnet-level, explicit allow/deny</li>
-  <li>VPC features → NAT for outbound, VPC Endpoints for private AWS access, Transit Gateway for central routing</li>
+  <li><strong>Transit Gateway</strong> → central routing for multiple VPCs.</li>
+  <li><strong>PrivateLink / VPC Endpoints</strong> → avoid exposing services to the internet.</li>
 </ul>
 
 <hr />
@@ -106,17 +161,17 @@
 
 <h3 id="21-application-ha">2.1 Application HA</h3>
 <ul>
-  <li>ALB → L7 HTTP/HTTPS routing, SSL termination</li>
-  <li>NLB → L4 TCP/UDP, high performance</li>
-  <li>Auto Scaling → multi-AZ placement, health checks, rolling updates</li>
+  <li><strong>ALB (L7)</strong> → smart routing, SSL termination, sticky sessions.</li>
+  <li><strong>NLB (L4)</strong> → static IPs, ultra-low latency.</li>
+  <li><strong>Auto Scaling</strong> → multi-AZ distribution, health checks, rolling updates.</li>
 </ul>
 
 <h3 id="22-database-ha">2.2 Database HA</h3>
 <ul>
-  <li>RDS Multi-AZ → synchronous standby</li>
-  <li>Read replicas → async, scale reads</li>
-  <li>RDS Proxy → connection pooling</li>
-  <li>Application → retry logic and DNS failover</li>
+  <li><strong>RDS Multi-AZ</strong> → synchronous standby and failover.</li>
+  <li><strong>Read Replicas</strong> → async scaling for reads.</li>
+  <li><strong>RDS Proxy</strong> → efficient connection pooling.</li>
+  <li>App-level retry and DNS failover logic recommended.</li>
 </ul>
 
 <hr />
@@ -125,19 +180,45 @@
 
 <h3 id="31-storage-redundancy">3.1 Storage Redundancy</h3>
 <ul>
-  <li>S3 cross-region replication</li>
-  <li>EBS snapshots</li>
-  <li>EFS multi-AZ replication</li>
-  <li>RDS backups (7–35 days)</li>
+  <li><strong>S3</strong> → cross-region replication.</li>
+  <li><strong>EBS</strong> → snapshots and lifecycle policies.</li>
+  <li><strong>EFS</strong> → multi-AZ replication.</li>
+  <li><strong>RDS</strong> → automated backups (7–35 days).</li>
 </ul>
 
 <h3 id="32-dr-strategies">3.2 DR Strategies</h3>
-<ul>
-  <li>Backup &amp; restore → cheapest, highest RTO/RPO</li>
-  <li>Pilot light → minimal infra, spin up on failover</li>
-  <li>Warm standby → scaled-down infra in DR region</li>
-  <li>Multi-site active → full redundancy, most expensive</li>
-</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>Strategy</th>
+      <th>Description</th>
+      <th>RTO/RPO</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Backup &amp; Restore</strong></td>
+      <td>Rebuild infra from backups</td>
+      <td>High</td>
+    </tr>
+    <tr>
+      <td><strong>Pilot Light</strong></td>
+      <td>Minimal standby infra</td>
+      <td>Medium</td>
+    </tr>
+    <tr>
+      <td><strong>Warm Standby</strong></td>
+      <td>Scaled-down live copy</td>
+      <td>Low</td>
+    </tr>
+    <tr>
+      <td><strong>Multi-site Active</strong></td>
+      <td>Full duplication across regions</td>
+      <td>Very Low (highest cost)</td>
+    </tr>
+  </tbody>
+</table>
 
 <hr />
 
@@ -145,118 +226,192 @@
 
 <h3 id="41-identity--access">4.1 Identity &amp; Access</h3>
 <ul>
-  <li>Use roles instead of long-lived users</li>
-  <li>Enforce MFA, apply least privilege</li>
-  <li>Cross-account access with AssumeRole</li>
-  <li>Service-linked roles, instance profiles, Lambda roles</li>
+  <li>Use <strong>IAM roles</strong>, not static keys.</li>
+  <li>Enforce <strong>MFA</strong> and least-privilege policies.</li>
+  <li>Use <strong>AssumeRole</strong> for cross-account access.</li>
+  <li>Leverage <strong>service-linked roles</strong> for AWS services.</li>
 </ul>
 
 <h3 id="42-encryption">4.2 Encryption</h3>
 <ul>
-  <li>At rest → EBS, RDS, S3, EFS</li>
-  <li>In transit → TLS/SSL</li>
-  <li>KMS → key management</li>
-  <li>ACM → certificate management</li>
+  <li><strong>At rest</strong> → S3, EBS, RDS, EFS encryption.</li>
+  <li><strong>In transit</strong> → TLS 1.2 or higher.</li>
+  <li><strong>KMS</strong> → centralized key management.</li>
+  <li><strong>ACM</strong> → automatic certificate management.</li>
 </ul>
 
 <hr />
 
 <h2 id="performance-optimization">5. Performance Optimization</h2>
+
 <ul>
-  <li>Compute → right-size, Graviton, Spot, predictive scaling</li>
-  <li>Storage → GP3 &gt; GP2, provisioned IOPS for DBs, S3 lifecycle rules</li>
-  <li>Data transfer → prefer intra-region/private, avoid cross-region</li>
+  <li>Use <strong>Graviton</strong> instances or right-size with Compute Optimizer.</li>
+  <li>Prefer <strong>GP3</strong> over GP2 for EBS.</li>
+  <li>Apply <strong>S3 lifecycle rules</strong> → move cold data to Glacier.</li>
+  <li>Reduce data transfer costs by staying <strong>in-region</strong> and <strong>private</strong>.</li>
 </ul>
 
 <hr />
 
 <h2 id="cost-optimization">6. Cost Optimization</h2>
+
 <ul>
-  <li>Right-size resources using CloudWatch and Compute Optimizer</li>
-  <li>Use pricing models: RIs, Savings Plans, Spot</li>
-  <li>Optimize storage: Glacier, lifecycle, deduplication</li>
-  <li>Governance: budgets, alerts, tagging</li>
+  <li>Continuously right-size using <strong>CloudWatch</strong> + <strong>Compute Optimizer</strong>.</li>
+  <li>Mix <strong>On-Demand</strong>, <strong>Reserved</strong>, and <strong>Spot</strong> instances.</li>
+  <li>Archive cold data with <strong>S3 Glacier</strong>.</li>
+  <li>Set up <strong>Budgets</strong>, <strong>Cost Explorer</strong>, and tagging for governance.</li>
 </ul>
 
 <hr />
 
 <h2 id="monitoring">7. Monitoring &amp; Observability</h2>
+
 <ul>
-  <li>CloudWatch metrics, alarms, anomaly detection, dashboards</li>
-  <li>Centralized log groups, Logs Insights</li>
-  <li>X-Ray distributed tracing</li>
-  <li>Synthetic and real-user monitoring</li>
+  <li><strong>CloudWatch</strong> → metrics, alarms, dashboards.</li>
+  <li><strong>Logs Insights</strong> → query logs across groups.</li>
+  <li><strong>X-Ray</strong> → distributed tracing.</li>
+  <li><strong>Synthetics</strong> → proactive canary checks.</li>
 </ul>
 
 <hr />
 
 <h2 id="deployment">8. Deployment &amp; Operations</h2>
+
 <ul>
-  <li>Infrastructure as code → CloudFormation, CDK</li>
-  <li>CI/CD → CodePipeline, CodeBuild, CodeDeploy</li>
-  <li>Deployment models → blue/green, canary, rolling, immutable</li>
+  <li>Define infrastructure as code with <strong>CloudFormation</strong> or <strong>CDK</strong>.</li>
+  <li>Automate pipelines via <strong>CodePipeline</strong>, <strong>CodeBuild</strong>, <strong>CodeDeploy</strong>.</li>
+  <li>Deployment strategies:
+    <ul>
+      <li><strong>Blue/Green</strong> → minimal downtime</li>
+      <li><strong>Canary</strong> → gradual rollout</li>
+      <li><strong>Rolling</strong> → phased updates</li>
+      <li><strong>Immutable</strong> → brand-new instances</li>
+    </ul>
+  </li>
 </ul>
 
 <hr />
 
 <h2 id="common-patterns">9. Common Patterns</h2>
-<ul>
-  <li>Microservices → API Gateway, service mesh, async with SQS/SNS</li>
-  <li>Serverless → Lambda with API Gateway (REST/HTTP/WebSocket)</li>
-  <li>Event-driven → decouple via events/queues</li>
-</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>Pattern</th>
+      <th>AWS Services</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Microservices</strong></td>
+      <td>API Gateway + ECS/EKS + SQS/SNS</td>
+      <td>Async, scalable design</td>
+    </tr>
+    <tr>
+      <td><strong>Serverless</strong></td>
+      <td>Lambda + API Gateway</td>
+      <td>Pay per use</td>
+    </tr>
+    <tr>
+      <td><strong>Event-Driven</strong></td>
+      <td>SQS, SNS, EventBridge</td>
+      <td>Decoupled services</td>
+    </tr>
+  </tbody>
+</table>
 
 <hr />
 
 <h2 id="design-principles">10. Design Principles (Rules of Thumb)</h2>
 
-<h3 id="101-how-many-azs">10.1 How many AZs?</h3>
-<ul>
-  <li>Tolerate N-1 AZ failures</li>
-  <li>Example: Region has 6 AZs, keep 1 as buffer → 5 usable AZs</li>
-  <li>If app needs 5 instances → deploy 1 per AZ</li>
-</ul>
+<h3 id="101-availability-zones-azs">10.1 Availability Zones (AZs)</h3>
+
+<p><strong>Nominal AZs</strong> = the number of AZs actively used in your architecture, leaving one <strong>buffer AZ</strong> for fault tolerance.</p>
 
 <p>Formula:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nominal AZs = Total AZs - 1
+Instances per AZ = Required Instances ÷ Nominal AZs
+</code></pre></div></div>
 
-<p>Nominal AZs = Total AZs – Buffer
-Instances per AZ = Required ÷ Nominal AZs</p>
+<p><strong>Example:</strong></p>
 
-<h3 id="102-how-many-subnets">10.2 How many subnets?</h3>
+<p>You’re in a region with <strong>6 AZs</strong> and your app needs <strong>5 EC2 instances</strong>.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nominal AZs = 6 - 1 = 5
+Instances per AZ = 5 ÷ 5 = 1 instance per AZ
+</code></pre></div></div>
+
+<p>If one AZ fails, your app still runs evenly across 4 remaining AZs — maintaining stability and availability.</p>
+
+<hr />
+
+<h3 id="102-subnets-per-tier">10.2 Subnets per Tier</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Subnets = (Number of Tiers) × (Number of AZs)
+</code></pre></div></div>
+
+<p><strong>Example:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2 tiers (app + DB) × 3 AZs = 6 subnets
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="103-tiering-logic">10.3 Tiering Logic</h3>
+
 <ul>
-  <li>Subnets = App tiers × AZs</li>
-  <li>Example: 2 tiers (app + DB) × 3 AZs = 6 subnets</li>
-</ul>
-
-<h3 id="103-tiering">10.3 Tiering</h3>
-<ul>
-  <li>On-prem apps → 3-tier (presentation / logic / data)</li>
-  <li>In AWS → requirements-driven</li>
-  <li>Private DB subnets → compliance/security driven</li>
-  <li>More subnets = granular routing and security, not automatic HA</li>
+  <li>Traditional → 3-tier (Presentation / Logic / Data).</li>
+  <li>In AWS → be requirements-driven.</li>
+  <li>Private DB subnets → isolate for compliance and security.</li>
+  <li>More subnets = better control, not automatically higher HA.</li>
 </ul>
 
 <hr />
 
 <h2 id="best-practices-summary">11. Best Practices Summary</h2>
 
-<p>Principles:</p>
-<ol>
-  <li>Design for failure</li>
-  <li>Implement elasticity</li>
-  <li>Automate with IaC</li>
-  <li>Monitor everything</li>
-  <li>Optimize cost</li>
-</ol>
+<table class="study-table">
+<thead>
+<tr>
+<th>Principle</th>
+<th>Why It Matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Design for failure</strong></td>
+<td>Expect AZ or instance failure — assume things will break and plan redundancy.</td>
+</tr>
+<tr>
+<td><strong>Implement elasticity</strong></td>
+<td>Scale with demand using Auto Scaling and managed services.</td>
+</tr>
+<tr>
+<td><strong>Automate with IaC</strong></td>
+<td>Use CloudFormation or CDK to reduce manual errors and enforce consistency.</td>
+</tr>
+<tr>
+<td><strong>Monitor everything</strong></td>
+<td>Visibility ensures reliability — track metrics, logs, and alarms proactively.</td>
+</tr>
+<tr>
+<td><strong>Optimize for cost</strong></td>
+<td>Efficiency drives sustainability — right-size, schedule, and review usage regularly.</td>
+</tr>
+</tbody>
+</table>
 
-<p>Common pitfalls:</p>
+<p><strong>Common pitfalls:</strong></p>
 <ul>
-  <li>Single AZ or subnet → SPOF</li>
-  <li>Over-provisioning → wasted cost</li>
-  <li>Security bolted on late</li>
-  <li>No observability</li>
-  <li>Tight coupling between services</li>
+  <li>Running only in one AZ → single point of failure.</li>
+  <li>Over-provisioning → wasted cost.</li>
+  <li>Security added late → higher risk.</li>
+  <li>No observability → blind troubleshooting.</li>
+  <li>Tight coupling → poor scalability.</li>
 </ul>
+
+<hr />
+
 
     </article>
   </main>
