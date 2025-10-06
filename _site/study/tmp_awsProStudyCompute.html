@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>glucolte</title>
+  <title>Compute, Scaling &amp; Load Balancing · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,9 +13,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>glucolte | notes • principles • systems</title>
+<title>Compute, Scaling &amp; Load Balancing | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="glucolte" />
+<meta property="og:title" content="Compute, Scaling &amp; Load Balancing" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
@@ -24,9 +24,9 @@
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="glucolte" />
+<meta property="twitter:title" content="Compute, Scaling &amp; Load Balancing" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"glucolte","url":"http://localhost:4000/study/tmp_awsProStudyCompute.html"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Compute, Scaling &amp; Load Balancing","url":"http://localhost:4000/study/tmp_awsProStudyCompute.html"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -63,6 +63,638 @@
   <main class="container">
     <article class="content">
       
+<h1 id="compute-scaling--load-balancing">Compute, Scaling &amp; Load Balancing</h1>
+
+<p>Regional and Global AWS Architecture</p>
+<ul>
+  <li>Global Service Location &amp; Delivery</li>
+  <li>CDN</li>
+  <li>Global Health Checks &amp; Failover</li>
+  <li>Regional etnry point</li>
+  <li>Scaling and resilient</li>
+</ul>
+
+<p><img src="./Screenshot%20regional-gloal-intro.png" alt="regional and global intro" /></p>
+
+<h2 id="ec2-purchase-options">EC2 Purchase Options</h2>
+<ul>
+  <li>On Demand - Instance
+    <ul>
+      <li>Shared Hardware with other customers</li>
+      <li>Per Second billing</li>
+      <li>Situation:
+        <ul>
+          <li>Default</li>
+          <li>No Reservation</li>
+          <li>Short Term workloads</li>
+          <li>Unkown workloads</li>
+          <li>No Interruption</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Spot - Instance
+    <ul>
+      <li>Shared Hardware with Customers</li>
+      <li>Per Second Billing</li>
+      <li>Cheapest Solution</li>
+      <li>Selling unused EC2 Host Capacity for discount up to 90%</li>
+      <li>Situation:
+        <ul>
+          <li>Never use for workload that can’t tolerate interruptions</li>
+          <li>Non time critical, can be re run busty</li>
+          <li>Stateless workfloads</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Reserved - Instance
+    <ul>
+      <li>Reduced per second Billing</li>
+      <li>Unused reservation still billed</li>
+      <li>Lock per AZ</li>
+      <li>Partial coverage of larger instance</li>
+      <li>“You commit to AWS you will use a period of time”
+        <ul>
+          <li>1 year or 3 years</li>
+          <li>All Upfront(Greatest discount) vs Partial upfront (Partial upfront, lower /s) vs No Upfront (Reduced per second billing)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Dedicated Host
+    <ul>
+      <li>Strict Hardware restriction</li>
+      <li>Physical Host</li>
+      <li>No instance charges</li>
+      <li>You need to manage the dedicated host capacity</li>
+      <li>You can allocated Instance on the Hosts, until it runs out
+  e.g. r5 2 socket and 48 CORES</li>
+      <li>Situation
+        <ul>
+          <li>You might have software that is licensed based on Socket/Cores</li>
+        </ul>
+      </li>
+      <li>Host Affinity Feature
+        <ul>
+          <li>Linking instances to certain Host 
+  (Meaning you can’t pull up another host)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Dedicated Instance
+    <ul>
+      <li>Hardware trscition, but don’t want to manage capacity (you dont pay for unused resource)</li>
+      <li>Middle ground</li>
+      <li>You don’t own, or share the host.</li>
+      <li>Extra Charges for instances</li>
+      <li>But hardware dedicated</li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="./Screenshot%20ec2_purchaser_option.png" alt="EC2 Launch type" /></p>
+
+<h2 id="reserved-instances">Reserved Instances</h2>
+
+<p>Scheduled Reserved Instances</p>
+<ul>
+  <li>Schedules for long term usage which doesn’t run constantly
+    <ul>
+      <li>e.g. Batch Processing daily for 5 hours, starting at 23:00</li>
+    </ul>
+  </li>
+  <li>Block an hour at a period of day/week/month to process</li>
+  <li>Doesn’t support all instance type or region</li>
+  <li>1,200 hours per year and 1 year MINIMUM CONTRACT</li>
+</ul>
+
+<p>Capactiy Reservations</p>
+<ul>
+  <li>Regional Reservation provides a billing discount for valid instances launched in any AZ in that region
+    <ul>
+      <li>Dont reserver capacity within an AZ</li>
+    </ul>
+  </li>
+  <li>Zonal Reservation, one AZ billing discounts and capacity reservation
+    <ul>
+      <li>Locked in 1 az only</li>
+    </ul>
+  </li>
+  <li>On Demand capacity reservation
+    <ul>
+      <li>Can be booked to ensure you always have access to capacity in an AZ when you need it, but at full on demand price</li>
+      <li>No term apply</li>
+    </ul>
+  </li>
+  <li>No 1 or 3 year reservation</li>
+</ul>
+
+<p>EC2 Saving Plans</p>
+<ul>
+  <li>A hourly commitement for a year or 3 year</li>
+  <li>Reservation of general compute $ amounts
+    <ul>
+      <li>$ 20 per hour for 3 years</li>
+    </ul>
+  </li>
+  <li>or a specific EC2 Savings plan</li>
+  <li>EC2/Fargate/Lambda
+    <ul>
+      <li>Products have an on-demand rate and a saving plan rate</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="-ec2-charging--capacity-options-taxi-edition">🚕 EC2 Charging &amp; Capacity Options (Taxi Edition)</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Plan</th>
+      <th>What it means (simple)</th>
+      <th>Taxi analogy 🚖</th>
+      <th>Commitment</th>
+      <th>Capacity guaranteed?</th>
+      <th>Discount vs On-Demand</th>
+      <th>When to use it</th>
+      <th>How you pay</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>On-Demand</strong></td>
+      <td>Use EC2 anytime, no contract.</td>
+      <td>🚕 <em>You hail a taxi when you need one.</em> Pay per ride; if it’s busy, you might wait.</td>
+      <td>None</td>
+      <td>❌ No</td>
+      <td>❌ None</td>
+      <td>Testing, unpredictable, or short-term workloads.</td>
+      <td>Pay full price only when running.</td>
+    </tr>
+    <tr>
+      <td><strong>Savings Plan</strong></td>
+      <td>Promise to spend a fixed $/hr for 1–3 yrs; AWS gives flexible discounts.</td>
+      <td>🚕 <em>You sign a deal to always spend $X/hour on taxis — any taxi, any route — cheaper rides.</em></td>
+      <td>1–3 yrs</td>
+      <td>❌ No</td>
+      <td>✅ Up to ~70%</td>
+      <td>Continuous usage but flexible instance types/regions.</td>
+      <td>Discounted hourly billing based on commitment.</td>
+    </tr>
+    <tr>
+      <td><strong>Reserved Instance (RI)</strong></td>
+      <td>Lock a specific instance type &amp; region for 1–3 yrs to save more.</td>
+      <td>🚕 <em>You rent one taxi full-time for a year — cheaper rate, but you can’t swap cars easily.</em></td>
+      <td>1–3 yrs</td>
+      <td>❌ No (✅ only for Zonal RI)</td>
+      <td>✅ Up to ~70%</td>
+      <td>Predictable workloads running 24×7.</td>
+      <td>Pay upfront or monthly.</td>
+    </tr>
+    <tr>
+      <td><strong>Scheduled RI</strong></td>
+      <td>Reserve instances for recurring time windows (e.g. weekdays 9–5).</td>
+      <td>🚕 <em>You pre-book the same taxi every weekday morning and evening — guaranteed and cheaper.</em></td>
+      <td>1 yr</td>
+      <td>✅ Yes (during that window)</td>
+      <td>✅ Discounted</td>
+      <td>Workloads with fixed daily/weekly schedules.</td>
+      <td>Pay for reserved time slots only.</td>
+    </tr>
+    <tr>
+      <td><strong>Capacity Reservation</strong></td>
+      <td>Tell AWS “keep these servers ready now in this AZ”; cancel anytime.</td>
+      <td>🚕 <em>You tell the driver: keep the taxi running while I run into a store — guaranteed it’s waiting, meter’s running.</em></td>
+      <td>Until cancelled</td>
+      <td>✅ Yes</td>
+      <td>❌ None (can pair with RI/Savings Plan)</td>
+      <td>Critical workloads needing guaranteed start (DR, finance, healthcare).</td>
+      <td>Pay On-Demand price even if idle.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h3 id="-dedicated-options-private-car-edition">🚗 Dedicated Options (Private Car Edition)</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>What it means</th>
+      <th>Car analogy 🚗</th>
+      <th>Capacity guaranteed?</th>
+      <th>Discount?</th>
+      <th>When to use it</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Dedicated Instance</strong></td>
+      <td>Your EC2 runs on hardware <strong>not shared</strong> with anyone else (AWS still manages it).</td>
+      <td>🚘 <em>A private taxi — only you ride in it, but the company still owns and maintains the car.</em></td>
+      <td>✅ Yes (for isolation)</td>
+      <td>❌ None</td>
+      <td>When you need compliance isolation but don’t need full host control.</td>
+    </tr>
+    <tr>
+      <td><strong>Dedicated Host</strong></td>
+      <td>You rent the entire physical server — full control &amp; visibility.</td>
+      <td>🚙 <em>You buy or lease the whole car — you decide who drives, can use your own license plates (BYOL).</em></td>
+      <td>✅ Yes</td>
+      <td>✅ (with RI or SP)</td>
+      <td>For strict compliance or bring-your-own-license scenarios.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="ec2-networking">EC2 Networking</h2>
+<ul>
+  <li>ENI (Note ENI is created independently to EC2)
+    <ul>
+      <li>Primary/Secondary (you can have 1 or more secondary - large instances)
+        <ul>
+          <li>Primary NEVER change</li>
+          <li>Dynamic allocated and its ENI’s entire lifetime, can not be changed</li>
+          <li>Allocated IPv4 based on Subnet’s CIDR</li>
+        </ul>
+      </li>
+      <li>Can only be in an AZ
+  e.g. you have 2 subnet in 1 AZ, and then you can assign 2 ENI in each Subnet (for different SG/NACL configuration)
+  YOU CAN NOT assign across AZs</li>
+      <li>If you tick Public
+        <ul>
+          <li>Then 1 public IP will be assigned, and its dynamic</li>
+        </ul>
+      </li>
+      <li>You can allocate 1 Elastiv IP per Pricate Ipv4
+        <ul>
+          <li>EIP does association</li>
+          <li>EIP is charged when it is allocated</li>
+        </ul>
+      </li>
+      <li>Ipv6 can be assigned 1 or more</li>
+      <li>1 mac address for ENI (Software Licensing usage)</li>
+      <li>1 or more SG</li>
+      <li>SRC/DST Check
+        <ul>
+          <li>drops Packet if the SRC/DST address isnt ON that interface</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="bootstrapping-vs-ami-baking">Bootstrapping vs AMI Baking</h2>
+
+<ul>
+  <li>Application server contains 3 main steps usually in sequence:
+    <ol>
+      <li>Base Deps/App (VERY SLOT and VERY Generic)</li>
+      <li>App Updates (NOT FAST and Generic)</li>
+      <li>App Configuration (FAST and UNIQUE)</li>
+    </ol>
+  </li>
+  <li>Step 1 Optimication (Can use combination of following)
+    <ul>
+      <li>User Data
+        <ul>
+          <li>Install of additional things when an instance is launched</li>
+          <li>For:
+            <ul>
+              <li>Customized for e.g. Region</li>
+            </ul>
+          </li>
+          <li>Cons:
+            <ul>
+              <li>Still take some time</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>AMI Baking
+        <ul>
+          <li>Create a dedicated AMI for yourself</li>
+          <li>For:
+            <ul>
+              <li>Most time consuming operation that does not change much</li>
+            </ul>
+          </li>
+          <li>Cons:
+            <ul>
+              <li>Harder to adjust</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Step 2 Optimciation</li>
+  <li>Step 3 Optimization
+    <ul>
+      <li>Need to make it flexible, e.g. region/custom specific (Parameter Store)</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="elastic-load-balancer">Elastic Load Balancer</h2>
+<ul>
+  <li>ELB can go across AZs
+    <ul>
+      <li>Loosen the coupling between Tiers (Web/Application/DB)</li>
+      <li>Then you can scale your different tiers</li>
+    </ul>
+  </li>
+  <li>Architecture
+    <ul>
+      <li>Configured to run in 2+ AZs, each run in a subnet</li>
+      <li>Each ELB is configured with an A record DNS name point at 1+ ELB Nodes (or listeners)</li>
+      <li>If Internet Facing
+        <ul>
+          <li>Node have Public IPs</li>
+          <li>EC2 DO NOT have to be public Facing to be zoned to (as long as it is in the same Subnet)</li>
+        </ul>
+      </li>
+      <li>If Internal Facing
+        <ul>
+          <li>Node have Pricate IPs</li>
+        </ul>
+      </li>
+      <li>Nodes are configured with Listeners which accept traffic on a port and protocol and communicate with targets on a port and protocol</li>
+      <li>8+ free IPs per subnet and a /27 or larger subnet to allow for scale</li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="./Screenshot%202025-10-05%20at%2022.29.01.png" alt="ELB" /></p>
+
+<p>Here is the flow:</p>
+<ol>
+  <li>Client connects to the ELB DNS name (e.g. myapp-1234.ap-southeast-2.elb.amazonaws.com).</li>
+  <li>DNS resolves that name to one of the ELB’s IPs, which belongs to a load balancer node in a specific Availability Zone (AZ).</li>
+  <li>Traffic lands on that listener IP inside the subnet (the ELB node for that AZ).</li>
+  <li>The listener checks:
+•	The protocol (HTTP, HTTPS, TCP, etc.)
+•	The port (e.g., 80, 443)
+•	Any rules (e.g., host-based, path-based, or redirect)</li>
+  <li>The listener forwards the request (over the private VPC network) to a target group.</li>
+  <li>A target (such as an EC2 instance) in that group is chosen based on the load-balancing algorithm.</li>
+  <li>The target’s ENI (private IP) receives the request and processes it.</li>
+  <li>The response is sent back through the ELB node to the client.</li>
+  <li>The ELB continuously:
+•	Performs health checks on all targets.
+•	Manages session stickiness (if enabled).
+•	Ensures even load distribution across healthy targets.</li>
+</ol>
+
+<ul>
+  <li>Cross Cont Load Balancing
+    <ul>
+      <li>Let’s say you have ZOne A with 4 instance, Zone B with 1 instance</li>
+      <li>Load balancing is done on “ZOne Level”
+        <ul>
+          <li>meaning 50% traffic goes to each zone</li>
+          <li>That means Zone B has 1 instance dealing with 50 %</li>
+        </ul>
+      </li>
+      <li>Cross Load balancing is allowing Zone B Node to distribute traffic to Zone A
+<img src="./Screenshot%202025-10-05%20at%2022.39.28.png" alt="Cross ZOne Load" /></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="user-session-state">User Session State</h3>
+<ul>
+  <li>Piece of Server Side Information
+    <ul>
+      <li>Persist while you interact with that application</li>
+      <li>e.g. Shopping Cart, Workflow Position, Login State</li>
+    </ul>
+  </li>
+  <li>Usually stored:
+    <ul>
+      <li>Server</li>
+      <li>Externally e.g. Redis/Memcache
+        <ul>
+          <li>(Your Servers become serverless)</li>
+          <li>every request or click might hit a different server</li>
+          <li>No disruption and better scaling</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="types-of-elb">Types of ELB</h3>
+<ul>
+  <li>V1 is to be Avoided
+    <ul>
+      <li>Classic Load Balancer
+        <ul>
+          <li>Not really Layer 7, lack Features</li>
+          <li>Only support 1 SSL per CLB
+            <ul>
+              <li>Becuase SNI is not supported</li>
+              <li>(Security Network Interface)</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>V2 is preferred (SUPPORT SNI)
+    <ul>
+      <li>Network Load Balancer
+        <ul>
+          <li>For non HTTP/HTTPS connections
+            <ul>
+              <li>No Visibility on HTTP/HTTPS -&gt; No Headers, cookies or session stickeness</li>
+            </ul>
+          </li>
+          <li>TCP/TLS and UDP</li>
+          <li>Millions of RPs, 25% of ALB Latency</li>
+          <li>Health Check are just
+            <ul>
+              <li>ICMP/TCP Handshake</li>
+            </ul>
+          </li>
+          <li>Can have static IPs for whitelisting</li>
+          <li>UNBROKEN ENCRYPTION - basically forward TCP to instances</li>
+        </ul>
+      </li>
+      <li>Application Load Balacner
+        <ul>
+          <li>True Layer 7
+            <ul>
+              <li>Can understand content type, cookies, custom headers..etc</li>
+              <li>Hence can use multiple domain as different rules</li>
+            </ul>
+          </li>
+          <li>HTTP/s/Websocket
+            <ul>
+              <li>DOEST NOT SUPPORT SMTP/SSH/GAMING..etc</li>
+              <li>NO TCP/UDP/TLS Listeners</li>
+            </ul>
+          </li>
+          <li>HTTPS
+            <ul>
+              <li>Support multiple SSL</li>
+              <li>Terminated on ALB ALWAYS</li>
+              <li>a new unencrypted connection is made to the application</li>
+            </ul>
+          </li>
+          <li>Can perform Application Health Check</li>
+          <li>Can Setup Rules based on Priority Order
+            <ul>
+              <li>e.g. Rule Condition on header, and Actions for that rule</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="./Screenshot%202025-10-05%20at%2022.53.32.png" alt="v1 and v2 Load Balancer" /></p>
+
+<h3 id="session-stickness">Session Stickness</h3>
+<ul>
+  <li>without stickness
+    <ul>
+      <li>User are directed to instance based on load distribution</li>
+    </ul>
+  </li>
+  <li>With Stickness
+    <ul>
+      <li>“AWSALB” Cookie is introduced in your session
+        <ul>
+          <li>Last for 1 second to 7 days (max)</li>
+        </ul>
+      </li>
+      <li>This cookie ensures the SAME backend instance is used</li>
+      <li>A new cookie is added:
+        <ul>
+          <li>if Instance changed</li>
+          <li>if Expired</li>
+        </ul>
+      </li>
+      <li>Can cause un-even load distribution</li>
+      <li>Used usually when external cache is not allowed</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="auto-scaling-group">Auto Scaling Group</h2>
+<ul>
+  <li>Automatic Scaling and Self Healing for EC2</li>
+  <li>Launch Templates/Configurations
+    <ul>
+      <li>Templates</li>
+      <li>Configuraitons</li>
+    </ul>
+  </li>
+  <li>Paramters:
+    <ul>
+      <li>Minimum Capacity</li>
+      <li>Desired Capacity</li>
+      <li>Maximum Capacity</li>
+    </ul>
+  </li>
+  <li>Sacling Policies - Defines how you “provision” or “terminate”
+    <ul>
+      <li>Manual</li>
+      <li>Scheduled Scaling - e.g. time based</li>
+      <li>Dynamic Scaling (Need CloudWatch Metrics)
+        <ul>
+          <li>Simple Scaling - “CPU above 50% +1, Below 50% -1”</li>
+          <li>Stepped Scaling - More granular, e.g. Bigger +/- based on difference +50% = +1, +60%=+2, +80%=+5</li>
+          <li>Target Tracking - Desired Aggregated CPU = 40 %</li>
+        </ul>
+      </li>
+      <li>Cooldown Periods
+        <ul>
+          <li>Avoid rapid Scaling</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Monitors EC2
+    <ul>
+      <li>EC2 instance check</li>
+    </ul>
+  </li>
+  <li>Keep running instances at the DESIRED CAPACITY by provisioning or terminating instances through Scaling Policies</li>
+  <li>Constraints
+    <ul>
+      <li>Can only be in VPC (across multiple subnets)</li>
+    </ul>
+  </li>
+  <li>Self Healing Procedure
+    <ol>
+      <li>ASG detects failure</li>
+      <li>ASG starts a EC2</li>
+      <li>EC2 is ready</li>
+      <li>ASG replace the EC2</li>
+    </ol>
+  </li>
+  <li>Scaling Procedure
+    <ul>
+      <li>Notes:
+        <ul>
+          <li>Launch and Terniate - SUSPEND and RESUME</li>
+          <li>AddToLoadBalancer - add to LB on Launch</li>
+          <li>AlarmNotification - accept notifcation from CW</li>
+          <li>AZ REbalance - Balances instance evenly across all of the AZs</li>
+          <li>HealthCheck - instance health checks on/ooff</li>
+          <li>Replace Unhealthy - Terminate unhealthy</li>
+          <li>Scheduled Actions - Schedule Scaling</li>
+          <li>Standby - use to keep warm
+      0. Scale out event detected
+      1. Pending
+  1.a Pending Wait
+  1.b Pending Proceed
+      2. In Service</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="asg-with-load-balancers">ASG with Load Balancers</h3>
+<ul>
+  <li>Configured to integrate with Target Group (1+ Instances)</li>
+  <li>ASG instances are automatically added to or removed from the Target Group</li>
+  <li>ASG can use Load balancer health checks rather than EC2 status checks</li>
+  <li>This way you are not tied to an instance but Target Group</li>
+</ul>
+
+<h3 id="asg-lifecycles-hooks">ASG LifeCycles Hooks</h3>
+<ul>
+  <li>Custom Actions on instanace during ASG Actions
+    <ul>
+      <li>instance launch or instance terminate transitions</li>
+    </ul>
+  </li>
+  <li>Instance are paused within the flow…they wait
+    <ul>
+      <li>until a timeout (then either continue or abandon)</li>
+      <li>or you resume the ASG proces CompleteLifeCycleAction</li>
+      <li>usually with EventBridge</li>
+    </ul>
+  </li>
+  <li>This is specifically when you need to scale in or out NOT when failure occurs
+    <ul>
+      <li>this adds Wait and Proceed states to PENDING/TERMINATING</li>
+      <li>Allowing you to add extra steps or process to take
+  e.g. load or backup data/logs</li>
+    </ul>
+  </li>
+</ul>
 
     </article>
   </main>
