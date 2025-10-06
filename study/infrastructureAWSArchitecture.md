@@ -15,12 +15,37 @@ Concise, practical notes for designing AWS systems that are reliable, secure, an
 
 Think of your VPC as a city — each subnet is a district with its own purpose.
 
-| Subnet Type | Purpose | Example Components |
-|--------------|----------|-------------------|
-| **Public** | Internet-facing resources | ALB, NAT Gateway, Bastion Host |
-| **Private** | Internal app and API layers | EC2, ECS Tasks |
-| **Database** | Isolated storage layer | RDS, Aurora |
-| **Management** | Monitoring and admin tools | Prometheus, Grafana |
+<table class="study-table">
+<thead>
+<tr>
+<th>Subnet Type</th>
+<th>Purpose</th>
+<th>Example Components</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Public</strong></td>
+<td>Internet-facing resources</td>
+<td>ALB, NAT Gateway, Bastion Host</td>
+</tr>
+<tr>
+<td><strong>Private</strong></td>
+<td>Internal app and API layers</td>
+<td>EC2, ECS Tasks</td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td>Isolated storage layer</td>
+<td>RDS, Aurora</td>
+</tr>
+<tr>
+<td><strong>Management</strong></td>
+<td>Monitoring and admin tools</td>
+<td>Prometheus, Grafana</td>
+</tr>
+</tbody>
+</table>
 
 Example layout:
 
@@ -32,6 +57,7 @@ Example layout:
 └── /24 management subnets – across 3 AZs
 ```
 
+
 **Design tips:**
 - Use at least **two AZs** (three preferred).  
 - Keep cross-AZ traffic low (reduces latency and cost).  
@@ -42,10 +68,27 @@ Example layout:
 
 ### 1.2 Network Security
 
-| Control | Scope | Behavior |
-|----------|--------|-----------|
-| **Security Groups** | Instance-level | Stateful, only “allow” rules. |
-| **NACLs** | Subnet-level | Stateless, supports allow and deny. |
+<table class="study-table">
+<thead>
+<tr>
+<th>Control</th>
+<th>Scope</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Security Groups</strong></td>
+<td>Instance-level</td>
+<td>Stateful, only “allow” rules.</td>
+</tr>
+<tr>
+<td><strong>NACLs</strong></td>
+<td>Subnet-level</td>
+<td>Stateless, supports allow and deny.</td>
+</tr>
+</tbody>
+</table>
 
 Additional practices:
 - **Transit Gateway** → central routing for multiple VPCs.  
@@ -78,12 +121,37 @@ Additional practices:
 
 ### 3.2 DR Strategies
 
-| Strategy | Description | RTO/RPO |
-|-----------|--------------|---------|
-| **Backup & Restore** | Rebuild infra from backups | High |
-| **Pilot Light** | Minimal standby infra | Medium |
-| **Warm Standby** | Scaled-down live copy | Low |
-| **Multi-site Active** | Full duplication across regions | Very Low (highest cost) |
+<table class="study-table">
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Description</th>
+<th>RTO/RPO</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Backup &amp; Restore</strong></td>
+<td>Rebuild infrastructure from backups</td>
+<td>High</td>
+</tr>
+<tr>
+<td><strong>Pilot Light</strong></td>
+<td>Minimal standby infrastructure</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Warm Standby</strong></td>
+<td>Scaled-down live copy</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>Multi-site Active</strong></td>
+<td>Full duplication across regions</td>
+<td>Very Low (highest cost)</td>
+</tr>
+</tbody>
+</table>
 
 ---
 
@@ -144,11 +212,32 @@ Additional practices:
 
 ## 9. Common Patterns {#common-patterns}
 
-| Pattern | AWS Services | Notes |
-|----------|---------------|-------|
-| **Microservices** | API Gateway + ECS/EKS + SQS/SNS | Async, scalable design |
-| **Serverless** | Lambda + API Gateway | Pay per use |
-| **Event-Driven** | SQS, SNS, EventBridge | Decoupled services |
+<table class="study-table">
+<thead>
+<tr>
+<th>Pattern</th>
+<th>AWS Services</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Microservices</strong></td>
+<td>API Gateway + ECS/EKS + SQS/SNS</td>
+<td>Async, scalable design</td>
+</tr>
+<tr>
+<td><strong>Serverless</strong></td>
+<td>Lambda + API Gateway</td>
+<td>Pay per use</td>
+</tr>
+<tr>
+<td><strong>Event-Driven</strong></td>
+<td>SQS, SNS, EventBridge</td>
+<td>Decoupled services</td>
+</tr>
+</tbody>
+</table>
 
 ---
 
@@ -243,5 +332,3 @@ Subnets = (Number of Tiers) × (Number of AZs)
 - Tight coupling → poor scalability.  
 
 ---
-
-

@@ -74,36 +74,36 @@
 
 <p>Think of your VPC as a city — each subnet is a district with its own purpose.</p>
 
-<table>
-  <thead>
-    <tr>
-      <th>Subnet Type</th>
-      <th>Purpose</th>
-      <th>Example Components</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Public</strong></td>
-      <td>Internet-facing resources</td>
-      <td>ALB, NAT Gateway, Bastion Host</td>
-    </tr>
-    <tr>
-      <td><strong>Private</strong></td>
-      <td>Internal app and API layers</td>
-      <td>EC2, ECS Tasks</td>
-    </tr>
-    <tr>
-      <td><strong>Database</strong></td>
-      <td>Isolated storage layer</td>
-      <td>RDS, Aurora</td>
-    </tr>
-    <tr>
-      <td><strong>Management</strong></td>
-      <td>Monitoring and admin tools</td>
-      <td>Prometheus, Grafana</td>
-    </tr>
-  </tbody>
+<table class="study-table">
+<thead>
+<tr>
+<th>Subnet Type</th>
+<th>Purpose</th>
+<th>Example Components</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Public</strong></td>
+<td>Internet-facing resources</td>
+<td>ALB, NAT Gateway, Bastion Host</td>
+</tr>
+<tr>
+<td><strong>Private</strong></td>
+<td>Internal app and API layers</td>
+<td>EC2, ECS Tasks</td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td>Isolated storage layer</td>
+<td>RDS, Aurora</td>
+</tr>
+<tr>
+<td><strong>Management</strong></td>
+<td>Monitoring and admin tools</td>
+<td>Prometheus, Grafana</td>
+</tr>
+</tbody>
 </table>
 
 <p>Example layout:</p>
@@ -127,26 +127,26 @@
 
 <h3 id="12-network-security">1.2 Network Security</h3>
 
-<table>
-  <thead>
-    <tr>
-      <th>Control</th>
-      <th>Scope</th>
-      <th>Behavior</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Security Groups</strong></td>
-      <td>Instance-level</td>
-      <td>Stateful, only “allow” rules.</td>
-    </tr>
-    <tr>
-      <td><strong>NACLs</strong></td>
-      <td>Subnet-level</td>
-      <td>Stateless, supports allow and deny.</td>
-    </tr>
-  </tbody>
+<table class="study-table">
+<thead>
+<tr>
+<th>Control</th>
+<th>Scope</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Security Groups</strong></td>
+<td>Instance-level</td>
+<td>Stateful, only “allow” rules.</td>
+</tr>
+<tr>
+<td><strong>NACLs</strong></td>
+<td>Subnet-level</td>
+<td>Stateless, supports allow and deny.</td>
+</tr>
+</tbody>
 </table>
 
 <p>Additional practices:</p>
@@ -188,36 +188,36 @@
 
 <h3 id="32-dr-strategies">3.2 DR Strategies</h3>
 
-<table>
-  <thead>
-    <tr>
-      <th>Strategy</th>
-      <th>Description</th>
-      <th>RTO/RPO</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Backup &amp; Restore</strong></td>
-      <td>Rebuild infra from backups</td>
-      <td>High</td>
-    </tr>
-    <tr>
-      <td><strong>Pilot Light</strong></td>
-      <td>Minimal standby infra</td>
-      <td>Medium</td>
-    </tr>
-    <tr>
-      <td><strong>Warm Standby</strong></td>
-      <td>Scaled-down live copy</td>
-      <td>Low</td>
-    </tr>
-    <tr>
-      <td><strong>Multi-site Active</strong></td>
-      <td>Full duplication across regions</td>
-      <td>Very Low (highest cost)</td>
-    </tr>
-  </tbody>
+<table class="study-table">
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Description</th>
+<th>RTO/RPO</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Backup &amp; Restore</strong></td>
+<td>Rebuild infrastructure from backups</td>
+<td>High</td>
+</tr>
+<tr>
+<td><strong>Pilot Light</strong></td>
+<td>Minimal standby infrastructure</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Warm Standby</strong></td>
+<td>Scaled-down live copy</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>Multi-site Active</strong></td>
+<td>Full duplication across regions</td>
+<td>Very Low (highest cost)</td>
+</tr>
+</tbody>
 </table>
 
 <hr />
@@ -294,31 +294,31 @@
 
 <h2 id="common-patterns">9. Common Patterns</h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Pattern</th>
-      <th>AWS Services</th>
-      <th>Notes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Microservices</strong></td>
-      <td>API Gateway + ECS/EKS + SQS/SNS</td>
-      <td>Async, scalable design</td>
-    </tr>
-    <tr>
-      <td><strong>Serverless</strong></td>
-      <td>Lambda + API Gateway</td>
-      <td>Pay per use</td>
-    </tr>
-    <tr>
-      <td><strong>Event-Driven</strong></td>
-      <td>SQS, SNS, EventBridge</td>
-      <td>Decoupled services</td>
-    </tr>
-  </tbody>
+<table class="study-table">
+<thead>
+<tr>
+<th>Pattern</th>
+<th>AWS Services</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Microservices</strong></td>
+<td>API Gateway + ECS/EKS + SQS/SNS</td>
+<td>Async, scalable design</td>
+</tr>
+<tr>
+<td><strong>Serverless</strong></td>
+<td>Lambda + API Gateway</td>
+<td>Pay per use</td>
+</tr>
+<tr>
+<td><strong>Event-Driven</strong></td>
+<td>SQS, SNS, EventBridge</td>
+<td>Decoupled services</td>
+</tr>
+</tbody>
 </table>
 
 <hr />
@@ -411,7 +411,6 @@ Instances per AZ = 5 ÷ 5 = 1 instance per AZ
 </ul>
 
 <hr />
-
 
     </article>
   </main>
