@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>study · glucolte</title>
+  <title>CloudWatch · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,20 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>study | glucolte</title>
+<title>CloudWatch | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="study" />
+<meta property="og:title" content="CloudWatch" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/" />
-<meta property="og:url" content="http://localhost:4000/study/" />
+<link rel="canonical" href="http://localhost:4000/study/tmp_awsProMonitoring.html" />
+<meta property="og:url" content="http://localhost:4000/study/tmp_awsProMonitoring.html" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="study" />
+<meta property="twitter:title" content="CloudWatch" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"study","url":"http://localhost:4000/study/"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"CloudWatch","url":"http://localhost:4000/study/tmp_awsProMonitoring.html"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,611 +62,271 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="study">/study</h1>
+      <h2 id="cloudwatch">CloudWatch</h2>
+
+<ul>
+  <li>Ingestion/Storage/Management of Metrics</li>
+  <li>Public Service
+    <ul>
+      <li>has public Space endpoints</li>
+      <li>most services has integration</li>
+      <li>agent integration available for richer metrics
+  e.g. Inside EC2 or your host</li>
+    </ul>
+  </li>
+  <li>Alarms
+    <ul>
+      <li>React to metrics</li>
+      <li>Status = ALARM / OK</li>
+      <li>Actions can be connected</li>
+    </ul>
+  </li>
+  <li>Data
+    <ul>
+      <li>Namespaces = “Container” for Metrics e.g. AWS/EC2 or AWS/Lambda</li>
+      <li>Data Points = Timestamp, value, unit of measure</li>
+      <li>Dimension = name/value pair. e.g. CPUUtilizationName=InstanceId,Value=i-121231232</li>
+    </ul>
+  </li>
+  <li>Resolution
+    <ul>
+      <li>Standard 60 s -&gt; High 1 s</li>
+    </ul>
+  </li>
+  <li>Retention
+    <ul>
+      <li>X &lt; 60s = 3 hours</li>
+      <li>60s &lt; X &lt; 300s = 15 days
+  …</li>
+    </ul>
+  </li>
+  <li>Aggregated to store longer with less resolution</li>
+  <li>Statistics
+    <ul>
+      <li>Min/Max/Sum/Avg</li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="./Screenshot%202025-10-08%20at%2010.02.31.png" alt="Cloudwatch Concept - Metrics/Alarm" /></p>
+
+<h3 id="cloudwatch-logs">CloudWatch Logs</h3>
+
+<ul>
+  <li>Ingestion
+    <ul>
+      <li>Getting Logs into the system</li>
+      <li>Sources:
+        <ul>
+          <li>AWS/OnPremises/IoT/Application</li>
+          <li>CW Agent</li>
+          <li>VPC Flow Logs</li>
+          <li>CloudTrails</li>
+          <li>ElasticBeanstalk,Ec2..etc</li>
+          <li>Route 53</li>
+        </ul>
+      </li>
+      <li>Structure (1 Event):
+        <ul>
+          <li>Timestamp</li>
+          <li>Raw Message</li>
+        </ul>
+      </li>
+      <li>Combination of Events from same Source = Log Stream (e.g. Ec2 instanceA = 1 stream, instanceB=2 stream)</li>
+      <li>Combination of Streams = Log Group
+        <ul>
+          <li>You set Retention/Permissions/Encryption on Log Group Level</li>
+          <li>You use Metric Filter to “query”</li>
+          <li>You can export to S3 (can take up to 12 hours)
+<img src="./Screenshot%202025-10-08%20at%2010.09.49.png" alt="Clougwatch Logs Ingestion" /></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Subscriptions
+    <ul>
+      <li>Subscription Filter (Pattern on what you are interested, destination, destination grouping and permission)
+        <ul>
+          <li>Kinesis Data Firehose -&gt; Near Realtime to S3
+            <ul>
+              <li>or other firehose destinations</li>
+              <li>For Persist logs</li>
+            </ul>
+          </li>
+          <li>(RealTime) Kineses Data Stream
+            <ul>
+              <li>Take multiple streams in real time
+  or KCL Consumers</li>
+            </ul>
+          </li>
+          <li>(RealTime) Lambda
+            <ul>
+              <li>Elastic Search
+  -&gt; Other sourrces</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Aggregation
+    <ul>
+      <li>Use Subscription Filter to send to Kinese Data Stream, then push to data firehose then to s3</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="cloud-trail">Cloud Trail</h2>
+<ul>
+  <li>Regional Service
+    <ul>
+      <li>You can log one Region or All Regions
+  -&gt; All region basically capatures all region
+  -&gt; one region captures only.a single region</li>
+    </ul>
+  </li>
+  <li>Logs the “API” calls to different services and account events</li>
+  <li>90 Days stored by default in Event History &gt; FREE</li>
+  <li>
+    <p>Enabled by default - no cost for 90 day history</p>
+  </li>
+  <li>Management Events (Default)
+    <ul>
+      <li>Control Plan Operations (e.g. Creating Ec2, create s3 bucket…)</li>
+      <li>1 Copy of a trail is free</li>
+      <li>additional trails are charged</li>
+    </ul>
+  </li>
+  <li>Data Events (NOT ENABLED BY DEFAULT)
+    <ul>
+      <li>Object been loaded to S3/Lambda triggered</li>
+    </ul>
+  </li>
+  <li>
+    <p>can Store in S3 / CloudWathc log</p>
+  </li>
+  <li>IAM/STS,CloudFront -&gt; Global Service Events -&gt; US-EAST-1
+    <ul>
+      <li>Need to be enabled for catching it</li>
+    </ul>
+  </li>
+  <li>NOT REAL TIME (ususal within 15 minutes that an event happened)</li>
+</ul>
+
+<h2 id="organizational-trail">Organizational Trail</h2>
+<ul>
+  <li>All Acount stored into a Single Account+
+    <ul>
+      <li>Split by LogStream</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="aws-x-ray">AWS X Ray</h2>
+<ul>
+  <li>Distributed tracing session
+    <ul>
+      <li>e.g. API Gateway/Lambda…</li>
+      <li>Centralize these “distributed” trace that form a session, into a single dashboard for you to see</li>
+      <li>Tracing Header is added (traceId)
+        <ul>
+          <li>When comes in the first time it generate traceId</li>
+        </ul>
+      </li>
+      <li>Segments
+        <ul>
+          <li>Data Blocks/HostIp,Request, Response, Workdone, Issues</li>
+        </ul>
+      </li>
+      <li>Subsegemetns
+        <ul>
+          <li>More granular version of the above</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>X ray collects Segments to form Service Graph
+    <ul>
+      <li>JSON Document</li>
+    </ul>
+  </li>
+  <li>Service Map
+    <ul>
+      <li>Visual Representation</li>
+    </ul>
+  </li>
+  <li>How it works
+    <ul>
+      <li>EC2 -&gt; XRay agent is installed</li>
+      <li>ECS -&gt; Agent in tasks</li>
+      <li>LAmbda -&gt; Enable Option</li>
+      <li>Beanstalk -&gt; Preinstalled</li>
+      <li>API Gatway -&gt; Per stage option</li>
+      <li>SNS/SQS -&gt; can enable</li>
+    </ul>
+  </li>
+  <li>Requires to provide IAM permission</li>
+</ul>
+
+<h2 id="cost-allocation-tags">Cost Allocation Tags</h2>
+<ul>
+  <li>Enabled Individually</li>
+  <li>AWS Generated -&gt; aws:createdBy or aws:cloudformation:stack-name
+    <ul>
+      <li>Added to resources AFTER they are enabled by AWS</li>
+    </ul>
+  </li>
+  <li>User defined tags can also be enabled
+    <ul>
+      <li>user:something</li>
+    </ul>
+  </li>
+  <li>Once enabled, it become visible in cost reports
+    <ul>
+      <li>Help you filter and allocate cost based on tag</li>
+    </ul>
+  </li>
+  <li>Can take up to 24 hours to be visble and active</li>
+</ul>
+
+<h2 id="trusted-advisors">Trusted ADvisors</h2>
+<ul>
+  <li>Real time guidance on AWS regarding best practices</li>
+  <li>Account Level Product
+  -&gt; No agents to be installed</li>
+  <li>Pillars
+    <ul>
+      <li>Cost Optimization</li>
+      <li>Performance</li>
+      <li>Security</li>
+      <li>Fault Tolerance</li>
+      <li>Service Limits</li>
+    </ul>
+  </li>
+  <li>Free 7 Core Checks with Basic/Developer Support Plans
+    <ul>
+      <li>S3 Bucket Permissions ( NOT OBJECT )</li>
+      <li>Security Groups - Specific Ports Unrestricted</li>
+      <li>IAM User</li>
+      <li>MFA on Root Account</li>
+      <li>EBS Public Snapshots</li>
+      <li>RDS Public Snapshots</li>
+      <li>50 service limit checks</li>
+    </ul>
+  </li>
+  <li>Anythign beyond requires Business or Enterprise
+    <ul>
+      <li>Same Core 7 Checks</li>
+      <li>115 Further checks
+        <ul>
+          <li>13 cost/17 security/24 fault tolerant/10 performance/ 50 service limit</li>
+        </ul>
+      </li>
+      <li>Access via AWS SUPPORT API</li>
+    </ul>
+  </li>
+</ul>
 
-<p>A home for study resources, with a focus on <strong>coding interview prep</strong>.<br />
-Think of this page as your <strong>mental compass</strong> — quick reminders on <em>how to think</em> before diving into the categories.</p>
-
-<hr />
-
-<h2 id="infrastructure-cloud">Infrastructure &amp; Cloud</h2>
-
-<p>The following are infrastructure and cloud services study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/infrastructureAWSArchitecture" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Best Practices
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSCompute" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Compute Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSNetwork" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Network Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSSAProExamNotes" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS SA Pro Notes
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSStorage" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Storage Services
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/infrastructureOsiModel" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        OSI Model
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-</div>
-
-<hr />
-
-<h2 id="system-design-fundamentals">System Design Fundamentals</h2>
-
-<p>The following are system design fundamentals study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/systemDesignHourglass" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        Hourglass Design
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/systemDesignSlaSloSli" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        SLA, SLO &amp; SLI
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-</div>
-
-<hr />
-
-<h2 id="ai">AI</h2>
-
-<p>The following are AI study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiSecurity" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        GenAI Security
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiLLMs" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        Large Language Models (LLMs)
-      </div>
-    </a>
-  
-
-  
-
-  
-    <a href="/study/aiKnowledgebases" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        Modern Knowledgebases
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiN8n" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        n8n Workflow Automation
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-</div>
-
-<hr />
-
-<h2 id="troubleshooting-practices">Troubleshooting Practices</h2>
-
-<p>Practice your debugging and troubleshooting skills with hands-on Linux server challenges:</p>
-
-<div class="study-tiles">
-  <a href="https://sadservers.com/" target="_blank" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">🔧</span>
-      SadServers - "Like LeetCode for Linux"
-    </div>
-    <div style="font-size: 14px; color: var(--muted); margin-top: 8px;">
-      Excellent for SRE/DevOps interview preparation. Get a full remote Linux server with a problem and fix it!
-    </div>
-  </a>
-</div>
-
-<hr />
-
-<h2 id="leetcode">LeetCode</h2>
-
-<p>The following are topic-specific coding interview study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/codingArraysStrings" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        arrays and strings
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingBacktracking" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        backtracking
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingDesign" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        design problems
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingDynamicProgramming" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        dynamic programming
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingGraphs" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        graphs
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingHeaps" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        heaps and priority queues
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingLinkedLists" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        linked lists
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingMathBits" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        math and bit manipulation
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/codingTrees" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        trees
-      </div>
-    </a>
-  
-
-</div>
 
     </article>
   </main>

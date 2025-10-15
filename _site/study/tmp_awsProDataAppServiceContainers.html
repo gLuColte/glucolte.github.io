@@ -1,0 +1,1753 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ECS · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>ECS | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="ECS" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/tmp_awsProDataAppServiceContainers.html" />
+<meta property="og:url" content="http://localhost:4000/study/tmp_awsProDataAppServiceContainers.html" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="ECS" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"ECS","url":"http://localhost:4000/study/tmp_awsProDataAppServiceContainers.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container">
+    <article class="content">
+      <h2 id="ecs">ECS</h2>
+<ul>
+  <li>
+    <p>Situation</p>
+  </li>
+  <li>
+    <p>Structure</p>
+    <ul>
+      <li>Service Definition
+        <ul>
+          <li>1 or more Task Definition (attached with a Task Role)
+            <ul>
+              <li>Resource Allocation
+                <ul>
+                  <li>CPU/Memory allocation</li>
+                  <li>Networking Mode</li>
+                </ul>
+              </li>
+              <li>Security
+                <ul>
+                  <li>IAM role
+                    <ul>
+                      <li>Container attached to a task use the same role</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>1 or more Container Definition
+                <ul>
+                  <li>Image Name</li>
+                  <li>Port mappings</li>
+                  <li>Command/Env/EntryPoints</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>How many copies/HA/REstarts..</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="ec2-mode">EC2 Mode</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>EC2 Mode allows you to manage the Servers</li>
+      <li>Full control over hosts</li>
+      <li>long lived and high throuput workloads
+        <ul>
+          <li>This will be cheaper and better sizing</li>
+        </ul>
+      </li>
+      <li>Use Reserved/Spot</li>
+      <li>You need local storage</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>You define your EC2 instances, where you have access and controls</li>
+      <li>ECS uses your EC2 instance for launhcing ECS services
+        <ul>
+          <li>Scheduling and Orchestration</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="fargate">Fargate</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>You don’t want to manage servers
+        <ul>
+          <li>aka overhead conscious</li>
+        </ul>
+      </li>
+      <li>Workloads have predictable/moderate CPU/memory needs</li>
+      <li>Small/Burst workloads</li>
+      <li>You need fast scaling/simple deployment</li>
+      <li>Pay Per Use</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Shared Infrastructure
+        <ul>
+          <li>Network Interface to the Task is INJECTED into your VPC for processing</li>
+        </ul>
+      </li>
+      <li>Customizability avilable</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="ecs-anywhere">ECS Anywhere</h3>
+<ul>
+  <li>Use your on premises</li>
+</ul>
+
+<h2 id="eks">EKS</h2>
+<ul>
+  <li>Manages Kubnertes
+    <ul>
+      <li>Work with OUtputs/EKS Anywhere/EKS DIstro</li>
+    </ul>
+  </li>
+  <li>Control plane scales and run on Multiple AZs</li>
+  <li>Integrates with AWS Services</li>
+  <li>EKS Clustter = EKS Control Plane and EKS Nodes</li>
+  <li>etcd distributed across multiple AZs</li>
+  <li>Node - Self Managed, Managed Node Groups and fargate pods</li>
+  <li>Stroage
+    <ul>
+      <li>EBS/EFS/FSx/Luster…</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>1 AWS Managed VPC
+        <ul>
+          <li>Control Plane Managed and MultiAZ</li>
+        </ul>
+      </li>
+      <li>1 Worker Nodes VPC (Customer)
+        <ul>
+          <li>ENIs injected into Customer VPC</li>
+          <li>Consumer interact with this VPC</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="sns">SNS</h2>
+<ul>
+  <li>Public AWS Service</li>
+  <li>Situation
+    <ul>
+      <li>Coordinates sending/delivery of messages</li>
+      <li>messages are &lt;= 256 KB payloads</li>
+      <li>SNS topics are the base entity (Permissions and COnfiguration)</li>
+      <li>for FAN OUT/ PUB SUB
+        <ul>
+          <li>e.g. 1 message to MULTIPLE subscriber</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Publisher sends message to a TOPIC</li>
+      <li>TOPIC have subscribers which receive messages</li>
+    </ul>
+  </li>
+  <li>Benefits:
+    <ul>
+      <li>HA and Scalable</li>
+      <li>Delivery Retries</li>
+      <li>Deliver Status</li>
+      <li>SSE</li>
+      <li>X Account Via Topic Policy</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="sqs">SQS</h2>
+<ul>
+  <li>Public AWS Service
+    <ul>
+      <li>Fully Managed, HA queues</li>
+    </ul>
+  </li>
+  <li>Situation
+    <ul>
+      <li>256 KB in Size</li>
+      <li>Client Polls the queue (vs SNS is active sending)</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Visibility Timeout
+        <ul>
+          <li>Message is not immediately deleted after taken out</li>
+          <li>Client Poll, Client Process, Client notifies for Delete</li>
+          <li>If no delete happens, Message reappears</li>
+        </ul>
+      </li>
+      <li>Dead Letter Queues
+        <ul>
+          <li>E.g. if message reappears multiple times, then it is moved to DLQ</li>
+        </ul>
+      </li>
+      <li>You can scale ASG Pool based on Queue Length</li>
+      <li>Typically uses SNS + SQS Fanout</li>
+      <li>Encryption at rest &amp; in-transit doable</li>
+      <li>Queue Policy can be used for external</li>
+    </ul>
+  </li>
+  <li>Types
+    <ul>
+      <li>Standard ( Multi Lane Highway )
+        <ul>
+          <li>Best efforts - at least once
+  (e.g. you might get same message when polled twice)</li>
+          <li>Unlimited TPS</li>
+        </ul>
+      </li>
+      <li>FIFO ( Single Lane Highway )
+        <ul>
+          <li>MUST HAVE <strong>.fifo</strong> suffix in name</li>
+          <li>Order Guranteed - exactly once
+  (e.g. only once)</li>
+          <li>3000 messages per second with BATCHING</li>
+          <li>300 Message Per second with normal</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Requests
+    <ul>
+      <li>Short - immediate</li>
+      <li>Long - waitTimeSeconds</li>
+    </ul>
+  </li>
+  <li>Billed
+    <ul>
+      <li>Billed based on 1 request = 1-10 messages up to 64KB</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="sqs-extended-client-library">SQS Extended Client Library</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>Use when you have messages over 256KB</li>
+      <li>Allows large payloads stored in s3</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Sends the LARGE paylog to S3 and store the link in message</li>
+      <li>Receive message loads large payload from S3</li>
+      <li>When message is deleted, also deletes large s3 payload</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="sqs-delay-queues">SQS Delay Queues</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>Post pone message to be send</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>there is a DelaySeconds introduced, 0 to 15 minutes</li>
+      <li>When you need to build a delay</li>
+      <li>DOES NOT SUPPORT with FIFO</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="sqs-dlq">SQS DLQ</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>When every time SAME message is received multiple time
+        <ul>
+          <li>This is to prevent “overflowing”</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Redrive policy
+        <ul>
+          <li>maxReceiveCount</li>
+          <li>if receiveCount &gt; maxReceiveCount = Dead</li>
+        </ul>
+      </li>
+      <li>Enqueue tmestamp is UNCHANGED</li>
+      <li>Retention period of DLQ is longer</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="amazon-mq">Amazon MQ</h2>
+<ul>
+  <li>Situation
+    <ul>
+      <li>Supports MQTT/AMQP/JMS/OpenWire/STOPM</li>
+      <li>SNS/SQS are AWS services uses APIs
+        <ul>
+          <li>usually 1:1 messages</li>
+        </ul>
+      </li>
+      <li>Many Orgs already use topics/queues
+  e.g. based on Standards
+        <ul>
+          <li>SNS/SQS Won’t work in this scenario</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>OpenSource Message Broker</li>
+      <li>Apache ActiveMQ</li>
+      <li>Provides Queues/Topic</li>
+      <li>Runs in VPC (not PUBLIC SERVICE)
+        <ul>
+          <li>You need to setup private netqokring</li>
+        </ul>
+      </li>
+      <li>Single Instance or HA Pair</li>
+      <li>1 to 1 or 1 to Many</li>
+    </ul>
+  </li>
+  <li>Consideration
+    <ul>
+      <li>By default you should use SNS/SQS or for AWS Integration</li>
+      <li>AmazonMQ if you need to migrate from an existing system with little change</li>
+      <li>AmazonMQ if you have AMQP/MQTT/OpenWIre..</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="lambda---serverless">Lambda - Serverless</h2>
+<ul>
+  <li>Situation
+    <ul>
+      <li>Short Running/Focused
+        <ul>
+          <li>e.g. FIle Processing</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>You provide 50MB zipped / 250 MB unzipped Package</li>
+      <li>Lambda unzip it and run the function code
+        <ul>
+          <li>uses a runtime</li>
+          <li>Load runtime environment</li>
+        </ul>
+      </li>
+      <li>Direct memory (indirect CPU) allocation
+        <ul>
+          <li>128 MB to 10240 MB</li>
+          <li>1 vCPU 1769 MB</li>
+        </ul>
+      </li>
+      <li>Storage
+        <ul>
+          <li>512 MB as tmp</li>
+          <li>Mount EFS fpr ,pre stprage</li>
+        </ul>
+      </li>
+      <li>Billed for the duration</li>
+      <li>up to 900s execution allowed</li>
+      <li>Execution Role
+        <ul>
+          <li>Like ec2 Instance role, where Lambda uses the “IAM Role” for Permissions</li>
+        </ul>
+      </li>
+      <li>Lambda Resource Policies
+        <ul>
+          <li>Allows external Account/external servies to invoke lambda
+  (setup on CLI)</li>
+        </ul>
+      </li>
+      <li>Monitoring
+        <ul>
+          <li>CloudWatch/CloudWatch Logs &amp; X Ray</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Networking
+    <ul>
+      <li>Public
+        <ul>
+          <li>Running on Public AWS Network, which means you can access AWS Public Service/Public Internet</li>
+          <li>Best Performance - as it runs on Shared Services</li>
+          <li>No direct access to your Private Resources
+            <ul>
+              <li>Unless your VPC has security controlled that allows</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Private
+        <ul>
+          <li>Inside a Private Subnet</li>
+          <li>Obey the same roles like all other private resources you have
+            <ul>
+              <li>e.g. CAN’T access PUBLIC resources unless security allowed (e.g. NAT GW)</li>
+            </ul>
+          </li>
+          <li>Run similar to Fargate
+            <ul>
+              <li>Under the hood, services is deployed on to AWS Private Lambda VPC</li>
+              <li>A single ENI is added to your Subnet to interact
+                <ul>
+                  <li>For every unique Subnet/SG group (if you have another subnet/SG then you need another ENI)</li>
+                </ul>
+              </li>
+              <li>90s Initial Setup when you introduce a Subnet/SG group from you VPC
+                <ul>
+                  <li>then no Invocation Delay</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Invoation
+    <ul>
+      <li>Synchronous
+        <ul>
+          <li>Direct Invoke from CLI/API, Wait for A response (e.g. API Gateway)</li>
+          <li>Errors/Retries have to be handled within the Client (e.g. you triggered something, saw an error, Lambda is killed)</li>
+        </ul>
+      </li>
+      <li>Asynchronus
+        <ul>
+          <li>Invoke from CLI/API, dont wait for A response</li>
+          <li>Errors/Retries is handled by Lambda
+            <ul>
+              <li>Idempotent Reprocessing a result (same end state even process multiple times)</li>
+              <li>Can retry between 0-2 times</li>
+              <li>Dead event is sent to DLQ/SNS/Eventbridge</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Event Source Mappings
+        <ul>
+          <li>Used for Streams/Queues where there is no “event” generated to invoke</li>
+          <li>Polling Queues or Stream to generate Events to Lambda for processing</li>
+          <li>No need Permission to read “CONTENT”, only the service
+            <ul>
+              <li>Event Source Mapping uses the SAME Execution role that Lambda is used</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="lambda-versions">Lambda Versions</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>When you need to have multiple versions</li>
+      <li>Once you published, it is fixed version containing an ARN</li>
+      <li>Qualified ARN -&gt; Specific Function</li>
+      <li>Unqualified ARN -&gt; point to Alias</li>
+    </ul>
+  </li>
+  <li>Structure:
+    <ul>
+      <li>COde + Configuration = 1 Version</li>
+      <li>Immutable, never changes once published and has its own ARN</li>
+      <li>$Latest</li>
+      <li>Alias - Dev/Stage/Prod = Mutible</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="lambda-alias">Lambda Alias</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>Point to a function Version
+        <ul>
+          <li>e.g. PROD &gt; v1</li>
+        </ul>
+      </li>
+      <li>Your app points to PROD alias, and you can update the underlying version to make your process easier</li>
+      <li>Alias Routing
+        <ul>
+          <li>You can define Percentage to route traffic to v1/v2</li>
+          <li>Need same Role/DLQ</li>
+          <li>CAN NOT USE $Latest for Alias Routing</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="lambda-environment-variables">Lambda Environment Variables</h3>
+<ul>
+  <li>SItuation:
+    <ul>
+      <li>e.g. you need someting as variablss</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Key Value Pair</li>
+      <li>0 or More can be defined</li>
+      <li>Associated with Versions (Latest/Version)</li>
+      <li>Can be encrypted with KMS</li>
+      <li>Allow Code execution to be adjusted based on variables</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="execution-context">Execution Context</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>An execution context is the environment a lambda function runs.</li>
+      <li>A cold start is a full creation and configuration including function code download</li>
+      <li>For same Lambda, it is likely to use the same “CONTEXT”
+        <ul>
+          <li>Warm start if use same context</li>
+        </ul>
+      </li>
+      <li>Provision Concurrency
+        <ul>
+          <li>create and keep context warm and ready to use</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Warm start, the same execution context is reused</li>
+      <li>Execution context creation can be skipped</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="lambda-function-handler">Lambda Function Handler</h3>
+<ul>
+  <li>Structure
+    <ul>
+      <li>INIT - craete or unfreezes the Execution Environment
+        <ul>
+          <li>EXTENSION INIT</li>
+          <li>RUNTIME INIT</li>
+          <li>FUNCTION INIT</li>
+        </ul>
+      </li>
+      <li>INVOKE - Runs the function handler (Cold Start)</li>
+      <li>Next INVOKES - Warm Start, same environment</li>
+      <li>SHOUTDOWN - terminate the environment
+        <ul>
+          <li>RUNTIME SHUTDOWN</li>
+          <li>EXTENSION SHUTDOWN</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="./Screenshot%202025-10-12%20at%2017.26.47.png" alt="example" /></p>
+
+<h3 id="lambda-layers">Lambda Layers</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>Without layers, Everything is contained in one, e.g. Numpy Libraries..
+        <ul>
+          <li>That means every Lambda has a copy</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Layersare shared inside /opt folder</li>
+      <li>Layers allow new runtimes and libraries to be externalized</li>
+      <li>Your Deployment ZIP becomes smaller</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="lambda-container-images">Lambda Container Images</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li>Its to ensure consistency</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Lambda Runtime API - INSIDE Container Image
+  You can package your code and dependencies as a container image using tools such as the Docker command line interface (CLI). You can then upload the image to your container registry hosted on Amazon Elastic Container Registry (Amazon ECR).</li>
+    </ul>
+
+    <p>AWS provides a set of open-source base images that you can use to build the container image for your function code. You can also use alternative base images from other container registries. AWS also provides an open-source runtime client that you add to your alternative base image to make it compatible with the Lambda service.</p>
+  </li>
+</ul>
+
+<h3 id="lambda-and-alb-integration">Lambda and ALB Integration</h3>
+<ul>
+  <li>Situation
+    <ul>
+      <li></li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>ALB translate HTTP/s request into Lambda compatible Event</li>
+      <li>And once JSON is returned by Lambda, ALB also translate back to HTTP/s</li>
+    </ul>
+  </li>
+  <li>Limitation
+    <ul>
+      <li>Multivalue Headers On
+        <ul>
+          <li>http://catagram.io?search=roffle&amp;search=winkie</li>
+          <li>Lambda receives both roffle/winkie under multiValueQueryStringParameter</li>
+        </ul>
+      </li>
+      <li>Multivalue Headers Off
+        <ul>
+          <li>Lambda recevied only winkie</li>
+          <li>winkie under queryStringParameters</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="cloudwatch-events-and-eventbridge">CloudWatch Events and EventBridge</h2>
+<ul>
+  <li>Situation
+    <ul>
+      <li>EventBridge is replacing CloudWatch Events
+        <ul>
+          <li>CloudWatch Events has only one Bus (Implicit)</li>
+          <li>EventBridge can have multiple</li>
+        </ul>
+      </li>
+      <li>Monitor the default account event bus, and pattern match events flowing through and deliver these events to multiple</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>If X happens, or at Y times … do Z
+        <ul>
+          <li>Z are supported services, e.g. EC2…etc</li>
+        </ul>
+      </li>
+      <li>Its like CRON
+  When a rule match an incoming event, it routes to Z
+  Its basically a stream of Events from you AWS or customized “lane”</li>
+      <li>EventBridge
+        <ul>
+          <li>Event Pattern Rule</li>
+          <li>Schedule Rule</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="api-gateway---serverless">API Gateway - Serverless</h2>
+<ul>
+  <li>
+    <p>Situation</p>
+  </li>
+  <li>Structure:
+    <ul>
+      <li>Create and Manage APIs</li>
+      <li>Endpoint/entry-point for applications</li>
+      <li>Sit between App/Integrations</li>
+      <li>HA, Scalable, Handles AUthorization, Throttling, Caching, CORS, transformation, OpenAI Spec, Direct Integration
+        <ul>
+          <li>Authentication
+            <ul>
+              <li>Supports Cognito</li>
+              <li>Supports Custom Authentication (via Lambda Authorizier)</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Can connect to service/endpoint in AWS or On PRemises</li>
+      <li>HTTP/REST/Websocket</li>
+      <li>Endpoint Types (how client hits)
+        <ul>
+          <li>Edge Optimized
+            <ul>
+              <li>Routed to nearest POP</li>
+            </ul>
+          </li>
+          <li>Regional
+            <ul>
+              <li>Clients in the same region</li>
+            </ul>
+          </li>
+          <li>Private
+            <ul>
+              <li>Hits private Endpoints</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Stages
+    <ul>
+      <li>Apis are deployed to stages, each stage has one deployment</li>
+      <li>Each stage has its own endpoint and configuration
+        <ul>
+          <li>You can have different versions for each “stage/env”</li>
+          <li>Canary deployment can be structured</li>
+        </ul>
+      </li>
+      <li>Changes made in API Gateway are NOT LIVE you need to deploy to a stage</li>
+      <li>You can name it whatever, e.g. prod/dev/test or v1/v2/v3</li>
+      <li>Stage are mutable</li>
+      <li>You can define your STAGE VARIABLES, this provide easier modification</li>
+    </ul>
+  </li>
+  <li>Errors
+    <ul>
+      <li>400 - Bad Request</li>
+      <li>403 - Access Denied</li>
+      <li>429 - API Gateway throttled</li>
+      <li>502 - Bad Gateway Exception</li>
+      <li>503 - Service Unavailble</li>
+      <li>504 - Integration Failure / TImeout</li>
+    </ul>
+  </li>
+  <li>Caching
+    <ul>
+      <li>Caching is per Stage</li>
+      <li>You defined a cache on a stage
+        <ul>
+          <li>TTL default is 300 seconds (0 to 3600)</li>
+          <li>500MB to 237 GB Size</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Methods and Resources
+    <ul>
+      <li>Https://<url>/<stage>/<resources>
+  e.g. https://asdasdasd.amazonaws.com/dev/listcats -&gt; dev is method, listcats is resources
+</resources></stage></url>        <ul>
+          <li>User get the “resource”</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Integration with API is basically
+    <ul>
+      <li>METHOD REQUEST -&gt; INTEGRATION REQUEST -&gt; INTEGRATION RESPONSE -&gt; METHOD RESPONSE</li>
+      <li>Integration Types fro API Gateway:
+        <ul>
+          <li>
+            <p>MOCK -&gt; Used for testing, no backend involvment</p>
+          </li>
+          <li>HTTP -&gt; Backend HTTP Endpoint</li>
+          <li>
+            <p>HTTP Proxy -&gt; Pass through to integration unmodified, return to the client unmodified</p>
+          </li>
+          <li>AWS -&gt; Exposes AWS Service actions</li>
+          <li>AWS_PROXY -&gt; Low admin overhad lambda endpoint
+            <ul>
+              <li>Heavy lifting from Lambda</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="./Screenshot%202025-10-12%20at%2022.43.36.png" alt="Sample" /></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>- Mapping Templates
+    - Used for HTTP/AWS Integrations 
+    - Modify or rename parameters
+    - Modify body/headers
+    - Velocity Template Language (VTL)
+    - REST API to SOAP API
+        -&gt; YOU NEED TO USE MAPPING TEMPLATES
+</code></pre></div></div>
+
+<h2 id="open-api-and-swagger">Open API and Swagger</h2>
+<ul>
+  <li>OpenAPI</li>
+  <li>Swagger is OpenAPI v2</li>
+  <li>Basically API Description format for REST APIs
+    <ul>
+      <li>Endpoints and Operations
+  e.g. /listcats and GET /listcats</li>
+      <li>Input and Output Parameters and Authentication Methods</li>
+    </ul>
+  </li>
+  <li>API Gateway can export OpenAPI/Swagger document
+    <ul>
+      <li>Then you can import to w/e you need</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="step-funtions">Step Funtions</h2>
+<ul>
+  <li>
+    <p>Step functions is a product which lets you build long running serverless workflow based applications within AWS which integrate with many AWS services.</p>
+  </li>
+  <li>Situation
+    <ul>
+      <li>Issues with Labmda
+        <ul>
+          <li>Function as a Service</li>
+          <li>you should never put a FULL aplciation steps</li>
+          <li>you have 15 minute max execution time</li>
+        </ul>
+      </li>
+      <li>You can chain Lambda together
+        <ul>
+          <li>but this is not good and messy at scale</li>
+        </ul>
+      </li>
+      <li>Lambda is STATELESS</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>State Machine
+        <ul>
+          <li>Serverless Workflow
+            <ul>
+              <li>START -&gt; STATES -&gt; END</li>
+            </ul>
+          </li>
+          <li>States are THINGS which occur together</li>
+          <li>Maximum Duration to keep state is 1 Year</li>
+          <li>Standard VS Express Workflow</li>
+          <li>Started by:
+            <ul>
+              <li>API Gateway/IOTRules….</li>
+            </ul>
+          </li>
+          <li>Outputs a Amazon States Language (ASL) - Json</li>
+          <li>Need IAM Role</li>
+          <li>States
+            <ul>
+              <li>SUCCEED &amp; FAIL</li>
+              <li>WAIT</li>
+              <li>CHOICE
+                <ul>
+                  <li>different behaviour depends on another event</li>
+                </ul>
+              </li>
+              <li>PARALLEL
+                <ul>
+                  <li>multiple branches</li>
+                </ul>
+              </li>
+              <li>MAP
+                <ul>
+                  <li>List of orders</li>
+                </ul>
+              </li>
+              <li>TASK
+                <ul>
+                  <li>Single unit of work performed by State
+  e.g. Lambda/BATCH/DDB/ECS/SNS/SQS/GLUE….
+  	•	It’s the workflow definition inside Step Functions.
+  	•	Describes each step (“state”) — what to do, when to retry, what’s next.
+  •	Defined in Amazon States Language (JSON).</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Step Function
+  •	It’s the service that runs and manages workflows.
+  	•	It executes logic, retries, waits, and branches.
+  •	Think of it as the orchestrator / conductor.</li>
+    </ul>
+  </li>
+  <li>This basically provides the whoel chaining of an Application, and passing states across each step</li>
+  <li>Step Function creates State machine and state machine links to other services right</li>
+</ul>
+
+<h2 id="swf">SWF</h2>
+<ul>
+  <li>Step function is a replacemnt</li>
+  <li>Build Workflows coordination over distributed compoentns</li>
+  <li>Activity Task / Worker</li>
+  <li>Decider</li>
+</ul>
+
+<p>When to use:</p>
+<ul>
+  <li>AWS Flow Framework -&gt; SWF</li>
+  <li>External Signals to intervene in processes -&gt; SWF</li>
+  <li>Launch child flows and return to parent -&gt; SWF</li>
+  <li>COmplext Decisions -&gt; SWF (as you can code logic)</li>
+  <li>Integrate with Mechanical Turk -&gt; SWF</li>
+</ul>
+
+<h2 id="amazon-mechanical-turk">Amazon Mechanical Turk</h2>
+<ul>
+  <li>
+    <p>crowdsourcing marketplace that makes it easier for individuals and businesses to outsource their processes and jobs to a distributed workforce who can perform these tasks virtually.</p>
+  </li>
+  <li>Requesters post Huma Intelliegence Tasks (HITs)</li>
+  <li>Workers earn by completing HITs</li>
+  <li>Workers get paid per task</li>
+  <li>Qualifications -&gt; Worker Attribute</li>
+</ul>
+
+<h2 id="elastic-transcoder-and-aws-elemental-media-convert">Elastic Transcoder and AWS Elemental Media Convert</h2>
+<ul>
+  <li>Elemental MediaConvert replaces Elastic Transcoder</li>
+  <li>Stiuation
+    <ul>
+      <li>File-based video transcoding services
+        <ul>
+          <li>change file format</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Serverless</li>
+      <li>Add jobs to pipeline/queues</li>
+      <li>File loaded from S3, processed, stored on S3</li>
+      <li>MediaConvert supports EventBrdige for job signaling</li>
+    </ul>
+  </li>
+  <li>Exam
+    <ul>
+      <li>ET is legacy</li>
+      <li>MC supports mode codes and designed for large volume and parallel processing</li>
+      <li>MC SUPPORTS RESERVED PRICING</li>
+      <li>ET for WebM/AnimatedGIF/MP3/FLAC/VORBIS/WAV</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="aws-iot">AWS IOT</h2>
+<ul>
+  <li>AWS IOT Core is a suite of products
+    <ul>
+      <li>used for managing 1 millions of IOT devies</li>
+      <li>Porvisioning, Updates, Controls</li>
+      <li>Unreliable Links - Device Shadows</li>
+      <li>Allows Rules/Event Driven integration with AWS</li>
+    </ul>
+  </li>
+  <li>Structure
+    <ul>
+      <li>Device Shadow is created on Cloud
+        <ul>
+          <li>reliable consistent copis of a real device which can be read from or written to</li>
+          <li>Any write will happen when device next connects</li>
+          <li>Messages are in JSON using MQTT topics</li>
+        </ul>
+      </li>
+      <li>Edge device communicate with IOT Device gateway over low poer</li>
+      <li>then you use IOT Rule to connect to other services (lambda/Kinesis)</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="aws-greengrass">AWS GreenGrass</h2>
+<ul>
+  <li>extends AWS to edge devices so they can act locally on the data they generate, while still using the cloud for management, analytics, and durable storage.</li>
+  <li>Moves Compute/Messaging/Data Management/SYnc/ML capabilites to run on the EDGE
+    <ul>
+      <li>e.g. Locally run Lambda/Containers</li>
+    </ul>
+  </li>
+  <li>You deloy Greengrass on to the local devices
+    <ul>
+      <li>then device can use the multiple  functionality</li>
+      <li>Allows for operation to continue even with intermittent connecitivty</li>
+      <li>device reactions can occur in realtime locally</li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="./Screenshot%202025-10-12%20at%2023.25.42.png" alt="sample" /></p>
+
+<h1 id="sam">SAM</h1>
+<ul>
+  <li>an open-source framework for building serverless applications.</li>
+  <li>A Serverless Applications mean
+    <ul>
+      <li>Frontend code/ Asset -&gt; S3/CF</li>
+      <li>API Endpoint -&gt; API Gateway</li>
+      <li>Compute -&gt; Lambda</li>
+      <li>Datavase -&gt; DDB
+  Basically an application without owning ANY servers</li>
+    </ul>
+  </li>
+  <li>AWS SAM is built for it
+    <ul>
+      <li>AWS SAM Template specification
+        <ul>
+          <li>extension of Cloudfromation + transform/Globals and resources</li>
+        </ul>
+      </li>
+      <li>AWS SAM command line internace
+        <ul>
+          <li>local CLI to build SAM apps</li>
+          <li>local testing</li>
+          <li>Deployment into AWS</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+
+    </article>
+  </main>
+
+  <div id="imageModal" class="image-modal">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <button class="modal-nav modal-prev">&#8249;</button>
+    <button class="modal-nav modal-next">&#8250;</button>
+    <img id="modalImage" src="" alt="">
+    <div id="modalCaption"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('imageModal');
+  const modalImg = document.getElementById('modalImage');
+  const modalCaption = document.getElementById('modalCaption');
+  const modalClose = document.querySelector('.modal-close');
+  const modalPrev = document.querySelector('.modal-prev');
+  const modalNext = document.querySelector('.modal-next');
+
+  const SCALE_STEP = 0.2;
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 3;
+
+  let modalImages = [];
+  let currentIndex = -1;
+  let currentScale = MIN_SCALE;
+  let translateX = 0;
+  let translateY = 0;
+  let isDragging = false;
+  let isTouchDragging = false;
+  let isPinching = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let pinchStartDistance = 0;
+  let pinchStartScale = MIN_SCALE;
+  let transitionTimeout;
+
+  function refreshModalImages() {
+    modalImages = Array.from(document.querySelectorAll('.modal-trigger'));
+  }
+
+  function applyTransform(withTransition = false) {
+    if (currentScale <= MIN_SCALE) {
+      currentScale = MIN_SCALE;
+      translateX = 0;
+      translateY = 0;
+    }
+
+    if (transitionTimeout) {
+      clearTimeout(transitionTimeout);
+      transitionTimeout = null;
+    }
+
+    modalImg.style.transition = withTransition ? 'transform 0.15s ease' : 'none';
+    modalImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+    modalImg.style.cursor = currentScale > MIN_SCALE
+      ? (isDragging || isTouchDragging ? 'grabbing' : 'grab')
+      : 'auto';
+
+    if (withTransition) {
+      transitionTimeout = setTimeout(() => {
+        modalImg.style.transition = 'none';
+      }, 160);
+    }
+  }
+
+  function resetTransform() {
+    currentScale = MIN_SCALE;
+    translateX = 0;
+    translateY = 0;
+    applyTransform(false);
+  }
+
+  function getDistance(touch1, touch2) {
+    return Math.hypot(
+      touch1.clientX - touch2.clientX,
+      touch1.clientY - touch2.clientY
+    );
+  }
+
+  function openModalAtIndex(index) {
+    refreshModalImages();
+
+    if (!modalImages.length) {
+      return;
+    }
+
+    if (index < 0) {
+      index = modalImages.length - 1;
+    } else if (index >= modalImages.length) {
+      index = 0;
+    }
+
+    const target = modalImages[index];
+    if (!target) {
+      return;
+    }
+
+    currentIndex = index;
+    const src = target.dataset.modalSrc || target.src;
+    const caption = target.getAttribute('data-caption') || target.alt;
+
+    modalImg.src = src;
+    modalCaption.textContent = caption || '';
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    resetTransform();
+  }
+
+  function closeModal() {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+    currentIndex = -1;
+    isDragging = false;
+    isTouchDragging = false;
+    isPinching = false;
+    resetTransform();
+  }
+
+  refreshModalImages();
+
+  modalImg.addEventListener('dragstart', event => event.preventDefault());
+
+  document.addEventListener('click', event => {
+    const trigger = event.target.closest('.modal-trigger');
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+    refreshModalImages();
+    const index = modalImages.indexOf(trigger);
+    openModalAtIndex(index > -1 ? index : 0);
+  });
+
+  modalClose?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', event => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    switch (event.key) {
+      case 'Escape':
+        closeModal();
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        openModalAtIndex(currentIndex - 1);
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        openModalAtIndex(currentIndex + 1);
+        break;
+      case '+':
+      case '=':
+        event.preventDefault();
+        currentScale = Math.min(MAX_SCALE, currentScale + SCALE_STEP);
+        applyTransform(true);
+        break;
+      case '-':
+        event.preventDefault();
+        currentScale = Math.max(MIN_SCALE, currentScale - SCALE_STEP);
+        applyTransform(true);
+        break;
+      case '0':
+        event.preventDefault();
+        resetTransform();
+        applyTransform(true);
+        break;
+      default:
+        break;
+    }
+  });
+
+  modal.addEventListener('wheel', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -SCALE_STEP : SCALE_STEP;
+    const nextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale + delta));
+
+    if (nextScale === currentScale) {
+      return;
+    }
+
+    currentScale = nextScale;
+    applyTransform(true);
+  }, { passive: false });
+
+  if (modalPrev) {
+    modalPrev.addEventListener('click', event => {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex - 1);
+    });
+  }
+
+  if (modalNext) {
+    modalNext.addEventListener('click', event => {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex + 1);
+    });
+  }
+
+  modalImg.addEventListener('mousedown', event => {
+    if (!modal.classList.contains('show') || currentScale <= MIN_SCALE) {
+      return;
+    }
+
+    event.preventDefault();
+    isDragging = true;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    modalImg.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', event => {
+    if (!isDragging) {
+      return;
+    }
+
+    event.preventDefault();
+    translateX += event.clientX - dragStartX;
+    translateY += event.clientY - dragStartY;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    applyTransform(false);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) {
+      return;
+    }
+    isDragging = false;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modalImg.addEventListener('touchstart', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.touches.length === 1 && currentScale > MIN_SCALE) {
+      event.preventDefault();
+      isTouchDragging = true;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      modalImg.style.cursor = 'grabbing';
+    } else if (event.touches.length === 2) {
+      event.preventDefault();
+      isTouchDragging = false;
+      isPinching = true;
+      pinchStartDistance = getDistance(event.touches[0], event.touches[1]);
+      pinchStartScale = currentScale;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+    }
+  }, { passive: false });
+
+  modalImg.addEventListener('touchmove', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (isPinching && event.touches.length === 2) {
+      event.preventDefault();
+      const distance = getDistance(event.touches[0], event.touches[1]);
+      if (pinchStartDistance > 0) {
+        const scaleRatio = distance / pinchStartDistance;
+        currentScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchStartScale * scaleRatio));
+        applyTransform(false);
+      }
+    } else if (isTouchDragging && event.touches.length === 1) {
+      event.preventDefault();
+      translateX += event.touches[0].clientX - dragStartX;
+      translateY += event.touches[0].clientY - dragStartY;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      applyTransform(false);
+    }
+  }, { passive: false });
+
+  modalImg.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.touches.length === 0) {
+      isTouchDragging = false;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+    }
+
+    if (event.touches.length < 2) {
+      isPinching = false;
+      pinchStartDistance = 0;
+      pinchStartScale = currentScale;
+    }
+  });
+
+  modalImg.addEventListener('touchcancel', () => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    isTouchDragging = false;
+    isPinching = false;
+    pinchStartDistance = 0;
+    pinchStartScale = currentScale;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modal.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.target === modal && event.changedTouches.length === 1 && !isTouchDragging && !isPinching) {
+      closeModal();
+    }
+  }, { passive: true });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-snippet-id]').forEach(caption => {
+    const snippetId = caption.getAttribute('data-snippet-id');
+    const snippetElement = document.getElementById(snippetId);
+
+    if (snippetElement) {
+      const content = snippetElement.textContent.replace(/"/g, '&quot;');
+      caption.setAttribute('data-tooltip', content);
+      caption.classList.add('diagram-caption');
+    }
+  });
+});
+</script>
+
+
+  <!-- Floating Table of Contents -->
+  <div id="floating-toc" class="floating-toc">
+    <div class="toc-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"></line>
+        <line x1="8" y1="12" x2="21" y2="12"></line>
+        <line x1="8" y1="18" x2="21" y2="18"></line>
+        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+      </svg>
+    </div>
+    <div class="toc-content">
+      <div class="toc-header">
+        <span>Contents</span>
+        <button class="toc-close" aria-label="Close table of contents">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="toc-nav" id="toc-nav">
+        <!-- Generated by JavaScript -->
+      </nav>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2025 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Dark mode functionality
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      
+      // Check for saved theme preference or default to light mode
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      
+      // Toggle dark mode
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    
+    // Initialize dark mode immediately to prevent flash
+    initDarkMode();
+    
+    // Initialize highlight.js and floating TOC after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Floating TOC functionality - only show on sub-study pages
+      const floatingToc = document.getElementById('floating-toc');
+      const tocNav = document.getElementById('toc-nav');
+      const tocClose = document.querySelector('.toc-close');
+      
+      // Check if we're on a sub-study page (not the main study index)
+      const isSubStudyPage = window.location.pathname !== '/study/' && 
+                            window.location.pathname !== '/study' && 
+                            window.location.pathname.startsWith('/study/');
+      
+      if (floatingToc && tocNav && isSubStudyPage) {
+        // Generate TOC from headings
+        function generateTOC() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          if (headings.length === 0) {
+            floatingToc.style.display = 'none';
+            return;
+          }
+          
+          const tocList = document.createElement('ul');
+          let currentLevel = 0;
+          let currentList = tocList;
+          const listStack = [tocList];
+          
+          headings.forEach((heading, index) => {
+            const level = parseInt(heading.tagName.charAt(1));
+            const id = heading.id || `heading-${index}`;
+            
+            // Ensure heading has an ID
+            if (!heading.id) {
+              heading.id = id;
+            }
+            
+            // Create list item
+            const listItem = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = `#${id}`;
+            link.textContent = heading.textContent.trim();
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetElement = document.getElementById(id);
+              if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Close TOC after clicking
+                floatingToc.classList.remove('toc-open');
+              }
+            });
+            
+            listItem.appendChild(link);
+            
+            // Handle nesting
+            if (level > currentLevel) {
+              // Go deeper
+              for (let i = currentLevel; i < level; i++) {
+                const newList = document.createElement('ul');
+                currentList.appendChild(newList);
+                listStack.push(newList);
+                currentList = newList;
+              }
+            } else if (level < currentLevel) {
+              // Go shallower
+              for (let i = currentLevel; i > level; i--) {
+                listStack.pop();
+                currentList = listStack[listStack.length - 1];
+              }
+            }
+            
+            currentList.appendChild(listItem);
+            currentLevel = level;
+          });
+          
+          tocNav.appendChild(tocList);
+        }
+        
+        // Generate the TOC
+        generateTOC();
+        
+        // Handle close button
+        if (tocClose) {
+          tocClose.addEventListener('click', function() {
+            floatingToc.classList.remove('toc-open');
+          });
+        }
+        
+        // Handle click on icon to toggle
+        const tocIcon = document.querySelector('.toc-icon');
+        if (tocIcon) {
+          tocIcon.addEventListener('click', function() {
+            floatingToc.classList.toggle('toc-open');
+          });
+        }
+        
+        // Active section highlighting
+        function updateActiveSection() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          const tocLinks = tocNav.querySelectorAll('a');
+          
+          // Remove active class from all links
+          tocLinks.forEach(link => link.classList.remove('active'));
+          
+          // Find the current section
+          let currentHeading = null;
+          const scrollPosition = window.scrollY + 100; // Offset for better UX
+          
+          for (let i = headings.length - 1; i >= 0; i--) {
+            const heading = headings[i];
+            const headingTop = heading.offsetTop;
+            
+            if (headingTop <= scrollPosition) {
+              currentHeading = heading;
+              break;
+            }
+          }
+          
+          // Add active class to current section
+          if (currentHeading) {
+            const activeLink = tocNav.querySelector(`a[href="#${currentHeading.id}"]`);
+            if (activeLink) {
+              activeLink.classList.add('active');
+            }
+          }
+        }
+        
+        // Update active section on scroll
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+          if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+          }
+          scrollTimeout = setTimeout(updateActiveSection, 10);
+        });
+        
+        // Initial update
+        updateActiveSection();
+      } else if (floatingToc && !isSubStudyPage) {
+        // Hide floating TOC on main study page
+        floatingToc.style.display = 'none';
+      }
+      
+      // Legacy TOC functionality (for existing markdown TOCs)
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Hide the floating TOC if there's already a markdown TOC
+        if (floatingToc) {
+          floatingToc.style.display = 'none';
+        }
+        
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

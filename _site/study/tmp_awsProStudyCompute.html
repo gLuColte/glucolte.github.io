@@ -594,8 +594,8 @@
   <li>Automatic Scaling and Self Healing for EC2</li>
   <li>Launch Templates/Configurations
     <ul>
-      <li>Templates</li>
-      <li>Configuraitons</li>
+      <li>Launch Configuration = basic, legacy setup.</li>
+      <li>Launch Template = modern, flexible, supports versioning and advanced features.</li>
     </ul>
   </li>
   <li>Paramters:
@@ -611,9 +611,17 @@
       <li>Scheduled Scaling - e.g. time based</li>
       <li>Dynamic Scaling (Need CloudWatch Metrics)
         <ul>
-          <li>Simple Scaling - “CPU above 50% +1, Below 50% -1”</li>
-          <li>Stepped Scaling - More granular, e.g. Bigger +/- based on difference +50% = +1, +60%=+2, +80%=+5</li>
-          <li>Target Tracking - Desired Aggregated CPU = 40 %</li>
+          <li>Simple Scaling - “CPU above 50% +1, Below 50% -1”
+            <ul>
+              <li>Doest NOT consider the “STEEPNESS” of the increase</li>
+            </ul>
+          </li>
+          <li>Stepped Scaling - More granular, e.g. Bigger +/- based on difference +50% = +1, +60%=+2, +80%=+5
+            <ul>
+              <li>Considers the Steps Steepness</li>
+            </ul>
+          </li>
+          <li>Target Tracking - Desired Aggregated CPU Utlization = 40 %</li>
         </ul>
       </li>
       <li>Cooldown Periods
@@ -694,6 +702,325 @@
   e.g. load or backup data/logs</li>
     </ul>
   </li>
+</ul>
+
+<h3 id="asg-scaling-policies">ASG Scaling Policies</h3>
+<ul>
+  <li>You dont NEED to have sacling policies
+    <ul>
+      <li>Manul - Min/Max/Desired adjust is doable</li>
+      <li>See above for Scaling Policies type</li>
+    </ul>
+  </li>
+  <li>You can also scale based on SQS - ApproximateNumberOfMessageVisible</li>
+</ul>
+
+<p>Absolutely ✅ — here’s the ready-to-copy Markdown version with clean code formatting and headings for each scaling policy:</p>
+
+<h1 id="️-ec2-auto-scaling-policies-in-pseudo-code">⚙️ EC2 Auto Scaling Policies in Pseudo Code</h1>
+
+<p>Assume:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">min_instances</code>, <code class="language-plaintext highlighter-rouge">max_instances</code>, <code class="language-plaintext highlighter-rouge">desired_instances</code></li>
+  <li>Metric: <code class="language-plaintext highlighter-rouge">ASG_CPU_USAGE</code></li>
+  <li>Helper functions:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">scale_out(by=n)</code> → adds instances</li>
+      <li><code class="language-plaintext highlighter-rouge">scale_in(by=n)</code> → removes instances</li>
+      <li><code class="language-plaintext highlighter-rouge">cooldown(seconds)</code> → pause before next action</li>
+      <li><code class="language-plaintext highlighter-rouge">get_average_cpu(asg_instances)</code> → returns average CPU %</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="-common-loop-structure">🧩 Common Loop Structure</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">ASG_CPU_USAGE</span> <span class="o">=</span> <span class="n">get_average_cpu</span><span class="p">(</span><span class="n">asg_instances</span><span class="p">)</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># check every minute
+</span></code></pre></div></div>
+
+<hr />
+
+<h2 id="️-1️⃣-simple-scaling-policy">⚙️ 1️⃣ Simple Scaling Policy</h2>
+<p>Fixed rule: when CPU crosses threshold, scale up/down by a fixed count.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">ASG_CPU_USAGE</span> <span class="o">=</span> <span class="n">get_average_cpu</span><span class="p">(</span><span class="n">asg_instances</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ASG_CPU_USAGE</span> <span class="o">&gt;</span> <span class="mi">70</span> <span class="ow">and</span> <span class="n">desired_instances</span> <span class="o">&lt;</span> <span class="n">max_instances</span><span class="p">:</span>
+        <span class="n">scale_out</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">cooldown</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>  <span class="c1"># wait 5 min before next action
+</span>
+    <span class="k">elif</span> <span class="n">ASG_CPU_USAGE</span> <span class="o">&lt;</span> <span class="mi">30</span> <span class="ow">and</span> <span class="n">desired_instances</span> <span class="o">&gt;</span> <span class="n">min_instances</span><span class="p">:</span>
+        <span class="n">scale_in</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">cooldown</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
+
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>🧠 <em>Simple rule, one threshold, one fixed action.</em></p>
+
+<hr />
+
+<h2 id="️-2️⃣-step-scaling-policy">⚙️ 2️⃣ Step Scaling Policy</h2>
+<p>Multiple thresholds with different scaling amounts depending on deviation.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">ASG_CPU_USAGE</span> <span class="o">=</span> <span class="n">get_average_cpu</span><span class="p">(</span><span class="n">asg_instances</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ASG_CPU_USAGE</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="ow">and</span> <span class="n">desired_instances</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">&lt;=</span> <span class="n">max_instances</span><span class="p">:</span>
+        <span class="n">scale_out</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ASG_CPU_USAGE</span> <span class="o">&gt;</span> <span class="mi">70</span> <span class="ow">and</span> <span class="n">desired_instances</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="n">max_instances</span><span class="p">:</span>
+        <span class="n">scale_out</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ASG_CPU_USAGE</span> <span class="o">&gt;</span> <span class="mi">60</span> <span class="ow">and</span> <span class="n">desired_instances</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">max_instances</span><span class="p">:</span>
+        <span class="n">scale_out</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">ASG_CPU_USAGE</span> <span class="o">&lt;</span> <span class="mi">20</span> <span class="ow">and</span> <span class="n">desired_instances</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="n">min_instances</span><span class="p">:</span>
+        <span class="n">scale_in</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ASG_CPU_USAGE</span> <span class="o">&lt;</span> <span class="mi">30</span> <span class="ow">and</span> <span class="n">desired_instances</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="n">min_instances</span><span class="p">:</span>
+        <span class="n">scale_in</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">cooldown</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>🧠 <em>The further CPU moves from the baseline, the more aggressively it scales.</em></p>
+
+<hr />
+
+<h2 id="️-3️⃣-target-tracking-policy">⚙️ 3️⃣ Target Tracking Policy</h2>
+<p>Automatically adjusts instances to maintain a target metric.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">TARGET_CPU</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># desired average CPU usage %
+</span>
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">ASG_CPU_USAGE</span> <span class="o">=</span> <span class="n">get_average_cpu</span><span class="p">(</span><span class="n">asg_instances</span><span class="p">)</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">ASG_CPU_USAGE</span> <span class="o">-</span> <span class="n">TARGET_CPU</span>
+
+    <span class="k">if</span> <span class="n">error</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">desired_instances</span> <span class="o">&lt;</span> <span class="n">max_instances</span><span class="p">:</span>
+        <span class="n">scale_out</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">10</span> <span class="ow">and</span> <span class="n">desired_instances</span> <span class="o">&gt;</span> <span class="n">min_instances</span><span class="p">:</span>
+        <span class="n">scale_in</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">cooldown</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>🧠 <em>Like a thermostat — tries to keep CPU close to target value.</em></p>
+
+<hr />
+
+<h2 id="️-summary-table">⚖️ Summary Table</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Policy</th>
+      <th>Logic Type</th>
+      <th>Behavior</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Simple</strong></td>
+      <td>One rule, fixed action</td>
+      <td>Reacts only when threshold crossed</td>
+      <td>“If CPU &gt; 70%, add 1”</td>
+    </tr>
+    <tr>
+      <td><strong>Step</strong></td>
+      <td>Multiple thresholds</td>
+      <td>Scales faster if metric is further off</td>
+      <td>“If CPU &gt; 90%, add 3”</td>
+    </tr>
+    <tr>
+      <td><strong>Target Tracking</strong></td>
+      <td>Feedback loop</td>
+      <td>Keeps metric near target (like thermostat)</td>
+      <td>“Keep CPU near 50%”</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="asg-healthchecks">ASG HealthChecks</h3>
+
+<ul>
+  <li>EC2(Default), ELB(Can be enabled) &amp; Custom
+    <ul>
+      <li>EC2 - Stopping, Stopped, Terminated, Shutting Down or Impaired = Unhealthy</li>
+      <li>ELB - Healthy = Running &amp; passing ELB Health Check
+        <ul>
+          <li>Can be more application Aware (Layer 7)</li>
+        </ul>
+      </li>
+      <li>Custom
+        <ul>
+          <li>Instances marked healthy &amp; Unhealthy by an external systems</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Grace Period (default 300s)
+    <ul>
+      <li>Delay before starting checks</li>
+      <li>Allows system Launch, Bootstrapping and application start</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="connection-drain--deregistration-delay">Connection Drain &amp;&amp; Deregistration Delay</h3>
+<ul>
+  <li>Connection Draining (Legacy)
+    <ul>
+      <li>Allows inflight requests to complete (Reduce disruptions)</li>
+      <li>Classic Load Balancer ONLY (CLB dont use Target goup)</li>
+      <li>1 to 3600 Seconds</li>
+    </ul>
+  </li>
+  <li>Deregistration Delay
+    <ul>
+      <li>Supported on ALB/NLB</li>
+      <li>Defined on Target Group</li>
+      <li>Stops sending request to registering targets</li>
+      <li>existing connections can continue untill they complete naturally or the deregistration delay is reached</li>
+      <li>Default 300 seconds</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="x-forwarded-for-and-proxy-protocol">X-Forwarded For and Proxy Protocol</h3>
+<ul>
+  <li>When no LB, Connection is recorded in Logs on Server using the customer IP</li>
+  <li>When LB is introduced (HTTP/HTTPS)
+    <ul>
+      <li>Customer connect to the LB</li>
+      <li>LB connects to backend instances (meaning Logs only shows LB Ips)</li>
+      <li>Hence ALBs introducing HTTP Headers
+        <ul>
+          <li>X-Forwaded-For:
+            <ul>
+              <li>e.g. X-Forwarded-for: 1.3.3.7, proxy1, proxy2</li>
+            </ul>
+          </li>
+          <li>each “bounce” appends to the right most list.</li>
+          <li>the left most in the list is the client IP</li>
+        </ul>
+      </li>
+      <li>NOTE - THIS IS NOT NEEDED for NLB</li>
+    </ul>
+  </li>
+  <li>When LB is introduced (Non HTTP/HTTPs)
+    <ul>
+      <li>Proxy Protocol works at Layer 4
+        <ul>
+          <li>Additionaly L4 tcp header</li>
+          <li>V1 = CLB</li>
+          <li>V2 = NLB - Binary encoded</li>
+        </ul>
+      </li>
+      <li>E2E Encryption - Unbroken HTTPS</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="ec2-placement-groups">EC2 Placement Groups</h2>
+<ul>
+  <li>Instance Placement around the STACKs</li>
+  <li>Types:
+    <ul>
+      <li>Cluster  – packs instances close together inside an Availability Zone. This strategy enables workloads to achieve the low-latency network performance necessary for tightly-coupled node-to-node communication that is typical of HPC applications.
+        <ul>
+          <li>Best Performance
+            <ul>
+              <li>10 GBps p/stream (comparing to normal 5Gb p/stream)</li>
+            </ul>
+          </li>
+          <li>Lowest latency and max PPS possible</li>
+          <li>No Resilient</li>
+          <li>When you launch, it lock the AZ based on which AZ has the aviialble capacity for your placement
+            <ul>
+              <li>CAN NOT SPAM across AZ</li>
+            </ul>
+          </li>
+          <li>Recommended to :
+            <ul>
+              <li>Use same type of instance</li>
+              <li>Launch at same time</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Spread - strictly places a small group of instances across distinct underlying hardware to reduce correlated failures.
+        <ul>
+          <li>Maximum amount of Resilance and avilability</li>
+          <li>Dsinct Racks for each instance
+            <ul>
+              <li>Each rack has its own Network and pOwer</li>
+            </ul>
+          </li>
+          <li>Distinc 7 instances per AZ - ioslated infrastructure Limit</li>
+          <li>Not supported for Dedicated INstaces or Hosts</li>
+          <li>For when you need High aviliability</li>
+        </ul>
+      </li>
+      <li>Partition – spreads your instances across logical partitions such that groups of instances in one partition do not share the underlying hardware with groups of instances in different partitions. This strategy is typically used by large distributed and replicated workloads, such as Hadoop, Cassandra, and Kafka.
+        <ul>
+          <li>More than 7 instance needed per AZ, hence Partition</li>
+          <li>Divided into paritions, MAX 7 Partition per AZ
+            <ul>
+              <li>Each Partition has its own racks- no sharing between partitions</li>
+            </ul>
+          </li>
+          <li>Partition basically allows you to decide “how many instances on a rack”
+  <img src="./Screenshot%202025-10-07%20at%2017.51.19.png" alt="partition placement" /></li>
+          <li>Huge scale parallelism processing</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="gateway-load-balancer">Gateway Load Balancer</h2>
+<ul>
+  <li>Situation
+    <ul>
+      <li>No Ingress/Egress Security Scans -&gt; Adds Security Applicance Scans data after it leaves and before it enters</li>
+      <li>But No elasticity</li>
+      <li>e.g. <img src="./Screenshot%202025-10-08%20at%2009.16.04.png" alt="No Gateway LB" /></li>
+    </ul>
+  </li>
+  <li>Solution:
+    <ul>
+      <li>GWLB
+        <ul>
+          <li>Run and scale 3rd party applicances</li>
+          <li>Firewalls/intrusion detection/prevention</li>
+          <li>Inbound and Outbound Traffic (Transparent inspection)</li>
+        </ul>
+      </li>
+      <li>GWLB Components:
+        <ul>
+          <li>GWLB Endpoints -&gt; Traffic enters/leaves via these endpoints</li>
+          <li>GWLB Balances -&gt; Balance across backend appliances</li>
+          <li>Traffic and Metadata is tunneld usin GENEVE Protocol
+<img src="./Screenshot%202025-10-08%20at%2009.19.17.png" alt="GWLB" /></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>Example of Usage</p>
+<ul>
+  <li>Security VPC introduction</li>
+  <li>Package is encapsulated to maintain SRC/DST</li>
+  <li>Encapsulated Pacakage is sent for security</li>
+  <li>you are routed to the same GWLB on the same AZ
+<img src="./Screenshot%202025-10-08%20at%2009.23.15.png" alt="GWLB IMplementatoin" /></li>
 </ul>
 
     </article>

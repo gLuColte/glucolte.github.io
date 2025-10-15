@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>study · glucolte</title>
+  <title>AWS SA Pro Notes · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,20 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>study | glucolte</title>
+<title>AWS SA Pro Notes | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="study" />
+<meta property="og:title" content="AWS SA Pro Notes" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/" />
-<meta property="og:url" content="http://localhost:4000/study/" />
+<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSSAProExamNotes" />
+<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSSAProExamNotes" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="study" />
+<meta property="twitter:title" content="AWS SA Pro Notes" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"study","url":"http://localhost:4000/study/"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS SA Pro Notes","url":"http://localhost:4000/study/infrastructureAWSSAProExamNotes"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,611 +62,85 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="study">/study</h1>
+      <h1 id="aws-exam-notes">AWS Exam Notes</h1>
 
-<p>A home for study resources, with a focus on <strong>coding interview prep</strong>.<br />
-Think of this page as your <strong>mental compass</strong> — quick reminders on <em>how to think</em> before diving into the categories.</p>
+<ul>
+  <li><strong>Migration Phases:</strong> Assess → Mobilize → Migrate &amp; Modernize.</li>
+  <li><strong>Effort vs Benefit:</strong> Rehost Low/Low, Replatform Med/Med, Refactor High/High, Repurchase Med/High, Retire Low/High, Retain None/None.</li>
+  <li><strong>ADS (Application Discovery Service)</strong> – before migration; collects inventory, dependencies; used for planning in Migration Hub.</li>
+  <li><strong>MGN (Application Migration Service)</strong> – performs <strong>actual migration (lift-and-shift)</strong>; not used for <strong>planning</strong> (use <strong>ADS / Migration Hub</strong> instead).</li>
+  <li><strong>Migration Flow:</strong> ADS → Migration Evaluator → Migration Hub → MGN → Optimize.</li>
+  <li><strong>Analogy:</strong> ADS = home inspection 🏠, MGN = moving company 🚚.</li>
+  <li><strong>API Gateway Caching</strong> – built-in; caches backend responses for TTL (0–3600 s); reduces backend load; customizable cache keys; flush manually; billed hourly.</li>
+  <li><strong>ACM (AWS Certificate Manager)</strong> – certificates are <strong>regional</strong>; CloudFront uses <strong>us-east-1</strong>.</li>
+  <li><strong>SCP (Service Control Policy)</strong> – defines <strong>max permissions</strong> for IAM users/roles; <strong>does not grant</strong> permissions; use with <strong>IAM policies</strong> for access control; avoid blocking entire services.</li>
+  <li><strong>RDS Snapshot</strong> – point-in-time backup (stored in S3).</li>
+  <li><strong>RDS Retain / Deletion Protection</strong> – prevents DB deletion; not a backup.</li>
+  <li><strong>ECS Anywhere</strong> – run/manage ECS containers on-prem; consistent control plane; supports hybrid migration.</li>
+  <li><strong>Control Tower Logs &amp; Inspector:</strong> Control Tower → CloudWatch/CloudTrail (monitoring); Inspector → vulnerability scanning.</li>
+  <li><strong>Direct Connect VIF:</strong> <strong>Public VIF</strong> for public AWS services (S3, DynamoDB); <strong>Private VIF</strong> for VPC private IPs.</li>
+  <li><strong>S3 Search</strong> – not effective; only use when <strong>cost or retrieval specificity</strong> matters.</li>
+  <li><strong>SG (Security Group)</strong> – cannot filter by <strong>URL</strong>; filters only by <strong>IP, port, or protocol</strong>.</li>
+  <li><strong>Forward Proxy / NAT</strong> – <strong>forward proxy</strong> filters outbound traffic; provides <strong>caching</strong>, <strong>URL filtering</strong>, <strong>IDS/IPS</strong>, <strong>DLP</strong>, <strong>monitoring</strong>, and <strong>threat protection</strong>. Instances behind a <strong>NAT Gateway</strong> can make <strong>outbound</strong>, but not <strong>inbound</strong>, connections.</li>
+  <li><strong>Network ACL (NACL)</strong> – rules tied to <strong>NLB target subnets</strong> should <strong>not allow direct client access</strong>; allow only between <strong>NLB</strong> and <strong>EC2 subnets</strong>.</li>
+  <li><strong>CloudFormation Restore</strong> – even with templates, <strong>restoring backups</strong> from <strong>S3</strong> can take a long time.</li>
+</ul>
 
-<hr />
-
-<h2 id="infrastructure-cloud">Infrastructure &amp; Cloud</h2>
-
-<p>The following are infrastructure and cloud services study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/infrastructureAWSArchitecture" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Best Practices
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSCompute" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Compute Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSNetwork" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Network Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSSAProExamNotes" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS SA Pro Notes
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSStorage" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Storage Services
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/infrastructureOsiModel" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        OSI Model
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
+<div class="image-wrapper">
+  <img src="./Screenshot%202025-10-13%20A.png" alt="AWS Migration Overview" class="modal-trigger" data-caption="AWS Migration - Source Udemey - Tutorial Dojo Practice Exam Solutions" />
+  <div class="image-caption">🌐 AWS Migration Overview - Source Udemey - Tutorial Dojo Practice Exam Solutions </div>
 </div>
 
-<hr />
-
-<h2 id="system-design-fundamentals">System Design Fundamentals</h2>
-
-<p>The following are system design fundamentals study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/systemDesignHourglass" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        Hourglass Design
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/systemDesignSlaSloSli" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        SLA, SLO &amp; SLI
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-</div>
-
-<hr />
-
-<h2 id="ai">AI</h2>
-
-<p>The following are AI study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiSecurity" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        GenAI Security
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiLLMs" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        Large Language Models (LLMs)
-      </div>
-    </a>
-  
-
-  
-
-  
-    <a href="/study/aiKnowledgebases" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        Modern Knowledgebases
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiN8n" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        n8n Workflow Automation
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-</div>
-
-<hr />
-
-<h2 id="troubleshooting-practices">Troubleshooting Practices</h2>
-
-<p>Practice your debugging and troubleshooting skills with hands-on Linux server challenges:</p>
-
-<div class="study-tiles">
-  <a href="https://sadservers.com/" target="_blank" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">🔧</span>
-      SadServers - "Like LeetCode for Linux"
-    </div>
-    <div style="font-size: 14px; color: var(--muted); margin-top: 8px;">
-      Excellent for SRE/DevOps interview preparation. Get a full remote Linux server with a problem and fix it!
-    </div>
-  </a>
-</div>
-
-<hr />
-
-<h2 id="leetcode">LeetCode</h2>
-
-<p>The following are topic-specific coding interview study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/codingArraysStrings" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        arrays and strings
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingBacktracking" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        backtracking
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingDesign" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        design problems
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingDynamicProgramming" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        dynamic programming
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingGraphs" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        graphs
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingHeaps" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        heaps and priority queues
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingLinkedLists" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        linked lists
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/codingMathBits" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        math and bit manipulation
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/codingTrees" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        trees
-      </div>
-    </a>
-  
-
-</div>
+<ul>
+  <li><strong>S3 Versioning Example</strong> – bucket with 4 files (<strong>MNL-NA.config</strong>, <strong>MNL-LA.config</strong>, <strong>MNL-EUR.config</strong>, <strong>MNL-ASIA.config</strong>) gets <strong>Version ID = null</strong> after enabling versioning.</li>
+  <li><strong>CloudFront Security Practices:</strong>
+    <ul>
+      <li>Use <strong>signed URLs or cookies</strong> for private content.</li>
+      <li>Prefer <strong>CloudFront URLs</strong> over <strong>S3 URLs</strong>.</li>
+      <li>Enforce <strong>HTTPS</strong> using Viewer Protocol Policy (<strong>Redirect HTTP→HTTPS</strong> or <strong>HTTPS Only</strong>).</li>
+      <li>Use <strong>Origin Access Control (OAC)</strong> instead of bucket ACLs to restrict access.</li>
+    </ul>
+  </li>
+  <li><strong>S3 + CloudFront Optimization</strong> – partition S3 by <strong>month</strong>; CloudFront caches <strong>latest content</strong> for faster delivery.</li>
+  <li><strong>Small File Transfer (Snowball Edge)</strong> – batch small files together to reduce <strong>encryption overhead</strong> and <strong>speed up transfers</strong>.</li>
+  <li><strong>Inbound Endpoint</strong> – allows <strong>corporate DNS</strong> to resolve <strong>AWS resources (EC2, RDS, etc.)</strong>.</li>
+  <li><strong>Outbound Endpoint</strong> – forwards <strong>DNS queries from VPC to on-prem</strong> via rules.</li>
+  <li><strong>CloudFront Query Strings</strong> – each <strong>unique parameter value</strong> creates a <strong>separate cache version</strong>; only cache parameters that <strong>change responses</strong>.</li>
+  <li><strong>Lambda@Edge</strong> – extension of <strong>AWS Lambda</strong> (Node.js/Python); runs at <strong>edge locations</strong> to reduce latency; auto-scales from few to thousands of requests/sec.</li>
+  <li><strong>Lambda@Edge Optimization</strong> – improve cache hit ratio by <strong>alphabetizing query strings</strong> and <strong>lowercasing parameters</strong>.</li>
+  <li><strong>Amazon ElastiCache</strong> – managed <strong>in-memory datastore</strong> for <strong>Redis/Memcached</strong>; improves DB performance with low-latency reads.
+    <ul>
+      <li><strong>Memcached</strong> – simple, fast, distributed caching.</li>
+      <li><strong>Redis</strong> – richer data structures, persistence, pub/sub, clustering.</li>
+    </ul>
+  </li>
+  <li><strong>Elastic Beanstalk</strong> – in-place updates cause downtime; use <strong>blue/green deployment</strong> → deploy new env + <strong>swap CNAMEs</strong> for instant switch.</li>
+  <li><strong>Lightsail</strong> – simplifies <strong>EC2 + LB setup</strong>; designed for <strong>Dev/Test</strong>, not <strong>production</strong>. Avoid weighted Route 53 shifting for production.</li>
+  <li><strong>SSL Certificates &amp; ELB</strong> – ELB certificate not mandatory; avoid <strong>self-signed certs</strong> for public sites.</li>
+  <li><strong>EC2 Instance Role Credentials</strong> – EC2 fetches <strong>temporary credentials</strong> via instance metadata:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://169.254.169.254/latest/meta-data/iam/security-credentials/
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Web Identity Federation</strong> – users sign in via <strong>Amazon/Facebook/Google/OIDC IdP</strong>; exchange token via <strong>AssumeRoleWithWebIdentity</strong> for <strong>temporary AWS creds</strong> (no hard-coded keys).</li>
+  <li><strong>AWS Control Tower</strong> – manages <strong>multi-account setups</strong>; doesn’t automatically assign IAM permissions to member accounts.</li>
+  <li><strong>ALB Multi-Cert Support</strong> – upload multiple <strong>SSL certs</strong>; ALB auto-selects best via <strong>SNI (Server Name Indication)</strong>.</li>
+  <li><strong>FSx for Lustre</strong> – temporarily <strong>loads data from S3</strong>, shares across app tier, and uses S3 for <strong>long-term storage</strong> → cost-efficient hybrid setup.</li>
+  <li><strong>AWS Storage Gateway Restore</strong> – cannot link <strong>S3 directly to EC2</strong>; create <strong>snapshot → EBS Volume → attach</strong> to instance.</li>
+  <li><strong>RDS Replica Promotion</strong> – no <strong>auto-promotion</strong> for cross-region replicas; must <strong>manually promote</strong>, causing reboot (may exceed RTO/RPO).</li>
+  <li><strong>Traffic Mirroring</strong> – copies <strong>EC2 network traffic</strong> from ENIs → send to <strong>monitoring/security appliances</strong>.</li>
+  <li><strong>AWS Security Hub</strong> – centralizes <strong>security findings</strong> from <strong>GuardDuty, Config, Inspector, partners</strong> → unified compliance view.</li>
+  <li><strong>AWS IoT Core</strong> – connects <strong>IoT devices</strong> to AWS; supports <strong>secure messaging, routing, offline handling</strong>; includes <strong>device gateway</strong> + <strong>message broker</strong>.</li>
+  <li><strong>Disaster Recovery (RTO 30 min)</strong> – restoring from <strong>EC2 snapshots</strong> is cheaper/faster than <strong>hot-standby</strong> (which runs continuously).</li>
+  <li><strong>FSx Resize</strong> – no auto-scaling; <strong>manually resize</strong> via console, API, or CLI.</li>
+  <li><strong>Redshift KMS Encryption</strong> – KMS keys are <strong>region-specific</strong>; for <strong>cross-region snapshot copy</strong>, create a <strong>snapshot copy grant</strong> with destination key.</li>
+  <li><strong>VPC VGW Limit</strong> – only one <strong>Virtual Private Gateway</strong> per <strong>VPC</strong>.</li>
+  <li><strong>AWS Config Managed Rules</strong> – predefined checks (e.g., <strong>approved-amis-by-id</strong>); use <strong>Lambda</strong> for auto-remediation.</li>
+  <li><strong>AWS Service Catalog</strong> – defines <strong>products + tagging policies</strong>; ensures consistent tags across accounts.</li>
+  <li><strong>AWS Config vs Tagging</strong> – Config <strong>detects untagged resources</strong>, but can’t <strong>add tags</strong>; use <strong>Lambda/SSM Automation</strong> to fix.</li>
+  <li><strong>Dynamic Website Limitation (S3)</strong> – if users can <strong>submit comments</strong>, site is <strong>dynamic</strong> → use <strong>EC2/Lambda</strong>, not <strong>S3 + CloudFront static hosting</strong>.</li>
+  <li><strong>KMS with On-Prem HSM</strong> – import <strong>keys from on-prem HSMs</strong> to <strong>AWS KMS</strong> for compliance + control; supports <strong>key rotation</strong>, <strong>auditing</strong>, and <strong>S3 encryption policies</strong>.</li>
+  <li><strong>CVE Assessment</strong> – <strong>AWS Config</strong> cannot run CVE scans; use <strong>Amazon Inspector</strong> for vulnerability assessments on EC2.</li>
+</ul>
 
     </article>
   </main>
