@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>CloudWatch · glucolte</title>
+  <title>AWS Caching Services · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,20 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>CloudWatch | glucolte</title>
+<title>AWS Caching Services | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="CloudWatch" />
+<meta property="og:title" content="AWS Caching Services" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/tmp_awsProMonitoring.html" />
-<meta property="og:url" content="http://localhost:4000/study/tmp_awsProMonitoring.html" />
+<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSCaching" />
+<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSCaching" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="CloudWatch" />
+<meta property="twitter:title" content="AWS Caching Services" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"CloudWatch","url":"http://localhost:4000/study/tmp_awsProMonitoring.html"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS Caching Services","url":"http://localhost:4000/study/infrastructureAWSCaching"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,271 +62,238 @@
 
   <main class="container">
     <article class="content">
-      <h2 id="cloudwatch">CloudWatch</h2>
+      <h2 id="section-1-amazon-cloudfront">1. Amazon CloudFront</h2>
+
+<p>Global CDN that accelerates downloads by caching objects at edge locations (PoPs) backed by regional edge caches before reaching the origin (S3, ALB, MediaPackage, custom HTTP endpoints).</p>
+
+<div class="image-wrapper">
+  <img src="./assets/cloudfront_private_content.png" alt="cloudfront-private-content" class="modal-trigger" data-caption="🧩 CloudFront signed-cookie flow" />
+  <div class="image-caption">🧩 CloudFront signed-cookie flow</div>
+  <script type="text/plain" id="cloudfront-private-content">
+@startuml
+title CloudFront Private Content via Signed Cookies
+
+actor Viewer
+participant CloudFront
+participant APIGateway as "API Gateway"
+participant Lambda as "Lambda Signer"
+database S3 as "Private S3 Buckets"
+
+== Request signed cookie ==
+Viewer -> APIGateway: GET /signed-cookie?resource=/images/*
+APIGateway -> Lambda: Invoke Signer(resource, viewer session)
+Lambda -> Lambda: Validate session\nCreate signed policy (path, expiry, IP)
+Lambda --> APIGateway: Return signed cookies
+APIGateway --> Viewer: 200 OK + Set-Cookie (CloudFront-Policy,\nSignature, Key-Pair-Id)
+
+note right of Viewer
+Browser stores signed cookies:
+ - CloudFront-Policy
+ - CloudFront-Signature
+ - CloudFront-Key-Pair-Id
+end note
+
+== Access private image ==
+Viewer -> CloudFront: GET /images/photo.jpg (with signed cookies)
+CloudFront -> CloudFront: Validate signature, expiry, policy
+alt Cookie valid
+  CloudFront -> S3: GET /images/photo.jpg (via OAC/OAI)
+  S3 --> CloudFront: 200 OK (object)
+  CloudFront --> Viewer: 200 OK (cached at edge)
+else Cookie invalid or expired
+  CloudFront --> Viewer: 403 Forbidden
+end
+
+== Optional refresh ==
+Viewer -> APIGateway: GET /refresh-cookie
+APIGateway -> Lambda: Invoke Signer(refresh)
+Lambda --> APIGateway: Return new signed cookies
+APIGateway --> Viewer: 200 OK + new Set-Cookie
+@enduml
+  </script>
+</div>
+
+<h3 id="section-1-1-cloudfront-security">1.1 Private Content &amp; Security</h3>
 
 <ul>
-  <li>Ingestion/Storage/Management of Metrics</li>
-  <li>Public Service
-    <ul>
-      <li>has public Space endpoints</li>
-      <li>most services has integration</li>
-      <li>agent integration available for richer metrics
-  e.g. Inside EC2 or your host</li>
-    </ul>
-  </li>
-  <li>Alarms
-    <ul>
-      <li>React to metrics</li>
-      <li>Status = ALARM / OK</li>
-      <li>Actions can be connected</li>
-    </ul>
-  </li>
-  <li>Data
-    <ul>
-      <li>Namespaces = “Container” for Metrics e.g. AWS/EC2 or AWS/Lambda</li>
-      <li>Data Points = Timestamp, value, unit of measure</li>
-      <li>Dimension = name/value pair. e.g. CPUUtilizationName=InstanceId,Value=i-121231232</li>
-    </ul>
-  </li>
-  <li>Resolution
-    <ul>
-      <li>Standard 60 s -&gt; High 1 s</li>
-    </ul>
-  </li>
-  <li>Retention
-    <ul>
-      <li>X &lt; 60s = 3 hours</li>
-      <li>60s &lt; X &lt; 300s = 15 days
-  …</li>
-    </ul>
-  </li>
-  <li>Aggregated to store longer with less resolution</li>
-  <li>Statistics
-    <ul>
-      <li>Min/Max/Sum/Avg</li>
-    </ul>
-  </li>
+  <li><strong>Origin Access Control (OAC)</strong> – recommended successor to Origin Access Identity. Grants CloudFront a unique IAM principal to read private S3 buckets; attach the generated policy to S3.</li>
+  <li><strong>Custom origins</strong> – restrict access using secret headers or Web Application Firewall (WAF) IP sets (CloudFront IP ranges). OAC/OAI not supported with ALB/EC2 origins.</li>
+  <li><strong>Private content</strong> – require signed URLs or signed cookies per behavior. Trusted key groups provide flexible signer management. Combine with API Gateway/Lambda to issue short-lived cookies after auth.</li>
+  <li><strong>Geo restriction</strong> – built-in country-level allow/deny lists using geo-IP databases. For finer control, front CloudFront with an authorization service that issues signed URLs.</li>
+  <li><strong>Field-level encryption</strong> – encrypt sensitive form fields at the edge so only designated backends can decrypt payloads, even after CloudFront forwards over HTTPS.</li>
+  <li><strong>TLS/SNI handshake</strong> – when a viewer connects over HTTPS, CloudFront presents the certificate associated with your alternate domain name. Server Name Indication (SNI) allows multiple certs per IP, so viewers include the hostname in the TLS ClientHello before encryption. For legacy clients lacking SNI, use dedicated IP distributions. Between CloudFront and the origin, a second TLS session is negotiated using the origin’s cert; custom origins must present a cert from a trusted public CA.</li>
 </ul>
 
-<p><img src="./Screenshot%202025-10-08%20at%2010.02.31.png" alt="Cloudwatch Concept - Metrics/Alarm" /></p>
+<div class="image-wrapper">
+  <img src="./assets/cloudfront_sni.png" alt="cloudfront-sni" class="modal-trigger" data-caption="🧩 CloudFront SNI flow" />
+  <div class="image-caption">🧩 CloudFront SNI flow</div>
+  <script type="text/plain" id="cloudfront-sni">
+@startuml
+autonumber
+title CloudFront Multi-SSL / SNI TLS Flow
 
-<h3 id="cloudwatch-logs">CloudWatch Logs</h3>
+actor Browser as B
+participant "CloudFront Edge Location" as CF
+collections "Certificate Store\n(ACM / Trusted CA certs)" as CERTS
+participant "Origin (S3 / ALB / EC2 / On-Prem)" as O
+
+== Viewer TLS Handshake (Browser → CloudFront) ==
+
+note over B
+Browser initiates HTTPS request
+https://www.example.com
+end note
+
+B -> CF: ClientHello + SNI = "www.example.com"
+
+note over CF
+CloudFront supports multiple certificates
+on the SAME edge location
+using **SNI (Server Name Indication)**.
+end note
+
+CF -> CERTS: Select certificate matching SNI
+CERTS --> CF: Correct certificate returned
+
+CF --> B: ServerHello + Certificate + TLS handshake complete
+
+note over B,CF
+TLS session established (viewer protocol).
+Browser only uses cert matching the hostname.
+end note
+
+
+== Request Handling ==
+
+B -> CF: HTTPS Request (GET /index.html)
+
+alt Cache HIT
+    CF --> B: Cached response
+else Cache MISS
+    note over CF
+    CF must talk to the origin using
+    a separate connection + SSL validation
+    end note
+
+    == Origin TLS Handshake (CF → Origin) ==
+
+    CF -> O: HTTPS request (Origin Protocol Policy)
+
+    note right of O
+    Origin must present a valid certificate.
+    • S3: native AWS-managed cert
+    • ALB: ACM certificate allowed
+    • EC2/on-prem: must be CA-issued
+    • No self-signed certs allowed
+    end note
+
+    O --> CF: TLS handshake complete
+    O --> CF: HTTPS Response (content)
+end
+
+CF --> B: HTTP Response (cached or fresh content)
+
+@enduml
+  </script>
+</div>
+
+<h3 id="section-1-2-cloudfront-architecture">1.2 Distribution Building Blocks</h3>
 
 <ul>
-  <li>Ingestion
-    <ul>
-      <li>Getting Logs into the system</li>
-      <li>Sources:
-        <ul>
-          <li>AWS/OnPremises/IoT/Application</li>
-          <li>CW Agent</li>
-          <li>VPC Flow Logs</li>
-          <li>CloudTrails</li>
-          <li>ElasticBeanstalk,Ec2..etc</li>
-          <li>Route 53</li>
-        </ul>
-      </li>
-      <li>Structure (1 Event):
-        <ul>
-          <li>Timestamp</li>
-          <li>Raw Message</li>
-        </ul>
-      </li>
-      <li>Combination of Events from same Source = Log Stream (e.g. Ec2 instanceA = 1 stream, instanceB=2 stream)</li>
-      <li>Combination of Streams = Log Group
-        <ul>
-          <li>You set Retention/Permissions/Encryption on Log Group Level</li>
-          <li>You use Metric Filter to “query”</li>
-          <li>You can export to S3 (can take up to 12 hours)
-<img src="./Screenshot%202025-10-08%20at%2010.09.49.png" alt="Clougwatch Logs Ingestion" /></li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li>Subscriptions
-    <ul>
-      <li>Subscription Filter (Pattern on what you are interested, destination, destination grouping and permission)
-        <ul>
-          <li>Kinesis Data Firehose -&gt; Near Realtime to S3
-            <ul>
-              <li>or other firehose destinations</li>
-              <li>For Persist logs</li>
-            </ul>
-          </li>
-          <li>(RealTime) Kineses Data Stream
-            <ul>
-              <li>Take multiple streams in real time
-  or KCL Consumers</li>
-            </ul>
-          </li>
-          <li>(RealTime) Lambda
-            <ul>
-              <li>Elastic Search
-  -&gt; Other sourrces</li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li>Aggregation
-    <ul>
-      <li>Use Subscription Filter to send to Kinese Data Stream, then push to data firehose then to s3</li>
-    </ul>
-  </li>
+  <li><strong>Origins</strong> – S3 bucket, ALB, MediaStore, MediaPackage, or any publicly reachable HTTP server. Each origin can be tied to one or more cache behaviors.</li>
+  <li><strong>Cache behaviors</strong> – routing rules based on path patterns (<code class="language-plaintext highlighter-rouge">*</code>, <code class="language-plaintext highlighter-rouge">img/*</code>, etc.) mapping viewers to specific origins, viewer/origin protocols, headers, cookies, and query strings.</li>
+  <li><strong>Edge → Regional edge cache → Origin flow</strong> – if the edge server misses, it checks the regional cache before touching the origin, reducing load.</li>
+  <li><strong>Viewer vs Origin protocol</strong> – choose HTTP/HTTPS per side; enforce minimum TLS versions for custom origins. ACM certificates (issued in <code class="language-plaintext highlighter-rouge">us-east-1</code>) cover alternate domain names.</li>
 </ul>
 
-<h2 id="cloud-trail">Cloud Trail</h2>
+<h3 id="section-1-3-cloudfront-caching">1.3 Caching Controls</h3>
+
 <ul>
-  <li>Regional Service
-    <ul>
-      <li>You can log one Region or All Regions
-  -&gt; All region basically capatures all region
-  -&gt; one region captures only.a single region</li>
-    </ul>
-  </li>
-  <li>Logs the “API” calls to different services and account events</li>
-  <li>90 Days stored by default in Event History &gt; FREE</li>
-  <li>
-    <p>Enabled by default - no cost for 90 day history</p>
-  </li>
-  <li>Management Events (Default)
-    <ul>
-      <li>Control Plan Operations (e.g. Creating Ec2, create s3 bucket…)</li>
-      <li>1 Copy of a trail is free</li>
-      <li>additional trails are charged</li>
-    </ul>
-  </li>
-  <li>Data Events (NOT ENABLED BY DEFAULT)
-    <ul>
-      <li>Object been loaded to S3/Lambda triggered</li>
-    </ul>
-  </li>
-  <li>
-    <p>can Store in S3 / CloudWathc log</p>
-  </li>
-  <li>IAM/STS,CloudFront -&gt; Global Service Events -&gt; US-EAST-1
-    <ul>
-      <li>Need to be enabled for catching it</li>
-    </ul>
-  </li>
-  <li>NOT REAL TIME (ususal within 15 minutes that an event happened)</li>
+  <li><strong>TTL defaults</strong> – 24 hours unless overridden. Cache keys include object name, optional query strings, cookies, and headers.</li>
+  <li><strong>HTTP directives</strong> – <code class="language-plaintext highlighter-rouge">Cache-Control: max-age</code>, <code class="language-plaintext highlighter-rouge">s-maxage</code>, and <code class="language-plaintext highlighter-rouge">Expires</code> headers override cache lifetime. Minimum and maximum TTLs can be enforced per behavior.</li>
+  <li><strong>Invalidations</strong> – manually expire objects before TTL (wildcards allowed). Versioned object names (<code class="language-plaintext highlighter-rouge">app_v42.js</code>) avoid invalidation charges.</li>
+  <li><strong>Cache hit ratio</strong> – higher hit ratios reduce origin load; forward only the headers/cookies/query strings required by the application to keep cache keys compact.</li>
 </ul>
 
-<h2 id="organizational-trail">Organizational Trail</h2>
+<h3 id="section-1-4-lambda-edge">1.4 Lambda@Edge</h3>
+
 <ul>
-  <li>All Acount stored into a Single Account+
-    <ul>
-      <li>Split by LogStream</li>
-    </ul>
-  </li>
+  <li>Lightweight Node.js/Python Lambda functions deployed to edge locations.</li>
+  <li>Hook points: viewer request, viewer response, origin request, origin response. Viewer triggers limited to 128 MB memory/5s; origin triggers up to 30s.</li>
+  <li>Use cases: A/B testing, device-based redirects, origin migration, header normalization, country-based content.</li>
 </ul>
 
-<h2 id="aws-x-ray">AWS X Ray</h2>
+<hr />
+
+<h2 id="section-2-amazon-elasticache">2. Amazon ElastiCache</h2>
+
+<p>Managed in-memory caching service offering Redis and Memcached clusters to offload read-heavy workloads, session data, and transient state from databases.</p>
+
+<h3 id="section-2-1-cache-general">2.1 General Characteristics</h3>
+
 <ul>
-  <li>Distributed tracing session
+  <li><strong>Purpose</strong> – sub-millisecond access to hot data, reducing pressure on RDS/DynamoDB and enabling stateless app tiers.</li>
+  <li><strong>Integration</strong> – requires application logic to <code class="language-plaintext highlighter-rouge">GET</code>/<code class="language-plaintext highlighter-rouge">SET</code> cache entries, invalidate data, and fall back to the database.</li>
+  <li><strong>Engine choices</strong>:
     <ul>
-      <li>e.g. API Gateway/Lambda…</li>
-      <li>Centralize these “distributed” trace that form a session, into a single dashboard for you to see</li>
-      <li>Tracing Header is added (traceId)
-        <ul>
-          <li>When comes in the first time it generate traceId</li>
-        </ul>
-      </li>
-      <li>Segments
-        <ul>
-          <li>Data Blocks/HostIp,Request, Response, Workdone, Issues</li>
-        </ul>
-      </li>
-      <li>Subsegemetns
-        <ul>
-          <li>More granular version of the above</li>
-        </ul>
-      </li>
+      <li><strong>Memcached</strong> – simple key/value store, multi-threaded, no replication, no persistence. Scale by sharding data across nodes.</li>
+      <li><strong>Redis</strong> – richer data types (lists, sets, sorted sets, bitmaps), replication, Multi-AZ failover, snapshots/backups, pub/sub, Lua scripts, transactions.</li>
     </ul>
   </li>
-  <li>X ray collects Segments to form Service Graph
-    <ul>
-      <li>JSON Document</li>
-    </ul>
-  </li>
-  <li>Service Map
-    <ul>
-      <li>Visual Representation</li>
-    </ul>
-  </li>
-  <li>How it works
-    <ul>
-      <li>EC2 -&gt; XRay agent is installed</li>
-      <li>ECS -&gt; Agent in tasks</li>
-      <li>LAmbda -&gt; Enable Option</li>
-      <li>Beanstalk -&gt; Preinstalled</li>
-      <li>API Gatway -&gt; Per stage option</li>
-      <li>SNS/SQS -&gt; can enable</li>
-    </ul>
-  </li>
-  <li>Requires to provide IAM permission</li>
+  <li><strong>Security/ops</strong> – subnet groups place cache nodes in specific AZs; security groups restrict clients. Enable encryption in-transit/at-rest and AUTH tokens (Redis AUTH) for production. Use parameter groups to tune eviction policy (<code class="language-plaintext highlighter-rouge">allkeys-lru</code>, <code class="language-plaintext highlighter-rouge">volatile-ttl</code>, etc.).</li>
 </ul>
 
-<h2 id="cost-allocation-tags">Cost Allocation Tags</h2>
+<h3 id="section-2-2-memcached-redis">2.2 Memcached vs Redis</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Feature</th>
+<th>Memcached</th>
+<th>Redis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Data types</strong></td>
+<td>Strings only.</td>
+<td>Strings, lists, hashes, sets, sorted sets, bitmaps, geospatial.</td>
+</tr>
+<tr>
+<td><strong>Replication/HA</strong></td>
+<td>None (client-side sharding only).</td>
+<td>Multi-AZ replication with automatic failover.</td>
+</tr>
+<tr>
+<td><strong>Persistence</strong></td>
+<td>None.</td>
+<td>Snapshots + append-only file (AOF) backups.</td>
+</tr>
+<tr>
+<td><strong>Threading</strong></td>
+<td>Multi-threaded per node.</td>
+<td>Single-threaded per shard (cluster handles parallelism).</td>
+</tr>
+<tr>
+<td><strong>Use cases</strong></td>
+<td>Simple caches, horizontal sharding, minimal features.</td>
+<td>Leaderboards, session stores, distributed locks, queues, richer data processing.</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="section-3-related">3. Related Concepts</h2>
+
 <ul>
-  <li>Enabled Individually</li>
-  <li>AWS Generated -&gt; aws:createdBy or aws:cloudformation:stack-name
-    <ul>
-      <li>Added to resources AFTER they are enabled by AWS</li>
-    </ul>
-  </li>
-  <li>User defined tags can also be enabled
-    <ul>
-      <li>user:something</li>
-    </ul>
-  </li>
-  <li>Once enabled, it become visible in cost reports
-    <ul>
-      <li>Help you filter and allocate cost based on tag</li>
-    </ul>
-  </li>
-  <li>Can take up to 24 hours to be visble and active</li>
+  <li><strong>CloudFront + API integrations</strong> – combine private origins, WAF, and signed URLs/cookies for authenticated content distribution.</li>
+  <li><strong>Caching guidance</strong> – forward only the request properties that affect object variation (headers, cookies, query strings) to maximize cache hit ratio.</li>
+  <li><strong>Origin security</strong> – use OAC for S3, custom headers for ALB/EC2, and ACM certificates for HTTPS-only flows.</li>
+  <li><strong>Dynamic sites</strong> – CloudFront accelerates static assets and proxies dynamic requests, but you still need compute (ALB/EC2/ECS/Lambda) behind it; S3 static hosting is not enough for read/write applications.</li>
 </ul>
 
-<h2 id="trusted-advisors">Trusted ADvisors</h2>
-<ul>
-  <li>Real time guidance on AWS regarding best practices</li>
-  <li>Account Level Product
-  -&gt; No agents to be installed</li>
-  <li>Pillars
-    <ul>
-      <li>Cost Optimization</li>
-      <li>Performance</li>
-      <li>Security</li>
-      <li>Fault Tolerance</li>
-      <li>Service Limits</li>
-    </ul>
-  </li>
-  <li>Free 7 Core Checks with Basic/Developer Support Plans
-    <ul>
-      <li>S3 Bucket Permissions ( NOT OBJECT )</li>
-      <li>Security Groups - Specific Ports Unrestricted</li>
-      <li>IAM User</li>
-      <li>MFA on Root Account</li>
-      <li>EBS Public Snapshots</li>
-      <li>RDS Public Snapshots</li>
-      <li>50 service limit checks</li>
-    </ul>
-  </li>
-  <li>Anythign beyond requires Business or Enterprise
-    <ul>
-      <li>Same Core 7 Checks</li>
-      <li>115 Further checks
-        <ul>
-          <li>13 cost/17 security/24 fault tolerant/10 performance/ 50 service limit</li>
-        </ul>
-      </li>
-      <li>Access via AWS SUPPORT API</li>
-    </ul>
-  </li>
-</ul>
-
+<hr />
 
     </article>
   </main>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Data Anlaytics · glucolte</title>
+  <title>AWS Data Analytics Services · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,20 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Data Anlaytics | glucolte</title>
+<title>AWS Data Analytics Services | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="Data Anlaytics" />
+<meta property="og:title" content="AWS Data Analytics Services" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/tmp_awsProDataAnalytics.html" />
-<meta property="og:url" content="http://localhost:4000/study/tmp_awsProDataAnalytics.html" />
+<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSAnalytics" />
+<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSAnalytics" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Data Anlaytics" />
+<meta property="twitter:title" content="AWS Data Analytics Services" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Data Anlaytics","url":"http://localhost:4000/study/tmp_awsProDataAnalytics.html"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS Data Analytics Services","url":"http://localhost:4000/study/infrastructureAWSAnalytics"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,389 +62,106 @@
 
   <main class="container">
     <article class="content">
-      
-<h1 id="data-anlaytics">Data Anlaytics</h1>
+      <h2 id="section-1-kinesis-family">1. Kinesis Family</h2>
+
+<h3 id="section-1-1-kinesis-streams">1.1 Kinesis Data Streams</h3>
 
 <ul>
-  <li>See if you can draw a Graph on when to use and what they dd</li>
+  <li>Managed streaming ingestion service for real-time data (IoT, clickstreams, app logs).</li>
+  <li>Producers push data into a stream; consumers (Lambda, Kinesis Client Library apps, Firehose, analytics engines) read within a rolling retention window (24 hours up to 365 days).</li>
+  <li>Streams are composed of <strong>shards</strong>. Each shard supports 1 MB/sec write, 2 MB/sec read (about 1,000 records/sec). Scale throughput by increasing shard count.</li>
+  <li>Unlike SQS, multiple producer and consumer groups can fan-in/out simultaneously; data persists for the retention window so consumers can replay.</li>
 </ul>
 
-<h2 id="kineses-data-streams">Kineses Data Streams</h2>
+<h3 id="section-1-2-kinesis-firehose">1.2 Kinesis Data Firehose</h3>
+
 <ul>
-  <li>Concept
-    <ul>
-      <li>it is a scalable STREAMING service</li>
-      <li>Producers send data into a Kineses Stream</li>
-      <li>Public Service &amp; HA by design</li>
-      <li>Store 24 hour moving Window
-        <ul>
-          <li>Window can be increase to max 365 days</li>
-        </ul>
-      </li>
-      <li>Consumer can access the data in this window</li>
-    </ul>
-  </li>
-  <li>Structure
-    <ul>
-      <li>Producers:
-        <ul>
-          <li>e.g. IoT, mobile…</li>
-        </ul>
-      </li>
-      <li>Consumers:
-        <ul>
-          <li>e.g. Lambda/Server</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li>Underthe hood:
-    <ul>
-      <li>Shard Architecture
-        <ul>
-          <li>each shard is 1 MB Ingestion/2MB Consumption</li>
-          <li>Data Record</li>
-        </ul>
-      </li>
-      <li>Window (24 hour to 365)
-        <ul>
-          <li>Persistent Storage</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li>Comparison to SQS
-    <ul>
-      <li>SQS = 1 Production Group + 1 Consumption Group
-        <ul>
-          <li>Mostly Decoupling and Asynchornous Communications</li>
-          <li>No Persistence of messages, no Window</li>
-        </ul>
-      </li>
-      <li>Kinesis = N Production Group + N Consumption Group
-        <ul>
-          <li>Ingestion/Analytics/Monitoring/App Clicks</li>
-          <li>Rolling Window</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
+  <li>Fully managed delivery service that takes streaming data (from producers or Data Streams) and lands it into destinations like S3, Redshift, OpenSearch, Splunk, or third-party endpoints.</li>
+  <li>Buffers incoming data by size or time (e.g., 1 MB or 60 seconds), optionally transforms records via Lambda, then delivers to the destination.</li>
+  <li>Handles scaling automatically and requires no shard management; near-real-time ETL into data lakes/warehouses.</li>
 </ul>
 
-<h2 id="kineses-data-firehose">Kineses Data Firehose</h2>
+<h3 id="section-1-3-kinesis-analytics">1.3 Kinesis Data Analytics</h3>
+
 <ul>
-  <li>Concept:
-    <ul>
-      <li>Kinesis Data Stream does not persist data (like SQS)</li>
-      <li>Firehose’s goal is to load data for Data Lakes/Stores/Analytics service (e.g. S3)</li>
-    </ul>
-  </li>
-  <li>Structure:
-    <ul>
-      <li>Fully Managed</li>
-      <li>Supports Near Real Time Transofmr with Lambda</li>
-    </ul>
-  </li>
-  <li>Under the Hood:
-    <ul>
-      <li>Work with Kinesis Data Stream/Any data streaming</li>
-      <li>Buffers the streamed data. in size of MB (e.g.1) or Seconds (60 seconds)</li>
-      <li>Transform the data during buffer</li>
-      <li>Then store to the destination</li>
-    </ul>
-  </li>
+  <li>Real-time SQL or Apache Flink (Scala/Java) processing for streaming data from Kinesis Data Streams or Firehose.</li>
+  <li>Fits between stream input and output, performing aggregations, filtering, windowed joins, and anomaly detection without building custom streaming apps.</li>
+  <li>Outputs to streams, Firehose, Lambda, or managed services. Great for leaderboards, IoT telemetry, security analytics, and operational monitoring.</li>
 </ul>
 
-<h2 id="kinesis-data-analytics">Kinesis Data Analytics</h2>
+<hr />
+
+<h2 id="section-2-big-data-processing">2. Big Data Processing</h2>
+
+<h3 id="section-2-1-mapreduce">2.1 MapReduce &amp; Hadoop Basics</h3>
+
 <ul>
-  <li>Concept:
-    <ul>
-      <li>Real time Processing of Data that is been streamed</li>
-      <li>Using SQL</li>
-      <li>Igests only from Kinesis Data Streams/Firehose</li>
-    </ul>
-  </li>
-  <li>Structure:
-    <ul>
-      <li>Fits between INPUT and OUTPUT</li>
-      <li>Perform live analytics on the INPUT, and transform to OUTPUT</li>
-    </ul>
-  </li>
-  <li>Under the hood:
-    <ul>
-      <li>Input:
-  Take Stream/Firehose/S3 as input</li>
-      <li>Output:
-  Kinesis Stream/Firehouse</li>
-    </ul>
-  </li>
-  <li>Situation:
-    <ul>
-      <li>Real-time SQL Processing</li>
-      <li>Timeseries ANalytics</li>
-      <li>Leaderboards for games</li>
-      <li>Security and Response teams</li>
-    </ul>
-  </li>
+  <li>MapReduce splits work into <strong>Map</strong> (parallel processing of chunks) and <strong>Reduce</strong> (aggregate results). Under the hood: map → split → shuffle → reduce → final output.</li>
+  <li>Hadoop Distributed File System (HDFS) stores blocks (typically 64 MB) across data nodes with replication; a NameNode tracks metadata.</li>
 </ul>
 
-<h2 id="mapreduce">MapReduce</h2>
+<h3 id="section-2-2-amazon-emr">2.2 Amazon EMR</h3>
+
 <ul>
-  <li>Frame work for Large scale parallel processing of large datasets</li>
-  <li>Structure:
+  <li>Managed Hadoop/Spark ecosystem on EC2 (Spark, Hive, HBase, Flink, Presto, Pig, etc.). Clusters run inside a VPC (single AZ) with auto scaling using On-Demand, Spot, or reserved instances.</li>
+  <li><strong>Node types</strong>:
     <ul>
-      <li>Maps phase and Reduce Phase
-        <ul>
-          <li>Divide and concur</li>
-          <li>Afterward it re-combined back</li>
-        </ul>
-      </li>
+      <li><strong>Master node(s)</strong> – manage cluster state and job scheduling (up to 3 for HA).</li>
+      <li><strong>Core nodes</strong> – run tasks and store HDFS data (loss affects HDFS).</li>
+      <li><strong>Task nodes</strong> – run tasks only; ideal for Spot scaling.</li>
     </ul>
   </li>
-  <li>Under the hood
-    <ol>
-      <li>Map</li>
-      <li>Split</li>
-      <li>Shuffle
- Cause each split might have the same key</li>
-      <li>Reduce</li>
-      <li>Final Output</li>
-    </ol>
-  </li>
-  <li>Hadoop File System
-    <ul>
-      <li>Stored across multiple Data nodes</li>
-      <li>Highly Fault Tolerant and replicated between Nodes</li>
-      <li>Name Node</li>
-      <li>Block -&gt; Segment of data, generally 64 MB</li>
-    </ul>
-  </li>
+  <li><strong>EMRFS</strong> stores persistent data in S3, allowing clusters to be ephemeral.</li>
+  <li>Input/output commonly in S3; EMR integrates with Glue Data Catalog, IAM, KMS, CloudWatch, and autoscaling policies.</li>
 </ul>
 
-<h2 id="emr-architecture">EMR Architecture</h2>
+<h3 id="section-2-3-aws-batch">2.3 AWS Batch</h3>
+
 <ul>
-  <li>Concept:
-    <ul>
-      <li>Managed Implementation of Apache Hadoop
-        <ul>
-          <li>Spark, HBase,Presto, Flink, Hive, Pig</li>
-        </ul>
-      </li>
-      <li>Can be operated Long Term or use Ad-Hoc</li>
-      <li>For Big Data Processing -&gt; Data Pipline</li>
-    </ul>
-  </li>
-  <li>Structure:
-    <ul>
-      <li>Runs One AZ in a VPC using EC2 for comput</li>
-      <li>AUto Scales - Spot/InstanceFleet/Reserved/On Demand</li>
-    </ul>
-  </li>
-  <li>Under the Hood:
-    <ul>
-      <li>Load input data from S3 and output to S3</li>
-      <li>Every cluster has at least 1 node, the master node
-        <ul>
-          <li>M Node manages the cluster and its health</li>
-          <li>M Node distribute Health</li>
-          <li>Now you can run 3 M NOde
-            <ul>
-              <li>If M Node fail, then it will be an issue</li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <li>Cluster have Core Nodes
-        <ul>
-          <li>Act as a data nodes for HDFS</li>
-          <li>Run task trackers and can run mapping and reduce</li>
-          <li>HDFS is a storage linked to the life cycle of the cluster</li>
-          <li>Managed by Core nodes, can fail if core node fails</li>
-          <li>NOT REGIONALLY RESILIENT</li>
-        </ul>
-      </li>
-      <li>Optional - TASK NODES
-        <ul>
-          <li>Only run tasks</li>
-          <li>Does not impact HDFS if afail</li>
-          <li>Ideal for SPOT based Scaling</li>
-        </ul>
-      </li>
-      <li>EMRFS
-        <ul>
-          <li>Persist past EMR</li>
-          <li>runs on S3</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
+  <li>Managed batch compute service for long-running or resource-intensive jobs (&gt;15 minutes). Jobs run inside Docker containers on managed or unmanaged compute environments.</li>
+  <li>Components: job definitions (docker image, vCPU/memory, IAM role), job queues (priority), compute environments (managed fleets or custom EC2/Spot fleets).</li>
+  <li>AWS Batch handles placement, retries, dependencies, and integration with Step Functions/EventBridge. Provides flexibility compared to Lambda (no 15-minute cap, any runtime).</li>
 </ul>
 
-<h2 id="redshift-architecture">Redshift Architecture</h2>
+<hr />
+
+<h2 id="section-3-data-warehousing">3. Data Warehousing &amp; BI</h2>
+
+<h3 id="section-3-1-redshift">3.1 Amazon Redshift</h3>
+
 <ul>
-  <li>Concept:
-    <ul>
-      <li>Petabyte Scale Data Warehouse</li>
-      <li>NOT FOR OPERATION STYLE USAGE</li>
-      <li>OLAP (Column based database)</li>
-      <li>Pay As You Use ( Similar to RDS )</li>
-      <li>Direct Query S3 using REDSFHIT SPECTRUM</li>
-      <li>Direct Query DBs using Federated Query</li>
-      <li>Integrates with AWS Tooling like Quicksight</li>
-      <li>SQL Like Injection</li>
-      <li>Server base (not serverless)</li>
-    </ul>
-  </li>
-  <li>Structure:
-    <ul>
-      <li>Load from DDB/DBs, Firehose..e.tc</li>
-      <li></li>
-    </ul>
-  </li>
-  <li>Under the Hood:
-    <ul>
-      <li>Cluster based</li>
-      <li>Runs in One AZ in a VPC (not Highly available by design)</li>
-      <li>Leader Node and Compute Node</li>
-      <li>VPC Security, IAM Permissions, KMS at rest Encryption, CW Monitoring</li>
-      <li>Redshift Enhanced VPC routing - VPC Networking</li>
-      <li>Backup is done to S3 Automatically (You can also do it manually)</li>
-      <li>Nodes have slices</li>
-    </ul>
-  </li>
-  <li>Redshift Resilience and Recovery
-    <ul>
-      <li>Utilize S3 as Backup
-        <ul>
-          <li>Automatically incremental Backups</li>
-          <li>1 day retention</li>
-        </ul>
-      </li>
-      <li>Replicated across other AZs</li>
-    </ul>
-  </li>
+  <li>Managed, petabyte-scale columnar data warehouse for OLAP workloads. Uses SQL interface and integrates with BI tools (QuickSight, Tableau, etc.).</li>
+  <li>Runs clusters in a single AZ with a leader node coordinating compute nodes (slices). Not HA by default; snapshots/backups stored in S3 (1-day retention by default) and replicated cross-AZ.</li>
+  <li>Features: Redshift Spectrum (query S3 data), federated queries (Aurora/Postgres), encryption with KMS, Enhanced VPC Routing for private traffic, concurrency scaling.</li>
 </ul>
 
-<h2 id="aws-batch">AWS Batch</h2>
+<h3 id="section-3-2-quicksight">3.2 Amazon QuickSight</h3>
+
 <ul>
-  <li>Situation
-    <ul>
-      <li>Managed batch processing compute service</li>
-      <li>Used for long running/resource heavy compute services at Scale
-        <ul>
-          <li>e.g. Process that is &gt; 15minutes (Lambda Limit)</li>
-        </ul>
-      </li>
-      <li>Jobs that can run without end user interaction</li>
-      <li>Let you define jobs, and AWS handle Compute/Decision</li>
-    </ul>
-  </li>
-  <li>Under the hood
-    <ul>
-      <li>Job
-        <ul>
-          <li>Script/Executable/Docker Container submitted to Batch</li>
-          <li>Based on Container</li>
-        </ul>
-      </li>
-      <li>Job Definition
-        <ul>
-          <li>Meta Data for a JOB, e..g IAM/Resource Config…</li>
-        </ul>
-      </li>
-      <li>Job Queue
-        <ul>
-          <li>Jobs are submitted to a queue where they wait for compute</li>
-        </ul>
-      </li>
-      <li>Compute Environment
-        <ul>
-          <li>Managed/Unmanaged</li>
-          <li>You can cofgiure ideal instance or you provide compute you mangage</li>
-        </ul>
-      </li>
-      <li>When Job finished
-        <ul>
-          <li>Metadata in DDB/other</li>
-          <li>Data in S3/other</li>
-          <li>You can also link to other, e.g. Step Function/State machine..etc</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li>Comparison
-    <ul>
-      <li>Lambda:
-        <ul>
-          <li>Has 15 minute execution time limit</li>
-          <li>Limited disk space in the environment</li>
-          <li>EFS can be used, but you need to run in VPC</li>
-          <li>fully serverless but limited runtime selection</li>
-        </ul>
-      </li>
-      <li>Batch
-        <ul>
-          <li>NOT Serverless</li>
-          <li>Use docker and ANY runtime</li>
-          <li>Not Time limit or effective resource limit</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li>MANAGED VS UNMANAGED
-    <ul>
-      <li>Managed:
-        <ul>
-          <li>Aws batch manage capacity based on worloads</li>
-          <li>Ondemand vs Spot</li>
-          <li>Max Spot PRice…etc</li>
-          <li>VPC Private/Public Requires VPC Gateway
-            <ul>
-              <li>You need to configure accessibility</li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <li>Unmanaged
-        <ul>
-          <li>You manage everything
-            <ul>
-              <li>e.g. You have full compute due to cost consideration</li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-    </ul>
-  </li>
+  <li>Serverless BI/visualization service with pay-per-session pricing (SPICE in-memory engine for fast queries).</li>
+  <li>Connects to AWS sources (Athena, Aurora, Redshift, RDS, S3, IoT) and external sources (Salesforce, Jira, GitHub, SQL Server, Snowflake, Presto, Teradata, etc.).</li>
+  <li>Supports dashboards, ad-hoc analysis, ML insights, embedded analytics, and row-level security.</li>
 </ul>
 
-<h2 id="aws-quicksight">AWS QuickSight</h2>
+<hr />
+
+<h2 id="section-4-other-analytics">4. Other Analytics Services</h2>
+
+<h3 id="section-4-1-glue">4.1 AWS Glue (Contextual Reference)</h3>
+
 <ul>
-  <li>Sitation
-    <ul>
-      <li>BA/BI service</li>
-      <li>Vislaization</li>
-      <li>Cost Effective Solution comparing to others</li>
-      <li>Discovery/Integration</li>
-      <li>Works with external data source</li>
-    </ul>
-  </li>
-  <li>Structure
-    <ul>
-      <li>Data Source connect to Quick Sights</li>
-      <li>Prepare and do visualization/analysis</li>
-    </ul>
-  </li>
-  <li>Supports:
-    <ul>
-      <li>Athena/Aurora/Redshift/Redshift Spectrum</li>
-      <li>S3/AWS IOT</li>
-      <li>JIRA, GITHUB, TWITTER, SALESFORCE</li>
-      <li>MSSQL, MySQL, PostgresSQl</li>
-      <li>Apache Spark, Snowflak, Presto,Teradata</li>
-    </ul>
-  </li>
+  <li>(Optional mention) AWS Glue provides ETL jobs and the Glue Data Catalog for schema management. Often used with EMR, Athena, and Redshift.</li>
 </ul>
+
+<h3 id="section-4-2-athena">4.2 Amazon Athena</h3>
+
+<ul>
+  <li>(If needed) Serverless interactive SQL queries over S3 using schema-on-read. Pay per TB scanned.</li>
+</ul>
+
+<p><em>(Note: Additional services like OpenSearch, Kinesis Video Streams, or DataBrew can be added as needed.)</em></p>
+
+<hr />
 
     </article>
   </main>

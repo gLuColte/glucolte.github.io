@@ -332,3 +332,38 @@ Subnets = (Number of Tiers) × (Number of AZs)
 - Tight coupling → poor scalability.  
 
 ---
+
+
+## 12. Migration & Modernization Notes {#migration-modernization}
+
+- **Phases** – Assess → Mobilize → Migrate & Modernize; gather business case, build landing zone, then execute wave plans.
+- **6 Rs decision matrix** – Rehost (lift/shift), Replatform (minimal tweaks), Refactor (cloud-native), Repurchase (SaaS), Retire, Retain. Match effort vs benefit.
+- **Discovery & planning** – *Application Discovery Service* (ADS) inventories servers/dependencies feeding **Migration Hub** wave plans.
+- **Workload movement**:
+  - **MGN (Application Migration Service)** – block-level replication for lift/shift; handles cutover tests.
+  - **SMS** – incremental replication for on-prem VMware/Hyper-V to EC2.
+  - **DMS** – homogeneous/heterogeneous database migrations plus CDC replication.
+  - **ECS Anywhere / EKS Anywhere** – run AWS-managed containers on-prem to ease phased migrations.
+- **Governance** – **Control Tower** builds multi-account landing zones with guardrails (note: it does not grant IAM access automatically).
+
+---
+
+## 13. Identity, Security & Governance Notes {#identity-security}
+
+- **SCPs** set maximum permissions; combine with IAM policies for effective rights. Remember that SCP evaluation is cumulative: Root SCPs apply to every OU/account, child OUs inherit parent SCPs, and explicit denies in any ancestor override everything beneath.
+- **Parameter Store vs Secrets Manager** – config/simple secrets vs sensitive secrets with rotation/integration.
+- **IAM role vs instance profile** – role = permission set; instance profile = container that attaches a role to EC2.
+- **Web identity federation** – OIDC/SAML apps call `AssumeRoleWithWebIdentity` for short-lived creds.
+- **KMS** – central envelope encryption (EBS/S3/RDS); import external keys when compliance demands.
+- **Macie / GuardDuty / Inspector / Security Hub** – data classification, threat intel, vuln scanning, findings aggregation.
+- **AWS Config** – drift/compliance detection; remediate via Lambda/SSM (Config itself is read-only).
+- **Service Catalog** – standardized products with launch constraints/tags across accounts.
+
+### 13.1 Identity Center & Directories {#identity-center}
+
+- **IAM Identity Center (AWS SSO)** – one identity source at a time: built-in directory, AWS Managed AD/AD Connector, or external IdP (SAML/SCIM).
+- **AD Connector for SSO** – when using on-prem AD via connector you cannot simultaneously plug in a third-party IdP; pick one source.
+- **AWS Managed Microsoft AD trusts** – support external and forest trusts (one/both directions) with on-prem AD or another managed AD.
+- **Granting management account access** – invited accounts create `OrganizationAccountAccessRole` so the management account can assume it for break-glass admin.
+
+---

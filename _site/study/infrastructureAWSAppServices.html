@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>AWS SA Pro Notes · glucolte</title>
+  <title>AWS Application Services · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,20 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>AWS SA Pro Notes | glucolte</title>
+<title>AWS Application Services | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="AWS SA Pro Notes" />
+<meta property="og:title" content="AWS Application Services" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSSAProExamNotes" />
-<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSSAProExamNotes" />
+<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSAppServices" />
+<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSAppServices" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="AWS SA Pro Notes" />
+<meta property="twitter:title" content="AWS Application Services" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS SA Pro Notes","url":"http://localhost:4000/study/infrastructureAWSSAProExamNotes"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS Application Services","url":"http://localhost:4000/study/infrastructureAWSAppServices"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,85 +62,342 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="aws-exam-notes">AWS Exam Notes</h1>
+      <h2 id="section-1-amazon-ecs">1. Amazon ECS</h2>
+
+<p>Elastic Container Service orchestrates Docker containers using task definitions and services while taking care of placement and health checks. Know which construct holds IAM roles, CPU, or restart logic—exam questions love mapping requirements to ECS components.</p>
+
+<h3 id="section-1-1-ecs-core">1.1 Core Concepts</h3>
 
 <ul>
-  <li><strong>Migration Phases:</strong> Assess → Mobilize → Migrate &amp; Modernize.</li>
-  <li><strong>Effort vs Benefit:</strong> Rehost Low/Low, Replatform Med/Med, Refactor High/High, Repurchase Med/High, Retire Low/High, Retain None/None.</li>
-  <li><strong>ADS (Application Discovery Service)</strong> – before migration; collects inventory, dependencies; used for planning in Migration Hub.</li>
-  <li><strong>MGN (Application Migration Service)</strong> – performs <strong>actual migration (lift-and-shift)</strong>; not used for <strong>planning</strong> (use <strong>ADS / Migration Hub</strong> instead).</li>
-  <li><strong>Migration Flow:</strong> ADS → Migration Evaluator → Migration Hub → MGN → Optimize.</li>
-  <li><strong>Analogy:</strong> ADS = home inspection 🏠, MGN = moving company 🚚.</li>
-  <li><strong>API Gateway Caching</strong> – built-in; caches backend responses for TTL (0–3600 s); reduces backend load; customizable cache keys; flush manually; billed hourly.</li>
-  <li><strong>ACM (AWS Certificate Manager)</strong> – certificates are <strong>regional</strong>; CloudFront uses <strong>us-east-1</strong>.</li>
-  <li><strong>SCP (Service Control Policy)</strong> – defines <strong>max permissions</strong> for IAM users/roles; <strong>does not grant</strong> permissions; use with <strong>IAM policies</strong> for access control; avoid blocking entire services.</li>
-  <li><strong>RDS Snapshot</strong> – point-in-time backup (stored in S3).</li>
-  <li><strong>RDS Retain / Deletion Protection</strong> – prevents DB deletion; not a backup.</li>
-  <li><strong>ECS Anywhere</strong> – run/manage ECS containers on-prem; consistent control plane; supports hybrid migration.</li>
-  <li><strong>Control Tower Logs &amp; Inspector:</strong> Control Tower → CloudWatch/CloudTrail (monitoring); Inspector → vulnerability scanning.</li>
-  <li><strong>Direct Connect VIF:</strong> <strong>Public VIF</strong> for public AWS services (S3, DynamoDB); <strong>Private VIF</strong> for VPC private IPs.</li>
-  <li><strong>S3 Search</strong> – not effective; only use when <strong>cost or retrieval specificity</strong> matters.</li>
-  <li><strong>SG (Security Group)</strong> – cannot filter by <strong>URL</strong>; filters only by <strong>IP, port, or protocol</strong>.</li>
-  <li><strong>Forward Proxy / NAT</strong> – <strong>forward proxy</strong> filters outbound traffic; provides <strong>caching</strong>, <strong>URL filtering</strong>, <strong>IDS/IPS</strong>, <strong>DLP</strong>, <strong>monitoring</strong>, and <strong>threat protection</strong>. Instances behind a <strong>NAT Gateway</strong> can make <strong>outbound</strong>, but not <strong>inbound</strong>, connections.</li>
-  <li><strong>Network ACL (NACL)</strong> – rules tied to <strong>NLB target subnets</strong> should <strong>not allow direct client access</strong>; allow only between <strong>NLB</strong> and <strong>EC2 subnets</strong>.</li>
-  <li><strong>CloudFormation Restore</strong> – even with templates, <strong>restoring backups</strong> from <strong>S3</strong> can take a long time.</li>
+  <li><strong>Task definition</strong> – describes one or more containers, CPU/memory, networking mode, IAM task role, port mappings, command/entrypoint, and environment variables.</li>
+  <li><strong>Service</strong> – runs a desired count of tasks, handles restarts, load balancer registration, and placement strategies.</li>
+  <li><strong>Task role</strong> – IAM permissions inherited by every container in the task.</li>
 </ul>
+
+<h3 id="section-1-2-ecs-launch">1.2 Launch Types</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Launch Type</th>
+<th>When to Use</th>
+<th>Operational Model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>EC2</strong></td>
+<td>Need control over servers, spot/reserved pricing, or local instance storage.</td>
+<td>Provision and patch the EC2 instances; ECS schedules tasks onto them.</td>
+</tr>
+<tr>
+<td><strong>Fargate</strong></td>
+<td>Serverless containers, per-second billing, small/bursty workloads, fast scale.</td>
+<td>AWS manages the infrastructure; each task receives an ENI inside your VPC.</td>
+</tr>
+<tr>
+<td><strong>ECS Anywhere</strong></td>
+<td>Hybrid/on-premises clusters while reusing ECS control plane.</td>
+<td>Install the ECS Anywhere agent on customer-managed hardware.</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="section-2-amazon-eks">2. Amazon EKS</h2>
+
+<p>Managed Kubernetes service with multi-AZ control plane and integration into AWS networking and storage.</p>
+
+<ul>
+  <li>Control plane nodes run in an AWS-managed VPC across multiple AZs with etcd replication. AWS patches/monitors the API servers and etcd so you only worry about worker nodes.</li>
+  <li>Worker nodes (self-managed, managed node groups, or Fargate pods) live in your VPC; ENIs are injected into your subnets so SGs/NACLs behave like standard EC2 instances.</li>
+  <li>Storage add-ons (EBS/EFS/FSx CSI drivers) provide persistent volumes; load balancers map to ALB/NLB via controllers. IAM roles for service accounts (IRSA) integrate pods with IAM.</li>
+  <li>EKS Anywhere/EKS Distro extend clusters on-premises for hybrid edge deployments.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-3-amazon-sns">3. Amazon SNS</h2>
+
+<p>Pub/sub messaging service for fan-out scenarios.</p>
+
+<ul>
+  <li>Topics receive up to 256 KB payloads and replicate messages to subscribers (HTTP/S, email, SMS, Lambda, SQS, mobile push, Kinesis, Firehose, etc.).</li>
+  <li>Delivery is push-based with retries/backoff; CloudWatch metrics capture success/failure per protocol. Enable message filtering to reduce downstream noise.</li>
+  <li>Encrypt topics with SSE and control access through topic policies so other accounts or services can publish/subscribe.</li>
+  <li>Typical pattern: one publish triggers multiple downstream workflows—order events can update CRMs, notify warehouses, and text customers simultaneously.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-4-amazon-sqs">4. Amazon SQS</h2>
+
+<p>Fully managed queueing service for decoupling producers/consumers.</p>
+
+<h3 id="section-4-1-queue-behavior">4.1 Queue Behavior</h3>
+
+<ul>
+  <li>Producers send messages up to 256 KB; consumers poll for messages (optionally long-poll to cut empty responses).</li>
+  <li><strong>Visibility timeout</strong> prevents other consumers from seeing a message while it is being processed. If the consumer fails to delete the message before timeout, the message becomes visible again—set the timeout slightly longer than normal processing to avoid duplicates.</li>
+  <li><strong>Dead-letter queues (DLQ)</strong> capture poison messages after <code class="language-plaintext highlighter-rouge">maxReceiveCount</code> attempts so bad payloads do not clog the primary queue.</li>
+  <li>Supports server-side encryption, VPC endpoints, and scaling ASGs based on queue depth (watch <code class="language-plaintext highlighter-rouge">ApproximateNumberOfMessagesVisible</code>).</li>
+</ul>
+
+<h3 id="section-4-2-queue-types">4.2 Queue Types</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Type</th>
+<th>Ordering</th>
+<th>Throughput</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Standard</strong></td>
+<td>Best-effort ordering; at-least-once delivery.</td>
+<td>Unlimited TPS.</td>
+<td>General messaging, fan-out from SNS.</td>
+</tr>
+<tr>
+<td><strong>FIFO</strong></td>
+<td>Exactly-once processing, strict ordering (queue name ends with `.fifo`).</td>
+<td>Up to 3,000 msgs/sec with batching (300 without).</td>
+<td>Workflows requiring ordered events or financial transactions.</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="section-4-3-queue-extras">4.3 Extras</h3>
+
+<ul>
+  <li><strong>Extended Client Library</strong> – stores payloads &gt;256 KB in S3, leaving a pointer in the queue. Use for image/document pipelines without rolling custom chunking.</li>
+  <li><strong>Delay queues</strong> – postpone delivery (0–15 minutes). Not supported on FIFO queues. Handy for reminders, scheduled notifications, or staggering retries.</li>
+  <li><strong>Pricing</strong> – billed per request (1 request = up to 10 messages/64 KB) plus optional long polling. Long polling lowers cost by reducing empty responses.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-5-amazon-mq">5. Amazon MQ</h2>
+
+<p>Managed Apache ActiveMQ broker for legacy protocols (AMQP, MQTT, OpenWire, JMS, STOMP).</p>
+
+<ul>
+  <li>Deploys inside a VPC (single instance or HA pair). You manage network access via security groups.</li>
+  <li>Ideal for lift-and-shift from on-premises brokers when SNS/SQS APIs are not compatible.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-6-aws-lambda">6. AWS Lambda</h2>
+
+<h3 id="section-6-1-execution-model">6.1 Execution Model</h3>
+
+<ul>
+  <li>Package up to 50 MB (zipped) / 250 MB (unzipped) with code + dependencies. Upload via console/CLI/CI or container images.</li>
+  <li>Configure runtime (Node.js, Python, Java, .NET, custom Runtime API), handler, memory (128 MB–10,240 MB), environment variables, execution role, and optional layers.</li>
+  <li><code class="language-plaintext highlighter-rouge">/tmp</code> scratch space (512 MB) or mount EFS for larger persistent storage across invocations.</li>
+  <li>Billed per request + ms of execution (memory size influences cost); max 900 seconds per invoke.</li>
+  <li>CloudWatch Logs, metrics, and AWS X-Ray capture invocation counts, durations, cold starts, and downstream traces.</li>
+</ul>
+
+<h3 id="section-6-2-networking">6.2 Networking</h3>
+
+<ul>
+  <li><strong>Public networking</strong> – Lambda runs on AWS shared infrastructure with internet egress to public services (perfect for hitting AWS public APIs/SaaS endpoints).</li>
+  <li><strong>VPC networking</strong> – attach Lambda to private subnets; AWS creates ENIs for each subnet/security group combo (initial cold attach can take ~90s). Use NAT Gateway or VPC endpoints for outbound access. Required for RDS, Redshift, or on-prem targets.</li>
+</ul>
+
+<h3 id="section-6-3-invocation">6.3 Invocation Patterns</h3>
+
+<ul>
+  <li><strong>Synchronous</strong> – caller waits for response (API Gateway, CLI invoke). Caller handles retries/timeouts; errors bubble back immediately.</li>
+  <li><strong>Asynchronous</strong> – Lambda queues the event and retries up to two times before sending to DLQ/SNS/EventBridge; write idempotent code because events may re-run.</li>
+  <li><strong>Event source mappings</strong> – poll streams/queues (Kinesis, DynamoDB Streams, SQS) and push batches to Lambda; configure batch size, parallelism, and bisect retry, all using the function’s execution role.</li>
+</ul>
+
+<h3 id="section-6-4-versions-aliases">6.4 Versions &amp; Aliases</h3>
+
+<ul>
+  <li>Publishing creates immutable versions with unique ARNs; <code class="language-plaintext highlighter-rouge">$LATEST</code> is mutable.</li>
+  <li>Aliases (e.g., <code class="language-plaintext highlighter-rouge">Dev</code>, <code class="language-plaintext highlighter-rouge">Prod</code>) point to versions and can route percent-based traffic between two versions (canary). <code class="language-plaintext highlighter-rouge">$LATEST</code> cannot be used for alias routing.</li>
+</ul>
+
+<h3 id="section-6-5-env-context">6.5 Environment, Context, and Layers</h3>
+
+<ul>
+  <li><strong>Environment variables</strong> – key/value pairs per version; optionally encrypted with KMS.</li>
+  <li><strong>Execution context</strong> – runtime + extensions + function code kept warm for reuse; cold starts load code from S3. Provisioned Concurrency pre-warms contexts.</li>
+  <li><strong>Layers</strong> – shared <code class="language-plaintext highlighter-rouge">/opt</code> bundles for libraries or runtimes, shrinking deployment packages.</li>
+  <li><strong>Container images</strong> – package runtimes via ECR images with Lambda Runtime API for consistent environments.</li>
+</ul>
+
+<h3 id="section-6-6-handler">6.6 Function Handler Lifecycle</h3>
 
 <div class="image-wrapper">
-  <img src="./Screenshot%202025-10-13%20A.png" alt="AWS Migration Overview" class="modal-trigger" data-caption="AWS Migration - Source Udemey - Tutorial Dojo Practice Exam Solutions" />
-  <div class="image-caption">🌐 AWS Migration Overview - Source Udemey - Tutorial Dojo Practice Exam Solutions </div>
+  <img src="./assets/lambda_lifecycle.png" alt="lambda_lifecycle" class="modal-trigger" data-caption="🧩 Lambda Lifecycle" />
+  <div class="diagram-caption" data-snippet-id="lambda_lifecycle">
+    🧩 Lambda Lifecycle
+  </div>
+  <script type="text/plain" id="lambda_lifecycle">
+@startuml
+title How applications interact with storage types
+
+actor Application
+
+participant "File System\n(NFS/SMB/Lustre)" as FILE
+participant "Block Device\n(EBS)" as BLOCK
+participant "Object Store\n(S3 API)" as OBJECT
+participant "Physical Disk Blocks" as DISK
+
+Application -> BLOCK: Read/write blocks\n(LBA addresses, sectors)
+BLOCK -> DISK: Map to disk blocks
+
+Application -> FILE: Read/write files\n(open/read/write/close)
+FILE -> DISK: Convert to block operations
+
+Application -> OBJECT: PUT/GET object\n(Key + Metadata)
+OBJECT -> DISK: Store data as objects
+
+@enduml
+  </script>
 </div>
+<hr />
+
+<h2 id="section-7-api-gateway">7. API Gateway</h2>
+
+<p>Managed front door for REST, HTTP, and WebSocket APIs. Think of it as a programmable HTTPS fabric that centralizes auth, throttling, caching, and protocol translation.</p>
+
+<h3 id="section-7-1-structure">7.1 Structure</h3>
 
 <ul>
-  <li><strong>S3 Versioning Example</strong> – bucket with 4 files (<strong>MNL-NA.config</strong>, <strong>MNL-LA.config</strong>, <strong>MNL-EUR.config</strong>, <strong>MNL-ASIA.config</strong>) gets <strong>Version ID = null</strong> after enabling versioning.</li>
-  <li><strong>CloudFront Security Practices:</strong>
-    <ul>
-      <li>Use <strong>signed URLs or cookies</strong> for private content.</li>
-      <li>Prefer <strong>CloudFront URLs</strong> over <strong>S3 URLs</strong>.</li>
-      <li>Enforce <strong>HTTPS</strong> using Viewer Protocol Policy (<strong>Redirect HTTP→HTTPS</strong> or <strong>HTTPS Only</strong>).</li>
-      <li>Use <strong>Origin Access Control (OAC)</strong> instead of bucket ACLs to restrict access.</li>
-    </ul>
-  </li>
-  <li><strong>S3 + CloudFront Optimization</strong> – partition S3 by <strong>month</strong>; CloudFront caches <strong>latest content</strong> for faster delivery.</li>
-  <li><strong>Small File Transfer (Snowball Edge)</strong> – batch small files together to reduce <strong>encryption overhead</strong> and <strong>speed up transfers</strong>.</li>
-  <li><strong>Inbound Endpoint</strong> – allows <strong>corporate DNS</strong> to resolve <strong>AWS resources (EC2, RDS, etc.)</strong>.</li>
-  <li><strong>Outbound Endpoint</strong> – forwards <strong>DNS queries from VPC to on-prem</strong> via rules.</li>
-  <li><strong>CloudFront Query Strings</strong> – each <strong>unique parameter value</strong> creates a <strong>separate cache version</strong>; only cache parameters that <strong>change responses</strong>.</li>
-  <li><strong>Lambda@Edge</strong> – extension of <strong>AWS Lambda</strong> (Node.js/Python); runs at <strong>edge locations</strong> to reduce latency; auto-scales from few to thousands of requests/sec.</li>
-  <li><strong>Lambda@Edge Optimization</strong> – improve cache hit ratio by <strong>alphabetizing query strings</strong> and <strong>lowercasing parameters</strong>.</li>
-  <li><strong>Amazon ElastiCache</strong> – managed <strong>in-memory datastore</strong> for <strong>Redis/Memcached</strong>; improves DB performance with low-latency reads.
-    <ul>
-      <li><strong>Memcached</strong> – simple, fast, distributed caching.</li>
-      <li><strong>Redis</strong> – richer data structures, persistence, pub/sub, clustering.</li>
-    </ul>
-  </li>
-  <li><strong>Elastic Beanstalk</strong> – in-place updates cause downtime; use <strong>blue/green deployment</strong> → deploy new env + <strong>swap CNAMEs</strong> for instant switch.</li>
-  <li><strong>Lightsail</strong> – simplifies <strong>EC2 + LB setup</strong>; designed for <strong>Dev/Test</strong>, not <strong>production</strong>. Avoid weighted Route 53 shifting for production.</li>
-  <li><strong>SSL Certificates &amp; ELB</strong> – ELB certificate not mandatory; avoid <strong>self-signed certs</strong> for public sites.</li>
-  <li><strong>EC2 Instance Role Credentials</strong> – EC2 fetches <strong>temporary credentials</strong> via instance metadata:
-    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://169.254.169.254/latest/meta-data/iam/security-credentials/
-</code></pre></div>    </div>
-  </li>
-  <li><strong>Web Identity Federation</strong> – users sign in via <strong>Amazon/Facebook/Google/OIDC IdP</strong>; exchange token via <strong>AssumeRoleWithWebIdentity</strong> for <strong>temporary AWS creds</strong> (no hard-coded keys).</li>
-  <li><strong>AWS Control Tower</strong> – manages <strong>multi-account setups</strong>; doesn’t automatically assign IAM permissions to member accounts.</li>
-  <li><strong>ALB Multi-Cert Support</strong> – upload multiple <strong>SSL certs</strong>; ALB auto-selects best via <strong>SNI (Server Name Indication)</strong>.</li>
-  <li><strong>FSx for Lustre</strong> – temporarily <strong>loads data from S3</strong>, shares across app tier, and uses S3 for <strong>long-term storage</strong> → cost-efficient hybrid setup.</li>
-  <li><strong>AWS Storage Gateway Restore</strong> – cannot link <strong>S3 directly to EC2</strong>; create <strong>snapshot → EBS Volume → attach</strong> to instance.</li>
-  <li><strong>RDS Replica Promotion</strong> – no <strong>auto-promotion</strong> for cross-region replicas; must <strong>manually promote</strong>, causing reboot (may exceed RTO/RPO).</li>
-  <li><strong>Traffic Mirroring</strong> – copies <strong>EC2 network traffic</strong> from ENIs → send to <strong>monitoring/security appliances</strong>.</li>
-  <li><strong>AWS Security Hub</strong> – centralizes <strong>security findings</strong> from <strong>GuardDuty, Config, Inspector, partners</strong> → unified compliance view.</li>
-  <li><strong>AWS IoT Core</strong> – connects <strong>IoT devices</strong> to AWS; supports <strong>secure messaging, routing, offline handling</strong>; includes <strong>device gateway</strong> + <strong>message broker</strong>.</li>
-  <li><strong>Disaster Recovery (RTO 30 min)</strong> – restoring from <strong>EC2 snapshots</strong> is cheaper/faster than <strong>hot-standby</strong> (which runs continuously).</li>
-  <li><strong>FSx Resize</strong> – no auto-scaling; <strong>manually resize</strong> via console, API, or CLI.</li>
-  <li><strong>Redshift KMS Encryption</strong> – KMS keys are <strong>region-specific</strong>; for <strong>cross-region snapshot copy</strong>, create a <strong>snapshot copy grant</strong> with destination key.</li>
-  <li><strong>VPC VGW Limit</strong> – only one <strong>Virtual Private Gateway</strong> per <strong>VPC</strong>.</li>
-  <li><strong>AWS Config Managed Rules</strong> – predefined checks (e.g., <strong>approved-amis-by-id</strong>); use <strong>Lambda</strong> for auto-remediation.</li>
-  <li><strong>AWS Service Catalog</strong> – defines <strong>products + tagging policies</strong>; ensures consistent tags across accounts.</li>
-  <li><strong>AWS Config vs Tagging</strong> – Config <strong>detects untagged resources</strong>, but can’t <strong>add tags</strong>; use <strong>Lambda/SSM Automation</strong> to fix.</li>
-  <li><strong>Dynamic Website Limitation (S3)</strong> – if users can <strong>submit comments</strong>, site is <strong>dynamic</strong> → use <strong>EC2/Lambda</strong>, not <strong>S3 + CloudFront static hosting</strong>.</li>
-  <li><strong>KMS with On-Prem HSM</strong> – import <strong>keys from on-prem HSMs</strong> to <strong>AWS KMS</strong> for compliance + control; supports <strong>key rotation</strong>, <strong>auditing</strong>, and <strong>S3 encryption policies</strong>.</li>
-  <li><strong>CVE Assessment</strong> – <strong>AWS Config</strong> cannot run CVE scans; use <strong>Amazon Inspector</strong> for vulnerability assessments on EC2.</li>
+  <li>Handles authorization (IAM, Cognito, Lambda authorizers), throttling, caching, CORS, request/response transformation.</li>
+  <li>Endpoint types: <strong>Edge-Optimized</strong> (CloudFront PoPs), <strong>Regional</strong>, <strong>Private</strong> (via interface endpoints).</li>
+  <li>Deploy APIs to <strong>stages</strong> (e.g., dev/test/prod). Each stage has its own URL, config, cache, and canary release settings. Changes go live only after deployment to a stage.</li>
+  <li>Resource path: <code class="language-plaintext highlighter-rouge">https://{restapi-id}.execute-api.{region}.amazonaws.com/{stage}/{resource}</code>.</li>
 </ul>
+
+<h3 id="section-7-2-integrations">7.2 Integrations</h3>
+
+<ul>
+  <li>Method request → integration request → integration response → method response. Knowing where mapping templates apply is key to debugging transformations.</li>
+  <li>Integration types:
+    <ul>
+      <li><strong>MOCK</strong> – testing without backends.</li>
+      <li><strong>HTTP / HTTP Proxy</strong> – invoke HTTP endpoints; proxy passes through unmodified payloads.</li>
+      <li><strong>AWS / AWS_PROXY</strong> – call AWS services; Lambda proxy sends entire request context to Lambda.</li>
+    </ul>
+  </li>
+  <li>Use mapping templates (Velocity Template Language) to reshape payloads (e.g., REST-to-SOAP translation, header mapping).</li>
+</ul>
+
+<h3 id="section-7-3-operations">7.3 Operations</h3>
+
+<ul>
+  <li>Errors: <code class="language-plaintext highlighter-rouge">400</code> (bad request), <code class="language-plaintext highlighter-rouge">403</code> (access denied), <code class="language-plaintext highlighter-rouge">429</code> (throttled), <code class="language-plaintext highlighter-rouge">502/503/504</code> (integration failures/timeouts). Map these to upstream or client issues quickly.</li>
+  <li>Caching per stage (500 MB–237 GB, TTL 0–3600 seconds). Cache invalidation is manual—consider <code class="language-plaintext highlighter-rouge">InvalidateCache</code> or redeploy when data changes.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-8-event-driven">8. Event-Driven Services</h2>
+
+<h3 id="section-8-1-eventbridge">8.1 EventBridge (CloudWatch Events)</h3>
+
+<ul>
+  <li>Event bus + rules service: “If X happens or at time Y, do Z.” EventBridge consumes events from AWS services, SaaS partners, or custom apps and routes them to targets (Lambda, Step Functions, Kinesis, API destinations, etc.).</li>
+  <li>Supports default, partner, and custom event buses; CloudWatch Events only exposed the default bus. Multi-bus design keeps noisy teams isolated.</li>
+  <li>Two rule types: <strong>Event pattern</strong> (match JSON fields) and <strong>Schedule</strong> (cron/<code class="language-plaintext highlighter-rouge">rate()</code> expressions). Rules can send the same event to multiple targets with JSON input transformations.</li>
+  <li>Use resource policies to share buses across accounts/organizations and archive/replay events for troubleshooting.</li>
+</ul>
+
+<h3 id="section-8-2-step-functions">8.2 AWS Step Functions</h3>
+
+<ul>
+  <li>Orchestrates long-running serverless workflows using Amazon States Language (JSON). Ideal when Lambda chaining becomes messy, or when processes exceed Lambda’s 15-minute limit.</li>
+  <li>State machine primitives: <code class="language-plaintext highlighter-rouge">Task</code>, <code class="language-plaintext highlighter-rouge">Choice</code>, <code class="language-plaintext highlighter-rouge">Wait</code>, <code class="language-plaintext highlighter-rouge">Parallel</code>, <code class="language-plaintext highlighter-rouge">Map</code>, <code class="language-plaintext highlighter-rouge">Succeed</code>, <code class="language-plaintext highlighter-rouge">Fail</code>. Each state can define retry/catch blocks for resiliency.</li>
+  <li>Standard workflows keep state up to 1 year and provide exactly-once semantics; Express workflows favor millions of short executions per second at lower cost but best-effort ordering.</li>
+  <li>Integrates with Lambda, ECS/Fargate, Batch, DynamoDB, SNS/SQS, Glue, EMR, SageMaker, API Gateway, Step Functions callbacks, and more. IAM roles govern which services each state can call.</li>
+  <li>Visual workflow designer + CloudWatch execution history make debugging easier than manual Lambda pipelines.</li>
+</ul>
+
+<h3 id="section-8-3-swf">8.3 AWS SWF</h3>
+
+<ul>
+  <li>Predecessor to Step Functions; still used when workflows require custom deciders, worker heartbeats, external signals, child workflows, or deep Mechanical Turk integration.</li>
+  <li>Provides activity task/worker model with Amazon Flow Framework support. You own the worker code and can pause/resume human workflows mid-flight.</li>
+  <li>Exam tip: choose SWF when you need centralized state tracking with human intervention or when migrating legacy Flow Framework workloads.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-9-content-media">9. Content &amp; Media Services</h2>
+
+<h3 id="section-9-1-mechanical-turk">9.1 Amazon Mechanical Turk</h3>
+
+<ul>
+  <li>Crowdsourcing marketplace for Human Intelligence Tasks (HITs).</li>
+  <li>Requesters post tasks with qualifications; workers complete tasks for pay per HIT. APIs manage HIT lifecycle programmatically.</li>
+  <li>Useful for labeling, moderation, surveys, sentiment analysis, or any workflow requiring human judgment before automation.</li>
+  <li>Often paired with S3 + Lambda pipelines where MTurk handles edge cases (e.g., ambiguous images) before data re-enters automated steps.</li>
+</ul>
+
+<h3 id="section-9-2-mediaconvert">9.2 AWS Elemental MediaConvert (vs. Elastic Transcoder)</h3>
+
+<ul>
+  <li>File-based video transcoding: pull from S3, process jobs, push outputs back to S3.</li>
+  <li>MediaConvert is the modern service (more codecs, parallelism, EventBridge notifications, reserved pricing). Elastic Transcoder is legacy but supports WebM/Animated GIF/MP3/FLAC/Vorbis/WAV.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-10-iot-edge">10. IoT &amp; Edge</h2>
+
+<h3 id="section-10-1-iot-core">10.1 AWS IoT Core</h3>
+
+<ul>
+  <li>Connect millions of IoT devices using MQTT/HTTP, manage device shadows (cloud-side JSON twins), and trigger rules to Lambda/Kinesis/etc.</li>
+  <li>Device shadows buffer desired/reported state so applications interact reliably even with intermittent connectivity.</li>
+</ul>
+
+<h3 id="section-10-2-greengrass">10.2 AWS IoT Greengrass</h3>
+
+<ul>
+  <li>Extends AWS compute/messaging/ML to edge devices; run Lambda functions, containers, data streams locally, and sync to the cloud when connectivity returns.</li>
+  <li>Deploy Greengrass cores on gateways; devices keep operating locally during network loss.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-11-developer-tooling">11. Developer Tooling</h2>
+
+<h3 id="section-11-1-sam">11.1 AWS Serverless Application Model (SAM)</h3>
+
+<ul>
+  <li>Open-source framework that extends CloudFormation with serverless-specific resources and transforms.</li>
+  <li>SAM template = infrastructure-as-code for S3/CloudFront (frontend assets), API Gateway, Lambda, DynamoDB, etc.</li>
+  <li>SAM CLI – build/test locally, package artifacts, and deploy stacks.</li>
+  <li>Full serverless app flow: host static assets on S3/CloudFront, expose APIs via API Gateway, run compute on Lambda, state on DynamoDB.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-12-exam-reminders">12. Exam Reminders</h2>
+
+<ul>
+  <li><strong>API Gateway caching</strong> – enabled per stage/method; TTL 0–3600 seconds; incurs hourly charge but dramatically reduces backend load. Invalidate caches after major data changes.</li>
+  <li><strong>ElastiCache refresher</strong> – Redis offers persistence, pub/sub, clustering, and transactions; Memcached is a simple multi-threaded sharded cache with no replication. Choose accordingly.</li>
+  <li><strong>Forward proxy vs NAT Gateway</strong> – forward proxies enforce egress policies (DLP/IDS/IPS/caching) for specific clients; NAT Gateway simply translates private → public IP for egress and cannot inspect payloads.</li>
+  <li><strong>Traffic Mirroring</strong> – replicate ENI traffic to monitoring appliances for deep packet analysis without affecting production flows.</li>
+  <li><strong>IoT Core</strong> – device gateway + rules engine; integrates with Lambda/Kinesis and handles offline device state via shadows.</li>
+  <li><strong>AppSync</strong> – serverless GraphQL with real-time subscriptions, offline sync, and resolvers into DynamoDB, Lambda, RDS, OpenSearch, or HTTP endpoints.</li>
+  <li><strong>Contact-center AI stack</strong> – Amazon Lex (IVR bots), Polly (text-to-speech), Transcribe (call recording), and Comprehend (NLP sentiment) combine for contact center analytics.</li>
+</ul>
+
+<hr />
 
     </article>
   </main>

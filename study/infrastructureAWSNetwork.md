@@ -31,7 +31,6 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
   <div class="image-caption">🌐 AWS Network Overview</div>
 </div>
 
-
 ---
 
 ## 2. Service Categories {#section-2-service-categories}
@@ -108,6 +107,7 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 </table>
 
 ---
+
 <table class="study-table">
 <thead>
 <tr>
@@ -397,79 +397,15 @@ AWS operates one of the largest private **fiber-optic backbones** in the world. 
 
 ---
 
-## 3. VPN {#section-3-vpn}
+## 3. VPN Connectivity {#section-3-vpn-connectivity}
 
-Note VPN builds on top of IPSec, for details on how IPSec works, see [3.4 Layer 3 & 5–6 - IPsec]({{ '/study/infrastructureOsiModel#layer-3-56---ipsec' | relative_url }})
+Hybrid AWS environments typically stretch private address space across on-premises, branch, and cloud networks. AWS supplies both network-level **Site-to-Site VPN** options and user-level **Client VPN** so you can choose between full network extensions or individual remote access.
 
-### 3.1 Site-to-Site VPN {#section-3-1-site-to-site-vpn}
+### 3.1 Site-to-Site VPN with Transit Gateway {#section-3-1-site-to-site-vpn}
 
-- **Purpose**:  
-  - **Site-to-Site VPN = Network ↔ Network**  
-  - Connects an entire on-premises network (via a CGW) to an AWS VPC network (via a VGW or TGW).  
-  - Used for **hybrid cloud connectivity**, extending datacenter or branch office networks into AWS.  
-  - **Example**: Your office LAN can securely reach EC2 instances inside VPCs.  
+This reference design places an **AWS Transit Gateway (TGW)** at the center of multiple VPCs and an on-premises environment. By tailoring TGW route tables and VPC associations you can allow or deny east-west traffic while still giving every spoke access to the corporate network.
 
-<div class="image-wrapper">
-  <img src="./assets/s2s_vpn.png" alt="S2S VPN Example" class="modal-trigger" data-caption="Site-to-Site VPN sequence showing CGW and VGW communication flow">
-  <div class="diagram-caption" data-snippet-id="s2s-snippet">
-    🔐 Site-to-Site VPN – Communication Sequence
-  </div>
-  <!-- Keep your PlantUML raw here -->
-  <script type="text/plain" id="s2s-snippet">
-@startuml
-title Classic VPN Setup with AWS Network (CGW and VGW)
-
-participant OnPrem as "On-Premises Network"
-participant ISP as "Internet Service Provider"
-participant Internet as "AWS Public Internet"
-participant VPC as "VPC (AWS Private Network)"
-
-' Classic VPN (VGW method)
-OnPrem -> ISP : From CGW: Request VPN Tunnel (IPsec Initiation)
-ISP -> Internet : Forwards Tunnel Request
-Internet -> VPC : Forwards Request to VGW
-VPC -> Internet : From VGW: Sends Tunnel Setup Acknowledgement
-Internet -> ISP : Sends Acknowledgement
-ISP -> OnPrem : Tunnel Setup Confirmation to CGW
-
-alt High Availability
-    OnPrem -> ISP : Switch to Backup Tunnel (Tunnel 2)
-    ISP -> Internet : Forwards Traffic to Backup Tunnel
-    Internet -> VPC : Routes Traffic to Backup Tunnel
-end
-
-OnPrem -> VPC : Routes Traffic to VPC
-OnPrem -> VPC : Continuous keep-alive messages
-VPC -> VPC : Acknowledges Keep-alive
-
-' Floating note at the very bottom
-note across
-  If you replace VGW with TGW (Transit Gateway),  
-  the VPN becomes a scalable solution that can connect to multiple VPCs.  
-  This allows a central hub (TGW) to route traffic between various VPCs,  
-  providing more flexibility and scalability in larger environments.
-end note
-
-@enduml
-  </script>
-</div>
-
-#### 3.1.1 Connectivity Types {#section-3-1-1-connectivity-types}
-
-Keep in mind, VPN connections traverse the public Internet before reaching AWS’s network. Because of this, the routing path and how routes are exchanged are critical.
-
-- **Static VPN**
-  - **Route**: Static routes in route tables (manual setup).  
-  - **Pros**: Simple setup.  
-  - **Cons**: No load balancing or failover.  
-
-- **Dynamic VPN**
-  - **Route**: Uses **BGP** for automatic route exchange.  
-  - **Pros**: High availability, automatic failover, and load balancing.  
-  - **Cons**: More complex setup.  
-
-
-#### 3.1.2 Deployment Workflow {#section-3-1-2-deployment-workflow}
+#### 3.1.1 Deployment Workflow {#section-3-1-1-deployment-workflow}
 
 - **Step 1: Create TGW and Attachments**  
   - Create TGW (default RT = **Route Table A**).  
@@ -516,7 +452,7 @@ Keep in mind, VPN connections traverse the public Internet before reaching AWS�
   - **VPC2 → TGW → On-premises** ✅  
   - **VPC1 ↔ VPC2** ❌ (blocked by TGW RT config)  
 
-#### 3.1.3 Operational Considerations {#section-3-1-3-operational-considerations}
+#### 3.1.2 Operational Considerations {#section-3-1-2-operational-considerations}
 
 - **Speed**: Maximum throughput is **1.25 Gbps** per VPN tunnel.  
 - **Latency**: Varies and can be inconsistent, as traffic traverses the public Internet.  
@@ -604,7 +540,6 @@ end note
   </script>
 </div>
 
-
 ---
 
 ## 4. Route Tables {#section-4-route-tables}
@@ -654,6 +589,8 @@ AWS Direct Connect (DX) provides a **dedicated, private network connection** bet
   - **MACsec (802.1AE)** for Layer 2 encryption.  
   - **Bidirectional Forwarding Detection (BFD)** for fast failure detection.  
 
+---
+
 ### 5.2 MACsec Security Layer {#section-5-2-macsec-security-layer}
 
 DX traffic is not encrypted by default. **MACsec** secures the **physical hop** between your router and AWS’s DX router at the PoP.  
@@ -664,6 +601,8 @@ DX traffic is not encrypted by default. **MACsec** secures the **physical hop** 
 - **Mechanism**: Secure Channels, Secure Associations, SCI identifiers, 16B tag + 16B ICV.  
 - **Limitations**: Not end-to-end; only protects between directly connected devices. Use **IPsec over DX** if end-to-end encryption is required.  
 
+---
+
 ### 5.3 Direct Connect Provisioning Workflow {#section-5-3-direct-connect-provisioning-workflow}
 
 1. **LOA-CFA (Letter of Authorization – Connecting Facility Assignment)**  
@@ -673,6 +612,8 @@ DX traffic is not encrypted by default. **MACsec** secures the **physical hop** 
 2. **Physical Cross-Connect**  
    - Fiber is patched between your cage/router and the AWS DX router at the PoP.  
    - Ports are set with matching speed/duplex.  
+
+---
 
 ### 5.4 Direct Connect Virtual Interfaces {#section-5-4-direct-connect-virtual-interfaces}
 
@@ -701,12 +642,16 @@ DX is a **Layer 2 link**. To run multiple logical networks, DX uses **802.1Q VLA
    - Requires BGP.  
    - Enterprise-scale hub-and-spoke hybrid connectivity.  
 
+---
+
 ### 5.5 Direct Connect Gateway {#section-5-5-direct-connect-gateway}
 
 - DX is **per-region**, but DXGW allows sharing across accounts and regions.  
 - **Public VIFs**: Can access all AWS regions (since public IPs are global).  
 - **Private VIFs**: Normally regional, but DXGW extends them to multiple regions via VGWs or TGWs.  
 - Enables **multi-account, multi-region hybrid architectures**.  
+
+---
 
 ### 5.6 Operational Considerations {#section-5-6-operational-considerations}
 
@@ -767,100 +712,29 @@ end note
   </script>
 </div>
 
-
 ---
 
 ## 6. Domain Name System (DNS) {#section-6-domain-name-system-dns}
 
-DNS (Domain Name System) resolves human-readable domain names (e.g., `example.com`) into IP addresses or service endpoints. In AWS, **Route 53** provides DNS hosting, routing policies, and integration with AWS resources (via Alias records).  
+DNS (Domain Name System) resolves human-readable domain names (e.g., `example.com`) into IP addresses or service endpoints. Inside AWS, **Route 53** is the managed DNS platform. For refresher material on registries, registrars, zone files, and baseline record types, see [Domain Name System](/study/infrastructureOsiModel#domain-name-system-dns).
 
-👉 **Important distinction**:  
-- **DNS Hosting**: Runs authoritative DNS servers that store and answer queries for your domain’s records.  
-  - Stores **zone files** (the authoritative set of DNS records for your domain).  
-  - Uses **name servers (NS records)**, which are basically the servers that host and respond with your zone file data.  
-  - Examples: Route 53, Cloudflare, GoDaddy DNS.  
+### 6.1 Route 53 Record Support {#section-6-1-common-dns-record-types}
 
-- **TLD Registry / Registrar**: Manages ownership of domain names under a top-level domain (TLD), like `.com` or `.org`.  
-  - The **registry** (e.g., Verisign for `.com`, PIR for `.org`) maintains the authoritative database of who owns each domain.  
-  - The **registrar** (e.g., GoDaddy, Namecheap) is where you register, renew, or transfer domains.  
+- **Public & Private Hosted Zones**: Route 53 can authoritatively serve internet-facing domains and split-horizon DNS tied to specific VPCs.
+- **Standard Record Types**: Supports A, AAAA, CNAME, MX, TXT, NS, SOA, PTR, SRV, and CAA records, plus AWS-specific **Alias** records.
+- **Alias Records**: Behave like CNAMEs but stay inside Route 53. They can point apex domains to AWS resources (ALB, NLB, CloudFront, S3 static sites, API Gateway, etc.) without extra DNS queries and incur no per-query charge.
+- **Health Checks & Failover**: Records can reference Route 53 health checks to withdraw unhealthy endpoints, enabling DNS-level HA across Regions or on-prem targets.
 
-- These can be provided by the **same company** (e.g., GoDaddy = registrar + DNS host) or by **different ones** (e.g., register with Namecheap, host DNS with Route 53).  
-
-### 6.1 Common DNS Record Types {#section-6-1-common-dns-record-types}
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Record Type</th>
-<th>Purpose</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>A</strong></td>
-<td>Maps domain → IPv4 address</td>
-<td><code>example.com. IN A 192.0.2.1</code></td>
-</tr>
-<tr>
-<td><strong>AAAA</strong></td>
-<td>Maps domain → IPv6 address</td>
-<td><code>example.com. IN AAAA 2001:db8::1</code></td>
-</tr>
-<tr>
-<td><strong>CNAME</strong></td>
-<td>Alias to another domain (not IP)</td>
-<td><code>www.example.com. IN CNAME example.globalcdn.com.</code></td>
-</tr>
-<tr>
-<td><strong>Alias</strong></td>
-<td>AWS-only alias to ELB, CloudFront, S3, etc. Works at root domain.</td>
-<td><code>example.com. IN A Alias abc123.cloudfront.net</code></td>
-</tr>
-<tr>
-<td><strong>MX</strong></td>
-<td>Mail routing</td>
-<td><code>example.com. IN MX 10 mail1.google.com.</code></td>
-</tr>
-<tr>
-<td><strong>TXT</strong></td>
-<td>Metadata (SPF, DKIM, domain verification)</td>
-<td><code>example.com. IN TXT "v=spf1 include:_spf.google.com ~all"</code></td>
-</tr>
-<tr>
-<td><strong>NS</strong></td>
-<td>Authoritative nameservers for zone</td>
-<td><code>example.com. IN NS ns1.dnsprovider.com.</code></td>
-</tr>
-<tr>
-<td><strong>SOA</strong></td>
-<td>Zone info (serial, refresh, retry)</td>
-<td><code>example.com. IN SOA ns1 hostmaster 2025010101 3600 1800 1209600 86400</code></td>
-</tr>
-<tr>
-<td><strong>PTR</strong></td>
-<td>Reverse DNS (IP → domain)</td>
-<td><code>1.2.0.192.in-addr.arpa. IN PTR example.com.</code></td>
-</tr>
-<tr>
-<td><strong>CAA</strong></td>
-<td>Restricts which CAs can issue certificates</td>
-<td><code>example.com. IN CAA 0 issue "letsencrypt.org"</code></td>
-</tr>
-<tr>
-<td><strong>SRV</strong></td>
-<td>Service-specific record (e.g., SIP, LDAP)</td>
-<td><code>_sip._tcp.example.com. IN SRV 10 60 5060 sipserver.example.com.</code></td>
-</tr>
-</tbody>
-</table>
+---
 
 ### 6.2 Apex (Naked) Domains {#section-6-2-apex-naked-domains}
 
-- A **naked domain** = root (e.g., `example.com`) without subdomain.  
-- CNAMEs **cannot** be used at the root.  
-- In AWS → use **Alias records** to map apex domains to AWS resources (e.g., ELB, CloudFront).  
-- For non-apex domains (`www.example.com`), use **CNAME**.  
+- A **naked domain** = root (e.g., `example.com`) without subdomain; RFCs prohibit using a CNAME at the zone apex.  
+- Use **Alias A/AAAA records** to point the apex at AWS resources (ALB, NLB, CloudFront, API Gateway, S3 website endpoints) while keeping the record type compliant.  
+- For subdomains (`www.example.com`), continue to use CNAME or Alias records depending on whether the target is AWS-managed.  
+- Ensure the alias target lives in the same scope as the hosted zone: public zones can target global AWS endpoints, while private zones alias to in-VPC resources such as NLBs or interface endpoints.  
+
+---
 
 ### 6.3 Route 53 Routing Policies {#section-6-3-route-53-routing-policies}
 
@@ -916,135 +790,33 @@ DNS (Domain Name System) resolves human-readable domain names (e.g., `example.co
 </tbody>
 </table>
 
-### 6.4 DNS Resolution Flow {#section-6-4-dns-resolution-flow}
+----
 
-1. You create a **Hosted Zone** in Route 53 for your domain (`example.com`).  
-2. Route 53 assigns **4 authoritative name servers (NS records)** for the domain.  
-3. You add DNS records (A, CNAME, MX, TXT, etc.) inside the hosted zone.  
-4. When a client queries `example.com`, the DNS resolver follows the chain:  
-   - Root → TLD → **Route 53 authoritative NS** (Amazon-managed).  
-5. Route 53 authoritative servers return the DNS record (e.g., A record with an IP).  
-6. Resolver caches and returns result to user → user connects to the target resource.  
+### 6.4 DNSSEC Overview {#section-6-4-dnssec-overview}
 
-<div class="image-wrapper">
-  <img src="./assets/dns_resolution_flow.png" alt="DNS Resolution Flow" class="modal-trigger" data-caption="DNS resolution sequence flow (user to AWS Route 53)">
-  <div class="diagram-caption" data-snippet-id="dns-snippet">
-    🌐 DNS Resolution – Query to Answer
-  </div>
-  <script type="text/plain" id="dns-snippet">
-@startuml
-title DNS Resolution Flow (Normal + DNSSEC)
+Route 53 supports **DNSSEC signing** for public hosted zones, letting resolvers verify that responses originated from AWS without tampering. Review the cryptographic principles in [DNSSEC basics](/study/infrastructureOsiModel#section-7-5-dnssec-overview) before enabling it in production.
 
-actor User
-participant Resolver as "DNS Resolver (Recursive)"
-participant Root as "Root DNS (.)"
-participant TLD as "TLD DNS (.com - Parent Zone)"
-participant Authoritative as "Authoritative DNS (Route 53 for example.com)"
+#### 6.4.1 Enable signing on Route 53 zones {#section-6-4-1-key-concepts}
 
-== Normal DNS Resolution ==
-User -> Resolver : Query "example.com"
+- In the hosted zone, choose **Enable DNSSEC signing**. Route 53 provisions a managed key-signing key (KSK) in AWS KMS and handles zone-signing keys automatically.  
+- After signing completes, download the generated **Delegation Signer (DS)** record that contains the key tag, algorithm, digest type, and digest.  
+- Route 53 currently signs only public hosted zones; private hosted zones are not supported.  
 
-note right of Resolver : Step 1: Resolver receives query from User.
+#### 6.4.2 Publish DS at the registrar {#section-6-4-2-roles-and-responsibilities}
 
-Resolver -> Root : Ask for NS of ".com"
-Root --> Resolver : Referral: TLD servers for .com
+- Provide the DS record to your domain registrar so it can publish the delegation in the parent zone. Without this step, resolvers cannot build the chain of trust.  
+- Confirm the registrar and registry support the chosen algorithm; Route 53 defaults to SHA-256 (algorithm 13).  
+- Plan for rollover: disabling or re-enabling DNSSEC requires updating or removing the DS record to avoid validation failures.  
 
-note right of Resolver : Step 2: Resolver learns TLD servers.
+#### 6.4.3 Validation paths {#section-6-4-3-validation-paths}
 
-Resolver -> TLD : Ask for NS of "example.com"
-TLD --> Resolver : Referral: NS for "example.com" (Authoritative)
+- Many public recursive resolvers (Google Public DNS, Cloudflare, Quad9) already validate DNSSEC-signed zones. End users gain protection transparently once the DS record propagates.  
+- The Amazon-provided `.2` resolver inside a VPC does **not** validate DNSSEC today. Use Route 53 Resolver outbound endpoints to forward queries to a validating resolver (e.g., self-managed BIND/Unbound or a third-party service) if validation is required on-premises.  
+- For the full resolver handshake and signature-validation walkthrough, see [DNSSEC Validation Flow](/study/infrastructureOsiModel#section-7-5-3-dnssec-validation-flow).  
 
-note right of Resolver : Step 3: Resolver learns authoritative NS.
+---
 
-Resolver -> Authoritative : Query DNS records (A, MX) for "example.com"
-Authoritative --> Resolver : Return records (A, MX)
-
-Resolver --> User : Return resolved records (e.g., A = 203.0.113.10)
-User -> Authoritative : Connect using resolved IP
-@enduml
-  </script>
-</div>
-
-### 6.5 DNSSEC Overview {#section-6-5-dnssec-overview}
-
-**DNSSEC (Domain Name System Security Extensions)** adds a **security layer** to DNS. Normal DNS just maps names → IPs, but DNSSEC ensures responses are **authentic** and **untampered** by digitally signing DNS records.  
-
-> 🔑 **Why we need DNSSEC**: Without it, DNS is vulnerable to **cache poisoning, spoofing, and MITM attacks**.  
-> ✅ **DNSSEC prevents this** by providing a **cryptographic chain of trust** from the **Root** → **TLD** → **Authoritative server**.  
-> ⚠️ **Note**: DNSSEC does **not encrypt traffic** (unlike HTTPS). It only guarantees **authenticity + integrity**, not confidentiality.
-
-#### 6.5.1 Key Concepts {#section-6-5-1-key-concepts}
-
-- **Digital Signatures**:  
-  - **Authoritative servers** sign records with a **private key**.  
-  - **Resolvers** validate them with the **public key**.  
-
-- **DNSSEC Records**:  
-  - **DNSKEY** → Public key of a DNS zone.  
-  - **DS (Delegation Signer)** → Stored in the parent zone, links child zone’s key.  
-  - **RRSIG** → Digital signature attached to DNS records.  
-
-- **Chain of Trust**:  
-  - Starts at the **Root zone** (trust anchor),  
-  - Delegates to **TLD (.com)**,  
-  - Passes down to the **Authoritative DNS** (e.g., Route 53).  
-
-#### 6.5.2 Roles and Responsibilities {#section-6-5-2-roles-and-responsibilities}
-
-- **Root & TLD Operators (ICANN, Verisign, etc.)** → Maintain signed root/TLD zones.  
-- **Domain Owners** → Enable DNSSEC in their DNS service (e.g., Route 53), publish DS record at registrar.  
-- **Resolvers (e.g., ISP, Google DNS, Cloudflare)** → Validate signatures automatically.  
-- **End Users** → Do nothing; they just benefit from secure DNS responses.  
-
-#### 6.5.3 DNSSEC Resolution Flow {#section-6-5-3-dnssec-resolution-flow}
-
-<div class="image-wrapper">
-  <img src="./assets/dnssec_resolution_flow.png" alt="DNSSEC Resolution Flow" class="modal-trigger" data-caption="DNSSEC resolution flow with chain of trust">
-  <div class="diagram-caption" data-snippet-id="dnssec-snippet">
-    🔐 DNSSEC Resolution – Validating DNS records with chain of trust
-  </div>
-  <script type="text/plain" id="dnssec-snippet">
-@startuml
-title DNS Resolution Flow (DNSSEC-enabled)
-
-actor User
-participant Resolver as "DNS Resolver (Recursive)"
-participant Root as "Root DNS (.) - ICANN"
-participant TLD as "TLD DNS (.com - Registry Operator)"
-participant Authoritative as "Authoritative DNS (e.g., Route 53 for example.com)"
-
-User -> Resolver : Query "example.com" (with DNSSEC enabled)
-
-' Step 1 - Ask Parent
-Resolver -> TLD : Query DS for "example.com"
-TLD --> Resolver : DS + RRSIG (signed by TLD key)
-
-' Step 2 - Get DNSKEY from child zone
-Resolver -> Authoritative : Query DNSKEY for "example.com"
-Authoritative --> Resolver : DNSKEY + RRSIG (signed by zone key)
-
-note over Resolver
-Validate DNSKEY using DS from TLD.  
-Root trust anchor → TLD → Authoritative zone.  
-If mismatch → reject response.
-end note
-
-' Step 3 - Query actual record
-Resolver -> Authoritative : Query A for "example.com"
-Authoritative --> Resolver : A record + RRSIG
-
-note over Resolver
-Verify A record using DNSKEY + RRSIG.  
-If valid → accept.  
-If invalid → discard.
-end note
-
-Resolver --> User : Return validated DNS record (IP for example.com)
-@enduml
-  </script>
-</div>
-
-### 6.6 Route 53 Resolver and Endpoints {#section-6-6-route53-resolver-endpoints}
+### 6.5 Route 53 Resolver and Endpoints {#section-6-5-route53-resolver-endpoints}
 
 By default, every **VPC** has an **Amazon-managed DNS resolver** at the reserved IP `VPC-CIDR+.2` (e.g., `10.0.0.2`).  
 - Accessible from **all subnets** in the VPC.  
@@ -1061,7 +833,6 @@ To integrate DNS across hybrid or multi-VPC environments, AWS provides **Route 5
   - VPC resources → forward queries to on-premises DNS servers.  
 
 These endpoints solve the **DNS boundary problem** where VPC and on-prem DNS could not previously resolve each other.
-
 
 <div class="image-wrapper">
   <img src="./assets/route53_resolver_flow.png" alt="Route 53 Resolver Endpoints Flow" class="modal-trigger" data-caption="Route 53 Resolver inbound and outbound flow between on-premises and AWS VPC">
@@ -1124,12 +895,24 @@ AWS VPCs support **dual-stack networking** (IPv4 + IPv6). Unlike IPv4, IPv6 is *
   - NAT Gateway is not required for IPv6 since all IPv6 addresses are globally routable. For IPv4, a NAT Gateway is needed because of address space limitations and the use of address masquerading (NAT) to share public IPs.
   - Security relies on **Security Groups / NACLs** instead of NAT hiding.  
 
+---
+
 ### 7.2 Considerations {#section-7-2-considerations}
 
 - Plan dual-stack carefully: some workloads may remain IPv4-only.  
 - Use **Egress-Only IGW** to protect IPv6 workloads from unsolicited inbound traffic.  
 - Validate which AWS services support IPv6 before rollout (e.g., some managed services may lag behind).  
-- IPv6 helps with **address exhaustion** but introduces new **security + monitoring challenges**.  
+- IPv6 helps with **address exhaustion** but introduces new **security + monitoring challenges**.
 
-⚡ **Takeaway**:  
-IPv6 in AWS = **globally routable addresses, no NAT, /56 per VPC, /64 per subnet, explicit routing, and egress-only IGW for outbound-only control**.
+## 8. Exam Reminders {#section-8-exam-reminders}
+
+- **DX virtual interfaces** – Private (VGW/TGW to VPC), Public (AWS public endpoints), Transit (TGW). Use Link Aggregation Groups (LAGs) for redundancy/throughput; multiple private VIFs attach to a DX Gateway for multi-VPC reach.
+- **VPC DNS toggles** – `enableDnsSupport` lets instances resolve names; `enableDnsHostnames` lets instances receive hostnames. Both must be on for Route 53 private zones and many managed services (ECS/Fargate).
+- **Endpoints** – Interface (most services) vs Gateway (S3/DynamoDB, free). Pick based on traffic pattern.
+- **Internet plumbing** – One IGW per VPC; deploy NAT Gateways per AZ for resilient outbound access; remember subnets are AZ-scoped.
+- **Routing hubs** – Transit Gateway centralizes many-to-many VPC/VPN/DX; VGW is VPC-specific with site-to-site VPN.
+- **Route 53 quick sheet** – `A` = IPv4, `AAAA` = IPv6, `CNAME` aliases to another name (not zone apex), **Alias** targets AWS resources (allowed at apex, free queries).
+- **Reserved subnet IPs** – `.0` network, `.1` router, `.2` DNS, `.3` future use, `.255` broadcast → usable addresses = CIDR size − 5.
+- **Security boundaries** – Network ACLs are stateless and operate on subnets; Security Groups are stateful on ENIs. For NLB targets, lock down security groups to NLB IP ranges/ports, not URL paths.
+
+---

@@ -62,9 +62,477 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="aws-storage-services">AWS Storage Services</h1>
+      <h2 id="section-1-storage-building-blocks">1. Storage Building Blocks</h2>
 
-<p>Placeholder</p>
+<p>AWS exposes storage through three primary layers. Understanding how each layer writes to blocks helps when selecting the right service or designing migration paths.</p>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Layer</th>
+<th>What It Exposes</th>
+<th>How It Writes</th>
+<th>Effect on Blocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Block Device</strong></td>
+<td>Logical block addresses (LBA 0…n)</td>
+<td>Direct I/O; write a 4 KB block at a time.</td>
+<td>Overwrites the block exactly as requested; no metadata awareness.</td>
+</tr>
+<tr>
+<td><strong>File System</strong></td>
+<td>Files, directories, inodes, and metadata.</td>
+<td>Splits files into metadata + data blocks.</td>
+<td>Blocks interleave metadata and file payloads.</td>
+</tr>
+<tr>
+<td><strong>Object Store</strong></td>
+<td>Object = key + metadata + blob.</td>
+<td>Stores metadata in an index, data in hidden chunks.</td>
+<td>Objects fan out across multiple block devices; layout abstracted.</td>
+</tr>
+</tbody>
+</table>
+
+<div class="image-wrapper">
+  <img src="./assets/storage_system.png" alt="storage_system" class="modal-trigger" data-caption="🧩 Storage System" />
+  <div class="diagram-caption" data-snippet-id="dedicated-tenancy-snippet">
+    🧩 Storage System
+  </div>
+  <script type="text/plain" id="dedicated-tenancy-snippet">
+@startuml
+title How applications interact with storage types
+
+actor Application
+
+participant "File System\n(NFS/SMB/Lustre)" as FILE
+participant "Block Device\n(EBS)" as BLOCK
+participant "Object Store\n(S3 API)" as OBJECT
+participant "Physical Disk Blocks" as DISK
+
+Application -> BLOCK: Read/write blocks\n(LBA addresses, sectors)
+BLOCK -> DISK: Map to disk blocks
+
+Application -> FILE: Read/write files\n(open/read/write/close)
+FILE -> DISK: Convert to block operations
+
+Application -> OBJECT: PUT/GET object\n(Key + Metadata)
+OBJECT -> DISK: Store data as objects
+
+@enduml
+  </script>
+</div>
+
+<hr />
+
+<h2 id="section-2-managed-file-services">2. Managed File Services</h2>
+
+<p>AWS offers several turnkey file systems so lift-and-shift workloads do not require hand-built EC2 clusters. The three most common services cover Windows shares, HPC Lustre clusters, and general-purpose NFS for Linux.</p>
+
+<h3 id="section-2-1-fsx-windows">2.1 Amazon FSx for Windows File Server</h3>
+
+<ul>
+  <li>Presents fully managed SMB shares with native Windows semantics (NTFS ACLs, SMB dialects, DFS Namespaces).</li>
+  <li>Supports Volume Shadow Copy Service (VSS) so users can self-serve file-level restores.</li>
+  <li>Integrates with self-managed Active Directory or AWS Managed Microsoft AD; you keep ownership of the domain join.</li>
+  <li>Delivers multi-AZ scale-out options and the ability to lift traditional Windows file server workloads without standing up EC2 hosts.</li>
+</ul>
+
+<hr />
+
+<h3 id="section-2-2-fsx-lustre">2.2 Amazon FSx for Lustre</h3>
+
+<ul>
+  <li>Purpose-built for Linux HPC workloads needing 100s of GB/s throughput and sub-millisecond latency.</li>
+  <li>Two deployment modes:
+    <ul>
+      <li><strong>Scratch</strong>: no replication, temporary storage, 200 MB/s per TiB baseline; best for ephemeral HPC runs.</li>
+      <li><strong>Persistent</strong>: 50/100/200 MB/s per TiB baseline with intra-AZ replication and auto-healing.</li>
+    </ul>
+  </li>
+  <li>Metadata lives on Metadata Targets (MSTs); object data spreads across Object Storage Targets (OSTs).</li>
+  <li>Minimum size 1.2 TiB (then 2.4 TiB increments). Larger filesystems add servers/disks for parallelism.</li>
+  <li>Seamless S3 integration: link to an S3 bucket, lazily load objects into the file system, archive back to S3 via <code class="language-plaintext highlighter-rouge">hsm_archive</code>, and keep 0–35 day backups in S3.</li>
+</ul>
+
+<hr />
+
+<h3 id="section-2-3-efs">2.3 Amazon Elastic File System (EFS)</h3>
+
+<ul>
+  <li>Managed NFSv4 storage for Linux instances (EC2, on-prem via DX/VPN).</li>
+  <li>Mount targets expose private IPs per subnet/AZ; traffic never traverses the public internet.</li>
+  <li>Supports POSIX permissions, security groups, and access via multiple instances simultaneously.</li>
+  <li>Performance modes:
+    <ul>
+      <li><strong>General Purpose</strong> – low-latency workloads.</li>
+      <li><strong>Max I/O</strong> – higher aggregate throughput and open file counts.</li>
+    </ul>
+  </li>
+  <li>Throughput modes:
+    <ul>
+      <li><strong>Bursting</strong> – scales with filesystem size.</li>
+      <li><strong>Provisioned</strong> – fixed MB/s regardless of stored data.</li>
+    </ul>
+  </li>
+  <li>Storage classes: <strong>Standard</strong> and <strong>Infrequent Access (IA)</strong> with lifecycle policies moving cold files automatically.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-3-amazon-s3-core-concepts">3. Amazon S3 Core Concepts</h2>
+
+<p>Simple Storage Service underpins most AWS architectures. The focus areas below keep cost, durability, and replication under control.</p>
+
+<h3 id="section-3-1-cost-model">3.1 Cost Model</h3>
+
+<p>S3 charges on three levers: storage (GB-month), requests (per 1,000 API calls), and data transfer out (per GB). Choosing the right storage class, lifecycle rules, and replication strategy is how to keep those levers predictable.</p>
+
+<hr />
+
+<h3 id="section-3-2-storage-classes">3.2 Storage Classes</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Class</th>
+<th>Durability &amp; Availability</th>
+<th>Retrieval</th>
+<th>Minimums</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Standard</strong></td>
+<td>11 nines durability, multi-AZ availability.</td>
+<td>Milliseconds, no retrieval fee.</td>
+<td>None.</td>
+<td>Hot data, frequently accessed, mission critical.</td>
+</tr>
+<tr>
+<td><strong>Standard-IA</strong></td>
+<td>Multi-AZ, same durability.</td>
+<td>Milliseconds, per-GB retrieval fee.</td>
+<td>30-day storage; 128 KB minimum charge.</td>
+<td>Long-lived but infrequently accessed data.</td>
+</tr>
+<tr>
+<td><strong>One Zone-IA</strong></td>
+<td>Single AZ (cost optimized).</td>
+<td>Milliseconds, per-GB retrieval fee.</td>
+<td>30-day storage; 128 KB minimum charge.</td>
+<td>Re-creatable data that can tolerate AZ loss.</td>
+</tr>
+<tr>
+<td><strong>Glacier Instant Retrieval</strong></td>
+<td>Multi-AZ durability.</td>
+<td>Milliseconds, higher retrieval fee.</td>
+<td>90-day storage minimum.</td>
+<td>Quarterly access patterns with instant retrieval needs.</td>
+</tr>
+<tr>
+<td><strong>Glacier Flexible Retrieval</strong></td>
+<td>Multi-AZ, cold archive.</td>
+<td>Minutes to hours per retrieval job.</td>
+<td>90-day storage minimum.</td>
+<td>Archival data; bulk retrievals acceptable.</td>
+</tr>
+<tr>
+<td><strong>Glacier Deep Archive</strong></td>
+<td>Multi-AZ, lowest cost.</td>
+<td>12–48 hours.</td>
+<td>180-day storage minimum.</td>
+<td>Compliance archives rarely accessed.</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h3 id="section-3-3-intelligent-tiering">3.3 Intelligent-Tiering</h3>
+
+<ul>
+  <li>Monitors objects for access and automatically moves them:
+    <ul>
+      <li>&lt;30 days → Frequent Access tier.</li>
+      <li>30+ days idle → Infrequent Access tier.</li>
+      <li>90–270 days idle → Archive Instant Access tier.</li>
+      <li>180–730 days idle → Deep Archive Access tier.</li>
+    </ul>
+  </li>
+  <li>No retrieval fees; small monitoring charge per object.</li>
+  <li>Ideal when access patterns are unpredictable or when manual lifecycle rules become complex.</li>
+</ul>
+
+<hr />
+
+<h3 id="section-3-4-lifecycle-policies">3.4 Lifecycle Policies</h3>
+
+<ul>
+  <li>Transition actions move data between classes; minimum 30 days before any transition and another 30 days before moving to archive classes.</li>
+  <li>Expiration actions permanently delete objects or previous versions.</li>
+  <li>Rules can target prefixes or tags; multiple rules handle sequential transitions (e.g., Standard → Standard-IA → Glacier Flexible).</li>
+</ul>
+
+<hr />
+
+<h3 id="section-3-5-replication">3.5 Replication (SRR/CRR)</h3>
+
+<ul>
+  <li>Requires versioning on both source and destination buckets; not retroactive.</li>
+  <li>IAM role grants S3 permission to replicate via HTTPS; cross-account destinations need a trusting bucket policy.</li>
+  <li>Options:
+    <ul>
+      <li><strong>Same-Region Replication (SRR)</strong> – log aggregation, sovereign backups, multi-environment sync.</li>
+      <li><strong>Cross-Region Replication (CRR)</strong> – global resiliency, latency reduction, geo-compliance.</li>
+    </ul>
+  </li>
+  <li>Settings:
+    <ul>
+      <li>Filter objects (prefix, tags).</li>
+      <li>Override storage class at destination.</li>
+      <li>Define object ownership and replication metrics (including Replication Time Control for SLA-backed copy times).</li>
+    </ul>
+  </li>
+  <li>Limitations: Glacier/Deep Archive objects and bucket-level events do not replicate.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-4-s3-security-data">4. S3 Security &amp; Data Management</h2>
+
+<p>After the storage class and lifecycle decisions are made, attention shifts to encryption, secure sharing, and data-classification tooling around S3.</p>
+
+<h3 id="section-4-1-encryption">4.1 Encryption Choices</h3>
+
+<ul>
+  <li><strong>SSE-S3</strong> – S3 manages keys (AES-256); simplest option.</li>
+  <li><strong>SSE-KMS</strong> – use AWS KMS CMKs for per-object DEKs, fine-grained access control, auditing, and rotation.</li>
+  <li><strong>SSE-C</strong> – bring your own keys in the request; AWS never stores them.</li>
+  <li><strong>Client-side encryption</strong> – encrypt before upload; S3 stores ciphertext only.</li>
+  <li><strong>Bucket Keys</strong> – cache a time-limited KMS key per bucket to reduce KMS API calls for SSE-KMS workloads; shows up as bucket events in CloudTrail and works with replication.</li>
+</ul>
+
+<hr />
+
+<h3 id="section-4-2-presigned-urls">4.2 Presigned URLs</h3>
+
+<ul>
+  <li>Provide time-bound, signed access for GET or PUT against otherwise private objects.</li>
+  <li>Permissions inherit from the identity that generated the URL; “AccessDenied” often indicates the signer lacked permissions.</li>
+  <li>Avoid using short-lived assumed roles to generate URLs—when the role session expires, the URL breaks.</li>
+</ul>
+
+<hr />
+
+<h3 id="section-4-3-select">4.3 S3 &amp; Glacier Select</h3>
+
+<ul>
+  <li>Run SQL-like queries against CSV, JSON, or Parquet objects directly in S3/Glacier to retrieve only the filtered data.</li>
+  <li>Reduces data transfer and client-side processing when dealing with multi-GB objects.</li>
+</ul>
+
+<hr />
+
+<h3 id="section-4-4-access-points">4.4 S3 Access Points</h3>
+
+<ul>
+  <li>Create dedicated endpoints (with their own policies and network controls) per application, team, or VPC instead of using a single bucket policy.</li>
+  <li>Each access point can restrict prefixes, require VPC origins, or expose a public hostname.</li>
+</ul>
+
+<hr />
+
+<h3 id="section-4-5-object-lock">4.5 Object Lock</h3>
+
+<ul>
+  <li>Enables WORM behavior on a per-object-version basis; requires versioning and cannot be disabled once enabled on a bucket.</li>
+  <li>Retention modes:
+    <ul>
+      <li><strong>Compliance</strong> – immutable until the retention date; even the root user cannot shorten it.</li>
+      <li><strong>Governance</strong> – privileged users with <code class="language-plaintext highlighter-rouge">s3:BypassGovernanceRetention</code> can adjust retention.</li>
+    </ul>
+  </li>
+  <li><strong>Legal holds</strong> – binary on/off flag (<code class="language-plaintext highlighter-rouge">S3:PutObjectLegalHold</code>) with no expiry until removed.</li>
+</ul>
+
+<hr />
+
+<h3 id="section-4-6-macie">4.6 Amazon Macie</h3>
+
+<ul>
+  <li>Data security service that inspects S3 for PII/PHI/financial data using managed or custom identifiers.</li>
+  <li>Findings categories:
+    <ul>
+      <li><strong>Policy</strong> – encryption disabled, public access enabled, etc.</li>
+      <li><strong>Sensitive data</strong> – exposed credentials, personal identifiers, multi-type matches.</li>
+    </ul>
+  </li>
+  <li>Integrates with Security Hub and EventBridge for automated response workflows and central management across accounts.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-5-block-ephemeral">5. Block &amp; Ephemeral Storage</h2>
+
+<p>EC2 workloads still rely on block devices for boot/root volumes and ultra-low-latency scratch space. This section summarizes the available performance tiers and when to pick each one.</p>
+
+<h3 id="section-5-1-ssd-ebs">5.1 SSD-backed EBS Volumes</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Type</th>
+<th>IOPS Model</th>
+<th>Baseline / Burst</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>gp2</strong></td>
+<td>3 IOPS/GB (minimum 100); credit bucket.</td>
+<td>Up to 3,000 IOPS burst; 16,000 max.</td>
+<td>Great for boot disks and general workloads; must manage I/O credits.</td>
+</tr>
+<tr>
+<td><strong>gp3</strong></td>
+<td>Provision IOPS independently of size.</td>
+<td>3,000 IOPS &amp; 125 MiB/s baseline; scale to 16,000 IOPS &amp; 1,000 MiB/s.</td>
+<td>20% cheaper than gp2; combines gp2 flexibility with io1 features.</td>
+</tr>
+<tr>
+<td><strong>io1/io2</strong></td>
+<td>Provision up to 64,000 IOPS (256,000 with io2 Block Express).</td>
+<td>Consistent low latency; up to 4 GB/s throughput on Block Express.</td>
+<td>Use for low-latency databases; io2 offers 500 IOPS/GB durability SLA.</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h3 id="section-5-2-hdd-ebs">5.2 HDD-backed EBS Volumes</h3>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Type</th>
+<th>Workload</th>
+<th>Baseline</th>
+<th>Burst</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>st1 (Throughput Optimized)</strong></td>
+<td>Sequential, frequently accessed data.</td>
+<td>40 MB/s per TiB.</td>
+<td>Up to 250 MB/s per TiB (max 500 MB/s).</td>
+<td>Big data, ETL streams, logs.</td>
+</tr>
+<tr>
+<td><strong>sc1 (Cold HDD)</strong></td>
+<td>Infrequently accessed data.</td>
+<td>12 MB/s per TiB.</td>
+<td>Up to 80 MB/s per TiB (max 250 MB/s).</td>
+<td>Lowest-cost magnetic storage for archives.</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h3 id="section-5-3-instance-store-vs-ebs">5.3 Instance Store vs. EBS</h3>
+
+<ul>
+  <li><strong>Instance Store</strong> – physically attached NVMe/SATA on the host; millions of IOPS, but data disappears when the instance stops, terminates, or the host fails.</li>
+  <li><strong>EBS</strong> – network-attached block storage; persistent, resilient, snapshot-capable, and independent of the instance lifecycle.</li>
+  <li>Selection guidance:
+    <ul>
+      <li>Persistence/resilience/isolation → choose EBS.</li>
+      <li>Ultra-low latency scratch space or &gt;260K IOPS → choose instance store (often striped RAID-0 for even higher throughput).</li>
+      <li>Cost-sensitive streaming workloads → HDD-based EBS (st1/sc1).</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="section-6-transfer-family">6. AWS Transfer Family</h2>
+
+<p>Managed service for lifting traditional file-transfer workflows into S3 or EFS without running custom servers.</p>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Protocol</th>
+<th>Use Case</th>
+<th>Identity Options</th>
+<th>Endpoint Modes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SFTP</strong></td>
+<td>Secure shell file transfers (most common).</td>
+<td>Service-managed, AWS Directory Service, or custom IdP.</td>
+<td>Public, VPC (internet-facing with Elastic IP), or VPC-internal only.</td>
+</tr>
+<tr>
+<td><strong>FTPS</strong></td>
+<td>FTP over TLS for partners needing TLS termination.</td>
+<td>Directory Service or custom IdP.</td>
+<td>Public or VPC modes.</td>
+</tr>
+<tr>
+<td><strong>FTP</strong></td>
+<td>Legacy internal-only transfers.</td>
+<td>Directory Service or custom IdP.</td>
+<td>VPC-internal mode only.</td>
+</tr>
+<tr>
+<td><strong>AS2</strong></td>
+<td>Structured B2B document exchange.</td>
+<td>Service-managed users.</td>
+<td>Public endpoints.</td>
+</tr>
+</tbody>
+</table>
+
+<p>Key traits:</p>
+
+<ul>
+  <li>Multi-AZ architecture delivers resilience without patching or capacity management.</li>
+  <li>Pay by the hour for the server endpoint plus standard S3/EFS request and transfer charges; no upfront fees.</li>
+  <li>Works with DX/VPN for private ingestion pipelines.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-4-exam-reminders">4. Exam Reminders</h2>
+
+<ul>
+  <li><strong>EBS vs instance store</strong> – EBS is persistent, snapshot-capable, and survives stop/start; instance store is ephemeral and tied to host lifecycle.</li>
+  <li><strong>Snapshots</strong> – incremental, stored in S3, cross-Region copyable. Use them for PITR or as seeds for new volumes.</li>
+  <li><strong>RAID quick sheet</strong> – 0 (striping, no redundancy), 1 (mirroring), 5 (1 disk fault tolerance), 6 (2 disks), 10 (striped mirrors), 50/60 (stacked). Hot spares auto-replace failed disks.</li>
+  <li><strong>RDS</strong> – snapshots stored in S3; cross-Region replica promotion triggers reboot; deletion protection stops accidental wipes but is not a backup.</li>
+  <li><strong>Redshift</strong> – enable snapshot copy grants when copying encrypted snapshots to another Region (destination CMK required).</li>
+  <li><strong>FSx for Lustre</strong> – high-performance POSIX file system with manual resize; integrate with S3 via import/export.</li>
+  <li><strong>Storage Gateway restores</strong> – to recover a volume, restore snapshot → create EBS volume → attach to EC2; there is no direct S3→EC2 attach.</li>
+  <li><strong>S3 SSE-C headers</strong> – clients must send <code class="language-plaintext highlighter-rouge">x-amz-server-side-encryption-customer-algorithm</code> (usually <code class="language-plaintext highlighter-rouge">AES256</code>) and <code class="language-plaintext highlighter-rouge">x-amz-server-side-encryption-customer-key-MD5</code> (Base64 MD5 of the key).</li>
+  <li><strong>S3 versioning</strong> – existing objects receive <code class="language-plaintext highlighter-rouge">VersionId = null</code> when enabling versioning. Design prefixes for search/browse patterns since S3 has limited query capabilities.</li>
+  <li><strong>Aurora fast restart</strong> – buffer cache kept outside database process; restarts often finish in under a minute without full redo replay.</li>
+  <li><strong>AWS Backup</strong> – centralized service to define backup plans/schedules across EBS, RDS, DynamoDB, EFS, FSx, Storage Gateway, and on-prem connectors. Monitor backup jobs and compliance from a single console.</li>
+  <li><strong>Storage Gateway (iSCSI)</strong> – uses CHAP for initiator authentication, protecting against replay attacks before accessing cached/volume targets.</li>
+</ul>
+
+<hr />
 
     </article>
   </main>

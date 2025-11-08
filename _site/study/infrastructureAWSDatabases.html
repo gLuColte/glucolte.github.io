@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>glucolte</title>
+  <title>AWS Database Services · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,20 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>glucolte | notes • principles • systems</title>
+<title>AWS Database Services | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="glucolte" />
+<meta property="og:title" content="AWS Database Services" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/tmp_awsProDataCaching.html" />
-<meta property="og:url" content="http://localhost:4000/study/tmp_awsProDataCaching.html" />
+<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSDatabases" />
+<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSDatabases" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="glucolte" />
+<meta property="twitter:title" content="AWS Database Services" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"glucolte","url":"http://localhost:4000/study/tmp_awsProDataCaching.html"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS Database Services","url":"http://localhost:4000/study/infrastructureAWSDatabases"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,7 +62,321 @@
 
   <main class="container">
     <article class="content">
-      
+      <h2 id="section-1-amazon-rds-foundations">1. Amazon RDS Foundations</h2>
+
+<p>Amazon Relational Database Service automates provisioning, patching, and backups for managed engines (MySQL, PostgreSQL, MariaDB, SQL Server, Oracle). Key building blocks:</p>
+
+<ul>
+  <li><strong>Subnet groups</strong> span multiple AZs and determine where instances launch.</li>
+  <li><strong>CNAME endpoints</strong> abstract the current primary; applications connect via DNS rather than fixed IPs.</li>
+  <li>Instances can host multiple databases and use dedicated EBS storage (SSD or HDD).</li>
+</ul>
+
+<h3 id="section-1-1-multi-az">1.1 Multi-AZ Deployments</h3>
+
+<p><strong>Instance-based Multi-AZ</strong></p>
+<ul>
+  <li>Primary + single standby in different AZs.</li>
+  <li>Synchronous, storage-level replication; commits succeed only after both copies persist.</li>
+  <li>Standby is passive. Applications always point at the CNAME of the primary. When the primary fails (planned or unplanned) DNS is updated to the standby’s IP. Expect 60–120 seconds of failover while the database process restarts and clients refresh DNS.</li>
+  <li>Best for traditional engines that do not need read-scale but do need durable writes and automatic backups.</li>
+</ul>
+
+<p><strong>Cluster-based Multi-AZ</strong></p>
+<ul>
+  <li>One writer and up to two readers across AZs.</li>
+  <li>Synchronous log-based replication; commit waits for at least one reader to persist the change. Because each node runs its own instance, readers can be promoted quickly if the writer fails.</li>
+  <li>Provides a <strong>reader endpoint</strong> that automatically load balances SELECT traffic, plus <strong>instance endpoints</strong> for targeted testing.</li>
+  <li>Failover is typically ~35 seconds plus transaction-log catch-up, delivering faster RTO than instance-based Multi-AZ while allowing some read scaling.</li>
+</ul>
+
+<h3 id="section-1-2-read-replicas">1.2 Read Replicas</h3>
+
+<ul>
+  <li>Asynchronous replication (optional in addition to Multi-AZ) that operates at the storage/transaction-log layer.</li>
+  <li>Up to 5 replicas per instance; replicas can cascade (replica of replica) but each additional hop introduces lag, so keep the tree shallow.</li>
+  <li>Common patterns:
+    <ul>
+      <li><strong>Scale-out reads</strong> – point BI/reporting jobs or API readers to read replica endpoints.</li>
+      <li><strong>Cross-Region DR</strong> – place replicas in other regions for near-zero RPO and promote during regional outages.</li>
+      <li><strong>Blue/Green cutovers</strong> – promote a replica after schema upgrades instead of restoring from snapshot.</li>
+    </ul>
+  </li>
+  <li>Promotion is a fast, push-button operation: replica becomes a standalone primary with its own endpoint. Because replication is asynchronous, treat it as DR for outages—not for logical corruption, which would replicate to replicas immediately.</li>
+</ul>
+
+<h3 id="section-1-3-backups">1.3 Backups, Snapshots, Restores</h3>
+
+<ul>
+  <li><strong>Automated backups</strong> (disabled by default) capture daily snapshots plus 5-minute transaction log uploads to S3; RPO ≈ 5 minutes, retention 0–35 days, can replicate cross-region.</li>
+  <li><strong>Manual snapshots</strong> persist until deleted; first snapshot is full, subsequent are incremental.</li>
+  <li>Restores always create new instances with new endpoints; point-in-time restores replay logs from the automated backup window.</li>
+</ul>
+
+<h3 id="section-1-4-security-cost">1.4 Security and Cost</h3>
+
+<ul>
+  <li>TLS/SSL available for in-transit encryption; at-rest encryption uses KMS-backed EBS volumes (irreversible once enabled).</li>
+  <li>Oracle and SQL Server support Transparent Data Encryption (TDE); Oracle can integrate with CloudHSM for customer-controlled keys.</li>
+  <li>IAM database authentication issues 15-minute tokens mapped to DB users, reducing static credential use.</li>
+  <li>Cost factors: instance class, Multi-AZ, storage type/capacity, data transfer, backup storage, and bring-your-own-license options.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-2-amazon-aurora">2. Amazon Aurora</h2>
+
+<h3 id="section-2-1-architecture">2.1 Architecture</h3>
+
+<ul>
+  <li>Aurora decouples compute and storage via a 128 TiB shared cluster volume with six copies across three AZs.</li>
+  <li>Primary writer sends log records to the storage subsystem; replicas read from the same volume, enabling fast failover.</li>
+  <li>Endpoints:
+    <ul>
+      <li><strong>Cluster endpoint</strong> – connects to the primary writer.</li>
+      <li><strong>Reader endpoint</strong> – load balances across replicas.</li>
+      <li><strong>Instance endpoints</strong> – direct to a specific instance (useful for testing and fault isolation).</li>
+    </ul>
+  </li>
+  <li>Storage auto-scales; billing covers actual GB-month plus I/O.</li>
+</ul>
+
+<h3 id="section-2-2-operations">2.2 Operations</h3>
+
+<ul>
+  <li>Restores/spin-ups create new clusters; backtrack enables rewinding to a prior timestamp without snapshots (useful for logical corruption).</li>
+  <li>Fast database cloning copies metadata and shares data pages, only duplicating changed pages.</li>
+  <li>No free tier; micro instances not supported. Aurora often costs less than RDS when factoring multi-AZ throughput per dollar.</li>
+</ul>
+
+<h3 id="section-2-3-aurora-serverless">2.3 Aurora Serverless v2</h3>
+
+<ul>
+  <li>Removes instance management; capacity measured in Aurora Capacity Units (ACUs).</li>
+  <li>Proxy fleet handles connections while compute scales between configured min/max ACUs and can pause when idle.</li>
+  <li>Ideal for infrequently used applications, new workloads with unknown sizing, multi-tenant SaaS, or dev/test clusters.</li>
+</ul>
+
+<h3 id="section-2-4-aurora-multi-master">2.4 Aurora Multi-Master</h3>
+
+<ul>
+  <li>Multiple read/write instances; clients can connect to any writer endpoint.</li>
+  <li>Storage-level replication ensures cross-AZ durability. Last-writer-wins conflict resolution when concurrent writes touch the same rows.</li>
+  <li>Eliminates DNS failover delays: if one writer fails, connections continue against remaining writers.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-3-rds-proxy-custom">3. RDS Proxy &amp; RDS Custom</h2>
+
+<h3 id="section-3-1-rds-proxy">3.1 RDS Proxy</h3>
+
+<ul>
+  <li>Managed connection pooling layer sitting in your VPC between applications and RDS/Aurora.</li>
+  <li>Maintains a warm pool of database connections, multiplexes client requests, and reduces failover times by up to 50%.</li>
+  <li>Enforce TLS, integrate with IAM auth, and smooth out connection storms (e.g., Lambda functions opening/closing frequently).</li>
+  <li>Recommended when hitting connection limits, running burstable t-class DB instances, or using serverless compute against RDS.</li>
+</ul>
+
+<h3 id="section-3-2-rds-custom">3.2 RDS Custom</h3>
+
+<ul>
+  <li>Bridges the gap between fully managed RDS and self-managed EC2 databases.</li>
+  <li>Available for Oracle and SQL Server; provides SSH/RDP/Session Manager access to the underlying host to install agents, customize OS settings, or meet strict compliance.</li>
+  <li>Automation can be paused (“pause and customize”) during changes, then resumed for managed backups/patching.</li>
+</ul>
+
+<div class="image-wrapper">
+  <img src="./assets/rds_responsibilities.png" alt="rds-responsibilities" class="modal-trigger" data-caption="🧩 RDS Responsibilities" />
+  <div class="diagram-caption" data-snippet-id="rds-responsibilities">
+    🧩 RDS Responsibilities
+  </div>
+  <script type="text/plain" id="rds-responsibilities">
+flowchart TB
+
+%% ------------------ RESPONSIBILITY LEGEND ------------------
+subgraph LEGEND["Responsibility Legend"]
+    CUST["🔵 Customer"]
+    SHARED["🟣 Shared"]
+    AWS["🟠 AWS"]
+end
+
+%% ------------------ ON-PREMISES ------------------
+subgraph ONPREM["On-Premises"]
+    OPT_OP("🔵 Optimization")
+    SC_OP("🔵 Scaling")
+    HA_OP("🔵 High Availability")
+    BK_OP("🔵 Backups")
+    DBP_OP("🔵 DB Patching")
+    OSP_OP("🔵 OS Patch")
+    OSI_OP("🔵 OS Install/Setup")
+    HW_OP("🔵 Hardware")
+end
+
+%% ------------------ RDS (Fully Managed) ------------------
+subgraph RDS["Amazon RDS"]
+    OPT_R("🔵 Optimization")
+    SC_R("🟠 Scaling")
+    HA_R("🟠 High Availability")
+    BK_R("🟠 Backups")
+    DBP_R("🟠 DB Patching")
+    OSP_R("🟠 OS Patch")
+    OSI_R("🟠 OS Install/Setup")
+    HW_R("🟠 Hardware")
+end
+
+%% ------------------ RDS CUSTOM ------------------
+subgraph RDSC["RDS Custom"]
+    OPT_RC("🔵 Optimization")
+    SC_RC("🟣 Scaling")
+    HA_RC("🟣 High Availability")
+    BK_RC("🟣 Backups")
+    DBP_RC("🟣 DB Patching")
+    OSP_RC("🟣 OS Patch")
+    OSI_RC("🟣 OS Install/Setup")
+    HW_RC("🟠 Hardware")
+end
+
+%% ------------------ EC2 ------------------
+subgraph EC2["Database on EC2"]
+    OPT_E("🔵 Optimization")
+    SC_E("🔵 Scaling")
+    HA_E("🔵 High Availability")
+    BK_E("🔵 Backups")
+    DBP_E("🔵 DB Patching")
+    OSP_E("🔵 OS Patch")
+    OSI_E("🔵 OS Install/Setup")
+    HW_E("🟠 Hardware")
+end
+  </script>
+</div>
+<hr />
+
+<h2 id="section-4-amazon-dynamodb">4. Amazon DynamoDB</h2>
+
+<h3 id="section-4-1-table-model">4.1 Table Model &amp; Capacity</h3>
+
+<ul>
+  <li>Key-value and document store with single-digit millisecond latency backed by SSDs and automatic AZ replication.</li>
+  <li>Tables consist of items keyed by a partition key (PK) or composite key (PK + sort key). Items can vary in attributes but max out at 400 KB, allowing sparse schemas.</li>
+  <li>Capacity controls throughput (not storage). Units:
+    <ul>
+      <li><strong>1 RCU</strong> = one strongly consistent read of 4 KB/sec (eventual consistency halves RCU consumption).</li>
+      <li><strong>1 WCU</strong> = one 1 KB write/sec.</li>
+    </ul>
+  </li>
+  <li>Burst capacity: unused throughput accumulates for up to 300 seconds.</li>
+  <li>Provisioned mode sets fixed RCUs/WCUs; on-demand mode bills per million read/write units without upfront planning.</li>
+  <li><strong>Sizing example:</strong> storing 10 items per second averaging 2.5 KB requires <code class="language-plaintext highlighter-rouge">ceil(2.5 KB / 1 KB) = 3 WCUs</code> per item × 10 writes = <strong>30 WCUs</strong>. Similar logic applies to reads, using 4 KB increments.</li>
+</ul>
+
+<h3 id="section-4-2-backups">4.2 Backups &amp; PITR</h3>
+
+<ul>
+  <li>On-demand backups snapshot tables (with or without indexes) and restore into same/cross regions with new encryption settings.</li>
+  <li>Point-in-time recovery (disabled by default) records incremental changes for 35 days with 1-second granularity; enables rewind to any point in that window.</li>
+</ul>
+
+<h3 id="section-4-3-query-scan">4.3 Query vs. Scan</h3>
+
+<ul>
+  <li><strong>Query</strong> operates on a single partition key (optionally sort key ranges); consumed capacity equals all returned items before filters.</li>
+  <li><strong>Scan</strong> walks every item (or a segment) regardless of keys; flexible but expensive in RCUs. Use filters sparingly—capacity is still spent.</li>
+</ul>
+
+<h3 id="section-4-4-consistency">4.4 Consistency Models</h3>
+
+<ul>
+  <li>Data replicates to multiple AZs with a leader managing writes.</li>
+  <li>Eventual consistency (default) returns results that may be up to one second stale but consumes half the RCUs.</li>
+  <li>Strong consistency reads from the leader for the latest committed data.</li>
+</ul>
+
+<h3 id="section-4-5-indexes">4.5 Secondary Indexes</h3>
+
+<ul>
+  <li><strong>Local Secondary Index (LSI)</strong> – alternate sort key on the same partition key; must be created with the table, up to five LSIs, shares RCUs/WCUs, supports strong consistency. Great for multiple chronological views of the same customer/account.</li>
+  <li><strong>Global Secondary Index (GSI)</strong> – alternate partition and sort keys; can be added later, each with its own RCUs/WCUs, defaults to eventual consistency (strong reads only in same region). Enables “query by anything else” patterns such as email, status, or composite attributes.</li>
+  <li>Remember that GSIs consume their own capacity. Monitor <code class="language-plaintext highlighter-rouge">ConsumedReadCapacityUnits</code>/<code class="language-plaintext highlighter-rouge">ConsumedWriteCapacityUnits</code> metrics per index to avoid throttling.</li>
+</ul>
+
+<h3 id="section-4-6-streams">4.6 Streams &amp; Triggers</h3>
+
+<ul>
+  <li>Streams capture ordered inserts/updates/deletes with 24-hour retention; enable on a per-table basis and choose image format (keys only, new, old, new+old).</li>
+  <li>Common pattern: Streams + Lambda to react to data changes for analytics, notifications, or search indexing.</li>
+</ul>
+
+<h3 id="section-4-7-dax">4.7 DynamoDB Accelerator (DAX)</h3>
+
+<ul>
+  <li>Managed in-memory cache for DynamoDB; deployed inside a VPC across AZs. Think of it as a fully managed Redis-tier dedicated to DynamoDB traffic.</li>
+  <li>Applications use the DAX SDK; cache handles GetItem/Query results, reducing DynamoDB calls from milliseconds to microseconds and shielding tables from read bursts.</li>
+  <li>Cluster architecture:
+    <ul>
+      <li>Primary node handles writes and cache population.</li>
+      <li>Replicas serve read traffic; failover promotes a replica without client-side changes.</li>
+      <li>Item cache stores GetItem results; query cache stores Query/Scan responses keyed by parameters.</li>
+    </ul>
+  </li>
+  <li>Supports write-through (cache updated on write) and write-around (only reads populate cache) policies.</li>
+</ul>
+
+<h3 id="section-4-8-global-tables-ttl">4.8 Global Tables &amp; TTL</h3>
+
+<ul>
+  <li><strong>Global Tables</strong> replicate tables across regions in an active-active fashion (last-writer-wins conflict resolution). Reads/writes in any region replicate in seconds. Strong consistency only available within the Region where the write occurred.</li>
+  <li><strong>Time to Live (TTL)</strong> marks per-item expiry timestamps; DynamoDB removes expired items without consuming WCUs. Streams can capture deletions for auditing.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-5-analytics-specialty">5. Analytics &amp; Specialty Databases</h2>
+
+<h3 id="section-5-1-opensearch">5.1 Amazon OpenSearch Service (formerly Elasticsearch)</h3>
+
+<ul>
+  <li>Managed deployment of the ELK stack components (OpenSearch, Kibana, optional Logstash).</li>
+  <li>Useful when organizations already rely on Elasticsearch for log analytics, full-text search, or observability dashboards.</li>
+  <li>Offers integration with VPCs, fine-grained access control, and automated cluster management.</li>
+</ul>
+
+<h3 id="section-5-2-athena">5.2 Amazon Athena</h3>
+
+<ul>
+  <li>Serverless SQL queries against data in S3 using schema-on-read (Glue Data Catalog).</li>
+  <li>Pay per TB scanned; supports structured (CSV, Parquet), semi-structured (JSON), and direct querying of AWS service logs (CloudTrail, ELB, VPC Flow Logs).</li>
+  <li>Great for ad-hoc analytics, log exploration, and low-cost reporting without ETL pipelines.</li>
+</ul>
+
+<h3 id="section-5-3-neptune">5.3 Amazon Neptune</h3>
+
+<ul>
+  <li>Managed graph database supporting property graphs (Gremlin, openCypher) and RDF/SPARQL.</li>
+  <li>VPC-only deployment, Multi-AZ failover, and read replicas for scale.</li>
+  <li>Continuous backups to S3; suited for knowledge graphs, fraud graphs, and relationship-heavy workloads.</li>
+</ul>
+
+<h3 id="section-5-4-qldb">5.4 Amazon QLDB</h3>
+
+<ul>
+  <li>Immutable, append-only ledger database with cryptographically verifiable transaction log.</li>
+  <li>Serverless; replicates across three AZs and exposes full history for auditing.</li>
+  <li>Ideal for financial systems of record, supply-chain tracking, and compliance-sensitive logs.</li>
+  <li>Streams can feed Kinesis for downstream processing.</li>
+</ul>
+
+<hr />
+
+<h2 id="section-6-exam-reminders">6. Exam Reminders</h2>
+
+<ul>
+  <li><strong>RDS snapshots</strong> – stored in S3 for point-in-time recovery; replicating or promoting cross-Region replicas triggers a reboot. Deletion protection guards against accidental deletes but does not replace backups.</li>
+  <li><strong>Redshift snapshots</strong> – when copying encrypted snapshots cross-Region, create a snapshot copy grant referencing the destination CMK.</li>
+  <li><strong>Aurora fast restart</strong> – buffer cache lives outside the database process so restarts avoid lengthy redo replay; typical restart times are under a minute.</li>
+</ul>
+
+<hr />
 
     </article>
   </main>

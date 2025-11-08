@@ -28,6 +28,8 @@ The following are infrastructure and cloud services study pages:
 {% endfor %}
 </div>
 
+Note – These study notes were captured while working through the excellent [learn.cantrill.io](https://learn.cantrill.io/courses/) curriculum.
+
 ---
 
 ## System Design Fundamentals {#system-design-fundamentals}

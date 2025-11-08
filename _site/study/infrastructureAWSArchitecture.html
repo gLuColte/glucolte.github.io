@@ -412,6 +412,49 @@ Instances per AZ = 5 ÷ 5 = 1 instance per AZ
 
 <hr />
 
+<h2 id="migration-modernization">12. Migration &amp; Modernization Notes</h2>
+
+<ul>
+  <li><strong>Phases</strong> – Assess → Mobilize → Migrate &amp; Modernize; gather business case, build landing zone, then execute wave plans.</li>
+  <li><strong>6 Rs decision matrix</strong> – Rehost (lift/shift), Replatform (minimal tweaks), Refactor (cloud-native), Repurchase (SaaS), Retire, Retain. Match effort vs benefit.</li>
+  <li><strong>Discovery &amp; planning</strong> – <em>Application Discovery Service</em> (ADS) inventories servers/dependencies feeding <strong>Migration Hub</strong> wave plans.</li>
+  <li><strong>Workload movement</strong>:
+    <ul>
+      <li><strong>MGN (Application Migration Service)</strong> – block-level replication for lift/shift; handles cutover tests.</li>
+      <li><strong>SMS</strong> – incremental replication for on-prem VMware/Hyper-V to EC2.</li>
+      <li><strong>DMS</strong> – homogeneous/heterogeneous database migrations plus CDC replication.</li>
+      <li><strong>ECS Anywhere / EKS Anywhere</strong> – run AWS-managed containers on-prem to ease phased migrations.</li>
+    </ul>
+  </li>
+  <li><strong>Governance</strong> – <strong>Control Tower</strong> builds multi-account landing zones with guardrails (note: it does not grant IAM access automatically).</li>
+</ul>
+
+<hr />
+
+<h2 id="identity-security">13. Identity, Security &amp; Governance Notes</h2>
+
+<ul>
+  <li><strong>SCPs</strong> set maximum permissions; combine with IAM policies for effective rights. Remember that SCP evaluation is cumulative: Root SCPs apply to every OU/account, child OUs inherit parent SCPs, and explicit denies in any ancestor override everything beneath.</li>
+  <li><strong>Parameter Store vs Secrets Manager</strong> – config/simple secrets vs sensitive secrets with rotation/integration.</li>
+  <li><strong>IAM role vs instance profile</strong> – role = permission set; instance profile = container that attaches a role to EC2.</li>
+  <li><strong>Web identity federation</strong> – OIDC/SAML apps call <code class="language-plaintext highlighter-rouge">AssumeRoleWithWebIdentity</code> for short-lived creds.</li>
+  <li><strong>KMS</strong> – central envelope encryption (EBS/S3/RDS); import external keys when compliance demands.</li>
+  <li><strong>Macie / GuardDuty / Inspector / Security Hub</strong> – data classification, threat intel, vuln scanning, findings aggregation.</li>
+  <li><strong>AWS Config</strong> – drift/compliance detection; remediate via Lambda/SSM (Config itself is read-only).</li>
+  <li><strong>Service Catalog</strong> – standardized products with launch constraints/tags across accounts.</li>
+</ul>
+
+<h3 id="identity-center">13.1 Identity Center &amp; Directories</h3>
+
+<ul>
+  <li><strong>IAM Identity Center (AWS SSO)</strong> – one identity source at a time: built-in directory, AWS Managed AD/AD Connector, or external IdP (SAML/SCIM).</li>
+  <li><strong>AD Connector for SSO</strong> – when using on-prem AD via connector you cannot simultaneously plug in a third-party IdP; pick one source.</li>
+  <li><strong>AWS Managed Microsoft AD trusts</strong> – support external and forest trusts (one/both directions) with on-prem AD or another managed AD.</li>
+  <li><strong>Granting management account access</strong> – invited accounts create <code class="language-plaintext highlighter-rouge">OrganizationAccountAccessRole</code> so the management account can assume it for break-glass admin.</li>
+</ul>
+
+<hr />
+
     </article>
   </main>
 

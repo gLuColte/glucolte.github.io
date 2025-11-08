@@ -183,6 +183,8 @@ note over A,B: Now Host A can send data directly to Host B
   </script>
 </div>
 
+---
+
 ### 3.2 Layer 2 – VLANs & Trunks {#section-3-2-layer-2-vlans-trunks}
 VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains, and efficiently carry multiple logical networks over the same physical infrastructure.
 
@@ -199,7 +201,7 @@ VLANs, trunks, and QinQ are needed to segment traffic, reduce broadcast domains,
   * Lets ISPs carry customer VLANs over their own backbone.
   * Expands VLAN ID space beyond the 4096 limit.
 
-👉 All three work at **Layer 2 (Frames)** to logically separate traffic over shared physical networks.
+---
 
 ### 3.3 Layer 3 – Routing {#section-3-3-layer-3-routing}
 Routers strip old frames, keep IP header, attach new MAC header for next hop.  
@@ -233,9 +235,10 @@ note over R2: Removes old frame (R1-MAC → R2-MAC)\nAdds new frame (R2-MAC → 
 D <-- R2: Destination Host receives Packet(H-IP → D-IP)
 note right of D: Frame removed, IP packet delivered up the stack
 @enduml
-
   </script>
 </div>
+
+---
 
 ### 3.4 Layer 3 & 5–6 - IPsec {#section-3-4-layer-3-56---ipsec}
 IPsec = encrypted **network tunnels**.  
@@ -288,13 +291,14 @@ end
 </div>
 > Elliptic Curve Diffie–Hellman Ephemeral provides **Perfect Forward Secrecy (PFS)** by using a fresh, temporary key pair per session. Even if a server’s long-term private key is later compromised, past sessions remain confidential. Both TLS and IPsec commonly prefer ECDHE for key exchange.
 
+---
+
 ### 3.5 Layer 5–6 - TLS {#section-3-5-layer-56---tls}
 TLS = encrypted **application sessions**.  
 - Runs above TCP (L4) and below Application (L7).  
 - Provides confidentiality, integrity, authentication.  
 - Examples: HTTPS, SMTPS, IMAPS.  
 - Protects *specific app protocols*, not all traffic.
-
  
 <div class="image-wrapper">
   <img src="./assets/tls_handshake.png" alt="TLS Example" class="modal-trigger" data-caption="TLS handshake sequence showing client hello, server hello, certificate exchange, and key creation">
@@ -331,6 +335,8 @@ Server -> Client: TLS record { Application Data: HTTP Response }
 @enduml
   </script>
 </div>
+
+---
 
 ### 3.6 Traffic Addressing Modes (Unicast, Broadcast, Multicast, Anycast, Geocast) {#section-3-6-traffic-addressing-modes-unicast-broadcast-multicast-anycast-geocast}
 
@@ -461,7 +467,7 @@ How frames/packets are addressed determines who receives them and how the networ
 - **Class D:** 224.0.0.0 – 239.255.255.255 (multicast)  
 - **Class E:** 240.0.0.0 – 255.255.255.255 (experimental)  
 
-👉 Today we use **CIDR** instead of classful boundaries.
+---
 
 ### 5.2 Convert Binary to Decimal {#section-5-2-convert-binary-to-decimal}
 
@@ -527,6 +533,8 @@ How frames/packets are addressed determines who receives them and how the networ
 </table>
 
 👉 So `10000100` in decimal = **132**
+
+---
 
 ### 5.3 Convert Decimal to to Binary {#section-5-3-convert-decimal-to-to-binary}
 
@@ -596,13 +604,17 @@ Result row: **1 0 0 0 0 1 0 0**
 * **Types:**
   * **Static NAT** → Fixed 1:1 mapping (one private ↔ one public). Useful for servers that must be reachable externally.  
   * **Dynamic NAT** → Private IPs mapped temporarily to an available public IP from a pool. Mapping changes each session.  
-  * **PAT (Port Address Translation)** → Many private hosts share a single public IP. NAT device rewrites source **IP+Port** to track flows. Example: home routers, AWS NAT Gateway.
+  * **PAT (Port Address Translation)** → Many private hosts share a single public IP. NAT device rewrites source **IP+Port** to track flows. Example: home routers, carrier-grade NAT appliances.
+
+---
 
 ### 6.2 DDoS Attacks (3 categories) {#section-6-2-ddos-attacks-3-categories}
 
 1. **Volumetric** → Flood bandwidth with massive traffic (e.g., UDP floods, DNS/NTP amplification).  
 2. **Protocol** → Exploit L3/L4 weaknesses, exhausting connection state (e.g., SYN flood, Smurf attack, Ping of Death).  
 3. **Application** → Target app layer (L7) with valid-looking requests that overwhelm servers (e.g., HTTP floods, Slowloris).  
+
+---
 
 ### 6.3 BGP (Border Gateway Protocol) {#section-6-3-bgp-border-gateway-protocol}
 
@@ -619,13 +631,17 @@ The internet is a **network of networks** (Autonomous Systems, or AS):
   * **Route filtering** → accept/export only selected prefixes.  
   * **Peering vs Transit** → prefer cheap/free peer routes over costly transit.
 
+---
+
 ### 6.4 Jumbo Frames {#section-6-4-jumbo-frames}
 
 * **Default MTU = 1500 bytes**, Jumbo Frames = ~9000 bytes.  
 * **Benefits:** Less overhead, fewer packets, higher throughput for large data transfers.  
 * **Limitations:** Must be supported end-to-end; mismatches cause fragmentation or drops.  
-* **Supported in:** Local networks, datacenter links, AWS Direct Connect, TGW, same-region peering.  
+* **Supported in:** Local networks, datacenter interconnects, dedicated private backbones, and direct cloud interconnect links.  
 * **Not supported in:** General internet, VPN over public internet, cross-region cloud traffic.  
+
+---
 
 ### 6.5 Layer 7 Firewalls {#section-6-5-layer-7-firewalls}
 
@@ -635,4 +651,307 @@ The internet is a **network of networks** (Autonomous Systems, or AS):
   * Block/allow traffic based on **URLs, headers, payloads**.  
   * Detect and stop **application-layer DDoS** (HTTP floods, bots).  
   * Enforce **auth/security policies** (tokens, TLS inspection).  
-* **Examples:** AWS WAF, Cloudflare WAF, Palo Alto NGFW, F5 ASM.  
+* **Examples:** Cloudflare WAF, Palo Alto NGFW, F5 ASM, Imperva SecureSphere.  
+
+---
+
+## 7. Domain Name System (DNS) {#domain-name-system-dns}
+
+### 7.1 What DNS Does {#section-7-1-what-dns-does}
+
+**DNS (Domain Name System)** maps human-readable names (e.g., `example.com`) to IP addresses or other service endpoints. Two roles often get conflated:  
+- **DNS hosting provider** → Runs the authoritative name servers that store and answer your zone’s records (A, MX, TXT, etc.).  
+- **Domain registrar / registry** → Manages ownership of domain names within a top-level domain (`.com`, `.org`, etc.) and publishes NS/DS records that delegate authority to your DNS host.  
+
+Some companies handle both functions (e.g., GoDaddy, Cloudflare), while others let you register in one place and host DNS somewhere else.  
+
+---
+
+### 7.2 Common DNS Record Types {#section-7-2-common-dns-record-types}
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Record Type</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>Maps domain → IPv4 address</td>
+<td><code>example.com. IN A 192.0.2.1</code></td>
+</tr>
+<tr>
+<td><strong>AAAA</strong></td>
+<td>Maps domain → IPv6 address</td>
+<td><code>example.com. IN AAAA 2001:db8::1</code></td>
+</tr>
+<tr>
+<td><strong>CNAME</strong></td>
+<td>Alias to another domain (not IP)</td>
+<td><code>www.example.com. IN CNAME example.globalcdn.com.</code></td>
+</tr>
+<tr>
+<td><strong>ANAME / Alias</strong></td>
+<td>Provider-specific pseudo-record that behaves like a CNAME at the apex (e.g., Route 53 Alias, NS1 ANAME).</td>
+<td><code>example.com. IN ALIAS edge.globalcdn.net</code></td>
+</tr>
+<tr>
+<td><strong>MX</strong></td>
+<td>Mail routing</td>
+<td><code>example.com. IN MX 10 mail1.google.com.</code></td>
+</tr>
+<tr>
+<td><strong>TXT</strong></td>
+<td>Metadata (SPF, DKIM, domain verification)</td>
+<td><code>example.com. IN TXT "v=spf1 include:_spf.google.com ~all"</code></td>
+</tr>
+<tr>
+<td><strong>NS</strong></td>
+<td>Authoritative name servers for a zone</td>
+<td><code>example.com. IN NS ns1.dnsprovider.com.</code></td>
+</tr>
+<tr>
+<td><strong>SOA</strong></td>
+<td>Zone info (serial, refresh, retry)</td>
+<td><code>example.com. IN SOA ns1 hostmaster 2025010101 3600 1800 1209600 86400</code></td>
+</tr>
+<tr>
+<td><strong>PTR</strong></td>
+<td>Reverse DNS (IP → domain)</td>
+<td><code>1.2.0.192.in-addr.arpa. IN PTR example.com.</code></td>
+</tr>
+<tr>
+<td><strong>CAA</strong></td>
+<td>Restricts which Certificate Authorities can issue TLS certs</td>
+<td><code>example.com. IN CAA 0 issue "letsencrypt.org"</code></td>
+</tr>
+<tr>
+<td><strong>SRV</strong></td>
+<td>Service-specific record (SIP, LDAP, Kerberos)</td>
+<td><code>_sip._tcp.example.com. IN SRV 10 60 5060 sipserver.example.com.</code></td>
+</tr>
+</tbody>
+</table>
+
+---
+
+### 7.3 Apex (Naked) Domains {#section-7-3-apex-naked-domains}
+
+- The **zone apex** (e.g., `example.com`) represents the root of your domain.  
+- DNS standards forbid placing a CNAME at the apex because it would conflict with other mandatory records (NS, SOA).  
+- Many providers offer **ANAME/Alias** features to simulate a CNAME at the apex by resolving the target to an A/AAAA record on the server side (e.g., Route 53 Alias, Cloudflare CNAME flattening).  
+- For subdomains like `www.example.com`, you can safely use CNAME, ANAME/Alias, or A/AAAA records depending on the use case.  
+
+---
+
+### 7.4 DNS Resolution Flow {#section-7-4-dns-resolution-flow}
+
+1. A user queries `example.com` via a **recursive resolver** (ISP, Google Public DNS, Cloudflare, etc.).  
+2. If the answer is uncached, the resolver asks the **root servers** which TLD (`.com`) server is authoritative.  
+3. The resolver queries the **TLD servers**, which respond with the authoritative **NS records** for `example.com`.  
+4. The resolver contacts the authoritative name servers for `example.com` (your DNS host) and retrieves the requested record (A, MX, TXT, ...).  
+5. The resolver caches the response based on its TTL and returns the answer to the user’s application, which then reaches out to the resolved endpoint.  
+
+---
+
+### 7.5 DNSSEC Overview {#section-7-5-dnssec-overview}
+
+**DNSSEC (Domain Name System Security Extensions)** protects against forged DNS data by cryptographically signing DNS responses. It ensures **authenticity** and **integrity**, but it does **not** encrypt traffic.
+
+> Without DNSSEC, attackers can poison resolver caches or spoof responses. With DNSSEC, resolvers reject tampered data because signatures fail validation.
+
+#### 7.5.1 Key Concepts {#section-7-5-1-key-concepts}
+
+- **Digital Signatures**: Authoritative servers sign each RRset with a private key; resolvers validate using the corresponding public key.  
+- **DNSSEC Records**:  
+  - **DNSKEY** → Publishes the public keys for the zone.  
+  - **DS (Delegation Signer)** → Parent zone pointer to the child zone’s key, extending the trust chain.  
+  - **RRSIG** → Signature attached to each signed record set.  
+- **Chain of Trust**: Root (trust anchor) → TLD → Authoritative zone. Every delegation must be signed to keep the chain intact.  
+
+#### 7.5.2 Roles and Responsibilities {#section-7-5-2-roles-and-responsibilities}
+
+- **Root & TLD Operators**: Maintain signed parent zones and publish DS records for child delegations.  
+- **Zone Owners / DNS Hosts**: Generate keys, sign zones, and supply DS records to the registrar.  
+- **Recursive Resolvers**: Validate signatures and refuse bogus data. Many public resolvers already validate DNSSEC by default.  
+- **End Users**: No action required; they benefit from resolvers rejecting tampered responses.  
+
+#### 7.5.3 Validation Flow {#section-7-5-3-dnssec-validation-flow}
+
+1. Resolver requests the **DS record** for `example.com` from the TLD; verifies the response using the TLD’s signature.  
+2. Resolver requests the **DNSKEY** record set from `example.com`’s authoritative servers and verifies it against the DS digest.  
+3. Resolver fetches the desired record (e.g., `A example.com`) along with its **RRSIG**.  
+4. Using the validated DNSKEY, the resolver checks the RRSIG. If it validates, the answer is accepted and cached; otherwise the response is discarded as suspicious.  
+
+<div class="image-wrapper">
+  <img src="./assets/dnssec_resolution_flow.png" alt="DNSSEC Resolution Flow" class="modal-trigger" data-caption="DNSSEC resolution flow with chain of trust">
+  <div class="diagram-caption" data-snippet-id="dnssec-snippet">
+    🔐 DNSSEC Resolution – Validating DNS records with chain of trust
+  </div>
+  <script type="text/plain" id="dnssec-snippet">
+@startuml
+title DNS Resolution Flow (DNSSEC-enabled)
+
+actor User
+participant Resolver as "DNS Resolver (Recursive)"
+participant Root as "Root DNS (.) - ICANN"
+participant TLD as "TLD DNS (.com - Registry Operator)"
+participant Authoritative as "Authoritative DNS (e.g., Route 53 for example.com)"
+
+User -> Resolver : Query "example.com" (with DNSSEC enabled)
+
+' Step 1 - Ask Parent
+Resolver -> TLD : Query DS for "example.com"
+TLD --> Resolver : DS + RRSIG (signed by TLD key)
+
+' Step 2 - Get DNSKEY from child zone
+Resolver -> Authoritative : Query DNSKEY for "example.com"
+Authoritative --> Resolver : DNSKEY + RRSIG (signed by zone key)
+
+note over Resolver
+Validate DNSKEY using DS from TLD.  
+Root trust anchor → TLD → Authoritative zone.  
+If mismatch → reject response.
+end note
+
+' Step 3 - Query actual record
+Resolver -> Authoritative : Query A for "example.com"
+Authoritative --> Resolver : A record + RRSIG
+
+note over Resolver
+Verify A record using DNSKEY + RRSIG.  
+If valid → accept.  
+If invalid → discard.
+end note
+
+Resolver --> User : Return validated DNS record (IP for example.com)
+@enduml
+  </script>
+</div>
+
+---
+
+### 7.6 Route 53 Hosted Zone Resolution Flow {#section-7-6-route-53-hosted-zone-resolution-flow}
+
+1. You create a **Hosted Zone** in Route 53 for your domain (`example.com`).  
+2. Route 53 assigns **4 authoritative name servers (NS records)** for the domain.  
+3. You add DNS records (A, CNAME, MX, TXT, etc.) inside the hosted zone.  
+4. When a client queries `example.com`, the DNS resolver follows the chain:  
+   - Root → TLD → **Route 53 authoritative NS** (Amazon-managed).  
+5. Route 53 authoritative servers return the DNS record (e.g., A record with an IP).  
+6. Resolver caches and returns result to user → user connects to the target resource.  
+
+<div class="image-wrapper">
+  <img src="./assets/dns_resolution_flow.png" alt="DNS Resolution Flow" class="modal-trigger" data-caption="DNS resolution sequence flow (user to AWS Route 53)">
+  <div class="diagram-caption" data-snippet-id="dns-snippet">
+    🌐 DNS Resolution – Query to Answer
+  </div>
+  <script type="text/plain" id="dns-snippet">
+@startuml
+title DNS Resolution Flow (Normal + DNSSEC)
+
+actor User
+participant Resolver as "DNS Resolver (Recursive)"
+participant Root as "Root DNS (.)"
+participant TLD as "TLD DNS (.com - Parent Zone)"
+participant Authoritative as "Authoritative DNS (Route 53 for example.com)"
+
+== Normal DNS Resolution ==
+User -> Resolver : Query "example.com"
+
+note right of Resolver : Step 1: Resolver receives query from User.
+
+Resolver -> Root : Ask for NS of ".com"
+Root --> Resolver : Referral: TLD servers for .com
+
+note right of Resolver : Step 2: Resolver learns TLD servers.
+
+Resolver -> TLD : Ask for NS of "example.com"
+TLD --> Resolver : Referral: NS for "example.com" (Authoritative)
+
+note right of Resolver : Step 3: Resolver learns authoritative NS.
+
+Resolver -> Authoritative : Query DNS records (A, MX) for "example.com"
+Authoritative --> Resolver : Return records (A, MX)
+
+Resolver --> User : Return resolved records (e.g., A = 203.0.113.10)
+User -> Authoritative : Connect using resolved IP
+@enduml
+  </script>
+</div>
+
+---
+
+## 8. VPN {#section-8-vpn}
+
+Note VPN builds on top of IPSec, for details on how IPSec works, see [3.4 Layer 3 & 5–6 - IPsec]({{ '/study/infrastructureOsiModel#layer-3-56---ipsec' | relative_url }})
+
+### 8.1 Site-to-Site VPN {#section-8-1-site-to-site-vpn}
+
+- **Purpose**:  
+  - **Site-to-Site VPN = Network ↔ Network**  
+  - Connects an entire on-premises network (via a CGW) to an AWS VPC network (via a VGW or TGW).  
+  - Used for **hybrid cloud connectivity**, extending datacenter or branch office networks into AWS.  
+  - **Example**: Your office LAN can securely reach EC2 instances inside VPCs.  
+
+<div class="image-wrapper">
+  <img src="./assets/s2s_vpn.png" alt="S2S VPN Example" class="modal-trigger" data-caption="Site-to-Site VPN sequence showing CGW and VGW communication flow">
+  <div class="diagram-caption" data-snippet-id="s2s-snippet">
+    🔐 Site-to-Site VPN – Communication Sequence
+  </div>
+  <!-- Keep your PlantUML raw here -->
+  <script type="text/plain" id="s2s-snippet">
+@startuml
+title Classic VPN Setup with AWS Network (CGW and VGW)
+
+participant OnPrem as "On-Premises Network"
+participant ISP as "Internet Service Provider"
+participant Internet as "AWS Public Internet"
+participant VPC as "VPC (AWS Private Network)"
+
+' Classic VPN (VGW method)
+OnPrem -> ISP : From CGW: Request VPN Tunnel (IPsec Initiation)
+ISP -> Internet : Forwards Tunnel Request
+Internet -> VPC : Forwards Request to VGW
+VPC -> Internet : From VGW: Sends Tunnel Setup Acknowledgement
+Internet -> ISP : Sends Acknowledgement
+ISP -> OnPrem : Tunnel Setup Confirmation to CGW
+
+alt High Availability
+    OnPrem -> ISP : Switch to Backup Tunnel (Tunnel 2)
+    ISP -> Internet : Forwards Traffic to Backup Tunnel
+    Internet -> VPC : Routes Traffic to Backup Tunnel
+end
+
+OnPrem -> VPC : Routes Traffic to VPC
+OnPrem -> VPC : Continuous keep-alive messages
+VPC -> VPC : Acknowledges Keep-alive
+
+' Floating note at the very bottom
+note across
+  If you replace VGW with TGW (Transit Gateway),  
+  the VPN becomes a scalable solution that can connect to multiple VPCs.  
+  This allows a central hub (TGW) to route traffic between various VPCs,  
+  providing more flexibility and scalability in larger environments.
+end note
+
+@enduml
+  </script>
+</div>
+
+#### 8.1.1 Connectivity Types {#section-8-1-1-connectivity-types}
+
+Keep in mind, VPN connections traverse the public Internet before reaching AWS’s network. Because of this, the routing path and how routes are exchanged are critical.
+
+- **Static VPN**
+  - **Route**: Static routes in route tables (manual setup).  
+  - **Pros**: Simple setup.  
+  - **Cons**: No load balancing or failover.  
+
+- **Dynamic VPN**
+  - **Route**: Uses **BGP** for automatic route exchange.  
+  - **Pros**: High availability, automatic failover, and load balancing.  
+  - **Cons**: More complex setup.  
