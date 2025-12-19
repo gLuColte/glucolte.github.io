@@ -99,4 +99,7 @@
 <url>
 <loc>http://localhost:4000/setup/ubuntu</loc>
 </url>
+<url>
+<loc>http://localhost:4000/study/infrastructureAWSAiServices.html</loc>
+</url>
 </urlset>

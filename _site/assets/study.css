@@ -389,6 +389,112 @@
   display: block;
 }
 
+.code-snippet {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  margin: 12px 0 28px;
+  overflow: hidden;
+}
+
+.collapsible-snippet summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.collapsible-snippet summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible-snippet summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+[data-theme="dark"] .code-snippet {
+  border-color: #374151;
+  background: #0f172a;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+}
+
+.code-snippet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(15, 23, 42, 0.03);
+  font-family: var(--mono);
+  font-size: 0.9em;
+  color: var(--muted);
+}
+
+[data-theme="dark"] .code-snippet-header {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom-color: #374151;
+  color: #d1d5db;
+}
+
+.collapsible-snippet summary .code-snippet-header::before {
+  content: '▸';
+  margin-right: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.collapsible-snippet[open] summary .code-snippet-header::before {
+  content: '▾';
+}
+
+.code-snippet pre {
+  margin: 0;
+  border-radius: 0 0 12px 12px;
+  border: none;
+}
+
+.collapsible-snippet[open] pre {
+  border-top: 1px solid var(--line);
+}
+
+[data-theme="dark"] .collapsible-snippet[open] pre {
+  border-top-color: #374151;
+}
+
+.copy-button {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.85em;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-button:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: rgba(17, 24, 39, 0.05);
+}
+
+.copy-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] .copy-button {
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .copy-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #9ca3af;
+}
+
 /* Modal Styles */
 .image-modal {
   display: none;
