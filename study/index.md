@@ -166,7 +166,7 @@ To keep hide the **duplicate lessons** while branching across different study pa
       <button type="button" class="copy-button" id="cantrill-tampermonkey-copy">Copy script</button>
     </div>
   </summary>
-  <pre><code class="nohighlight" id="cantrill-tampermonkey-code">{{ cantrill_tm_script_trimmed | escape }}</code></pre>
+  <pre><code class="language-javascript" id="cantrill-tampermonkey-code">{{ cantrill_tm_script_trimmed | escape }}</code></pre>
 </details>
 
 <script>
