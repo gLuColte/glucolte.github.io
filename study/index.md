@@ -31,14 +31,13 @@ The following are infrastructure and cloud services study pages:
 {% capture cantrill_tm_script %}
 {% raw %}
 // ==UserScript==
-// @name         Cantrill Sidebar Filter (Ignore Tags)
+// @name         Cantrill Sidebar Filter (Floating UI)
 // @namespace    cantrill-sidebar-filter
-// @version      1.0.0
-// @description  Hide sidebar items whose lecture title contains any configured ignore strings (e.g., [ASSOCIATESHARED], [SHAREDALL]).
+// @version      1.1.1
+// @description  Hide sidebar items whose lecture title contains any configured ignore strings. Includes a floating bottom-left UI to edit ignore strings.
 // @match        https://learn.cantrill.io/courses/*/lectures/*
 // @grant        GM_getValue
 // @grant        GM_setValue
-// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (() => {
@@ -46,46 +45,28 @@ The following are infrastructure and cloud services study pages:
 
   const KEY_ENABLED = "csf_enabled";
   const KEY_IGNORE_LIST = "csf_ignore_list";
-
   const DEFAULT_IGNORE = ["ASSOCIATESHARED", "SHAREDALL"];
 
-  function getEnabled() {
-    return GM_getValue(KEY_ENABLED, true);
-  }
+  if (!/\/courses\/[^/]+\/lectures\/[^/?#]+/.test(location.pathname)) return;
 
-  function setEnabled(v) {
-    GM_setValue(KEY_ENABLED, !!v);
-  }
+  const getEnabled = () => GM_getValue(KEY_ENABLED, true);
+  const setEnabled = v => GM_setValue(KEY_ENABLED, !!v);
 
-  function normalizeTokens(tokens) {
-    return (tokens || [])
-      .map(s => String(s).trim())
-      .filter(Boolean);
-  }
+  const normalizeTokens = tokens =>
+    (tokens || []).map(s => String(s).trim()).filter(Boolean);
 
-  function getIgnoreList() {
+  const parseTokens = text =>
+    normalizeTokens(String(text || "").split(/[\n,]/g));
+
+  const getIgnoreList = () => {
     const raw = GM_getValue(KEY_IGNORE_LIST, null);
     if (raw == null) return DEFAULT_IGNORE.slice();
     if (Array.isArray(raw)) return normalizeTokens(raw);
-    // Back-compat if stored as string
-    return normalizeTokens(String(raw).split(/[\n,]/g));
-  }
+    return parseTokens(raw);
+  };
 
-  function setIgnoreList(tokens) {
+  const setIgnoreList = tokens =>
     GM_setValue(KEY_IGNORE_LIST, normalizeTokens(tokens));
-  }
-
-  function promptEditIgnoreList() {
-    const current = getIgnoreList();
-    const input = window.prompt(
-      "Enter ignore strings (comma or newline separated):\n\nExample:\nASSOCIATESHARED\nSHAREDALL",
-      current.join("\n")
-    );
-    if (input == null) return; // cancelled
-    const next = normalizeTokens(input.split(/[\n,]/g));
-    setIgnoreList(next);
-    applyFilter();
-  }
 
   function shouldHideTitle(title, ignoreTokens) {
     if (!title) return false;
@@ -97,13 +78,9 @@ The following are infrastructure and cloud services study pages:
     const enabled = getEnabled();
     const ignoreTokens = getIgnoreList();
 
-    // Sidebar items are <li class="section-item ..."> and title in <span class="lecture-name"> ...  [oai_citation:1‡tmp.html](sediment://file_000000003b947207802b51a7eb258ae2)
-    const items = document.querySelectorAll("li.section-item");
-    items.forEach(li => {
-      const titleEl = li.querySelector(".lecture-name");
-      const title = titleEl ? titleEl.textContent : "";
+    document.querySelectorAll("li.section-item").forEach(li => {
+      const title = li.querySelector(".lecture-name")?.textContent ?? "";
 
-      // If disabled, show everything
       if (!enabled) {
         li.style.removeProperty("display");
         li.removeAttribute("data-csf-hidden");
@@ -113,43 +90,188 @@ The following are infrastructure and cloud services study pages:
       if (shouldHideTitle(title, ignoreTokens)) {
         li.style.display = "none";
         li.setAttribute("data-csf-hidden", "1");
-      } else {
-        // Only unhide things we hid (don’t fight the site’s own styles)
-        if (li.getAttribute("data-csf-hidden") === "1") {
-          li.style.removeProperty("display");
-          li.removeAttribute("data-csf-hidden");
-        }
+      } else if (li.getAttribute("data-csf-hidden")) {
+        li.style.removeProperty("display");
+        li.removeAttribute("data-csf-hidden");
       }
     });
+
+    updateButtonState();
   }
 
-  function registerMenu() {
-    GM_registerMenuCommand(`Cantrill Filter: ${getEnabled() ? "Disable" : "Enable"}`, () => {
-      setEnabled(!getEnabled());
+  // ---------------- UI ----------------
+  const UI_ID = "csf-ui-root";
+
+  function injectStyles() {
+    if (document.getElementById("csf-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "csf-style";
+    style.textContent = `
+      #${UI_ID} {
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        z-index: 999999;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      }
+
+      .csf-fab {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .csf-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34,197,94,0.18);
+      }
+      .csf-dot.off {
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239,68,68,0.18);
+      }
+
+      .csf-label {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .csf-panel {
+        margin-bottom: 10px;
+        width: 320px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.97);
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+        animation: csf-pop 140ms ease-out;
+        transform-origin: bottom left;
+      }
+
+      @keyframes csf-pop {
+        from { transform: scale(0.97); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
+      .csf-panel-header {
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+        font-weight: 700;
+      }
+
+      .csf-panel-body {
+        padding: 12px;
+      }
+
+      .csf-textarea {
+        width: 100%;
+        height: 90px;
+        border-radius: 12px;
+        padding: 10px;
+        border: 1px solid rgba(0,0,0,0.12);
+        font-size: 12.5px;
+      }
+
+      .csf-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .csf-btn {
+        flex: 1;
+        padding: 9px;
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,0.1);
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .csf-btn.primary {
+        background: rgba(59,130,246,0.12);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function createUI() {
+    if (document.getElementById(UI_ID)) return;
+
+    injectStyles();
+
+    const root = document.createElement("div");
+    root.id = UI_ID;
+
+    const panel = document.createElement("div");
+    panel.className = "csf-panel";
+    panel.style.display = "none";
+    panel.innerHTML = `
+      <div class="csf-panel-header">
+        Sidebar Filter
+        <span style="cursor:pointer" class="csf-close">×</span>
+      </div>
+      <div class="csf-panel-body">
+        <textarea class="csf-textarea"></textarea>
+        <div class="csf-actions">
+          <button class="csf-btn primary csf-save">Save</button>
+          <button class="csf-btn csf-reset">Reset</button>
+        </div>
+      </div>
+    `;
+
+    const fab = document.createElement("div");
+    fab.className = "csf-fab";
+    fab.innerHTML = `<div class="csf-dot"></div><div class="csf-label">Filter</div>`;
+
+    fab.onclick = e => {
+      e.stopPropagation();
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+      panel.querySelector(".csf-textarea").value = getIgnoreList().join("\n");
+    };
+
+    panel.querySelector(".csf-close").onclick = () => panel.style.display = "none";
+    panel.querySelector(".csf-save").onclick = () => {
+      setIgnoreList(parseTokens(panel.querySelector(".csf-textarea").value));
       applyFilter();
-      // Quick refresh: Tampermonkey menu text won’t auto-update; reopen menu to see updated label.
-    });
-
-    GM_registerMenuCommand("Cantrill Filter: Edit ignore strings…", () => {
-      promptEditIgnoreList();
-    });
-
-    GM_registerMenuCommand("Cantrill Filter: Reset ignore strings", () => {
+      panel.style.display = "none";
+    };
+    panel.querySelector(".csf-reset").onclick = () => {
       setIgnoreList(DEFAULT_IGNORE);
+      setEnabled(true);
       applyFilter();
+    };
+
+    document.addEventListener("click", e => {
+      if (!root.contains(e.target)) panel.style.display = "none";
     });
+
+    root.append(panel, fab);
+    document.body.appendChild(root);
   }
 
-  function startObservers() {
-    // Handles dynamic navigation / sidebar refresh
-    const mo = new MutationObserver(() => applyFilter());
-    mo.observe(document.documentElement, { childList: true, subtree: true });
+  function updateButtonState() {
+    const dot = document.querySelector(".csf-dot");
+    if (dot) dot.classList.toggle("off", !getEnabled());
   }
 
-  // Boot
-  registerMenu();
+  new MutationObserver(applyFilter).observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+
+  createUI();
   applyFilter();
-  startObservers();
 })();
 {% endraw %}
 {% endcapture %}

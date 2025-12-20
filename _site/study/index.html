@@ -236,14 +236,13 @@ Think of this page as your <strong>mental compass</strong> — quick reminders o
     </div>
   </summary>
   <pre><code class="language-javascript" id="cantrill-tampermonkey-code">// ==UserScript==
-// @name         Cantrill Sidebar Filter (Ignore Tags)
+// @name         Cantrill Sidebar Filter (Floating UI)
 // @namespace    cantrill-sidebar-filter
-// @version      1.0.0
-// @description  Hide sidebar items whose lecture title contains any configured ignore strings (e.g., [ASSOCIATESHARED], [SHAREDALL]).
+// @version      1.1.1
+// @description  Hide sidebar items whose lecture title contains any configured ignore strings. Includes a floating bottom-left UI to edit ignore strings.
 // @match        https://learn.cantrill.io/courses/*/lectures/*
 // @grant        GM_getValue
 // @grant        GM_setValue
-// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (() =&gt; {
@@ -251,46 +250,28 @@ Think of this page as your <strong>mental compass</strong> — quick reminders o
 
   const KEY_ENABLED = &quot;csf_enabled&quot;;
   const KEY_IGNORE_LIST = &quot;csf_ignore_list&quot;;
-
   const DEFAULT_IGNORE = [&quot;ASSOCIATESHARED&quot;, &quot;SHAREDALL&quot;];
 
-  function getEnabled() {
-    return GM_getValue(KEY_ENABLED, true);
-  }
+  if (!/\/courses\/[^/]+\/lectures\/[^/?#]+/.test(location.pathname)) return;
 
-  function setEnabled(v) {
-    GM_setValue(KEY_ENABLED, !!v);
-  }
+  const getEnabled = () =&gt; GM_getValue(KEY_ENABLED, true);
+  const setEnabled = v =&gt; GM_setValue(KEY_ENABLED, !!v);
 
-  function normalizeTokens(tokens) {
-    return (tokens || [])
-      .map(s =&gt; String(s).trim())
-      .filter(Boolean);
-  }
+  const normalizeTokens = tokens =&gt;
+    (tokens || []).map(s =&gt; String(s).trim()).filter(Boolean);
 
-  function getIgnoreList() {
+  const parseTokens = text =&gt;
+    normalizeTokens(String(text || &quot;&quot;).split(/[\n,]/g));
+
+  const getIgnoreList = () =&gt; {
     const raw = GM_getValue(KEY_IGNORE_LIST, null);
     if (raw == null) return DEFAULT_IGNORE.slice();
     if (Array.isArray(raw)) return normalizeTokens(raw);
-    // Back-compat if stored as string
-    return normalizeTokens(String(raw).split(/[\n,]/g));
-  }
+    return parseTokens(raw);
+  };
 
-  function setIgnoreList(tokens) {
+  const setIgnoreList = tokens =&gt;
     GM_setValue(KEY_IGNORE_LIST, normalizeTokens(tokens));
-  }
-
-  function promptEditIgnoreList() {
-    const current = getIgnoreList();
-    const input = window.prompt(
-      &quot;Enter ignore strings (comma or newline separated):\n\nExample:\nASSOCIATESHARED\nSHAREDALL&quot;,
-      current.join(&quot;\n&quot;)
-    );
-    if (input == null) return; // cancelled
-    const next = normalizeTokens(input.split(/[\n,]/g));
-    setIgnoreList(next);
-    applyFilter();
-  }
 
   function shouldHideTitle(title, ignoreTokens) {
     if (!title) return false;
@@ -302,13 +283,9 @@ Think of this page as your <strong>mental compass</strong> — quick reminders o
     const enabled = getEnabled();
     const ignoreTokens = getIgnoreList();
 
-    // Sidebar items are &lt;li class=&quot;section-item ...&quot;&gt; and title in &lt;span class=&quot;lecture-name&quot;&gt; ...  [oai_citation:1‡tmp.html](sediment://file_000000003b947207802b51a7eb258ae2)
-    const items = document.querySelectorAll(&quot;li.section-item&quot;);
-    items.forEach(li =&gt; {
-      const titleEl = li.querySelector(&quot;.lecture-name&quot;);
-      const title = titleEl ? titleEl.textContent : &quot;&quot;;
+    document.querySelectorAll(&quot;li.section-item&quot;).forEach(li =&gt; {
+      const title = li.querySelector(&quot;.lecture-name&quot;)?.textContent ?? &quot;&quot;;
 
-      // If disabled, show everything
       if (!enabled) {
         li.style.removeProperty(&quot;display&quot;);
         li.removeAttribute(&quot;data-csf-hidden&quot;);
@@ -318,43 +295,188 @@ Think of this page as your <strong>mental compass</strong> — quick reminders o
       if (shouldHideTitle(title, ignoreTokens)) {
         li.style.display = &quot;none&quot;;
         li.setAttribute(&quot;data-csf-hidden&quot;, &quot;1&quot;);
-      } else {
-        // Only unhide things we hid (don’t fight the site’s own styles)
-        if (li.getAttribute(&quot;data-csf-hidden&quot;) === &quot;1&quot;) {
-          li.style.removeProperty(&quot;display&quot;);
-          li.removeAttribute(&quot;data-csf-hidden&quot;);
-        }
+      } else if (li.getAttribute(&quot;data-csf-hidden&quot;)) {
+        li.style.removeProperty(&quot;display&quot;);
+        li.removeAttribute(&quot;data-csf-hidden&quot;);
       }
     });
+
+    updateButtonState();
   }
 
-  function registerMenu() {
-    GM_registerMenuCommand(`Cantrill Filter: ${getEnabled() ? &quot;Disable&quot; : &quot;Enable&quot;}`, () =&gt; {
-      setEnabled(!getEnabled());
+  // ---------------- UI ----------------
+  const UI_ID = &quot;csf-ui-root&quot;;
+
+  function injectStyles() {
+    if (document.getElementById(&quot;csf-style&quot;)) return;
+
+    const style = document.createElement(&quot;style&quot;);
+    style.id = &quot;csf-style&quot;;
+    style.textContent = `
+      #${UI_ID} {
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        z-index: 999999;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      }
+
+      .csf-fab {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .csf-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34,197,94,0.18);
+      }
+      .csf-dot.off {
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239,68,68,0.18);
+      }
+
+      .csf-label {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .csf-panel {
+        margin-bottom: 10px;
+        width: 320px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.97);
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+        animation: csf-pop 140ms ease-out;
+        transform-origin: bottom left;
+      }
+
+      @keyframes csf-pop {
+        from { transform: scale(0.97); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
+      .csf-panel-header {
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+        font-weight: 700;
+      }
+
+      .csf-panel-body {
+        padding: 12px;
+      }
+
+      .csf-textarea {
+        width: 100%;
+        height: 90px;
+        border-radius: 12px;
+        padding: 10px;
+        border: 1px solid rgba(0,0,0,0.12);
+        font-size: 12.5px;
+      }
+
+      .csf-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .csf-btn {
+        flex: 1;
+        padding: 9px;
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,0.1);
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .csf-btn.primary {
+        background: rgba(59,130,246,0.12);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function createUI() {
+    if (document.getElementById(UI_ID)) return;
+
+    injectStyles();
+
+    const root = document.createElement(&quot;div&quot;);
+    root.id = UI_ID;
+
+    const panel = document.createElement(&quot;div&quot;);
+    panel.className = &quot;csf-panel&quot;;
+    panel.style.display = &quot;none&quot;;
+    panel.innerHTML = `
+      &lt;div class=&quot;csf-panel-header&quot;&gt;
+        Sidebar Filter
+        &lt;span style=&quot;cursor:pointer&quot; class=&quot;csf-close&quot;&gt;×&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;csf-panel-body&quot;&gt;
+        &lt;textarea class=&quot;csf-textarea&quot;&gt;&lt;/textarea&gt;
+        &lt;div class=&quot;csf-actions&quot;&gt;
+          &lt;button class=&quot;csf-btn primary csf-save&quot;&gt;Save&lt;/button&gt;
+          &lt;button class=&quot;csf-btn csf-reset&quot;&gt;Reset&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    `;
+
+    const fab = document.createElement(&quot;div&quot;);
+    fab.className = &quot;csf-fab&quot;;
+    fab.innerHTML = `&lt;div class=&quot;csf-dot&quot;&gt;&lt;/div&gt;&lt;div class=&quot;csf-label&quot;&gt;Filter&lt;/div&gt;`;
+
+    fab.onclick = e =&gt; {
+      e.stopPropagation();
+      panel.style.display = panel.style.display === &quot;none&quot; ? &quot;block&quot; : &quot;none&quot;;
+      panel.querySelector(&quot;.csf-textarea&quot;).value = getIgnoreList().join(&quot;\n&quot;);
+    };
+
+    panel.querySelector(&quot;.csf-close&quot;).onclick = () =&gt; panel.style.display = &quot;none&quot;;
+    panel.querySelector(&quot;.csf-save&quot;).onclick = () =&gt; {
+      setIgnoreList(parseTokens(panel.querySelector(&quot;.csf-textarea&quot;).value));
       applyFilter();
-      // Quick refresh: Tampermonkey menu text won’t auto-update; reopen menu to see updated label.
-    });
-
-    GM_registerMenuCommand(&quot;Cantrill Filter: Edit ignore strings…&quot;, () =&gt; {
-      promptEditIgnoreList();
-    });
-
-    GM_registerMenuCommand(&quot;Cantrill Filter: Reset ignore strings&quot;, () =&gt; {
+      panel.style.display = &quot;none&quot;;
+    };
+    panel.querySelector(&quot;.csf-reset&quot;).onclick = () =&gt; {
       setIgnoreList(DEFAULT_IGNORE);
+      setEnabled(true);
       applyFilter();
+    };
+
+    document.addEventListener(&quot;click&quot;, e =&gt; {
+      if (!root.contains(e.target)) panel.style.display = &quot;none&quot;;
     });
+
+    root.append(panel, fab);
+    document.body.appendChild(root);
   }
 
-  function startObservers() {
-    // Handles dynamic navigation / sidebar refresh
-    const mo = new MutationObserver(() =&gt; applyFilter());
-    mo.observe(document.documentElement, { childList: true, subtree: true });
+  function updateButtonState() {
+    const dot = document.querySelector(&quot;.csf-dot&quot;);
+    if (dot) dot.classList.toggle(&quot;off&quot;, !getEnabled());
   }
 
-  // Boot
-  registerMenu();
+  new MutationObserver(applyFilter).observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+
+  createUI();
   applyFilter();
-  startObservers();
 })();</code></pre>
 </details>
 
