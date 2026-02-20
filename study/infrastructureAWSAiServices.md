@@ -67,6 +67,8 @@ Transformers replaced recurrent networks by relying on **self-attention**, which
 - **Temperature (0–1)** – Scales the probability distribution before sampling. Lower values push the model toward the single most likely answer (deterministic); higher values encourage creative or varied text.
 - **Top-p (nucleus sampling)** – Keeps only the smallest set of tokens whose cumulative probability is ≥ `p`. Lower `p` limits the candidate pool to highly probable tokens; higher `p` allows adventurous replies. Amazon Bedrock exposes both parameters for every supported model.
 
+_Exam tip: Control hallucinations by lowering temperature/top-p and grounding answers with retrieved context._
+
 ---
 
 ## 5. Retrieval-Augmented Generation (RAG) {#section-5-rag}
@@ -79,6 +81,8 @@ RAG keeps foundation models up to date without re-training:
 4. Pass the question + retrieved context to the LLM so the answer cites fresh data.
 
 This pattern is cheaper than fine-tuning every time the knowledge base changes and is the default recommendation on the exam for “most current answers at low cost.”
+
+_Exam tip: Always justify RAG when the requirement is “fresh data without retraining.”_
 
 ---
 
@@ -164,7 +168,7 @@ Embedding models convert words, sentences, or images into dense vectors so that 
   </tbody>
 </table>
 
----
+_Exam tip: Know the basic capability of each managed AI service—questions often ask you to swap Rekognition (vision) vs Textract (document parsing) vs Comprehend (text NLP)._ 
 
 ## 9. LLM Conversation Flow Diagram {#section-9-llm-diagram}
 
@@ -198,17 +202,7 @@ POST --> User: final answer + sources
 </div>
 
 ---
-
-## 10. Exam Reminders {#section-10-exam-reminders}
-
-- Always justify RAG when the requirement is “fresh data without retraining.”
-- Pick domain adaptation fine-tuning when the task format is known; pick continued pre-training when the vocabulary is missing.
-- Control hallucinations by lowering temperature/top-p and grounding answers with retrieved context.
-- Know the basic capability of each managed AI service—exam questions often ask you to swap Rekognition (vision) vs Textract (document parsing) vs Comprehend (text NLP).
-
----
-
-## 11. Prompt Engineering Essentials {#section-11-prompt-engineering}
+## 9. Prompt Engineering Essentials {#section-9-prompt-engineering}
 
 - **Zero-shot vs few-shot** – Zero-shot relies purely on instructions, ideal for broad Q&A; few-shot includes curated examples so the model mirrors tone or schema. Prefer few-shot when responses must follow strict formatting.
 - **System vs user prompts** – System prompts set persona/policies; user prompts keep transient context. Adjust system prompts for compliance tone without retraining.
@@ -220,7 +214,7 @@ _Exam tip: Keep prompts short, move reusable policy text to templates, and cap `
 
 ---
 
-## 12. RAG Architecture & Tuning {#section-12-rag-architecture}
+## 10. RAG Architecture & Tuning {#section-10-rag-architecture}
 
 - **Chunking + overlap** – Target 200–500 token chunks with 10–20% overlap so passages maintain context without blowing up storage.
 - **Embeddings + vector stores** – Use Titan Text Embeddings, Cohere Embed, or open-source (bge/e5) with OpenSearch Serverless, Aurora pgvector, Neptune Analytics, or Bedrock Knowledge Bases.
@@ -263,7 +257,7 @@ _Exam tip: Answer “Use Bedrock Knowledge Bases” whenever the question stress
 
 ---
 
-## 13. Agents & Tool Use {#section-13-agents}
+## 11. Agents & Tool Use {#section-11-agents}
 
 - **Agent vs RAG** – Use RAG for better context inside a single response. Use agents when you need planning, multi-step workflows, or to call APIs/DBs dynamically.
 - **Tool calling patterns** – The agent interprets intent, chooses a tool (Lambda/HTTPS/Step Functions), executes it, ingests the result, and may loop until complete.
@@ -303,7 +297,7 @@ _Exam tip: If the requirement says “call internal APIs and external SaaS with 
 
 ---
 
-## 14. Evaluation & Hallucination Control {#section-14-eval}
+## 12. Evaluation & Hallucination Control {#section-12-eval}
 
 - **Offline evaluation** – Score prompts/models against golden datasets for accuracy, BLEU/ROUGE, or custom rubric. Automate in SageMaker pipelines.
 - **Human + LLM-as-judge** – SMEs validate edge cases; LLM judges accelerate regression testing but must be calibrated.
@@ -314,7 +308,7 @@ _Exam tip: When compliance reviewers are mentioned, respond with “human-in-the
 
 ---
 
-## 15. Responsible AI, Privacy, Security {#section-15-responsible-ai}
+## 13. Responsible AI, Privacy, Security {#section-13-responsible-ai}
 
 - **Bias/fairness** – Audit datasets, compare outputs across demographic slices, and document mitigations.
 - **PII governance** – Mask prompts, encrypt data (KMS), route calls through VPC endpoints/PrivateLink, and restrict IAM roles for agents/tools.
@@ -323,7 +317,7 @@ _Exam tip: When compliance reviewers are mentioned, respond with “human-in-the
 
 ---
 
-## 16. Cost Optimization for GenAI {#section-16-cost}
+## 14. Cost Optimization for GenAI {#section-14-cost}
 
 - **Token drivers** – Shorten system prompts, trim few-shot examples, and cap max tokens. Every unused token is direct cost.
 - **Caching** – Cache embeddings, retrieval hits, and deterministic responses to avoid re-querying the LLM.
@@ -335,7 +329,7 @@ _Exam tip: Mention “use Bedrock serverless invocation + caching” whenever th
 
 ---
 
-## 17. Decision Matrix {#section-17-decision-matrix}
+## 15. Decision Matrix {#section-15-decision-matrix}
 
 <table class="study-table">
   <thead>

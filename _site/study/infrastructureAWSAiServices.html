@@ -130,6 +130,8 @@
   <li><strong>Top-p (nucleus sampling)</strong> – Keeps only the smallest set of tokens whose cumulative probability is ≥ <code class="language-plaintext highlighter-rouge">p</code>. Lower <code class="language-plaintext highlighter-rouge">p</code> limits the candidate pool to highly probable tokens; higher <code class="language-plaintext highlighter-rouge">p</code> allows adventurous replies. Amazon Bedrock exposes both parameters for every supported model.</li>
 </ul>
 
+<p><em>Exam tip: Control hallucinations by lowering temperature/top-p and grounding answers with retrieved context.</em></p>
+
 <hr />
 
 <h2 id="section-5-rag">5. Retrieval-Augmented Generation (RAG)</h2>
@@ -144,6 +146,8 @@
 </ol>
 
 <p>This pattern is cheaper than fine-tuning every time the knowledge base changes and is the default recommendation on the exam for “most current answers at low cost.”</p>
+
+<p><em>Exam tip: Always justify RAG when the requirement is “fresh data without retraining.”</em></p>
 
 <hr />
 
@@ -233,7 +237,7 @@
   </tbody>
 </table>
 
-<hr />
+<p><em>Exam tip: Know the basic capability of each managed AI service—questions often ask you to swap Rekognition (vision) vs Textract (document parsing) vs Comprehend (text NLP).</em></p>
 
 <h2 id="section-9-llm-diagram">9. LLM Conversation Flow Diagram</h2>
 
@@ -267,19 +271,7 @@ POST --> User: final answer + sources
 </div>
 
 <hr />
-
-<h2 id="section-10-exam-reminders">10. Exam Reminders</h2>
-
-<ul>
-  <li>Always justify RAG when the requirement is “fresh data without retraining.”</li>
-  <li>Pick domain adaptation fine-tuning when the task format is known; pick continued pre-training when the vocabulary is missing.</li>
-  <li>Control hallucinations by lowering temperature/top-p and grounding answers with retrieved context.</li>
-  <li>Know the basic capability of each managed AI service—exam questions often ask you to swap Rekognition (vision) vs Textract (document parsing) vs Comprehend (text NLP).</li>
-</ul>
-
-<hr />
-
-<h2 id="section-11-prompt-engineering">11. Prompt Engineering Essentials</h2>
+<h2 id="section-9-prompt-engineering">9. Prompt Engineering Essentials</h2>
 
 <ul>
   <li><strong>Zero-shot vs few-shot</strong> – Zero-shot relies purely on instructions, ideal for broad Q&amp;A; few-shot includes curated examples so the model mirrors tone or schema. Prefer few-shot when responses must follow strict formatting.</li>
@@ -293,7 +285,7 @@ POST --> User: final answer + sources
 
 <hr />
 
-<h2 id="section-12-rag-architecture">12. RAG Architecture &amp; Tuning</h2>
+<h2 id="section-10-rag-architecture">10. RAG Architecture &amp; Tuning</h2>
 
 <ul>
   <li><strong>Chunking + overlap</strong> – Target 200–500 token chunks with 10–20% overlap so passages maintain context without blowing up storage.</li>
@@ -338,7 +330,7 @@ APP --> User: response (low hallucination)
 
 <hr />
 
-<h2 id="section-13-agents">13. Agents &amp; Tool Use</h2>
+<h2 id="section-11-agents">11. Agents &amp; Tool Use</h2>
 
 <ul>
   <li><strong>Agent vs RAG</strong> – Use RAG for better context inside a single response. Use agents when you need planning, multi-step workflows, or to call APIs/DBs dynamically.</li>
@@ -380,7 +372,7 @@ RESP --> User: explanation + citations
 
 <hr />
 
-<h2 id="section-14-eval">14. Evaluation &amp; Hallucination Control</h2>
+<h2 id="section-12-eval">12. Evaluation &amp; Hallucination Control</h2>
 
 <ul>
   <li><strong>Offline evaluation</strong> – Score prompts/models against golden datasets for accuracy, BLEU/ROUGE, or custom rubric. Automate in SageMaker pipelines.</li>
@@ -393,7 +385,7 @@ RESP --> User: explanation + citations
 
 <hr />
 
-<h2 id="section-15-responsible-ai">15. Responsible AI, Privacy, Security</h2>
+<h2 id="section-13-responsible-ai">13. Responsible AI, Privacy, Security</h2>
 
 <ul>
   <li><strong>Bias/fairness</strong> – Audit datasets, compare outputs across demographic slices, and document mitigations.</li>
@@ -404,7 +396,7 @@ RESP --> User: explanation + citations
 
 <hr />
 
-<h2 id="section-16-cost">16. Cost Optimization for GenAI</h2>
+<h2 id="section-14-cost">14. Cost Optimization for GenAI</h2>
 
 <ul>
   <li><strong>Token drivers</strong> – Shorten system prompts, trim few-shot examples, and cap max tokens. Every unused token is direct cost.</li>
@@ -418,7 +410,7 @@ RESP --> User: explanation + citations
 
 <hr />
 
-<h2 id="section-17-decision-matrix">17. Decision Matrix</h2>
+<h2 id="section-15-decision-matrix">15. Decision Matrix</h2>
 
 <table class="study-table">
   <thead>
