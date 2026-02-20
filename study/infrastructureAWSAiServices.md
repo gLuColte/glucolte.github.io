@@ -168,7 +168,7 @@ Embedding models convert words, sentences, or images into dense vectors so that 
 
 ## 9. LLM Conversation Flow Diagram {#section-9-llm-diagram}
 
-Use this UML snippet to visualize how user prompts move through retrieval, inference, and back to the UI. Add the PNG at `./assets/llm_conversation_flow.png` once you export it from PlantUML.
+Use this UML snippet to visualize how user prompts move through retrieval, inference, and back to the UI.
 
 <div class="image-wrapper">
   <img src="./assets/llm_conversation_flow.png" alt="llm_conversation_flow" class="modal-trigger" data-caption="🧠 LLM Conversation Flow">
