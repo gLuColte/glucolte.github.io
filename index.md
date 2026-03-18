@@ -14,10 +14,12 @@ title: Home
     <div class="home-card intro-card">
       <h1>/home</h1>
       <p>
-        I am writing this space to keep building and learning —
-        collecting principles, rules, and study notes as I go.
-        These notes are not complete guides, just reflections and reminders.
-        Over time I hope they grow into something useful for both myself and maybe others.
+        I use this space to document how I design reliable platforms —
+        principles, rules, and study notes captured as they evolve.
+        Each entry is a practical checkpoint from building scalable systems,
+        reminding me why certain approaches work and how to sharpen them.
+        It stays reflective yet intentional, pushing me to keep learning and
+        share what actually helps with delivery.
       </p>
 
       <div class="social">
@@ -32,19 +34,19 @@ title: Home
     <div class="home-card achievements-card">
       <h2>achievements</h2>
       <ul class="list">
-        <li>Built an internal PoC service portal for Region Services, automating manual processes and streamlining regional support</li>
-        <li>Set up CI/CD pipelines and infrastructure for the portal, aligned with Region Services security and deployment constraints</li>
-        <li>Optimised CI/CD pipelines to improve deployment reliability and reduce release failures</li>
-        <li>Integrated New Relic for monitoring and alerting, and leveraged OpenSearch for request/response tracing, improving incident response and root-cause analysis</li>
-        <li>Led operational support and weekly reviews for Amazon Redshift sub-service</li>
-        <li>Introduced AI-assisted diagnostics with Amazon Q, speeding up root-cause analysis from hours to minutes</li>
-        <li>Designed and maintained deployment process documentation, improving release consistency, onboarding efficiency, and incident response during deployments</li>
-        <li>Supported 24/7 global operations, contributing to 25+ international on-premises deployments</li>
-        <li>Migrated critical workloads from Microsoft Azure VMs to Amazon EC2 with minimal downtime</li>
-        <li>Drove cloud cost optimisation across Azure and AWS, achieving significant infrastructure savings</li>
-        <li>Created SOPs and disaster recovery runbooks, strengthening operational resilience</li>
-        <li>Rewrote and standardised Redshift runbooks, reducing onboarding and resolution time</li>
-        <li>Deployed and managed 130+ edge modules via Azure IoT Hub, improving remote infrastructure reliability</li>
+        <li>Designed an internal Region Services PoC portal that automated request intake and streamlined regional support</li>
+        <li>Built compliant CI/CD pipelines and infrastructure patterns for the portal, aligned to Region Services security and deployment constraints</li>
+        <li>Optimised those pipelines to raise deployment reliability and reduce release risk</li>
+        <li>Integrated New Relic monitoring with OpenSearch tracing to speed incident response and root-cause analysis</li>
+        <li>Led operational support and weekly readiness reviews for an Amazon Redshift sub-service</li>
+        <li>Introduced Amazon Q AI-assisted diagnostics to shrink root-cause analysis from hours to minutes</li>
+        <li>Authored and maintained deployment process guides to standardise releases, onboarding, and incident response</li>
+        <li>Supported 24/7 global operations across 25+ international on-premises deployments</li>
+        <li>Migrated critical workloads from Microsoft Azure VMs to Amazon EC2 with near-zero downtime</li>
+        <li>Drove AWS and Azure cost optimisation initiatives that delivered meaningful infrastructure savings</li>
+        <li>Created SOPs and disaster recovery runbooks to harden operational resilience</li>
+        <li>Rewrote and standardised Redshift runbooks, cutting onboarding and resolution time</li>
+        <li>Deployed and managed 130+ Azure IoT Hub edge modules, improving remote infrastructure reliability</li>
       </ul>
     </div>
 
@@ -53,61 +55,61 @@ title: Home
       <div class="skill-group">
         <h3>☁️ Cloud Platforms</h3>
         <ul class="skills">
-          <li>Amazon Web Services (AWS)</li>
-          <li>Microsoft Azure</li>
+          <li>Amazon Web Services (AWS) architecture</li>
+          <li>Microsoft Azure hybrid workloads</li>
         </ul>
       </div>
 
       <div class="skill-group">
         <h3>⚙️ Infrastructure &amp; Delivery Automation</h3>
         <ul class="skills">
-          <li>Terraform</li>
-          <li>CDK</li>
-          <li>Jenkins</li>
-          <li>Octopus Deploy</li>
-          <li>Azure DevOps</li>
-          <li>Docker</li>
+          <li>Terraform infrastructure as code</li>
+          <li>AWS CDK patterns</li>
+          <li>Jenkins orchestration</li>
+          <li>Octopus Deploy release automation</li>
+          <li>Azure DevOps pipelines</li>
+          <li>Docker container delivery</li>
         </ul>
       </div>
 
       <div class="skill-group">
         <h3>💻 Scripting &amp; Automation</h3>
         <ul class="skills">
-          <li>Python</li>
-          <li>PowerShell</li>
+          <li>Python platform tooling</li>
+          <li>PowerShell operational automation</li>
         </ul>
       </div>
 
       <div class="skill-group">
         <h3>🔗 Version Control &amp; Collaboration</h3>
         <ul class="skills">
-          <li>Git</li>
-          <li>Bitbucket</li>
+          <li>Git flow management</li>
+          <li>Bitbucket administration</li>
         </ul>
       </div>
 
       <div class="skill-group">
         <h3>📈 Monitoring &amp; Observability</h3>
         <ul class="skills">
-          <li>OpenSearch</li>
-          <li>Elastic Stack</li>
-          <li>CloudWatch</li>
-          <li>New Relic</li>
+          <li>OpenSearch logging pipelines</li>
+          <li>Elastic Stack analytics</li>
+          <li>CloudWatch metrics</li>
+          <li>New Relic telemetry</li>
         </ul>
       </div>
 
       <div class="skill-group">
         <h3>🖥️ Operating Systems</h3>
         <ul class="skills">
-          <li>Ubuntu</li>
-          <li>Windows Server</li>
+          <li>Ubuntu LTS administration</li>
+          <li>Windows Server operations</li>
         </ul>
       </div>
 
       <div class="skill-group">
         <h3>🚀 Agile Delivery</h3>
         <ul class="skills">
-          <li>Jira</li>
+          <li>Jira delivery orchestration</li>
         </ul>
       </div>
     </div>
