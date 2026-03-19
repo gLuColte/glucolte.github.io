@@ -69,6 +69,16 @@ Transformers replaced recurrent networks by relying on **self-attention**, which
 
 _Exam tip: Control hallucinations by lowering temperature/top-p and grounding answers with retrieved context._
 
+### Prompt Engineering {#section-4-prompt-engineering}
+
+- **Zero-shot** – instruction only; rely on the model’s pre-training.
+- **Few-shot** – add exemplars so the model mimics the pattern.
+- **Chain-of-thought** – ask for step-by-step reasoning to surface intermediate logic.
+- **Few-shot + CoT** – provide worked examples with reasoning, then request the same structure for the new task.
+- **RAG** – retrieve fresh/internal data and inject it into the prompt; complements prompt style by adding knowledge.
+- **Prompt structure checklist** – instruction, context, constraints, output format. Validation happens afterward, not inside the prompt.
+- **Use cases** – choose prompting tweaks for reasoning changes; choose RAG when knowledge gaps exist.
+
 ---
 
 ## 5. Retrieval-Augmented Generation (RAG) {#section-5-rag}
@@ -83,6 +93,20 @@ RAG keeps foundation models up to date without re-training:
 This pattern is cheaper than fine-tuning every time the knowledge base changes and is the default recommendation on the exam for “most current answers at low cost.”
 
 _Exam tip: Always justify RAG when the requirement is “fresh data without retraining.”_
+
+### Responsible AI and Governance {#section-5-governance}
+
+- Enforce data validation/cleansing pipelines before training or inference to reduce bias and drift.
+- Maintain written data quality standards as core AI governance controls.
+- Responsible AI pillars: fairness, explainability, privacy, robustness, safety, accountability.
+- Apply guardrails/admin controls (e.g., Bedrock guardrails, Amazon Q Business policies) to suppress sensitive or off-topic outputs.
+
+### Security and Compliance {#section-5-security}
+
+- **Layered controls** – access policies (IAM, VPC), data protection (encryption, redaction), detailed logging, and compliance evidence.
+- **Data logging** – record prompts, model invocations, and decisions for monitoring, troubleshooting, and audits.
+- **AWS Artifact** – self-service access to AWS SOC, ISO, and PCI reports when proving compliance.
+- Highlight logging + Artifact in exam answers that mention regulators, internal audits, or shared responsibility clarifications.
 
 ---
 
@@ -101,6 +125,20 @@ _Exam tip: Always justify RAG when the requirement is “fresh data without retr
 
 Exam tip: choose fine-tuning for adapting behavior on known tasks; choose continued pre-training when the base knowledge is insufficient.
 
+### Evaluation Metrics {#section-6-3-evaluation-metrics}
+
+- **Efficiency** – latency, throughput, or cost-per-token; use when speed/cost limits exist.
+- **Task metrics** – accuracy, F1, BLEU, ROUGE for technical fit-for-purpose checks.
+- **Business/operational metrics** – ARPU, CSAT, deflection; expect exam questions to mix technical and business KPIs to ensure you map each requirement to the correct metric type.
+- Remember: ARPU is a business KPI, not a model performance metric.
+
+### Agents and Real-Time Augmentation {#section-6-4-agents}
+
+- AI agents connect model reasoning to tools, APIs, workflows, and databases to execute tasks.
+- Typical flow: parse natural language intent → map to tool or API call → send results back through the model for explanation.
+- Use retrieval or tool calls when real-time or transactional data is required; prompting alone cannot access live systems.
+- Bedrock Agents or custom orchestration can translate user input into API/SQL calls, keeping humans in the loop for approvals.
+
 ---
 
 ## 7. Embeddings and BERT {#section-7-embeddings}
@@ -109,7 +147,14 @@ Embedding models convert words, sentences, or images into dense vectors so that 
 
 ---
 
-## 8. AWS AI Services Cheat Sheet {#section-8-aws-services}
+## 8. AWS Service Map {#section-8-aws-services}
+
+- Amazon Bedrock – managed foundation-model access for generative apps without training from scratch.
+- Amazon SageMaker – custom ML build/train/tune/deploy lifecycle.
+- Amazon Lex – conversational interface builder using intents and slots.
+- Amazon Kendra – enterprise search with intelligent retrieval over connected document stores.
+- Amazon Q Business – managed enterprise AI assistant with connectors, RBAC, and admin guardrails.
+- Amazon Comprehend – NLP service for sentiment, key phrases, classification, and entity extraction.
 
 <table class="study-table">
   <thead>
@@ -141,6 +186,11 @@ Embedding models convert words, sentences, or images into dense vectors so that 
       <td>Entity detection, sentiment, key phrases, PII redaction; supports custom classification.</td>
     </tr>
     <tr>
+      <td><strong>Amazon Kendra</strong></td>
+      <td>Enterprise Search</td>
+      <td>High-accuracy semantic search with connectors, relevance tuning, and FAQs.</td>
+    </tr>
+    <tr>
       <td><strong>Amazon Rekognition</strong></td>
       <td>Vision</td>
       <td>Image/video labels, face search, unsafe content, text detection.</td>
@@ -161,6 +211,11 @@ Embedding models convert words, sentences, or images into dense vectors so that 
       <td>Build chat/voice bots with slots, Lambda fulfillment, multi-lingual support.</td>
     </tr>
     <tr>
+      <td><strong>Amazon Q Business</strong></td>
+      <td>Enterprise AI Assistant</td>
+      <td>Managed assistants with connectors, RBAC, guardrails, and analytics.</td>
+    </tr>
+    <tr>
       <td><strong>Amazon Translate</strong></td>
       <td>Machine Translation</td>
       <td>Real-time and batch translation with active custom terminology.</td>
@@ -169,6 +224,25 @@ Embedding models convert words, sentences, or images into dense vectors so that 
 </table>
 
 _Exam tip: Know the basic capability of each managed AI service—questions often ask you to swap Rekognition (vision) vs Textract (document parsing) vs Comprehend (text NLP)._ 
+
+## Exam Traps {#section-exam-traps}
+
+- Prompt validation is post-processing; exam answers that list it as a core prompt element are wrong.
+- ARPU belongs to business KPI dashboards, not ML evaluation tables.
+- RAG adds knowledge; prompt tweaks only change reasoning style—never claim prompting alone provides fresh data.
+
+## Memory Hooks {#section-memory-hooks}
+
+- Bedrock = FM platform
+- SageMaker = custom ML platform
+- Lex = chatbot flow
+- Kendra = retrieval/search
+- Comprehend = NLP extraction
+- Amazon Q Business = enterprise AI assistant
+- RAG = retrieve then generate
+- Agents = LLM + tools/API bridges
+- Efficiency metric = latency/cost focus
+- Data logging = audit trail
 
 ## 9. LLM Conversation Flow Diagram {#section-9-llm-diagram}
 
