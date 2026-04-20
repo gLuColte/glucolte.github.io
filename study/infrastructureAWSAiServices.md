@@ -77,7 +77,7 @@ _Exam tip: Control hallucinations by lowering temperature/top-p and grounding an
 - **Few-shot + CoT** – provide worked examples with reasoning, then request the same structure for the new task.
 - **RAG** – retrieve fresh/internal data and inject it into the prompt; complements prompt style by adding knowledge.
 - **Prompt structure checklist** – instruction, context, constraints, output format. Validation happens afterward, not inside the prompt.
-- **Use cases** – choose prompting tweaks for reasoning changes; choose RAG when knowledge gaps exist.
+- **Use cases** – chocatalogue2025!ose prompting tweaks for reasoning changes; choose RAG when knowledge gaps exist.
 
 ---
 
@@ -336,6 +336,137 @@ _Exam tip: Answer “Use Bedrock Knowledge Bases” whenever the question stress
 - **Agent vs RAG** – Use RAG for better context inside a single response. Use agents when you need planning, multi-step workflows, or to call APIs/DBs dynamically.
 - **Tool calling patterns** – The agent interprets intent, chooses a tool (Lambda/HTTPS/Step Functions), executes it, ingests the result, and may loop until complete.
 - **AWS mapping** – Bedrock Agents orchestrate reasoning, call Lambda for business logic, Step Functions for long-running jobs, and can integrate RAG for grounding.
+
+This diagram is worth keeping because it clarifies a common point of confusion: the **agent** is the controller/orchestrator, the **model** is the reasoning engine, **tools** perform actions, **state** holds short-term working memory, and the **vector DB** acts as a retrieval index for long-term knowledge.
+
+Concrete example: in a coding assistant, a user asks to fix a login bug, the model suggests inspecting `auth.py`, the agent reads the file with a tool, stores the result in state, optionally retrieves related docs from the vector index, and then calls the model again with the updated context.
+
+<div class="image-wrapper">
+  <img src="./assets/ai_agent_architecture.png" alt="ai_agent_architecture" class="modal-trigger" data-caption="🧭 Agent vs Model vs Tools vs Vector DB">
+  <div class="diagram-caption" data-snippet-id="ai_agent_architecture">
+    🧭 Agent vs Model vs Tools vs Vector DB
+  </div>
+  <script type="text/plain" id="ai_agent_architecture">
+@startuml
+title Agent vs AI Model vs Tools vs Vector DB
+
+actor User
+
+box "Client / Interface Layer" #E3F2FD
+participant "CLI / App\n(Kiro CLI, Cursor,\nChatGPT UI)" as CLI
+end box
+
+box "Agent Layer\n(wrapper/controller)" #E8F5E9
+participant "Agent Runtime\nstate + workflow" as Agent
+participant "Agent Configuration\nrole, rules,\npermissions,\nmodel choice" as Config
+participant "Context Builder\nprompt assembly" as Context
+end box
+
+box "Retrieval / Memory Layer" #FFF3E0
+database "Vector DB / Retrieval Index\nQdrant, Weaviate,\npgvector, Chroma" as VectorDB
+database "Session Memory / Task State\nhistory, summaries,\nprevious tool results" as State
+end box
+
+box "Tool Layer\nthings the agent can operate" #F3E5F5
+participant "Tools\nfile read/write,\nterminal, MCP,\nAPIs, tests" as Tools
+end box
+
+box "AI Model Provider Layer\nactual intelligence engine" #FFEBEE
+participant "AI Model\nGPT / Claude / Gemini\nstateless per call" as Model
+end box
+
+== Agent starts ==
+
+User -> CLI: Send task
+CLI -> Agent: Start agent session
+
+Agent -> Config: Load config
+Config --> Agent: Role, rules, allowed tools,\nmodel choice, permissions
+
+Agent -> State: Load session/task state
+State --> Agent: History, summaries,\nprevious progress
+
+note over Config,Agent
+Config is not the AI.
+It tells the agent how to behave.
+end note
+
+== Build first model call ==
+
+Agent -> Context: Build prompt package
+
+Context -> VectorDB: Search relevant chunks
+VectorDB --> Context: Relevant docs/code/context
+
+Context -> State: Load useful history
+State --> Context: Prior messages / summaries
+
+Context --> Agent: Final prompt package
+
+Agent -> Model: Call #1\nrequest + retrieved context + state
+Model --> Agent: Response:\nInspect auth.py token validation
+
+note over Model
+The model is stateless between calls
+unless context is resent.
+end note
+
+== Agent uses tools ==
+
+Agent -> Tools: Read auth.py
+Tools --> Agent: auth.py contents
+
+Agent -> State: Store tool result / task progress
+State --> Agent: Updated state saved
+
+== Second model call ==
+
+Agent -> Context: Rebuild prompt package
+Context -> State: Load updated state
+State --> Context: File contents + previous response
+Context -> VectorDB: Optional search again
+VectorDB --> Context: More relevant context
+
+Context --> Agent: Updated prompt package
+
+Agent -> Model: Call #2\nrequest + file contents + prior step
+Model --> Agent: Response:\nPatch token check and run tests
+
+== Tool use again ==
+
+Agent -> Tools: Edit auth.py
+Tools --> Agent: Diff
+
+Agent -> Tools: Run auth tests
+Tools --> Agent: Test output
+
+Agent -> State: Save diff + test output
+State --> Agent: Updated state saved
+
+== Final model call ==
+
+Agent -> Context: Rebuild final context
+Context -> State: Load latest state
+State --> Context: Diff + test output + summary
+Context --> Agent: Final prompt package
+
+Agent -> Model: Call #3\nlatest context + result
+Model --> Agent: Final answer
+
+Agent -> CLI: Return result
+CLI -> User: Show answer / diff / status
+
+note over Agent,Model
+Agent = controller/orchestrator.
+AI Model = reasoning engine.
+Tools = action surface.
+State = short-term working memory.
+Vector DB = retrieval index.
+end note
+
+@enduml
+  </script>
+</div>
 
 <div class="image-wrapper">
   <img src="./assets/agent_tool_chain.png" alt="agent_tool_chain" class="modal-trigger" data-caption="🤖 Agent Tool Chain">
