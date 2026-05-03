@@ -160,6 +160,7 @@ Use the pattern sections as a quick diagnosis checklist before solving. LeetCode
       <th>Difficulty</th>
       <th>Primary Pattern</th>
       <th>Tags</th>
+      <th>Time Taken</th>
       <th>Solved</th>
     </tr>
   </thead>
@@ -173,6 +174,7 @@ Use the pattern sections as a quick diagnosis checklist before solving. LeetCode
           <td>{% if p.difficulty %}<span class="leetcode-pill difficulty-{{ p.difficulty | downcase }}">{{ p.difficulty }}</span>{% endif %}</td>
           <td>{{ p.primary_pattern }}</td>
           <td>{{ p.topics | join: ", " }}</td>
+          <td>{{ p.time_taken | default: "" }}</td>
           <td>{{ p.date_solved | default: "" }}</td>
         </tr>
       {% endif %}

@@ -10,6 +10,7 @@ topics:
   - "Array"
   - "Hash Table"
 date_solved: 2026-05-03
+time_taken: "02:19"
 language: Python3
 ---
 
@@ -18,6 +19,7 @@ language: Python3
 - **Difficulty:** Easy
 - **Primary pattern:** Arrays & Strings
 - **Tags:** Array, Hash Table
+- **Time taken:** 02:19
 - [LeetCode Link](https://leetcode.com/problems/two-sum/description/)
 
 ## Key Idea

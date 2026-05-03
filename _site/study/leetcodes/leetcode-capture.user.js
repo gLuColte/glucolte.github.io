@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LeetCode Markdown Capture
 // @namespace    https://glucolte.github.io/
-// @version      0.4.0
+// @version      0.5.0
 // @description  Capture a LeetCode problem and solution as a markdown file for study/leetcodes/.
 // @match        https://leetcode.com/problems/*
 // @grant        GM_setClipboard
@@ -16,10 +16,8 @@
   const DB_NAME = 'leetcode-markdown-capture';
   const DB_STORE = 'handles';
   const DB_KEY = 'leetcodes-folder';
-  const TIMER_SECONDS = 15 * 60;
-
   const timerState = {
-    remaining: TIMER_SECONDS,
+    elapsed: 0,
     running: false,
     intervalId: null
   };
@@ -190,6 +188,7 @@ leetcode_url: ${url}
 primary_pattern: "${primary.replace(/"/g, '\\"')}"
 ${frontMatterList(topics)}
 date_solved: ${today}
+time_taken:
 language: ${language || 'Unknown'}
 ---
 
@@ -198,6 +197,7 @@ language: ${language || 'Unknown'}
 - **Difficulty:** ${difficulty || 'Unknown'}
 - **Primary pattern:** ${primary || 'Unsorted'}
 - **Tags:** ${topics.length ? topics.join(', ') : 'Unsorted'}
+- **Time taken:**
 - [LeetCode Link](${url})
 
 ## Key Idea
@@ -327,6 +327,42 @@ ${code || '// Paste solution here'}
     }
   }
 
+  function upsertFrontMatterField(markdown, key, value) {
+    const replacement = `${key}: "${value}"`;
+    const frontMatter = markdown.match(/^---\n([\s\S]*?)\n---/);
+    if (!frontMatter) return `---\n${replacement}\n---\n\n${markdown}`;
+
+    const body = frontMatter[1];
+    const updatedBody = new RegExp(`^${key}:.*$`, 'm').test(body)
+      ? body.replace(new RegExp(`^${key}:.*$`, 'm'), replacement)
+      : `${body}\n${replacement}`;
+
+    return markdown.replace(/^---\n[\s\S]*?\n---/, `---\n${updatedBody}\n---`);
+  }
+
+  function upsertBulletField(markdown, label, value) {
+    const replacement = `- **${label}:** ${value}`;
+    const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`^- \\*\\*${escapedLabel}:\\*\\*.*$`, 'm');
+    if (pattern.test(markdown)) return markdown.replace(pattern, replacement);
+
+    const linkPattern = /^- \[LeetCode Link\]/m;
+    if (linkPattern.test(markdown)) {
+      return markdown.replace(linkPattern, `${replacement}\n$&`);
+    }
+
+    return markdown.replace(/(# .+\n)/, `$1\n${replacement}\n`);
+  }
+
+  function applySolveTime(markdown) {
+    const elapsed = formatTimer(timerState.elapsed);
+    return upsertBulletField(
+      upsertFrontMatterField(markdown, 'time_taken', elapsed),
+      'Time taken',
+      elapsed
+    );
+  }
+
   function openPreview() {
     const existing = document.getElementById('lc-md-capture-modal');
     if (existing) existing.remove();
@@ -409,7 +445,8 @@ ${code || '// Paste solution here'}
         }
       }
       if (action === 'save') {
-        const value = textarea.value;
+        const value = applySolveTime(textarea.value);
+        textarea.value = value;
         try {
           if (!supportsFolderSave()) {
             throw new Error('Folder picker is unavailable in Firefox. Downloading markdown instead.');
@@ -457,11 +494,11 @@ ${code || '// Paste solution here'}
     const time = timer.querySelector('.lc-md-timer-time');
     const start = timer.querySelector('[data-timer-action="start"]');
     const pause = timer.querySelector('[data-timer-action="pause"]');
-    time.textContent = formatTimer(timerState.remaining);
+    time.textContent = formatTimer(timerState.elapsed);
     timer.classList.toggle('lc-md-timer-running', timerState.running);
-    timer.classList.toggle('lc-md-timer-done', timerState.remaining === 0);
-    start.textContent = timerState.remaining === TIMER_SECONDS ? 'Start' : 'Resume';
-    start.disabled = timerState.running || timerState.remaining === 0;
+    timer.classList.toggle('lc-md-timer-over-target', timerState.elapsed >= 15 * 60);
+    start.textContent = timerState.elapsed === 0 ? 'Start' : 'Resume';
+    start.disabled = timerState.running;
     pause.disabled = !timerState.running;
   }
 
@@ -473,14 +510,10 @@ ${code || '// Paste solution here'}
   }
 
   function startTimer() {
-    if (timerState.running || timerState.remaining === 0) return;
+    if (timerState.running) return;
     timerState.running = true;
     timerState.intervalId = window.setInterval(() => {
-      timerState.remaining = Math.max(0, timerState.remaining - 1);
-      if (timerState.remaining === 0) {
-        timerState.running = false;
-        stopTimerInterval();
-      }
+      timerState.elapsed += 1;
       updateTimerUi();
     }, 1000);
     updateTimerUi();
@@ -494,7 +527,7 @@ ${code || '// Paste solution here'}
 
   function resetTimer() {
     timerState.running = false;
-    timerState.remaining = TIMER_SECONDS;
+    timerState.elapsed = 0;
     stopTimerInterval();
     updateTimerUi();
   }
@@ -507,8 +540,9 @@ ${code || '// Paste solution here'}
     const timer = document.createElement('section');
     timer.id = 'lc-md-timer';
     timer.innerHTML = `
-      <div class="lc-md-timer-label">15 min solve</div>
-      <div class="lc-md-timer-time">15:00</div>
+      <div class="lc-md-timer-label">Solve timer</div>
+      <div class="lc-md-timer-time">00:00</div>
+      <div class="lc-md-timer-note">Review if direction is unclear after 15:00</div>
       <div class="lc-md-timer-actions">
         <button type="button" data-timer-action="start">Start</button>
         <button type="button" data-timer-action="pause" disabled>Pause</button>
@@ -520,7 +554,8 @@ ${code || '// Paste solution here'}
     style.textContent = `
       #lc-md-timer { all: initial; position: fixed; right: 24px; bottom: 86px; z-index: 2147483647; box-sizing: border-box; width: 178px; border: 1px solid rgba(15,23,42,.14); border-radius: 14px; background: #ffffff; color: #0f172a; box-shadow: 0 14px 34px rgba(15,23,42,.20); font-family: system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif; padding: 12px; }
       #lc-md-timer .lc-md-timer-label { color: #64748b; font-size: 11px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
-      #lc-md-timer .lc-md-timer-time { font: 800 34px/1.1 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; margin: 5px 0 10px; text-align: center; }
+      #lc-md-timer .lc-md-timer-time { font: 800 34px/1.1 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; margin: 5px 0 4px; text-align: center; }
+      #lc-md-timer .lc-md-timer-note { color: #64748b; font-size: 11px; line-height: 1.3; margin: 0 0 10px; text-align: center; }
       #lc-md-timer .lc-md-timer-actions { display: grid; gap: 6px; grid-template-columns: 1fr 1fr; }
       #lc-md-timer button { border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #111827; cursor: pointer; font: 650 12px system-ui,sans-serif; padding: 7px 8px; }
       #lc-md-timer button:hover:not(:disabled) { background: #f1f5f9; border-color: #94a3b8; }
@@ -528,8 +563,8 @@ ${code || '// Paste solution here'}
       #lc-md-timer [data-timer-action="reset"] { grid-column: span 2; }
       #lc-md-timer.lc-md-timer-running { border-color: #f97316; box-shadow: 0 14px 34px rgba(249,115,22,.24); }
       #lc-md-timer.lc-md-timer-running .lc-md-timer-time { color: #ea580c; }
-      #lc-md-timer.lc-md-timer-done { border-color: #dc2626; background: #fef2f2; }
-      #lc-md-timer.lc-md-timer-done .lc-md-timer-time { color: #dc2626; }
+      #lc-md-timer.lc-md-timer-over-target { border-color: #dc2626; background: #fef2f2; }
+      #lc-md-timer.lc-md-timer-over-target .lc-md-timer-time { color: #dc2626; }
     `;
 
     timer.appendChild(style);

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Roman to Integer · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Roman to Integer | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Roman to Integer" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/leetcodes/0013-roman-to-integer" />
+<meta property="og:url" content="http://localhost:4000/study/leetcodes/0013-roman-to-integer" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Roman to Integer" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Roman to Integer","url":"http://localhost:4000/study/leetcodes/0013-roman-to-integer"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container leetcode-page">
+    <article class="content">
+      <h1 id="roman-to-integer">Roman to Integer</h1>
+
+<ul>
+  <li><strong>Difficulty:</strong> Easy</li>
+  <li><strong>Primary pattern:</strong> Arrays &amp; Strings</li>
+  <li><strong>Tags:</strong> Hash Table, Math, String</li>
+  <li><strong>Time taken:</strong> 19:51</li>
+  <li><a href="https://leetcode.com/problems/roman-to-integer/">LeetCode Link</a></li>
+</ul>
+
+<h2 id="key-idea">Key Idea</h2>
+
+<ul>
+  <li>Going from left to right its simple additoin</li>
+  <li>Think about how it Subtracts, you need to see the “window”</li>
+  <li>Either do that by if statements or check to last index</li>
+</ul>
+
+<h2 id="solution">Solution</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">romanToInt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">output_num</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">roman_mapper</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">"I"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">"V"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s">"X"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s">"L"</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+            <span class="s">"C"</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s">"D"</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+            <span class="s">"M"</span><span class="p">:</span> <span class="mi">1000</span>
+        <span class="p">}</span>
+
+        <span class="n">last_num_roman</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">num_roman</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">output_num</span> <span class="o">+=</span> <span class="n">roman_mapper</span><span class="p">[</span><span class="n">num_roman</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">last_num_roman</span> <span class="o">==</span> <span class="s">"C"</span> <span class="ow">and</span> <span class="n">num_roman</span> <span class="ow">in</span> <span class="p">[</span><span class="s">"M"</span><span class="p">,</span> <span class="s">"D"</span><span class="p">])</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="n">last_num_roman</span> <span class="o">==</span> <span class="s">"X"</span> <span class="ow">and</span> <span class="n">num_roman</span> <span class="ow">in</span> <span class="p">[</span><span class="s">"L"</span><span class="p">,</span> <span class="s">"C"</span><span class="p">])</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="n">last_num_roman</span> <span class="o">==</span> <span class="s">"I"</span> <span class="ow">and</span> <span class="n">num_roman</span> <span class="ow">in</span> <span class="p">[</span><span class="s">"V"</span><span class="p">,</span> <span class="s">"X"</span><span class="p">])</span>
+            <span class="p">):</span>
+                <span class="n">output_num</span> <span class="o">-=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">roman_mapper</span><span class="p">[</span><span class="n">last_num_roman</span><span class="p">]</span>
+
+            <span class="n">last_num_roman</span> <span class="o">=</span> <span class="n">num_roman</span>
+
+        <span class="k">return</span> <span class="n">output_num</span>
+</code></pre></div></div>
+
+<h2 id="complexity">Complexity</h2>
+
+<ul>
+  <li>Time: O(n)</li>
+  <li>Space: O(1)</li>
+</ul>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    initDarkMode();
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.hljs) hljs.highlightAll();
+    });
+  </script>
+</body>
+</html>
