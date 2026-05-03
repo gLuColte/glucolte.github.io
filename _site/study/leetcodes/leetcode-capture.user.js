@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LeetCode Markdown Capture
 // @namespace    https://glucolte.github.io/
-// @version      0.3.7
+// @version      0.4.0
 // @description  Capture a LeetCode problem and solution as a markdown file for study/leetcodes/.
 // @match        https://leetcode.com/problems/*
 // @grant        GM_setClipboard
@@ -16,6 +16,13 @@
   const DB_NAME = 'leetcode-markdown-capture';
   const DB_STORE = 'handles';
   const DB_KEY = 'leetcodes-folder';
+  const TIMER_SECONDS = 15 * 60;
+
+  const timerState = {
+    remaining: TIMER_SECONDS,
+    running: false,
+    intervalId: null
+  };
 
   function pageApi() {
     const pageWindow = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
@@ -437,11 +444,116 @@ ${code || '// Paste solution here'}
     mount.appendChild(button);
   }
 
+  function formatTimer(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  function updateTimerUi() {
+    const timer = document.getElementById('lc-md-timer');
+    if (!timer) return;
+
+    const time = timer.querySelector('.lc-md-timer-time');
+    const start = timer.querySelector('[data-timer-action="start"]');
+    const pause = timer.querySelector('[data-timer-action="pause"]');
+    time.textContent = formatTimer(timerState.remaining);
+    timer.classList.toggle('lc-md-timer-running', timerState.running);
+    timer.classList.toggle('lc-md-timer-done', timerState.remaining === 0);
+    start.textContent = timerState.remaining === TIMER_SECONDS ? 'Start' : 'Resume';
+    start.disabled = timerState.running || timerState.remaining === 0;
+    pause.disabled = !timerState.running;
+  }
+
+  function stopTimerInterval() {
+    if (timerState.intervalId) {
+      window.clearInterval(timerState.intervalId);
+      timerState.intervalId = null;
+    }
+  }
+
+  function startTimer() {
+    if (timerState.running || timerState.remaining === 0) return;
+    timerState.running = true;
+    timerState.intervalId = window.setInterval(() => {
+      timerState.remaining = Math.max(0, timerState.remaining - 1);
+      if (timerState.remaining === 0) {
+        timerState.running = false;
+        stopTimerInterval();
+      }
+      updateTimerUi();
+    }, 1000);
+    updateTimerUi();
+  }
+
+  function pauseTimer() {
+    timerState.running = false;
+    stopTimerInterval();
+    updateTimerUi();
+  }
+
+  function resetTimer() {
+    timerState.running = false;
+    timerState.remaining = TIMER_SECONDS;
+    stopTimerInterval();
+    updateTimerUi();
+  }
+
+  function addTimer() {
+    if (document.getElementById('lc-md-timer')) return;
+    const mount = document.body || document.documentElement;
+    if (!mount) return;
+
+    const timer = document.createElement('section');
+    timer.id = 'lc-md-timer';
+    timer.innerHTML = `
+      <div class="lc-md-timer-label">15 min solve</div>
+      <div class="lc-md-timer-time">15:00</div>
+      <div class="lc-md-timer-actions">
+        <button type="button" data-timer-action="start">Start</button>
+        <button type="button" data-timer-action="pause" disabled>Pause</button>
+        <button type="button" data-timer-action="reset">Reset</button>
+      </div>
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = `
+      #lc-md-timer { all: initial; position: fixed; right: 24px; bottom: 86px; z-index: 2147483647; box-sizing: border-box; width: 178px; border: 1px solid rgba(15,23,42,.14); border-radius: 14px; background: #ffffff; color: #0f172a; box-shadow: 0 14px 34px rgba(15,23,42,.20); font-family: system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif; padding: 12px; }
+      #lc-md-timer .lc-md-timer-label { color: #64748b; font-size: 11px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+      #lc-md-timer .lc-md-timer-time { font: 800 34px/1.1 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; margin: 5px 0 10px; text-align: center; }
+      #lc-md-timer .lc-md-timer-actions { display: grid; gap: 6px; grid-template-columns: 1fr 1fr; }
+      #lc-md-timer button { border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #111827; cursor: pointer; font: 650 12px system-ui,sans-serif; padding: 7px 8px; }
+      #lc-md-timer button:hover:not(:disabled) { background: #f1f5f9; border-color: #94a3b8; }
+      #lc-md-timer button:disabled { cursor: not-allowed; opacity: .45; }
+      #lc-md-timer [data-timer-action="reset"] { grid-column: span 2; }
+      #lc-md-timer.lc-md-timer-running { border-color: #f97316; box-shadow: 0 14px 34px rgba(249,115,22,.24); }
+      #lc-md-timer.lc-md-timer-running .lc-md-timer-time { color: #ea580c; }
+      #lc-md-timer.lc-md-timer-done { border-color: #dc2626; background: #fef2f2; }
+      #lc-md-timer.lc-md-timer-done .lc-md-timer-time { color: #dc2626; }
+    `;
+
+    timer.appendChild(style);
+    timer.addEventListener('click', event => {
+      const action = event.target && event.target.dataset ? event.target.dataset.timerAction : '';
+      if (action === 'start') startTimer();
+      if (action === 'pause') pauseTimer();
+      if (action === 'reset') resetTimer();
+    });
+    mount.appendChild(timer);
+    updateTimerUi();
+  }
+
   function bootButton() {
     addButton();
+    addTimer();
     window.setTimeout(addButton, 500);
+    window.setTimeout(addTimer, 500);
     window.setTimeout(addButton, 1500);
-    window.setInterval(addButton, 3000);
+    window.setTimeout(addTimer, 1500);
+    window.setInterval(() => {
+      addButton();
+      addTimer();
+    }, 3000);
   }
 
   if (document.readyState === 'loading') {
@@ -450,5 +562,8 @@ ${code || '// Paste solution here'}
     bootButton();
   }
 
-  new MutationObserver(addButton).observe(document.documentElement, { childList: true, subtree: true });
+  new MutationObserver(() => {
+    addButton();
+    addTimer();
+  }).observe(document.documentElement, { childList: true, subtree: true });
 }());
