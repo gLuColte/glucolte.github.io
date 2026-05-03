@@ -424,18 +424,16 @@ Practice your debugging and troubleshooting skills with hands-on Linux server ch
 
 ## LeetCode {#leetcode}
 
-The following are topic-specific coding interview study pages:
+Coding patterns and solved LeetCode problems now live in one searchable problem index.
 
 <div class="study-tiles">
-{% assign all_pages = site.pages | sort: "title" %}
-{% for p in all_pages %}
-  {% if p.url contains '/study/coding' and p.url != '/study/' %}
-    <a href="{{ p.url | relative_url }}" class="study-tile coding">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">💻</span>
-        {{ p.title | default: p.url }}
-      </div>
-    </a>
-  {% endif %}
-{% endfor %}
+  <a href="{{ '/study/codingLeetcode' | relative_url }}" class="study-tile coding">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">💻</span>
+      LeetCode
+    </div>
+    <div style="font-size: 14px; color: var(--muted); margin-top: 8px;">
+      Pattern table, solved question table, filters, and pagination.
+    </div>
+  </a>
 </div>

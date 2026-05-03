@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>leetcode · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>leetcode | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="leetcode" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/codingLeetcode" />
+<meta property="og:url" content="http://localhost:4000/study/codingLeetcode" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="leetcode" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"leetcode","url":"http://localhost:4000/study/codingLeetcode"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container leetcode-page">
+    <article class="content">
+      <h1 id="leetcode">LeetCode</h1>
+
+<p>This is my coding interview notebook: pattern reminders at the top, and one markdown page per completed problem underneath. The problem pages live in <code class="language-plaintext highlighter-rouge">study/leetcodes/</code>, so new captures from the Tampermonkey script can be added without deciding which topic file owns the question.</p>
+
+<p>Use the pattern sections as a quick diagnosis checklist before solving. LeetCode tags can overlap heavily, so the important split here is the main thinking pattern, not every possible tag.</p>
+
+<h2 id="pattern-notes">Pattern Notes</h2>
+
+<section class="leetcode-patterns">
+  <article class="leetcode-pattern-block">
+    <h3>Arrays &amp; Strings</h3>
+    <p>Use this bucket for flat sequence problems where the core work is scanning, comparing, grouping, or maintaining a window.</p>
+    <h4>Patterns to know</h4>
+    <ul>
+      <li>Two pointers: fast/slow, inward/outward, sorted pair search.</li>
+      <li>Sliding window for longest, shortest, or counted substring/subarray constraints.</li>
+      <li>Prefix sum and difference array for repeated range calculations.</li>
+      <li>Sorting plus greedy when order unlocks a simpler local choice.</li>
+      <li>Binary search on index or answer space.</li>
+    </ul>
+    <h4>How to identify</h4>
+    <p>The input is mainly an array or string, and the question asks for a pair, triplet, range, substring, frequency, or ordered scan.</p>
+  </article>
+
+  <article class="leetcode-pattern-block">
+    <h3>Dynamic Programming</h3>
+    <p>Use this when the answer can be built from smaller repeated states and a local decision contributes to a global optimum or count.</p>
+    <h4>Patterns to know</h4>
+    <ul>
+      <li>1D DP for Fibonacci-style transitions, house robber, and simple recurrence states.</li>
+      <li>2D grid DP for unique paths, minimum path sum, and obstacle grids.</li>
+      <li>Subsequence DP for LIS, LCS, edit distance, and matching problems.</li>
+      <li>Knapsack, interval DP, state machines, bitmask DP, and digit DP for richer state design.</li>
+    </ul>
+    <h4>How to identify</h4>
+    <p>Look for maximum/minimum ways, cost, length, repeated subproblems, or a recursive brute force that keeps recomputing the same state.</p>
+  </article>
+
+  <article class="leetcode-pattern-block">
+    <h3>Trees</h3>
+    <p>Tree problems are usually about choosing the right traversal and deciding what each recursive call should return to its parent.</p>
+    <h4>Patterns to know</h4>
+    <ul>
+      <li>DFS preorder, inorder, and postorder.</li>
+      <li>BFS level order with a queue.</li>
+      <li>Divide and conquer for height, balance, diameter, path sum, and subtree checks.</li>
+      <li>BST-specific inorder ordering and binary-search-like pruning.</li>
+      <li>Lowest common ancestor and ancestor/path tracking.</li>
+    </ul>
+    <h4>How to identify</h4>
+    <p>The input is `root`, or the problem talks about height, depth, level, ancestor, subtree, balanced, path, or BST order.</p>
+  </article>
+
+  <article class="leetcode-pattern-block">
+    <h3>Graphs</h3>
+    <p>Graph questions are about relationships: reachability, connectivity, ordering, shortest path, or traversing a grid as implicit nodes.</p>
+    <h4>Patterns to know</h4>
+    <ul>
+      <li>BFS and DFS for traversal, islands, and connected components.</li>
+      <li>Union-find for grouping and cycle detection.</li>
+      <li>Topological sort for prerequisites and dependency order.</li>
+      <li>Dijkstra or Bellman-Ford for weighted shortest paths.</li>
+    </ul>
+    <h4>How to identify</h4>
+    <p>The input has nodes and edges, a 2D grid with movement, prerequisites, components, cycles, or a shortest path requirement.</p>
+  </article>
+
+  <article class="leetcode-pattern-block">
+    <h3>Design Problems</h3>
+    <p>Design problems ask you to maintain state across method calls while meeting operation complexity constraints.</p>
+    <h4>Patterns to know</h4>
+    <ul>
+      <li>Hash map plus linked list for LRU-style ordering.</li>
+      <li>Hash map plus array for randomized set operations.</li>
+      <li>Queue/deque for recent-event windows, rate limiters, and hit counters.</li>
+      <li>Heap or ordered structures when min/max priority matters.</li>
+    </ul>
+    <h4>How to identify</h4>
+    <p>The prompt asks you to implement a class with operations such as `push`, `pop`, `get`, `put`, `add`, or `remove`.</p>
+  </article>
+
+  <article class="leetcode-pattern-block">
+    <h3>Backtracking</h3>
+    <p>Backtracking is controlled brute force: build a candidate, recurse, then undo the choice cleanly.</p>
+    <h4>Patterns to know</h4>
+    <ul>
+      <li>Subsets, combinations, and permutations.</li>
+      <li>Board search such as word search, N-Queens, and Sudoku.</li>
+      <li>Pruning invalid branches early.</li>
+    </ul>
+    <h4>How to identify</h4>
+    <p>The problem asks for all possible solutions, all valid arrangements, or all combinations under constraints.</p>
+  </article>
+
+  <article class="leetcode-pattern-block">
+    <h3>Heaps &amp; Priority Queues</h3>
+    <p>Use heaps when you repeatedly need the current smallest, largest, or best candidate without fully sorting every time.</p>
+    <h4>Patterns to know</h4>
+    <ul>
+      <li>Kth largest or smallest.</li>
+      <li>Top-k frequent elements.</li>
+      <li>Merge k sorted streams.</li>
+      <li>Scheduling and running median style problems.</li>
+    </ul>
+    <h4>How to identify</h4>
+    <p>The problem repeatedly asks for min/max, top-k, or the next best item while data changes.</p>
+  </article>
+
+  <article class="leetcode-pattern-block">
+    <h3>Linked Lists</h3>
+    <p>Linked list problems are pointer discipline problems. The main risk is losing references or mishandling edge cases.</p>
+    <h4>Patterns to know</h4>
+    <ul>
+      <li>Fast/slow pointers for cycles and middle nodes.</li>
+      <li>Dummy nodes for cleaner insert/delete logic.</li>
+      <li>Full or partial reversal.</li>
+      <li>Merge two lists or k lists.</li>
+    </ul>
+    <h4>How to identify</h4>
+    <p>The input involves nodes with `.next`, or the prompt asks to reverse, reorder, merge, detect a cycle, or remove nodes.</p>
+  </article>
+
+  <article class="leetcode-pattern-block">
+    <h3>Math &amp; Bit Manipulation</h3>
+    <p>This bucket is for problems where the trick is an arithmetic property, representation detail, or binary operation.</p>
+    <h4>Patterns to know</h4>
+    <ul>
+      <li>GCD, LCM, divisibility, modulo, and fast exponentiation.</li>
+      <li>XOR identities and bit masks.</li>
+      <li>Counting bits, powers of two, and subset representation.</li>
+    </ul>
+    <h4>How to identify</h4>
+    <p>Constraints are very large, the prompt mentions modulo/divisibility, or the solution depends on binary representation.</p>
+  </article>
+</section>
+
+<h2 id="completed-questions">Completed Questions</h2>
+
+<div class="leetcode-controls" aria-label="LeetCode problem filters">
+  <input id="leetcode-search" class="leetcode-search" type="search" placeholder="Search questions or tags" aria-label="Search LeetCode questions" />
+  <select id="leetcode-difficulty" class="leetcode-select" aria-label="Filter by difficulty">
+    <option value="">All difficulties</option>
+    <option value="Easy">Easy</option>
+    <option value="Medium">Medium</option>
+    <option value="Hard">Hard</option>
+  </select>
+</div>
+
+<table class="leetcode-table" id="leetcode-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Question</th>
+      <th>Difficulty</th>
+      <th>Primary Pattern</th>
+      <th>Tags</th>
+      <th>Solved</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </tbody>
+</table>
+
+<div class="leetcode-pagination">
+  <button id="leetcode-prev" type="button">Previous</button>
+  <span id="leetcode-page-status"></span>
+  <button id="leetcode-next" type="button">Next</button>
+</div>
+
+<script>
+(function () {
+  const pageSize = 15;
+  const rows = Array.from(document.querySelectorAll('#leetcode-table tbody tr'));
+  const search = document.getElementById('leetcode-search');
+  const difficulty = document.getElementById('leetcode-difficulty');
+  const prev = document.getElementById('leetcode-prev');
+  const next = document.getElementById('leetcode-next');
+  const status = document.getElementById('leetcode-page-status');
+  let page = 1;
+
+  function filteredRows() {
+    const q = (search.value || '').trim().toLowerCase();
+    const d = difficulty.value;
+    return rows.filter(row => {
+      const text = `${row.dataset.title || ''} ${row.dataset.topics || ''}`;
+      const matchesSearch = !q || text.includes(q);
+      const matchesDifficulty = !d || row.dataset.difficulty === d;
+      return matchesSearch && matchesDifficulty;
+    });
+  }
+
+  function render() {
+    const visible = filteredRows();
+    const totalPages = Math.max(1, Math.ceil(visible.length / pageSize));
+    page = Math.min(page, totalPages);
+    rows.forEach(row => row.hidden = true);
+    visible.slice((page - 1) * pageSize, page * pageSize).forEach(row => row.hidden = false);
+    status.textContent = `${visible.length} questions · page ${page} of ${totalPages}`;
+    prev.disabled = page <= 1;
+    next.disabled = page >= totalPages;
+  }
+
+  search.addEventListener('input', () => { page = 1; render(); });
+  difficulty.addEventListener('change', () => { page = 1; render(); });
+  prev.addEventListener('click', () => { page -= 1; render(); });
+  next.addEventListener('click', () => { page += 1; render(); });
+  render();
+}());
+</script>
+
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    initDarkMode();
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.hljs) hljs.highlightAll();
+    });
+  </script>
+</body>
+</html>
