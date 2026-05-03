@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LeetCode Markdown Capture
 // @namespace    https://glucolte.github.io/
-// @version      0.3.6
+// @version      0.3.7
 // @description  Capture a LeetCode problem and solution as a markdown file for study/leetcodes/.
 // @match        https://leetcode.com/problems/*
 // @grant        GM_setClipboard
@@ -289,6 +289,37 @@ ${code || '// Paste solution here'}
     await writable.close();
   }
 
+  async function readMarkdownFromFolder(filename) {
+    const folder = await getStoredDirectoryHandle();
+    if (!(await hasWritePermission(folder))) return null;
+
+    try {
+      const fileHandle = await folder.getFileHandle(filename, { create: false });
+      const file = await fileHandle.getFile();
+      return await file.text();
+    } catch (error) {
+      if (error && error.name === 'NotFoundError') return null;
+      throw error;
+    }
+  }
+
+  async function preloadExistingMarkdown(filename, textarea, setStatus) {
+    if (!supportsFolderSave()) return;
+
+    try {
+      const existing = await readMarkdownFromFolder(filename);
+      if (existing === null) {
+        setStatus('No existing file found. Preview is a new markdown file.');
+        return;
+      }
+
+      textarea.value = existing;
+      setStatus(`Loaded existing ${filename}. Save will update that file.`);
+    } catch (error) {
+      setStatus(error.message || 'Could not check whether this markdown file already exists.');
+    }
+  }
+
   function openPreview() {
     const existing = document.getElementById('lc-md-capture-modal');
     if (existing) existing.remove();
@@ -342,19 +373,21 @@ ${code || '// Paste solution here'}
       #lc-md-capture-modal .lc-md-primary:hover { background: #ea580c; border-color: #ea580c; }
     `;
     modal.appendChild(style);
-    modal.querySelector('textarea').value = data.markdown;
+    const textarea = modal.querySelector('textarea');
+    const status = modal.querySelector('.lc-md-status');
+    const setStatus = message => {
+      status.textContent = message;
+    };
+    textarea.value = data.markdown;
     document.body.appendChild(modal);
+    preloadExistingMarkdown(data.filename, textarea, setStatus);
 
     modal.addEventListener('click', async event => {
       const action = event.target && event.target.dataset ? event.target.dataset.action : '';
       if (!action) return;
-      const status = modal.querySelector('.lc-md-status');
-      const setStatus = message => {
-        status.textContent = message;
-      };
       if (action === 'close') modal.remove();
       if (action === 'copy') {
-        const value = modal.querySelector('textarea').value;
+        const value = textarea.value;
         if (typeof GM_setClipboard === 'function') GM_setClipboard(value);
         else await navigator.clipboard.writeText(value);
         setStatus('Copied markdown to clipboard.');
@@ -362,13 +395,14 @@ ${code || '// Paste solution here'}
       if (action === 'folder') {
         try {
           await chooseTargetFolder();
-          setStatus('Folder saved. Future captures can write there directly.');
+          setStatus('Folder saved. Checking for an existing markdown file...');
+          await preloadExistingMarkdown(data.filename, textarea, setStatus);
         } catch (error) {
           setStatus(error.message || 'Could not save the folder handle.');
         }
       }
       if (action === 'save') {
-        const value = modal.querySelector('textarea').value;
+        const value = textarea.value;
         try {
           if (!supportsFolderSave()) {
             throw new Error('Folder picker is unavailable in Firefox. Downloading markdown instead.');

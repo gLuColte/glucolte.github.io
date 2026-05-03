@@ -22,7 +22,7 @@ language: Python3
 
 ## Key Idea
 
--
+- Use a seen dictionary to track the compliment
 
 
 ## Solution
