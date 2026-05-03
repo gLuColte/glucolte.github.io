@@ -265,6 +265,17 @@
       
     
       
+        <tr class="leetcode-row" data-href="/study/leetcodes/0001-two-sum" data-title="two sum" data-difficulty="Easy" data-topics="array, hash table arrays &amp; strings">
+          <td class="leetcode-id">0001</td>
+          <td><a href="/study/leetcodes/0001-two-sum">Two Sum</a></td>
+          <td><span class="leetcode-pill difficulty-easy">Easy</span></td>
+          <td>Arrays &amp; Strings</td>
+          <td>Array, Hash Table</td>
+          <td>2026-05-03</td>
+        </tr>
+      
+    
+      
     
       
     
@@ -328,6 +339,12 @@
   difficulty.addEventListener('change', () => { page = 1; render(); });
   prev.addEventListener('click', () => { page -= 1; render(); });
   next.addEventListener('click', () => { page += 1; render(); });
+  rows.forEach(row => {
+    row.addEventListener('click', event => {
+      if (event.target.closest('a')) return;
+      window.location.href = row.dataset.href;
+    });
+  });
   render();
 }());
 </script>

@@ -839,6 +839,14 @@
   min-width: 220px;
 }
 
+.leetcode-row {
+  cursor: pointer;
+}
+
+.leetcode-row:hover td {
+  background: #f8fafc;
+}
+
 .leetcode-table a {
   color: var(--accent);
   text-decoration: none;
@@ -850,6 +858,10 @@
 
 [data-theme="dark"] .leetcode-table th {
   background: #374151;
+}
+
+[data-theme="dark"] .leetcode-row:hover td {
+  background: #1f2937;
 }
 
 @media (max-width: 760px) {

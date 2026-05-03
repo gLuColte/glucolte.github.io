@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LeetCode Markdown Capture
 // @namespace    https://glucolte.github.io/
-// @version      0.3.5
+// @version      0.3.6
 // @description  Capture a LeetCode problem and solution as a markdown file for study/leetcodes/.
 // @match        https://leetcode.com/problems/*
 // @grant        GM_setClipboard
@@ -188,13 +188,14 @@ language: ${language || 'Unknown'}
 
 # ${title}
 
-**Difficulty:** ${difficulty || 'Unknown'}  
-**Primary pattern:** ${primary || 'Unsorted'}  
-**Tags:** ${topics.length ? topics.join(', ') : 'Unsorted'}  
-[LeetCode Link](${url})
+- **Difficulty:** ${difficulty || 'Unknown'}
+- **Primary pattern:** ${primary || 'Unsorted'}
+- **Tags:** ${topics.length ? topics.join(', ') : 'Unsorted'}
+- [LeetCode Link](${url})
 
 ## Key Idea
 
+- 
 
 
 ## Solution
@@ -205,8 +206,8 @@ ${code || '// Paste solution here'}
 
 ## Complexity
 
-Time:  
-Space:  
+- Time:
+- Space:
 `;
 
     return { filename, markdown };

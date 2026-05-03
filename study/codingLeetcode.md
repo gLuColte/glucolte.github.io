@@ -167,7 +167,7 @@ Use the pattern sections as a quick diagnosis checklist before solving. LeetCode
     {% assign leetcode_pages = site.pages | sort: "title" %}
     {% for p in leetcode_pages %}
       {% if p.path contains "study/leetcodes/" %}
-        <tr data-title="{{ p.title | downcase | escape }}" data-difficulty="{{ p.difficulty | escape }}" data-topics="{{ p.topics | join: ', ' | downcase | escape }} {{ p.primary_pattern | downcase | escape }}">
+        <tr class="leetcode-row" data-href="{{ p.url | relative_url }}" data-title="{{ p.title | downcase | escape }}" data-difficulty="{{ p.difficulty | escape }}" data-topics="{{ p.topics | join: ', ' | downcase | escape }} {{ p.primary_pattern | downcase | escape }}">
           <td class="leetcode-id">{% if p.leetcode_id %}{{ p.leetcode_id | prepend: "0000" | slice: -4, 4 }}{% endif %}</td>
           <td><a href="{{ p.url | relative_url }}">{{ p.title }}</a></td>
           <td>{% if p.difficulty %}<span class="leetcode-pill difficulty-{{ p.difficulty | downcase }}">{{ p.difficulty }}</span>{% endif %}</td>
@@ -223,6 +223,12 @@ Use the pattern sections as a quick diagnosis checklist before solving. LeetCode
   difficulty.addEventListener('change', () => { page = 1; render(); });
   prev.addEventListener('click', () => { page -= 1; render(); });
   next.addEventListener('click', () => { page += 1; render(); });
+  rows.forEach(row => {
+    row.addEventListener('click', event => {
+      if (event.target.closest('a')) return;
+      window.location.href = row.dataset.href;
+    });
+  });
   render();
 }());
 </script>
