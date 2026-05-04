@@ -3,14 +3,14 @@ layout: leetcode
 title: "Valid Parentheses"
 permalink: /study/leetcodes/0020-valid-parentheses
 leetcode_id: 20
-difficulty: Unknown
+difficulty: Easy
 leetcode_url: https://leetcode.com/problems/valid-parentheses/submissions/1994606873/
 primary_pattern: "Design Problems"
 topics:
   - "String"
   - "Stack"
 date_solved: 2026-05-04
-time_taken: "15:32"
+time_taken: "13:19"
 language: Python3
 ---
 
@@ -19,7 +19,7 @@ language: Python3
 - **Difficulty:** Unknown
 - **Primary pattern:** Design Problems
 - **Tags:** String, Stack
-- **Time taken:** 15:32
+- **Time taken:** 13:19
 - [LeetCode Link](https://leetcode.com/problems/valid-parentheses/submissions/1994606873/)
 
 ## Key Idea

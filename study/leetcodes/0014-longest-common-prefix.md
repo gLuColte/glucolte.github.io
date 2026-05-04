@@ -3,7 +3,7 @@ layout: leetcode
 title: "Longest Common Prefix"
 permalink: /study/leetcodes/0014-longest-common-prefix
 leetcode_id: 14
-difficulty: Unknown
+difficulty: Easy
 leetcode_url: https://leetcode.com/problems/longest-common-prefix/
 primary_pattern: "Trees"
 topics:
@@ -11,7 +11,7 @@ topics:
   - "String"
   - "Trie"
 date_solved: 2026-05-04
-time_taken: "17:02"
+time_taken: "13:19"
 language: Python3
 ---
 
@@ -20,7 +20,7 @@ language: Python3
 - **Difficulty:** Unknown
 - **Primary pattern:** Trees
 - **Tags:** Array, String, Trie
-- **Time taken:** 17:02
+- **Time taken:** 13:19
 - [LeetCode Link](https://leetcode.com/problems/longest-common-prefix/)
 
 ## Key Idea

@@ -3,7 +3,7 @@ layout: leetcode
 title: "Merge Two Sorted Lists"
 permalink: /study/leetcodes/0021-merge-two-sorted-lists
 leetcode_id: 21
-difficulty: Unknown
+difficulty: Easy
 leetcode_url: https://leetcode.com/problems/merge-two-sorted-lists/submissions/1994616569/
 primary_pattern: "Linked Lists"
 topics:
