@@ -3,14 +3,14 @@ layout: leetcode
 title: "Remove Element"
 permalink: /study/leetcodes/0027-remove-element
 leetcode_id: 27
-difficulty: Unknown
+difficulty: Easy
 leetcode_url: https://leetcode.com/problems/remove-element/submissions/1994826772/
 primary_pattern: "Arrays & Strings"
 topics:
   - "Array"
   - "Two Pointers"
 date_solved: 2026-05-04
-time_taken: "04:50"
+time_taken: "19:03"
 language: Python3
 ---
 
@@ -19,7 +19,7 @@ language: Python3
 - **Difficulty:** Unknown
 - **Primary pattern:** Arrays & Strings
 - **Tags:** Array, Two Pointers
-- **Time taken:** 04:50
+- **Time taken:** 19:03
 - [LeetCode Link](https://leetcode.com/problems/remove-element/submissions/1994826772/)
 
 ## Key Idea

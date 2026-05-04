@@ -3,7 +3,7 @@ layout: leetcode
 title: "Find the Index of the First Occurrence in a String"
 permalink: /study/leetcodes/0028-find-the-index-of-the-first-occurrence-in-a-string
 leetcode_id: 28
-difficulty: Unknown
+difficulty: Easy
 leetcode_url: https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/submissions/1994837192/
 primary_pattern: "Arrays & Strings"
 topics:
