@@ -165,7 +165,7 @@ Use the pattern sections as a quick diagnosis checklist before solving. LeetCode
     </tr>
   </thead>
   <tbody>
-    {% assign leetcode_pages = site.pages | sort: "title" %}
+    {% assign leetcode_pages = site.pages | sort: "leetcode_id" %}
     {% for p in leetcode_pages %}
       {% if p.path contains "study/leetcodes/" %}
         <tr class="leetcode-row" data-href="{{ p.url | relative_url }}" data-title="{{ p.title | downcase | escape }}" data-difficulty="{{ p.difficulty | escape }}" data-topics="{{ p.topics | join: ', ' | downcase | escape }} {{ p.primary_pattern | downcase | escape }}">
