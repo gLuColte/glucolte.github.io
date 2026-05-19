@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>3Sum · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>3Sum | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="3Sum" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/leetcodes/0015-3sum" />
+<meta property="og:url" content="http://localhost:4000/study/leetcodes/0015-3sum" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="3Sum" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"3Sum","url":"http://localhost:4000/study/leetcodes/0015-3sum"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container leetcode-page">
+    <article class="content">
+      <h1 id="3sum">3Sum</h1>
+
+<ul>
+  <li><strong>Difficulty:</strong> Unknown</li>
+  <li><strong>Primary pattern:</strong> Arrays &amp; Strings</li>
+  <li><strong>Tags:</strong> Array, Two Pointers, Sorting</li>
+  <li><strong>Time taken:</strong> 11:37</li>
+  <li><a href="https://leetcode.com/problems/3sum/submissions/2003448488/">LeetCode Link</a></li>
+</ul>
+
+<h2 id="key-idea">Key Idea</h2>
+
+<ul>
+  <li>Brute force you traverse through the list</li>
+  <li>Correct way is to use dynamic left and right pointers on a sorted list. If a list is sorted, when summing, use the sum to determine whether you need to go left or right, until there is no further index</li>
+</ul>
+
+<h2 id="solution">Solution</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">threeSum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="c1"># Sort first so we can use two pointers
+</span>        <span class="n">nums</span><span class="p">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Fix one number at a time
+</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="c1"># Skip duplicate fixed numbers
+</span>            <span class="c1"># Example: if nums[i] is same as nums[i - 1],
+</span>            <span class="c1"># we already handled this starting number before
+</span>            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Two pointers for the remaining part of the list
+</span>            <span class="n">left_pointer</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">right_pointer</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="n">left_pointer</span> <span class="o">&lt;</span> <span class="n">right_pointer</span><span class="p">:</span>
+                <span class="n">current_sum</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">left_pointer</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">right_pointer</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">current_sum</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">output_list</span><span class="p">.</span><span class="n">append</span><span class="p">([</span>
+                        <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">nums</span><span class="p">[</span><span class="n">left_pointer</span><span class="p">],</span>
+                        <span class="n">nums</span><span class="p">[</span><span class="n">right_pointer</span><span class="p">]</span>
+                    <span class="p">])</span>
+                    <span class="c1"># Move both pointers after finding a valid triplet
+</span>                    <span class="n">left_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">right_pointer</span> <span class="o">-=</span> <span class="mi">1</span>
+                    <span class="c1"># Skip duplicate left values
+</span>                    <span class="k">while</span> <span class="n">left_pointer</span> <span class="o">&lt;</span> <span class="n">right_pointer</span> <span class="ow">and</span> <span class="n">nums</span><span class="p">[</span><span class="n">left_pointer</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">left_pointer</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">left_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1"># Skip duplicate right values
+</span>                    <span class="k">while</span> <span class="n">left_pointer</span> <span class="o">&lt;</span> <span class="n">right_pointer</span> <span class="ow">and</span> <span class="n">nums</span><span class="p">[</span><span class="n">right_pointer</span><span class="p">]</span> <span class="o">==</span> <span class="n">nums</span><span class="p">[</span><span class="n">right_pointer</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">right_pointer</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">current_sum</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Sum is too small, need a bigger number
+</span>                    <span class="n">left_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Sum is too large, need a smaller number
+</span>                    <span class="n">right_pointer</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">output_list</span>
+</code></pre></div></div>
+
+<h2 id="complexity">Complexity</h2>
+
+<ul>
+  <li>Time: O(n2)</li>
+  <li>Space: O(1)</li>
+</ul>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    initDarkMode();
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.hljs) hljs.highlightAll();
+    });
+  </script>
+</body>
+</html>

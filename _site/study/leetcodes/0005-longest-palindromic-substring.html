@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Longest Palindromic Substring · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Longest Palindromic Substring | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Longest Palindromic Substring" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/leetcodes/0005-longest-palindromic-substring" />
+<meta property="og:url" content="http://localhost:4000/study/leetcodes/0005-longest-palindromic-substring" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Longest Palindromic Substring" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Longest Palindromic Substring","url":"http://localhost:4000/study/leetcodes/0005-longest-palindromic-substring"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container leetcode-page">
+    <article class="content">
+      <h1 id="longest-palindromic-substring">Longest Palindromic Substring</h1>
+
+<ul>
+  <li><strong>Difficulty:</strong> Unknown</li>
+  <li><strong>Primary pattern:</strong> Dynamic Programming</li>
+  <li><strong>Tags:</strong> Two Pointers, String, Dynamic Programming</li>
+  <li><strong>Time taken:</strong> 00:01</li>
+  <li><a href="https://leetcode.com/problems/longest-palindromic-substring/submissions/1998477093/">LeetCode Link</a></li>
+</ul>
+
+<h2 id="key-idea">Key Idea</h2>
+
+<ul>
+  <li>Understand that you don’t know if it is odd or even palindrome at the start</li>
+  <li>Using Pointers for Left and Right, and iterate</li>
+  <li>For Even Palindrome, your “right” is +1</li>
+</ul>
+
+<h2 id="solution">Solution</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">longestPalindrome</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># If the string is empty or has one character,
+</span>        <span class="c1"># it is already the longest palindrome
+</span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">s</span>
+
+        <span class="c1"># Store the longest palindrome found so far
+</span>        <span class="n">max_palindromic</span> <span class="o">=</span> <span class="s">""</span>
+
+        <span class="c1"># Try every character as a possible center
+</span>        <span class="k">for</span> <span class="n">current_pointer</span><span class="p">,</span> <span class="n">character</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+
+            <span class="c1"># ==================================================
+</span>            <span class="c1"># Odd case
+</span>            <span class="c1"># Example: "bab"
+</span>            <span class="c1">#
+</span>            <span class="c1"># The center is one character:
+</span>            <span class="c1"># b a b
+</span>            <span class="c1">#   ^
+</span>            <span class="c1">#
+</span>            <span class="c1"># So both pointers start at the same index
+</span>            <span class="c1"># ==================================================
+</span>            <span class="n">left_pointer</span> <span class="o">=</span> <span class="n">current_pointer</span>
+            <span class="n">right_pointer</span> <span class="o">=</span> <span class="n">current_pointer</span>
+
+            <span class="c1"># Expand while left and right are inside the string
+</span>            <span class="k">while</span> <span class="n">left_pointer</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">right_pointer</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+
+                <span class="c1"># If both sides match, we found a palindrome
+</span>                <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">left_pointer</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="n">right_pointer</span><span class="p">]:</span>
+
+                    <span class="c1"># Save the current palindrome substring
+</span>                    <span class="n">current_palindromic</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">left_pointer</span><span class="p">:</span><span class="n">right_pointer</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+                    <span class="c1"># Expand outward
+</span>                    <span class="n">left_pointer</span> <span class="o">-=</span> <span class="mi">1</span>
+                    <span class="n">right_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="c1"># If they do not match, stop expanding
+</span>                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="c1"># Update answer if this odd palindrome is longer
+</span>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_palindromic</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">max_palindromic</span><span class="p">):</span>
+                <span class="n">max_palindromic</span> <span class="o">=</span> <span class="n">current_palindromic</span>
+
+            <span class="c1"># ==================================================
+</span>            <span class="c1"># Even case
+</span>            <span class="c1"># Example: "bb"
+</span>            <span class="c1">#
+</span>            <span class="c1"># The center is between two characters:
+</span>            <span class="c1"># b b
+</span>            <span class="c1"># ^ ^
+</span>            <span class="c1">#
+</span>            <span class="c1"># So left starts at current index,
+</span>            <span class="c1"># right starts at the next index
+</span>            <span class="c1"># ==================================================
+</span>            <span class="n">left_pointer</span> <span class="o">=</span> <span class="n">current_pointer</span>
+            <span class="n">right_pointer</span> <span class="o">=</span> <span class="n">current_pointer</span> <span class="o">+</span> <span class="mi">1</span>
+
+            <span class="c1"># Important:
+</span>            <span class="c1"># reset current_palindromic for the even case
+</span>            <span class="n">current_palindromic</span> <span class="o">=</span> <span class="s">""</span>
+
+            <span class="c1"># Expand while left and right are inside the string
+</span>            <span class="k">while</span> <span class="n">left_pointer</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">right_pointer</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+
+                <span class="c1"># If both sides match, we found a palindrome
+</span>                <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">left_pointer</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="n">right_pointer</span><span class="p">]:</span>
+
+                    <span class="c1"># Save the current palindrome substring
+</span>                    <span class="n">current_palindromic</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">left_pointer</span><span class="p">:</span><span class="n">right_pointer</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+                    <span class="c1"># Expand outward
+</span>                    <span class="n">left_pointer</span> <span class="o">-=</span> <span class="mi">1</span>
+                    <span class="n">right_pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="c1"># If they do not match, stop expanding
+</span>                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="c1"># Update answer if this even palindrome is longer
+</span>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_palindromic</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">max_palindromic</span><span class="p">):</span>
+                <span class="n">max_palindromic</span> <span class="o">=</span> <span class="n">current_palindromic</span>
+
+        <span class="k">return</span> <span class="n">max_palindromic</span>
+</code></pre></div></div>
+
+<h2 id="complexity">Complexity</h2>
+
+<ul>
+  <li>Time: O(n2) -&gt; Beacuse for each character you expand</li>
+  <li>Space: O(1)</li>
+</ul>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    initDarkMode();
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.hljs) hljs.highlightAll();
+    });
+  </script>
+</body>
+</html>

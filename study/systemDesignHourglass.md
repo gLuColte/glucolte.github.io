@@ -252,6 +252,12 @@ At the bottom is the **Presentation layer**, where data is delivered outward aga
 
 ---
 
+# Numbers That Matter {#numbers-that-matter}
+
+The Hourglass method tells you what to decide. The sizing math tells you whether the design is plausible. For powers of two, latency units, latency estimates, and availability targets, see [Numbers That Matter in System Design](/study/systemDesignNumbersThatMatter).
+
+---
+
 # System Design Scenarios {#system-design-scenarios}
 
 These scenarios illustrate how to apply the **Hourglass Design Method** to real-world systems, from IoT to social platforms to eCommerce.  

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Generate Parentheses · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Generate Parentheses | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Generate Parentheses" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/leetcodes/0022-generate-parentheses" />
+<meta property="og:url" content="http://localhost:4000/study/leetcodes/0022-generate-parentheses" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Generate Parentheses" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Generate Parentheses","url":"http://localhost:4000/study/leetcodes/0022-generate-parentheses"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container leetcode-page">
+    <article class="content">
+      <h1 id="generate-parentheses">Generate Parentheses</h1>
+
+<ul>
+  <li><strong>Difficulty:</strong> Medium</li>
+  <li><strong>Primary pattern:</strong> Dynamic Programming</li>
+  <li><strong>Tags:</strong> String, Dynamic Programming, Backtracking</li>
+  <li><strong>Time taken:</strong> 14:14</li>
+  <li><a href="https://leetcode.com/problems/generate-parentheses/">LeetCode Link</a></li>
+</ul>
+
+<h2 id="key-idea">Key Idea</h2>
+
+<ul>
+  <li>Need GPT to help</li>
+  <li>Recursion explores one valid path until it finishes, then returns to the last choice point and continues exploring the other possible path.</li>
+  <li>Try “(“ first, finish that whole branch, then come back and try “)” if it is allowed.</li>
+  <li>Recursion “unwraps” like a tree
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>backtrack("", 0, 0)
+└── backtrack("(", 1, 0)
+  ├── backtrack("((", 2, 0)
+  │   ├── backtrack("(((", 3, 0)
+  │   │   └── backtrack("((()", 3, 1)
+  │   │       └── backtrack("((())", 3, 2)
+  │   │           └── backtrack("((()))", 3, 3)
+  │   │               └── append "((()))"
+  │   │
+  │   └── backtrack("(()", 2, 1)
+  │       ├── backtrack("(()(", 3, 1)
+  │       │   └── backtrack("(()()", 3, 2)
+  │       │       └── backtrack("(()())", 3, 3)
+  │       │           └── append "(()())"
+  │       │
+  │       └── backtrack("(())", 2, 2)
+  │           └── backtrack("(())(", 3, 2)
+  │               └── backtrack("(())()", 3, 3)
+  │                   └── append "(())()"
+  │
+  └── backtrack("()", 1, 1)
+      └── backtrack("()(", 2, 1)
+          ├── backtrack("()((", 3, 1)
+          │   └── backtrack("()(()", 3, 2)
+          │       └── backtrack("()(())", 3, 3)
+          │           └── append "()(())"
+          │
+          └── backtrack("()()", 2, 2)
+              └── backtrack("()()(", 3, 2)
+                  └── backtrack("()()()", 3, 3)
+                      └── append "()()()"
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<h2 id="solution">Solution</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">generateParenthesis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">def</span> <span class="nf">backtrack</span><span class="p">(</span><span class="n">current_string</span><span class="p">,</span> <span class="n">open_count</span><span class="p">,</span> <span class="n">close_count</span><span class="p">):</span>
+            <span class="c1"># Stop when the string has length 2n
+</span>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_string</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">:</span>
+                <span class="n">output_list</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_string</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Add "(" if we still have opening brackets left
+</span>            <span class="k">if</span> <span class="n">open_count</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+                <span class="n">backtrack</span><span class="p">(</span>
+                    <span class="n">current_string</span> <span class="o">+</span> <span class="s">"("</span><span class="p">,</span>
+                    <span class="n">open_count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">close_count</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Add ")" only if it will not break validity
+</span>            <span class="k">if</span> <span class="n">close_count</span> <span class="o">&lt;</span> <span class="n">open_count</span><span class="p">:</span>
+                <span class="n">backtrack</span><span class="p">(</span>
+                    <span class="n">current_string</span> <span class="o">+</span> <span class="s">")"</span><span class="p">,</span>
+                    <span class="n">open_count</span><span class="p">,</span>
+                    <span class="n">close_count</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="p">)</span>
+
+        <span class="n">backtrack</span><span class="p">(</span><span class="s">""</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">output_list</span>
+</code></pre></div></div>
+
+<h2 id="complexity">Complexity</h2>
+
+<ul>
+  <li>Time: O(4^n / √n)</li>
+  <li>Space: O(n)</li>
+</ul>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    initDarkMode();
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.hljs) hljs.highlightAll();
+    });
+  </script>
+</body>
+</html>

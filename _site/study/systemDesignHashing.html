@@ -1,0 +1,1532 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Hashing · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Hashing | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Hashing" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/systemDesignHashing" />
+<meta property="og:url" content="http://localhost:4000/study/systemDesignHashing" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Hashing" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Hashing","url":"http://localhost:4000/study/systemDesignHashing"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container">
+    <article class="content">
+      <h1 id="hashing">Hashing</h1>
+
+<p>Hashing is one of the most useful ideas in coding interviews and system design. In coding interviews, it powers hash maps, sets, frequency counting, grouping, and fast lookup. In system design, it helps distribute keys across servers, shards, caches, and streams.</p>
+
+<p>This page starts from first principles and builds toward practical interview use.</p>
+
+<hr />
+
+<h2 id="what-is-hashing">1. What Is Hashing?</h2>
+
+<p>Hashing converts an input, often called a <strong>key</strong>, into a fixed-size or numeric value using a <strong>hash function</strong>.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>key -&gt; hash function -&gt; hash value
+</code></pre></div></div>
+
+<p>Examples:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"abc"      -&gt; hash function -&gt; some number
+"user_123" -&gt; hash function -&gt; some number
+"file.png" -&gt; hash function -&gt; some number
+</code></pre></div></div>
+
+<p>For deterministic hashing, the same input should produce the same output:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hash("abc") = 96354
+hash("abc") = 96354
+hash("abc") = 96354
+</code></pre></div></div>
+
+<p>Important ideas:</p>
+
+<ul>
+  <li>Hashing is <strong>not encryption</strong>.</li>
+  <li>Hashing is usually <strong>one-way</strong>: you should not expect to recover the original input from the hash.</li>
+  <li>Different inputs can sometimes produce the same hash value. This is called a <strong>collision</strong>.</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"abc"  -&gt; hash -&gt; 42
+"xyz"  -&gt; hash -&gt; 42
+
+collision: two different keys produced the same hash value
+</code></pre></div></div>
+
+<p>In interviews, hashing usually means: “Can I turn this value into something I can look up quickly?”</p>
+
+<hr />
+
+<h2 id="what-does-serverindex-hash-n-mean">2. What Does <code class="language-plaintext highlighter-rouge">serverIndex = hash % N</code> Mean?</h2>
+
+<p>In system design, hashing is often used to decide where a key should live.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>serverIndex = hash(key) % N
+</code></pre></div></div>
+
+<p>Where:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">key</code> is something like a user ID, request ID, file ID, or cache key.</li>
+  <li><code class="language-plaintext highlighter-rouge">hash(key)</code> converts the key into a number.</li>
+  <li><code class="language-plaintext highlighter-rouge">N</code> is the number of servers, shards, or buckets.</li>
+  <li><code class="language-plaintext highlighter-rouge">% N</code> maps the number into a valid index from <code class="language-plaintext highlighter-rouge">0</code> to <code class="language-plaintext highlighter-rouge">N - 1</code>.</li>
+</ul>
+
+<p>Example:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hash("user_123") = 17
+N = 4
+
+17 % 4 = 1
+
+"user_123" goes to server 1
+</code></pre></div></div>
+
+<p>Diagram:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>              +----------+
+"user_123" -&gt; | hash()   | -&gt; 17
+              +----------+
+                    |
+                    v
+                 17 % 4
+                    |
+                    v
+               server 1
+</code></pre></div></div>
+
+<p>The problem is that changing <code class="language-plaintext highlighter-rouge">N</code> changes the result:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>17 % 4 = 1
+17 % 5 = 2
+</code></pre></div></div>
+
+<p>So if you add or remove servers, many keys may move to different servers. This is why simple modulo hashing is easy to understand but painful when the server count changes often.</p>
+
+<p>This motivates <strong>consistent hashing</strong>, covered later.</p>
+
+<hr />
+
+<h2 id="how-does-a-string-become-a-number">3. How Does a String Become a Number?</h2>
+
+<p>Computers already represent characters as numbers. In Python, <code class="language-plaintext highlighter-rouge">ord()</code> gives the Unicode code point for a character:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="s">"a"</span><span class="p">))</span>  <span class="c1"># 97
+</span><span class="k">print</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="s">"b"</span><span class="p">))</span>  <span class="c1"># 98
+</span><span class="k">print</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="s">"你"</span><span class="p">))</span> <span class="c1"># 20320
+</span></code></pre></div></div>
+
+<p>A basic hash function can combine these character numbers into one final number.</p>
+
+<p>Educational example:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">simple_hash</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">hash_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+        <span class="n">hash_value</span> <span class="o">=</span> <span class="n">hash_value</span> <span class="o">*</span> <span class="mi">31</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hash_value</span>
+
+
+<span class="k">print</span><span class="p">(</span><span class="n">simple_hash</span><span class="p">(</span><span class="s">"abc"</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>Manual walkthrough for <code class="language-plaintext highlighter-rouge">"abc"</code>:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>start = 0
+
+'a' -&gt; 97
+hash = 0 * 31 + 97 = 97
+
+'b' -&gt; 98
+hash = 97 * 31 + 98 = 3105
+
+'c' -&gt; 99
+hash = 3105 * 31 + 99 = 96354
+</code></pre></div></div>
+
+<p>Why multiply by <code class="language-plaintext highlighter-rouge">31</code>?</p>
+
+<p>Multiplication makes character order matter.</p>
+
+<p>Without multiplication, <code class="language-plaintext highlighter-rouge">"abc"</code> and <code class="language-plaintext highlighter-rouge">"cba"</code> could easily collapse into similar values because you are mostly adding character numbers. With multiplication, earlier characters get carried forward and affect the final number more.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"abc" and "cba" contain the same letters,
+but their positions should produce different hash values.
+</code></pre></div></div>
+
+<p>This <code class="language-plaintext highlighter-rouge">simple_hash()</code> function is for learning only. Real hash functions handle overflow, distribution, speed, and collision behavior much more carefully.</p>
+
+<hr />
+
+<h2 id="hash-tables-hash-maps">4. Hash Tables / Hash Maps</h2>
+
+<p>A hash table stores key-value pairs using hashing.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>key -&gt; hash -&gt; bucket index -&gt; store/find value
+</code></pre></div></div>
+
+<p>Example:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"user_123" -&gt; hash -&gt; 17
+17 % bucket_count -&gt; bucket 1
+bucket 1 contains the value for "user_123"
+</code></pre></div></div>
+
+<p>In Python:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">dict</code> is a hash map.</li>
+  <li><code class="language-plaintext highlighter-rouge">set</code> is a hash set.</li>
+</ul>
+
+<p>Example:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">users</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"user_123"</span><span class="p">:</span> <span class="s">"Gary"</span><span class="p">,</span>
+    <span class="s">"user_456"</span><span class="p">:</span> <span class="s">"Alice"</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">users</span><span class="p">[</span><span class="s">"user_123"</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>Conceptually, Python uses hashing to locate <code class="language-plaintext highlighter-rouge">"user_123"</code> quickly instead of scanning every key one by one.</p>
+
+<p>Common operations:</p>
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Operation</th>
+      <th>Average Time</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Insert</td>
+      <td>O(1)</td>
+      <td>Add a key-value pair.</td>
+    </tr>
+    <tr>
+      <td>Lookup</td>
+      <td>O(1)</td>
+      <td>Find value by key.</td>
+    </tr>
+    <tr>
+      <td>Delete</td>
+      <td>O(1)</td>
+      <td>Remove key-value pair.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Worst case can degrade if many keys collide into the same bucket. Real hash tables use collision-handling strategies such as:</p>
+
+<ul>
+  <li><strong>Chaining:</strong> each bucket stores a list of entries.</li>
+  <li><strong>Open addressing:</strong> if a bucket is occupied, probe another bucket.</li>
+</ul>
+
+<p>Simple chaining diagram:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bucket 0 -&gt; []
+bucket 1 -&gt; [("user_123", "Gary"), ("user_999", "Bob")]
+bucket 2 -&gt; []
+bucket 3 -&gt; [("user_456", "Alice")]
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="common-interview-patterns-using-hashing">5. Common Interview Patterns Using Hashing</h2>
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Pattern</th>
+      <th>Data Structure</th>
+      <th>Example Problem</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Existence check</td>
+      <td><code>set</code></td>
+      <td>Find duplicates</td>
+    </tr>
+    <tr>
+      <td>Value to index</td>
+      <td><code>dict</code></td>
+      <td>Two Sum</td>
+    </tr>
+    <tr>
+      <td>Frequency count</td>
+      <td><code>dict</code> / <code>Counter</code></td>
+      <td>Valid Anagram</td>
+    </tr>
+    <tr>
+      <td>Grouping</td>
+      <td><code>defaultdict(list)</code></td>
+      <td>Group Anagrams</td>
+    </tr>
+    <tr>
+      <td>Sliding window memory</td>
+      <td><code>dict</code> / <code>set</code></td>
+      <td>Longest substring without repeating characters</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="two-sum">Two Sum</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">two_sum</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># value -&gt; index
+</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nums</span><span class="p">):</span>
+        <span class="n">need</span> <span class="o">=</span> <span class="n">target</span> <span class="o">-</span> <span class="n">num</span>
+        <span class="k">if</span> <span class="n">need</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">seen</span><span class="p">[</span><span class="n">need</span><span class="p">],</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">seen</span><span class="p">[</span><span class="n">num</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+    <span class="k">return</span> <span class="p">[]</span>
+</code></pre></div></div>
+
+<p>Complexity:</p>
+
+<ul>
+  <li>Time: <code class="language-plaintext highlighter-rouge">O(n)</code></li>
+  <li>Space: <code class="language-plaintext highlighter-rouge">O(n)</code></li>
+</ul>
+
+<p>Why hashing helps: each complement lookup is average <code class="language-plaintext highlighter-rouge">O(1)</code>.</p>
+
+<h3 id="count-frequency">Count Frequency</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+
+
+<span class="k">def</span> <span class="nf">char_frequency</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Counter</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">Counter</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+
+<span class="k">print</span><span class="p">(</span><span class="n">char_frequency</span><span class="p">(</span><span class="s">"banana"</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>Complexity:</p>
+
+<ul>
+  <li>Time: <code class="language-plaintext highlighter-rouge">O(n)</code></li>
+  <li>Space: <code class="language-plaintext highlighter-rouge">O(k)</code>, where <code class="language-plaintext highlighter-rouge">k</code> is the number of unique characters.</li>
+</ul>
+
+<h3 id="group-anagrams">Group Anagrams</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+
+
+<span class="k">def</span> <span class="nf">group_anagrams</span><span class="p">(</span><span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="s">""</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">word</span><span class="p">))</span>
+        <span class="n">groups</span><span class="p">[</span><span class="n">key</span><span class="p">].</span><span class="n">append</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">groups</span><span class="p">.</span><span class="n">values</span><span class="p">())</span>
+</code></pre></div></div>
+
+<p>Complexity:</p>
+
+<ul>
+  <li>Time: <code class="language-plaintext highlighter-rouge">O(n * m log m)</code>, where <code class="language-plaintext highlighter-rouge">n</code> is number of words and <code class="language-plaintext highlighter-rouge">m</code> is average word length.</li>
+  <li>Space: <code class="language-plaintext highlighter-rouge">O(n * m)</code> for grouped output and keys.</li>
+</ul>
+
+<p>Why hashing helps: the sorted word becomes a dictionary key for grouping.</p>
+
+<h3 id="detect-duplicate">Detect Duplicate</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">has_duplicate</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="n">seen</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="bp">False</span>
+</code></pre></div></div>
+
+<p>Complexity:</p>
+
+<ul>
+  <li>Time: <code class="language-plaintext highlighter-rouge">O(n)</code></li>
+  <li>Space: <code class="language-plaintext highlighter-rouge">O(n)</code></li>
+</ul>
+
+<hr />
+
+<h2 id="hashing-in-system-design">6. Hashing in System Design</h2>
+
+<p>Practical uses:</p>
+
+<ul>
+  <li><strong>Sharding:</strong> decide which database shard owns a key.</li>
+  <li><strong>Caching:</strong> decide which cache node stores a key.</li>
+  <li><strong>Load balancing:</strong> route related requests consistently.</li>
+  <li><strong>Request routing:</strong> send a request to the same backend based on user/session key.</li>
+  <li><strong>Deduplication:</strong> identify repeated files, events, or payloads.</li>
+  <li><strong>Checksums:</strong> detect accidental data changes.</li>
+  <li><strong>Consistent hashing:</strong> reduce key movement when servers change.</li>
+</ul>
+
+<p>Stable hash example:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">hashlib</span>
+
+
+<span class="k">def</span> <span class="nf">stable_hash_to_int</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">digest</span> <span class="o">=</span> <span class="n">hashlib</span><span class="p">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="s">"utf-8"</span><span class="p">)).</span><span class="n">hexdigest</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">digest</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">choose_server</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num_servers</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">stable_hash_to_int</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">%</span> <span class="n">num_servers</span>
+
+
+<span class="k">print</span><span class="p">(</span><span class="n">choose_server</span><span class="p">(</span><span class="s">"user_123"</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>Important: do <strong>not</strong> use Python’s built-in <code class="language-plaintext highlighter-rouge">hash()</code> for distributed systems.</p>
+
+<p>Python randomizes string hash values between processes/runs for security. That means this can change:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="s">"user_123"</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>For distributed systems, use a stable hash such as:</p>
+
+<ul>
+  <li>SHA-256</li>
+  <li>MurmurHash</li>
+  <li>xxHash</li>
+  <li>CityHash</li>
+</ul>
+
+<p>Use cryptographic hashes when integrity/security matters. Use fast non-cryptographic hashes when performance matters and security is not the goal.</p>
+
+<hr />
+
+<h2 id="consistent-hashing">7. Consistent Hashing</h2>
+
+<p>Simple modulo hashing:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hash(key) % N
+</code></pre></div></div>
+
+<p>Problem:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>N changes -&gt; many keys move
+</code></pre></div></div>
+
+<p>Example:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hash("user_123") = 17
+
+17 % 4 = 1
+17 % 5 = 2
+</code></pre></div></div>
+
+<p>Adding one server changed the destination from server <code class="language-plaintext highlighter-rouge">1</code> to server <code class="language-plaintext highlighter-rouge">2</code>.</p>
+
+<p>Consistent hashing reduces this movement.</p>
+
+<p>Mental model:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>              hash ring
+
+                 [S1]
+             /           \
+        keyA               [S2]
+         |                   |
+         v                   v
+      next server        next server
+             \           /
+                 [S3]
+</code></pre></div></div>
+
+<p>How it works:</p>
+
+<ul>
+  <li>Imagine a ring of hash values.</li>
+  <li>Servers are placed on the ring using a hash of the server ID.</li>
+  <li>Keys are placed on the same ring using a hash of the key.</li>
+  <li>A key goes to the next server clockwise.</li>
+</ul>
+
+<p>Example:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>key -&gt; hash -&gt; position on ring
+server -&gt; hash -&gt; position on ring
+
+key belongs to the first server found clockwise
+</code></pre></div></div>
+
+<p>Why this helps:</p>
+
+<ul>
+  <li>When a server is added, only nearby keys move to it.</li>
+  <li>When a server is removed, only its keys move to the next server.</li>
+  <li>Most keys stay where they were.</li>
+</ul>
+
+<p>Consistent hashing is useful for:</p>
+
+<ul>
+  <li>Distributed caches</li>
+  <li>Distributed databases</li>
+  <li>Request routing</li>
+  <li>Storage systems</li>
+</ul>
+
+<p>Virtual nodes:</p>
+
+<p>Real systems often place each physical server on the ring multiple times as <strong>virtual nodes</strong>.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server A -&gt; A1, A2, A3
+Server B -&gt; B1, B2, B3
+Server C -&gt; C1, C2, C3
+</code></pre></div></div>
+
+<p>This improves distribution and reduces the chance that one server gets too many keys.</p>
+
+<hr />
+
+<h2 id="replication-quorums-and-nrw">8. Replication, Quorums, and <code class="language-plaintext highlighter-rouge">N/R/W</code></h2>
+
+<p>Hashing answers:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Which node should own this key?
+</code></pre></div></div>
+
+<p>Replication and quorum settings answer:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>How many copies exist, and how many must agree before a read/write succeeds?
+</code></pre></div></div>
+
+<p>Common terms:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">N</code> = replication factor, the number of nodes that store a copy of the data.</li>
+  <li><code class="language-plaintext highlighter-rouge">W</code> = write quorum, the number of replicas that must confirm a write.</li>
+  <li><code class="language-plaintext highlighter-rouge">R</code> = read quorum, the number of replicas that must respond to a read.</li>
+</ul>
+
+<p>Example with <code class="language-plaintext highlighter-rouge">N = 3</code>:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>key = "user_123"
+
+consistent hashing chooses primary node:
+user_123 -&gt; Node A
+
+replication stores copies on:
+Node A, Node B, Node C
+</code></pre></div></div>
+
+<p>Now the system can tune <code class="language-plaintext highlighter-rouge">R</code> and <code class="language-plaintext highlighter-rouge">W</code>.</p>
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Setting</th>
+      <th>Meaning</th>
+      <th>Optimized For</th>
+      <th>Tradeoff</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>R = 1, W = N</code></td>
+      <td>All replicas must accept writes; reads need only one replica.</td>
+      <td>Fast reads</td>
+      <td>Writes are slower and less available because every replica must be reachable.</td>
+    </tr>
+    <tr>
+      <td><code>R = N, W = 1</code></td>
+      <td>Writes need one replica; reads check all replicas.</td>
+      <td>Fast writes</td>
+      <td>Reads are slower and less available because every replica must be reachable.</td>
+    </tr>
+    <tr>
+      <td><code>R + W &gt; N</code></td>
+      <td>Read and write quorums overlap on at least one replica.</td>
+      <td>Stronger consistency</td>
+      <td>Higher latency and lower availability than weaker quorum settings.</td>
+    </tr>
+    <tr>
+      <td><code>R + W &lt;= N</code></td>
+      <td>Read and write quorums might not overlap.</td>
+      <td>Lower latency / higher availability</td>
+      <td>Reads may return stale data.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Why <code class="language-plaintext highlighter-rouge">R + W &gt; N</code> matters:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>N = 3
+W = 2
+R = 2
+
+W + R = 4
+4 &gt; 3
+</code></pre></div></div>
+
+<p>If a write succeeds on 2 replicas, and a read checks 2 replicas, the read must overlap with at least one replica that saw the latest successful write.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Replicas: A, B, C
+
+Write quorum: A, B
+Read quorum:  B, C
+
+Overlap: B
+</code></pre></div></div>
+
+<p>That overlap is what gives stronger consistency.</p>
+
+<p>Important nuance: people often say <code class="language-plaintext highlighter-rouge">R + W &gt; N</code> gives “strong consistency”, but in real systems it also depends on implementation details such as conflict resolution, read repair, hinted handoff, sloppy quorums, clocks, leader/leaderless design, and whether reads always choose the newest version. For interviews, the safe wording is:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>R + W &gt; N gives quorum overlap, which supports stronger consistency.
+</code></pre></div></div>
+
+<p>Quick examples:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">N = 3, W = 2, R = 2</code>: balanced quorum, stronger consistency.</li>
+  <li><code class="language-plaintext highlighter-rouge">N = 3, W = 3, R = 1</code>: read-optimized because reads are fast, but writes require all replicas.</li>
+  <li><code class="language-plaintext highlighter-rouge">N = 3, W = 1, R = 3</code>: write-optimized because writes are fast, but reads require all replicas.</li>
+  <li><code class="language-plaintext highlighter-rouge">N = 3, W = 1, R = 1</code>: fastest and most available, but stale reads are possible.</li>
+</ul>
+
+<p>Interview framing:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Hashing decides where data is placed.
+Replication decides how many copies exist.
+R/W quorum decides the consistency vs latency/availability tradeoff.
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="where-hashing-shows-up">9. Where Hashing Shows Up</h2>
+
+<p>Hashing appears in many places, not just coding interview hash maps. In interviews, recognize the pattern: a system has a key, hashes it, and uses the result to find, group, route, verify, or distribute something.</p>
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Area</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Programming language data structures</td>
+      <td>Python <code>dict</code>, Java <code>HashMap</code></td>
+    </tr>
+    <tr>
+      <td>Relational databases</td>
+      <td>Hash indexes, hash joins, partitioning/sharding</td>
+    </tr>
+    <tr>
+      <td>NoSQL databases</td>
+      <td>DynamoDB partition keys, Cassandra partitioning, Redis Cluster hash slots</td>
+    </tr>
+    <tr>
+      <td>Caching</td>
+      <td>Decide which cache node stores a key</td>
+    </tr>
+    <tr>
+      <td>Load balancing</td>
+      <td>Route the same user, session, or request key to the same backend</td>
+    </tr>
+    <tr>
+      <td>Distributed systems</td>
+      <td>Sharding, consistent hashing, data placement</td>
+    </tr>
+    <tr>
+      <td>Security</td>
+      <td>Password hashing, file integrity checks, signed payload verification</td>
+    </tr>
+    <tr>
+      <td>Storage systems</td>
+      <td>Deduplication, checksums, content-addressed storage</td>
+    </tr>
+    <tr>
+      <td>Message streaming</td>
+      <td>Route events to partitions/shards, e.g. by user ID</td>
+    </tr>
+    <tr>
+      <td>Probabilistic data structures</td>
+      <td>Bloom filters use multiple hashes to test whether an item was probably seen before</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="which-hashing-should-you-use">10. Which Hashing Should You Use?</h2>
+
+<p>Different hashing algorithms are built for different jobs. In interviews, the important thing is not memorizing every algorithm; it is knowing when you need speed, stability, security, or password protection.</p>
+
+<p>Rules of thumb:</p>
+
+<ul>
+  <li>For coding interview hash maps/sets, use the language built-ins.</li>
+  <li>For distributed systems, use a stable hash. Do not use Python <code class="language-plaintext highlighter-rouge">hash()</code>.</li>
+  <li>For security, use cryptographic hashes or HMACs.</li>
+  <li>For passwords, use password hashing algorithms, not normal hashes.</li>
+  <li>For very high-throughput routing, prefer fast non-cryptographic hashes unless security is required.</li>
+</ul>
+
+<hr />
+
+<h2 id="different-types-of-hashing-algorithms">11. Different Types of Hashing Algorithms</h2>
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Examples</th>
+      <th>Used For</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Non-cryptographic hash</td>
+      <td>MurmurHash, xxHash, CityHash</td>
+      <td>Fast lookup, sharding, routing</td>
+    </tr>
+    <tr>
+      <td>Cryptographic hash</td>
+      <td>SHA-256, SHA-512</td>
+      <td>Integrity, signatures, content identity</td>
+    </tr>
+    <tr>
+      <td>Password hashing</td>
+      <td>bcrypt, scrypt, Argon2</td>
+      <td>Password storage</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Key points:</p>
+
+<ul>
+  <li>Fast hashes are good for performance but not security.</li>
+  <li>Cryptographic hashes are slower but safer for integrity/security.</li>
+  <li>Password hashing must be intentionally slow and salted.</li>
+</ul>
+
+<p>Password example idea:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Bad:  password -&gt; SHA-256 -&gt; store hash
+Good: password -&gt; bcrypt/scrypt/Argon2 with salt -&gt; store password hash
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="aws-cloud-references">12. AWS / Cloud References</h2>
+
+<blockquote>
+  <p>TODO: Verify AWS-specific details against official AWS documentation before publishing.</p>
+</blockquote>
+
+<p>Hashing-like ideas appear in many cloud systems:</p>
+
+<ul>
+  <li><strong>DynamoDB partition key:</strong> the partition key is hashed to determine physical partition placement.</li>
+  <li><strong>S3 object key distribution:</strong> object keys are distributed internally; historically key naming patterns mattered more, but modern S3 automatically scales request rates.</li>
+  <li><strong>ElastiCache / Redis Cluster:</strong> keys are assigned to hash slots.</li>
+  <li><strong>Load balancers:</strong> some algorithms/configurations may use hashing-like routing to keep related requests on the same target.</li>
+  <li><strong>Kinesis partition key:</strong> the partition key determines which shard receives the record.</li>
+</ul>
+
+<p>Interview framing:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>If the service needs to distribute records by key,
+ask: what is the key, how is it hashed, and what happens when capacity changes?
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="common-pitfalls">13. Common Pitfalls</h2>
+
+<ul>
+  <li>Confusing hashing with encryption.</li>
+  <li>Assuming hashes are always unique.</li>
+  <li>Forgetting collisions.</li>
+  <li>Using Python <code class="language-plaintext highlighter-rouge">hash()</code> for distributed systems.</li>
+  <li>Using <code class="language-plaintext highlighter-rouge">% N</code> when server count changes frequently.</li>
+  <li>Using SHA-256 for high-throughput non-security routing when a faster hash may be better.</li>
+  <li>Storing passwords with normal hashes instead of password hashing algorithms.</li>
+  <li>Forgetting that a bad hash function can create uneven distribution.</li>
+  <li>Forgetting that hot keys can overload one shard even if hashing is correct.</li>
+</ul>
+
+<hr />
+
+<h2 id="interview-cheat-sheet">14. Interview Cheat Sheet</h2>
+
+<p>Coding interviews:</p>
+
+<ul>
+  <li>Use <code class="language-plaintext highlighter-rouge">set</code> for existence checks.</li>
+  <li>Use <code class="language-plaintext highlighter-rouge">dict</code> for mapping.</li>
+  <li>Use <code class="language-plaintext highlighter-rouge">Counter</code> / <code class="language-plaintext highlighter-rouge">defaultdict</code> for frequency and grouping.</li>
+  <li>Hashing gives average <code class="language-plaintext highlighter-rouge">O(1)</code> lookup, insert, and delete.</li>
+  <li>Always think about collisions, even if Python handles them internally.</li>
+</ul>
+
+<p>System design:</p>
+
+<ul>
+  <li>Use hashing to distribute keys.</li>
+  <li><code class="language-plaintext highlighter-rouge">hash % N</code> is simple but bad when <code class="language-plaintext highlighter-rouge">N</code> changes.</li>
+  <li>Consistent hashing reduces movement when servers are added or removed.</li>
+  <li>Choose stable hash functions for distributed systems.</li>
+  <li>Watch for hot keys and uneven partitions.</li>
+</ul>
+
+<p>Security:</p>
+
+<ul>
+  <li>Hashing is not encryption.</li>
+  <li>Hashing is usually one-way.</li>
+  <li>Cryptographic hashes are for integrity and identity.</li>
+  <li>Passwords need bcrypt, scrypt, or Argon2.</li>
+</ul>
+
+<p>Quick mental model:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Coding:
+key -&gt; hash -&gt; bucket -&gt; fast lookup
+
+System design:
+key -&gt; stable hash -&gt; shard/cache/server
+
+Security:
+input -&gt; cryptographic hash -&gt; integrity check
+password -&gt; slow salted password hash -&gt; safe password storage
+</code></pre></div></div>
+
+    </article>
+  </main>
+
+  <div id="imageModal" class="image-modal">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <button class="modal-nav modal-prev">&#8249;</button>
+    <button class="modal-nav modal-next">&#8250;</button>
+    <img id="modalImage" src="" alt="">
+    <div id="modalCaption"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('imageModal');
+  const modalImg = document.getElementById('modalImage');
+  const modalCaption = document.getElementById('modalCaption');
+  const modalClose = document.querySelector('.modal-close');
+  const modalPrev = document.querySelector('.modal-prev');
+  const modalNext = document.querySelector('.modal-next');
+
+  const SCALE_STEP = 0.2;
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 3;
+
+  let modalImages = [];
+  let currentIndex = -1;
+  let currentScale = MIN_SCALE;
+  let translateX = 0;
+  let translateY = 0;
+  let isDragging = false;
+  let isTouchDragging = false;
+  let isPinching = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let pinchStartDistance = 0;
+  let pinchStartScale = MIN_SCALE;
+  let transitionTimeout;
+
+  function refreshModalImages() {
+    modalImages = Array.from(document.querySelectorAll('.modal-trigger'));
+  }
+
+  function applyTransform(withTransition = false) {
+    if (currentScale <= MIN_SCALE) {
+      currentScale = MIN_SCALE;
+      translateX = 0;
+      translateY = 0;
+    }
+
+    if (transitionTimeout) {
+      clearTimeout(transitionTimeout);
+      transitionTimeout = null;
+    }
+
+    modalImg.style.transition = withTransition ? 'transform 0.15s ease' : 'none';
+    modalImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+    modalImg.style.cursor = currentScale > MIN_SCALE
+      ? (isDragging || isTouchDragging ? 'grabbing' : 'grab')
+      : 'auto';
+
+    if (withTransition) {
+      transitionTimeout = setTimeout(() => {
+        modalImg.style.transition = 'none';
+      }, 160);
+    }
+  }
+
+  function resetTransform() {
+    currentScale = MIN_SCALE;
+    translateX = 0;
+    translateY = 0;
+    applyTransform(false);
+  }
+
+  function getDistance(touch1, touch2) {
+    return Math.hypot(
+      touch1.clientX - touch2.clientX,
+      touch1.clientY - touch2.clientY
+    );
+  }
+
+  function openModalAtIndex(index) {
+    refreshModalImages();
+
+    if (!modalImages.length) {
+      return;
+    }
+
+    if (index < 0) {
+      index = modalImages.length - 1;
+    } else if (index >= modalImages.length) {
+      index = 0;
+    }
+
+    const target = modalImages[index];
+    if (!target) {
+      return;
+    }
+
+    currentIndex = index;
+    const src = target.dataset.modalSrc || target.src;
+    const caption = target.getAttribute('data-caption') || target.alt;
+
+    modalImg.src = src;
+    modalCaption.textContent = caption || '';
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    resetTransform();
+  }
+
+  function closeModal() {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+    currentIndex = -1;
+    isDragging = false;
+    isTouchDragging = false;
+    isPinching = false;
+    resetTransform();
+  }
+
+  refreshModalImages();
+
+  modalImg.addEventListener('dragstart', event => event.preventDefault());
+
+  document.addEventListener('click', event => {
+    const trigger = event.target.closest('.modal-trigger');
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+    refreshModalImages();
+    const index = modalImages.indexOf(trigger);
+    openModalAtIndex(index > -1 ? index : 0);
+  });
+
+  modalClose?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', event => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    switch (event.key) {
+      case 'Escape':
+        closeModal();
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        openModalAtIndex(currentIndex - 1);
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        openModalAtIndex(currentIndex + 1);
+        break;
+      case '+':
+      case '=':
+        event.preventDefault();
+        currentScale = Math.min(MAX_SCALE, currentScale + SCALE_STEP);
+        applyTransform(true);
+        break;
+      case '-':
+        event.preventDefault();
+        currentScale = Math.max(MIN_SCALE, currentScale - SCALE_STEP);
+        applyTransform(true);
+        break;
+      case '0':
+        event.preventDefault();
+        resetTransform();
+        applyTransform(true);
+        break;
+      default:
+        break;
+    }
+  });
+
+  modal.addEventListener('wheel', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -SCALE_STEP : SCALE_STEP;
+    const nextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale + delta));
+
+    if (nextScale === currentScale) {
+      return;
+    }
+
+    currentScale = nextScale;
+    applyTransform(true);
+  }, { passive: false });
+
+  if (modalPrev) {
+    modalPrev.addEventListener('click', event => {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex - 1);
+    });
+  }
+
+  if (modalNext) {
+    modalNext.addEventListener('click', event => {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex + 1);
+    });
+  }
+
+  modalImg.addEventListener('mousedown', event => {
+    if (!modal.classList.contains('show') || currentScale <= MIN_SCALE) {
+      return;
+    }
+
+    event.preventDefault();
+    isDragging = true;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    modalImg.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', event => {
+    if (!isDragging) {
+      return;
+    }
+
+    event.preventDefault();
+    translateX += event.clientX - dragStartX;
+    translateY += event.clientY - dragStartY;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    applyTransform(false);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) {
+      return;
+    }
+    isDragging = false;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modalImg.addEventListener('touchstart', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.touches.length === 1 && currentScale > MIN_SCALE) {
+      event.preventDefault();
+      isTouchDragging = true;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      modalImg.style.cursor = 'grabbing';
+    } else if (event.touches.length === 2) {
+      event.preventDefault();
+      isTouchDragging = false;
+      isPinching = true;
+      pinchStartDistance = getDistance(event.touches[0], event.touches[1]);
+      pinchStartScale = currentScale;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+    }
+  }, { passive: false });
+
+  modalImg.addEventListener('touchmove', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (isPinching && event.touches.length === 2) {
+      event.preventDefault();
+      const distance = getDistance(event.touches[0], event.touches[1]);
+      if (pinchStartDistance > 0) {
+        const scaleRatio = distance / pinchStartDistance;
+        currentScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchStartScale * scaleRatio));
+        applyTransform(false);
+      }
+    } else if (isTouchDragging && event.touches.length === 1) {
+      event.preventDefault();
+      translateX += event.touches[0].clientX - dragStartX;
+      translateY += event.touches[0].clientY - dragStartY;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      applyTransform(false);
+    }
+  }, { passive: false });
+
+  modalImg.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.touches.length === 0) {
+      isTouchDragging = false;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+    }
+
+    if (event.touches.length < 2) {
+      isPinching = false;
+      pinchStartDistance = 0;
+      pinchStartScale = currentScale;
+    }
+  });
+
+  modalImg.addEventListener('touchcancel', () => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    isTouchDragging = false;
+    isPinching = false;
+    pinchStartDistance = 0;
+    pinchStartScale = currentScale;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modal.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.target === modal && event.changedTouches.length === 1 && !isTouchDragging && !isPinching) {
+      closeModal();
+    }
+  }, { passive: true });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-snippet-id]').forEach(caption => {
+    const snippetId = caption.getAttribute('data-snippet-id');
+    const snippetElement = document.getElementById(snippetId);
+
+    if (snippetElement) {
+      const content = snippetElement.textContent.replace(/"/g, '&quot;');
+      caption.setAttribute('data-tooltip', content);
+      caption.classList.add('diagram-caption');
+    }
+  });
+});
+</script>
+
+
+  <!-- Floating Table of Contents -->
+  <div id="floating-toc" class="floating-toc">
+    <div class="toc-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"></line>
+        <line x1="8" y1="12" x2="21" y2="12"></line>
+        <line x1="8" y1="18" x2="21" y2="18"></line>
+        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+      </svg>
+    </div>
+    <div class="toc-content">
+      <div class="toc-header">
+        <span>Contents</span>
+        <button class="toc-close" aria-label="Close table of contents">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="toc-nav" id="toc-nav">
+        <!-- Generated by JavaScript -->
+      </nav>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Dark mode functionality
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      
+      // Check for saved theme preference or default to light mode
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      
+      // Toggle dark mode
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    
+    // Initialize dark mode immediately to prevent flash
+    initDarkMode();
+    
+    // Initialize highlight.js and floating TOC after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Floating TOC functionality - only show on sub-study pages
+      const floatingToc = document.getElementById('floating-toc');
+      const tocNav = document.getElementById('toc-nav');
+      const tocClose = document.querySelector('.toc-close');
+      
+      // Check if we're on a sub-study page (not the main study index)
+      const isSubStudyPage = window.location.pathname !== '/study/' && 
+                            window.location.pathname !== '/study' && 
+                            window.location.pathname.startsWith('/study/');
+      
+      if (floatingToc && tocNav && isSubStudyPage) {
+        // Generate TOC from headings
+        function generateTOC() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          if (headings.length === 0) {
+            floatingToc.style.display = 'none';
+            return;
+          }
+          
+          const tocList = document.createElement('ul');
+          let currentLevel = 0;
+          let currentList = tocList;
+          const listStack = [tocList];
+          
+          headings.forEach((heading, index) => {
+            const level = parseInt(heading.tagName.charAt(1));
+            const id = heading.id || `heading-${index}`;
+            
+            // Ensure heading has an ID
+            if (!heading.id) {
+              heading.id = id;
+            }
+            
+            // Create list item
+            const listItem = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = `#${id}`;
+            link.textContent = heading.textContent.trim();
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetElement = document.getElementById(id);
+              if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Close TOC after clicking
+                floatingToc.classList.remove('toc-open');
+              }
+            });
+            
+            listItem.appendChild(link);
+            
+            // Handle nesting
+            if (level > currentLevel) {
+              // Go deeper
+              for (let i = currentLevel; i < level; i++) {
+                const newList = document.createElement('ul');
+                currentList.appendChild(newList);
+                listStack.push(newList);
+                currentList = newList;
+              }
+            } else if (level < currentLevel) {
+              // Go shallower
+              for (let i = currentLevel; i > level; i--) {
+                listStack.pop();
+                currentList = listStack[listStack.length - 1];
+              }
+            }
+            
+            currentList.appendChild(listItem);
+            currentLevel = level;
+          });
+          
+          tocNav.appendChild(tocList);
+        }
+        
+        // Generate the TOC
+        generateTOC();
+        
+        // Handle close button
+        if (tocClose) {
+          tocClose.addEventListener('click', function() {
+            floatingToc.classList.remove('toc-open');
+          });
+        }
+        
+        // Handle click on icon to toggle
+        const tocIcon = document.querySelector('.toc-icon');
+        if (tocIcon) {
+          tocIcon.addEventListener('click', function() {
+            floatingToc.classList.toggle('toc-open');
+          });
+        }
+        
+        // Active section highlighting
+        function updateActiveSection() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          const tocLinks = tocNav.querySelectorAll('a');
+          
+          // Remove active class from all links
+          tocLinks.forEach(link => link.classList.remove('active'));
+          
+          // Find the current section
+          let currentHeading = null;
+          const scrollPosition = window.scrollY + 100; // Offset for better UX
+          
+          for (let i = headings.length - 1; i >= 0; i--) {
+            const heading = headings[i];
+            const headingTop = heading.offsetTop;
+            
+            if (headingTop <= scrollPosition) {
+              currentHeading = heading;
+              break;
+            }
+          }
+          
+          // Add active class to current section
+          if (currentHeading) {
+            const activeLink = tocNav.querySelector(`a[href="#${currentHeading.id}"]`);
+            if (activeLink) {
+              activeLink.classList.add('active');
+            }
+          }
+        }
+        
+        // Update active section on scroll
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+          if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+          }
+          scrollTimeout = setTimeout(updateActiveSection, 10);
+        });
+        
+        // Initial update
+        updateActiveSection();
+      } else if (floatingToc && !isSubStudyPage) {
+        // Hide floating TOC on main study page
+        floatingToc.style.display = 'none';
+      }
+      
+      // Legacy TOC functionality (for existing markdown TOCs)
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Hide the floating TOC if there's already a markdown TOC
+        if (floatingToc) {
+          floatingToc.style.display = 'none';
+        }
+        
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

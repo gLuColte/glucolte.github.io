@@ -1,0 +1,1522 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Interview Tips · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Interview Tips | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Interview Tips" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/systemDesignInterviewTips" />
+<meta property="og:url" content="http://localhost:4000/study/systemDesignInterviewTips" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Interview Tips" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Interview Tips","url":"http://localhost:4000/study/systemDesignInterviewTips"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container">
+    <article class="content">
+      <h1 id="interview-tips">Interview Tips</h1>
+
+<p>System design interviews are not speed tests. Answering fast does not give extra points if the design is shallow, unscoped, or ignores tradeoffs. Interviewers usually care more about how you reason: whether you ask the right questions, make explicit assumptions, compare options, and adjust when new constraints appear.</p>
+
+<p>The goal is not to build a perfect real-world production system in 45 minutes. The goal is to show a clear design process.</p>
+
+<hr />
+
+<h2 id="core-mindset">Core Mindset</h2>
+
+<ul>
+  <li>Do not jump straight into solution mode.</li>
+  <li>Do not think in silence; explain what you are considering.</li>
+  <li>Always clarify the problem before drawing.</li>
+  <li>Ask at least 10 useful questions before committing to a design.</li>
+  <li>Make assumptions explicit when the interviewer does not provide an answer.</li>
+  <li>Treat the interviewer like a teammate, not a judge waiting for one exact answer.</li>
+  <li>Prefer tradeoffs over absolute claims. Say what each option improves and what it costs.</li>
+  <li>Start broad, then go deep only after the interviewer agrees on the high-level shape.</li>
+</ul>
+
+<hr />
+
+<h2 id="step-1-understand-the-problem-and-establish-scope">Step 1: Understand the Problem and Establish Scope</h2>
+
+<p>Ask the right questions, make reasonable assumptions, and gather the information needed to design the system. You are not expected to build every detail of a real-world product; you are being evaluated on process, prioritization, and engineering judgment.</p>
+
+<p>Good scoping questions:</p>
+
+<ul>
+  <li>What specific features are we building?</li>
+  <li>Which features are explicitly out of scope?</li>
+  <li>Is this for mobile, web, internal users, external users, or all of them?</li>
+  <li>How many users does the product have today?</li>
+  <li>How many daily active users, monthly active users, or requests per second should we expect?</li>
+  <li>How fast does the company expect to scale? What are the expected numbers in 3 months, 6 months, and 1 year?</li>
+  <li>Is the workload read-heavy, write-heavy, or balanced?</li>
+  <li>What latency target matters to users?</li>
+  <li>What availability target matters to the business?</li>
+  <li>What data must be durable?</li>
+  <li>What data can be eventually consistent?</li>
+  <li>Are there privacy, compliance, or security requirements?</li>
+  <li>What is the existing technology stack?</li>
+  <li>Are there existing services we should reuse to simplify the design?</li>
+  <li>Which part of the system is most important to optimize: cost, speed, reliability, developer velocity, or correctness?</li>
+</ul>
+
+<p>After asking, summarize the scope:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>I will design X for Y users, supporting A, B, and C features.
+I will assume read traffic is higher than write traffic.
+I will prioritize availability and low read latency over strict consistency.
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="step-2-propose-a-high-level-design-and-get-buy-in">Step 2: Propose a High-Level Design and Get Buy-In</h2>
+
+<p>Collaborate with the interviewer. Come up with an initial blueprint, ask for feedback, and make sure you are both solving the same problem before going deeper.</p>
+
+<p>What to do:</p>
+
+<ul>
+  <li>Draw a box diagram with the key components.</li>
+  <li>Show the main request flow from client to backend to storage.</li>
+  <li>Separate read path and write path if they differ.</li>
+  <li>Identify the API boundary.</li>
+  <li>Identify storage choices and why they fit the access pattern.</li>
+  <li>Do quick back-of-the-envelope calculations to evaluate scale.</li>
+  <li>Mention the main use cases and walk one or two through the design.</li>
+  <li>Ask: “Does this high-level direction match what you want me to focus on?”</li>
+</ul>
+
+<p>Useful structure:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client -&gt; API Gateway / Load Balancer -&gt; Service Layer -&gt; Storage
+                                      -&gt; Cache
+                                      -&gt; Queue / Stream
+                                      -&gt; Workers
+                                      -&gt; Search / Analytics
+</code></pre></div></div>
+
+<p>Use <a href="/study/systemDesignNumbersThatMatter">Numbers That Matter</a> for quick sizing estimates.</p>
+
+<hr />
+
+<h2 id="step-3-design-deep-dive">Step 3: Design Deep Dive</h2>
+
+<p>At this stage, you and the interviewer should be on the same wavelength. Now identify the most important components and go deeper.</p>
+
+<p>Do not get carried away with unnecessary implementation details. This is a system design interview, not a framework or syntax interview. Go deep where the design risk is highest.</p>
+
+<p>Good areas to deep dive:</p>
+
+<ul>
+  <li>Data model and key entities.</li>
+  <li>API contracts for critical flows.</li>
+  <li>Database choice and indexing strategy.</li>
+  <li>Cache strategy and invalidation.</li>
+  <li>Queue or stream processing.</li>
+  <li>Partitioning and sharding.</li>
+  <li>Consistency model.</li>
+  <li>Rate limiting and abuse protection.</li>
+  <li>Failure handling and retries.</li>
+  <li>Observability: metrics, logs, tracing, alerts.</li>
+  <li>Deployment and rollback strategy.</li>
+</ul>
+
+<p>How to choose the deep dive:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>The riskiest part of this design is X because Y.
+I will focus there first unless you would rather explore another part.
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="step-4-wrap-up">Step 4: Wrap Up</h2>
+
+<p>The interviewer may ask you to identify bottlenecks and discuss improvements. A strong wrap-up shows that you understand the design is not finished just because the boxes are drawn.</p>
+
+<p>Cover:</p>
+
+<ul>
+  <li>Recap the design in 30-60 seconds.</li>
+  <li>Identify likely bottlenecks.</li>
+  <li>Discuss error cases and failure modes.</li>
+  <li>Mention operational concerns: monitoring, logs, alerts, CI/CD, rollback.</li>
+  <li>Explain what you would improve next with more time.</li>
+  <li>Revisit tradeoffs: what the design optimizes for and what it sacrifices.</li>
+</ul>
+
+<p>Good closing sentence:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>This design prioritizes fast reads and high availability. The main tradeoff is extra complexity around cache invalidation and async processing. If we had more time, I would go deeper into failure recovery and data consistency.
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="dos">DOs</h2>
+
+<ul>
+  <li>Always ask for clarification.</li>
+  <li>Understand the requirements before designing.</li>
+  <li>Repeat the requirements back to confirm alignment.</li>
+  <li>Let the interviewer know what you are thinking.</li>
+  <li>Suggest multiple approaches when there is a meaningful tradeoff.</li>
+  <li>Start with the big picture first.</li>
+  <li>Go into component detail only after the high-level design is agreed.</li>
+  <li>Bounce ideas off the interviewer.</li>
+  <li>Use rough numbers to test whether the design is plausible.</li>
+  <li>Call out tradeoffs explicitly.</li>
+</ul>
+
+<hr />
+
+<h2 id="donts">DON’Ts</h2>
+
+<ul>
+  <li>Do not jump into solution mode immediately.</li>
+  <li>Do not silently draw for several minutes.</li>
+  <li>Do not optimize for one requirement while ignoring others.</li>
+  <li>Do not pretend a design has no tradeoffs.</li>
+  <li>Do not dive into database schema, class design, or code too early.</li>
+  <li>Do not choose technology because it is popular; connect it to the access pattern and constraints.</li>
+  <li>Do not spend the whole interview on one component unless the interviewer asks for it.</li>
+</ul>
+
+<hr />
+
+<h2 id="why-these-interview-habits-matter">Why These Interview Habits Matter</h2>
+
+<p>These are not really system-design scenario questions. They explain why the interview habits above matter and how to use them during the interview.</p>
+
+<details>
+  <summary><strong>Why should you ask clarifying questions before designing?</strong></summary>
+
+Because different requirements produce different architectures. A system for 10K users can be much simpler than one for 100M users. A read-heavy product may need caching and replicas; a write-heavy product may need queues, partitions, and append-only storage. Clarifying questions prevent solving the wrong problem.
+</details>
+
+<details>
+  <summary><strong>What should you do if the interviewer does not give exact numbers?</strong></summary>
+
+Make reasonable assumptions and say them out loud. For example: "I will assume 10M daily active users, 100M reads/day, and 1M writes/day. If that is too high or low, I can adjust the design." This shows you can move forward without pretending the unknowns do not matter.
+</details>
+
+<details>
+  <summary><strong>How do you decide between SQL and NoSQL?</strong></summary>
+
+Use SQL when you need strong consistency, transactions, relational queries, constraints, and flexible joins. Use NoSQL when the access pattern is simple, scale is very high, schema flexibility matters, or partitioned key-value/document access fits naturally. The answer should include tradeoffs, not just a product name.
+</details>
+
+<details>
+  <summary><strong>When should you introduce a cache?</strong></summary>
+
+Use a cache when reads are frequent, data can tolerate some staleness, and the same data is requested repeatedly. Mention the tradeoff: caches improve latency and reduce database load, but introduce invalidation, consistency, memory cost, and operational complexity.
+</details>
+
+<details>
+  <summary><strong>When should you use a queue or stream?</strong></summary>
+
+Use a queue or stream when work can be processed asynchronously, when you need buffering during traffic spikes, or when multiple consumers need to react to the same event. The tradeoff is that the system becomes eventually consistent and needs retry, idempotency, ordering, and dead-letter handling.
+</details>
+
+<details>
+  <summary><strong>How do you talk about consistency tradeoffs?</strong></summary>
+
+State which data must be strongly consistent and which data can be eventually consistent. Payments, inventory reservation, and account balances often need stronger guarantees. Feeds, counters, analytics, search indexes, and notifications can often lag slightly.
+</details>
+
+<details>
+  <summary><strong>How do you identify bottlenecks?</strong></summary>
+
+Trace the read and write paths and look for shared resources: database writes, hot partitions, cache misses, queue lag, external APIs, large fanout, and cross-region calls. Then connect each bottleneck to a mitigation such as caching, sharding, batching, backpressure, async processing, or graceful degradation.
+</details>
+
+<details>
+  <summary><strong>How should you handle failures in the design?</strong></summary>
+
+Identify what happens when each major dependency fails. Use timeouts, retries with jitter, circuit breakers, idempotency keys, dead-letter queues, health checks, failover, and degraded modes. Also mention observability so the team knows when failure is happening.
+</details>
+
+<details>
+  <summary><strong>How do you avoid overengineering?</strong></summary>
+
+Tie every component to a requirement. If scale is modest, start with a simpler design and explain when you would add complexity. Interviewers usually prefer a design that grows with requirements over a design that adds every possible distributed systems pattern upfront.
+</details>
+
+<details>
+  <summary><strong>What is a good way to wrap up a system design answer?</strong></summary>
+
+Summarize the architecture, the main data flow, key tradeoffs, bottlenecks, and next improvements. A good wrap-up shows ownership: you understand what the design handles well and where it still has risk.
+</details>
+
+<hr />
+
+<h2 id="system-design-concept-checks">System Design Concept Checks</h2>
+
+<p>These are closer to concept questions an interviewer might ask directly. They are not full scenario prompts, but they test whether you understand common building blocks and their tradeoffs.</p>
+
+<details>
+  <summary><strong>What is the difference between vertical scaling and horizontal scaling?</strong></summary>
+
+Vertical scaling means making one machine bigger: more CPU, memory, disk, or network. It is simple but has an upper limit and can become expensive. Horizontal scaling means adding more machines and distributing traffic or data across them. It scales further, but introduces coordination, load balancing, partitioning, and failure handling.
+</details>
+
+<details>
+  <summary><strong>What is the difference between replication and sharding?</strong></summary>
+
+Replication copies the same data to multiple nodes. It improves read capacity, availability, and failover. Sharding splits different data across different nodes. It improves write capacity and total storage capacity. Replication answers "how do we copy data?" Sharding answers "how do we divide data?"
+</details>
+
+<details>
+  <summary><strong>What is consistent hashing and why is it useful?</strong></summary>
+
+Consistent hashing maps keys and servers onto a logical ring so keys move minimally when servers are added or removed. It is useful for distributed caches, storage partitions, and load distribution because it avoids remapping almost every key during scaling events.
+</details>
+
+<details>
+  <summary><strong>What is the difference between strong consistency and eventual consistency?</strong></summary>
+
+Strong consistency means reads return the latest committed write, which is important for payments, inventory, bookings, and account balances. Eventual consistency means replicas may temporarily disagree but converge later, which is often acceptable for feeds, counters, search indexes, notifications, and analytics. Strong consistency is easier to reason about but can cost latency and availability.
+</details>
+
+<details>
+  <summary><strong>What is idempotency and why does it matter?</strong></summary>
+
+An idempotent operation can be retried safely without applying the side effect twice. This matters because distributed systems retry after timeouts, network failures, and worker crashes. Payment creation, order submission, ticket booking, and message delivery often need idempotency keys.
+</details>
+
+<details>
+  <summary><strong>What is backpressure?</strong></summary>
+
+Backpressure is a way for overloaded parts of a system to slow down or reject incoming work instead of failing completely. Queues, rate limits, bounded worker pools, load shedding, and retry-after responses are common backpressure tools.
+</details>
+
+<details>
+  <summary><strong>What is the difference between a queue and a pub/sub stream?</strong></summary>
+
+A queue usually distributes each message to one worker from a consumer group, which is useful for background jobs. A pub/sub stream lets multiple independent consumers process the same event, which is useful for fanout, analytics, search indexing, notifications, and audit pipelines.
+</details>
+
+<details>
+  <summary><strong>What is cache invalidation?</strong></summary>
+
+Cache invalidation is the process of removing or updating stale cached data after the source of truth changes. Common strategies include TTLs, write-through caching, write-around caching, explicit deletes, versioned keys, and event-driven invalidation. The hard part is balancing freshness, latency, and operational complexity.
+</details>
+
+<details>
+  <summary><strong>What is a hot partition?</strong></summary>
+
+A hot partition happens when too much traffic goes to one shard, key, tenant, user, or time range. It can overload one database partition even if the total cluster has enough capacity. Fixes include better partition keys, salting, spreading writes, caching hot reads, and isolating heavy tenants.
+</details>
+
+<details>
+  <summary><strong>What are p50, p95, and p99 latency?</strong></summary>
+
+p50 is the median request latency. p95 means 95% of requests are faster than that value. p99 means 99% are faster and 1% are slower. Tail latency matters because users often feel the slow requests, and multi-service request paths can make p99 much worse.
+</details>
+
+<hr />
+
+<h2 id="scenario-practice-questions">Scenario Practice Questions</h2>
+
+<p>These are full scenario-style prompts. The collapsed answer is not the only correct design; it is a structured way to think through scope, high-level architecture, tradeoffs, and deep-dive topics. This list avoids the detailed scenarios already covered in <a href="/study/systemDesignHourglass">Hourglass Design</a>.</p>
+
+<details>
+  <summary><strong>Design a notification system for email, SMS, and push notifications.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>Channels: email, SMS, push, in-app?</li>
+      <li>Volume: notifications per second, burst traffic, peak campaigns.</li>
+      <li>Priority: transactional vs marketing vs low-priority digest.</li>
+      <li>Delivery guarantees: at-least-once, best effort, or exactly-once user experience?</li>
+      <li>User controls: preferences, unsubscribe, quiet hours, locale.</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Notification API</code> accepts requests and validates payloads.</li>
+      <li><code class="language-plaintext highlighter-rouge">Template Service</code> renders channel-specific content.</li>
+      <li><code class="language-plaintext highlighter-rouge">Preference Service</code> filters by user settings and compliance rules.</li>
+      <li><code class="language-plaintext highlighter-rouge">Queue / Stream</code> buffers work by channel and priority.</li>
+      <li><code class="language-plaintext highlighter-rouge">Delivery Workers</code> call email/SMS/push providers.</li>
+      <li><code class="language-plaintext highlighter-rouge">Status Store</code> tracks sent, failed, retried, bounced, or delivered.</li>
+    </ul>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>Idempotency keys to avoid duplicate sends.</li>
+      <li>Retry with exponential backoff and jitter.</li>
+      <li>Dead-letter queue for poison messages.</li>
+      <li>Provider fallback for SMS/email vendors.</li>
+      <li>Rate limits per provider and per tenant.</li>
+      <li>Metrics: send rate, failure rate, provider latency, queue lag.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>Async delivery absorbs spikes and improves reliability, but users may see delayed notifications.</li>
+    </ul>
+
+  </div>
+</details>
+
+<details>
+  <summary><strong>Design a rate limiter for an API platform.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>Limit subject: user, IP, API key, tenant, endpoint, region.</li>
+      <li>Limit type: requests/sec, requests/day, concurrent requests, bandwidth.</li>
+      <li>Burst behavior: allow short bursts or enforce strict caps?</li>
+      <li>Scope: single region or global?</li>
+      <li>Response: hard block, soft throttle, or <code class="language-plaintext highlighter-rouge">429 Too Many Requests</code>.</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">API Gateway / Middleware</code> checks the limit before routing.</li>
+      <li><code class="language-plaintext highlighter-rouge">Rate Limit Store</code> keeps counters or token buckets in Redis.</li>
+      <li><code class="language-plaintext highlighter-rouge">Policy Store</code> defines limits by tenant, plan, endpoint, or API key.</li>
+      <li><code class="language-plaintext highlighter-rouge">Decision Engine</code> returns allow, reject, or throttle.</li>
+      <li>Response includes quota headers such as remaining limit and reset time.</li>
+    </ul>
+
+    <p><strong>Example</strong></p>
+    <ul>
+      <li>Requirement: each API key gets <code class="language-plaintext highlighter-rouge">100 requests/minute</code>, with a small burst allowance.</li>
+      <li>Key format: <code class="language-plaintext highlighter-rouge">rate_limit:{api_key}:{endpoint}</code>.</li>
+      <li>On each request, the gateway checks the key before calling the backend.</li>
+      <li>If allowed, forward the request and return headers such as:
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">X-RateLimit-Limit: 100</code></li>
+          <li><code class="language-plaintext highlighter-rouge">X-RateLimit-Remaining: 73</code></li>
+          <li><code class="language-plaintext highlighter-rouge">X-RateLimit-Reset: 1710000060</code></li>
+        </ul>
+      </li>
+      <li>If rejected, return <code class="language-plaintext highlighter-rouge">429 Too Many Requests</code> with <code class="language-plaintext highlighter-rouge">Retry-After</code>.</li>
+    </ul>
+
+    <p><strong>Algorithm Choices</strong></p>
+
+    <table class="study-table">
+  <thead>
+    <tr>
+      <th>Algorithm</th>
+      <th>How It Works</th>
+      <th>Pros</th>
+      <th>Cons</th>
+      <th>Use When</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Fixed Window Counter</td>
+      <td>Count requests in fixed time buckets, e.g. 100 requests from 10:00:00 to 10:00:59.</td>
+      <td>Very simple, cheap, easy with Redis <code>INCR</code> + TTL.</td>
+      <td>Boundary bursts: user can send 100 requests at 10:00:59 and 100 more at 10:01:00.</td>
+      <td>Simple APIs where approximate limiting is acceptable.</td>
+    </tr>
+    <tr>
+      <td>Sliding Window Log</td>
+      <td>Store timestamps for each request and remove timestamps older than the window.</td>
+      <td>Very accurate.</td>
+      <td>High memory cost for busy users because every request timestamp is stored.</td>
+      <td>Strict limits for low or moderate traffic keys.</td>
+    </tr>
+    <tr>
+      <td>Sliding Window Counter</td>
+      <td>Use current and previous fixed windows, weighted by how far through the current window you are.</td>
+      <td>More accurate than fixed window, cheaper than sliding log.</td>
+      <td>Still approximate.</td>
+      <td>Good default for high-traffic APIs that need smoother limits.</td>
+    </tr>
+    <tr>
+      <td>Token Bucket</td>
+      <td>Tokens refill at a steady rate. Each request consumes a token. Requests are rejected when the bucket is empty.</td>
+      <td>Allows controlled bursts while enforcing average rate.</td>
+      <td>Needs careful bucket size and refill-rate tuning.</td>
+      <td>Public APIs where short bursts should be allowed.</td>
+    </tr>
+    <tr>
+      <td>Leaky Bucket</td>
+      <td>Requests enter a queue and are processed at a fixed rate, like water leaking from a bucket.</td>
+      <td>Smooths traffic and protects downstream services.</td>
+      <td>Can add latency; queue overflow still needs rejection.</td>
+      <td>When the backend needs a steady request rate.</td>
+    </tr>
+  </tbody>
+</table>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>Atomic Redis operations or Lua scripts to avoid race conditions.</li>
+      <li>Token bucket: good default when burst allowance matters.</li>
+      <li>Sliding window counter: good default when smoother fairness matters.</li>
+      <li>Fixed window: simple, but boundary bursts are possible.</li>
+      <li>Sliding window log: accurate, but can be memory-heavy.</li>
+      <li>Leaky bucket: smooths backend traffic but may add queueing latency.</li>
+      <li>Hot keys for large tenants.</li>
+      <li>Local fallback if Redis is unavailable.</li>
+      <li>Multi-region limits and eventual consistency.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>Strict global limits are more accurate but add coordination and latency. Approximate local limits are faster but less exact.</li>
+    </ul>
+
+  </div>
+</details>
+
+<details>
+  <summary><strong>Design a file storage and sharing service like Google Drive or Dropbox.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>File size limit and total storage per user.</li>
+      <li>Sharing model: private, link-based, team folders, public links.</li>
+      <li>Version history and deletion recovery.</li>
+      <li>Desktop/mobile sync and offline support.</li>
+      <li>Whether collaborative editing is in scope.</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Upload API</code> creates signed upload URLs.</li>
+      <li>Client uploads chunks directly to <code class="language-plaintext highlighter-rouge">Object Storage</code>.</li>
+      <li><code class="language-plaintext highlighter-rouge">Metadata Service</code> stores folders, file records, owners, permissions, and versions.</li>
+      <li><code class="language-plaintext highlighter-rouge">Sharing Service</code> handles access rules and public links.</li>
+      <li><code class="language-plaintext highlighter-rouge">Workers</code> scan files, generate thumbnails, index content, and clean up expired versions.</li>
+      <li><code class="language-plaintext highlighter-rouge">CDN</code> accelerates downloads and previews.</li>
+    </ul>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>Resumable multipart upload.</li>
+      <li>Content hash for deduplication.</li>
+      <li>Permission checks on every download/share action.</li>
+      <li>Versioning and restore.</li>
+      <li>Conflict handling for offline sync.</li>
+      <li>Lifecycle policies for old versions and deleted files.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>Object storage is scalable and cheap for file bytes, but metadata and permissions need careful consistency.</li>
+    </ul>
+
+  </div>
+</details>
+
+<details>
+  <summary><strong>Design a chat system for one-to-one and group messaging.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>One-to-one only, groups, or large channels?</li>
+      <li>Real-time requirement and offline delivery.</li>
+      <li>Message history retention.</li>
+      <li>Read receipts, typing indicators, presence.</li>
+      <li>Attachments and media.</li>
+      <li>End-to-end encryption requirement.</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li>Clients connect to <code class="language-plaintext highlighter-rouge">WebSocket Gateways</code>.</li>
+      <li><code class="language-plaintext highlighter-rouge">Message Service</code> validates, assigns message IDs, and persists messages.</li>
+      <li><code class="language-plaintext highlighter-rouge">Conversation Store</code> partitions history by conversation ID.</li>
+      <li><code class="language-plaintext highlighter-rouge">Stream / Queue</code> fans messages out to recipients.</li>
+      <li><code class="language-plaintext highlighter-rouge">Presence Service</code> tracks online users.</li>
+      <li><code class="language-plaintext highlighter-rouge">Push Notification Service</code> handles offline delivery.</li>
+    </ul>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>Ordering within a conversation.</li>
+      <li>Idempotent message send on retry.</li>
+      <li>WebSocket connection routing.</li>
+      <li>Group fanout strategy for small vs large groups.</li>
+      <li>Offline sync from last-read cursor.</li>
+      <li>Read receipts and typing events as lightweight ephemeral data.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>Ordering within each conversation is usually enough. Global ordering across all chats is expensive and unnecessary.</li>
+    </ul>
+
+  </div>
+</details>
+
+<details>
+  <summary><strong>Design a ticket booking system for concerts or events.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>Assigned seats or general admission?</li>
+      <li>Event size and expected on-sale spike.</li>
+      <li>Hold duration before payment.</li>
+      <li>Payment flow and refund/cancellation rules.</li>
+      <li>Waiting room or queueing required?</li>
+      <li>Resale or ticket transfer support?</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Catalog Service</code> serves event and seat-map reads.</li>
+      <li><code class="language-plaintext highlighter-rouge">Waiting Room / Rate Limiter</code> protects high-demand events.</li>
+      <li><code class="language-plaintext highlighter-rouge">Reservation Service</code> places short-lived holds on seats.</li>
+      <li><code class="language-plaintext highlighter-rouge">Payment Service</code> charges the user.</li>
+      <li><code class="language-plaintext highlighter-rouge">Ticket Service</code> confirms tickets after payment.</li>
+      <li><code class="language-plaintext highlighter-rouge">Notification Service</code> sends confirmation and receipt.</li>
+    </ul>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>Seat inventory and locking model.</li>
+      <li>Hold expiration with TTL.</li>
+      <li>Payment idempotency.</li>
+      <li>Recovery when payment succeeds but ticket confirmation fails.</li>
+      <li>Fraud checks and bot protection.</li>
+      <li>Read replicas/cache for event browsing.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>Seat ownership needs strong consistency. Browsing, recommendations, and confirmation emails can be eventually consistent.</li>
+    </ul>
+
+  </div>
+</details>
+
+<details>
+  <summary><strong>Design a video streaming service.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>Upload + watch, or watch-only?</li>
+      <li>Video length and quality levels.</li>
+      <li>Global audience and CDN requirements.</li>
+      <li>Live streaming in scope?</li>
+      <li>Recommendations, comments, likes, watch history.</li>
+      <li>Copyright, moderation, and private videos.</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Upload Service</code> stores raw video in object storage.</li>
+      <li><code class="language-plaintext highlighter-rouge">Transcoding Queue</code> triggers async processing.</li>
+      <li><code class="language-plaintext highlighter-rouge">Transcoding Workers</code> generate multiple renditions and thumbnails.</li>
+      <li><code class="language-plaintext highlighter-rouge">Metadata Store</code> tracks video title, owner, status, renditions, visibility.</li>
+      <li><code class="language-plaintext highlighter-rouge">Playback Service</code> returns manifests and signed CDN URLs.</li>
+      <li><code class="language-plaintext highlighter-rouge">CDN</code> serves video chunks close to users.</li>
+    </ul>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>Chunked upload and resumability.</li>
+      <li>Adaptive bitrate streaming.</li>
+      <li>Transcoding failure/retry.</li>
+      <li>CDN cache behavior.</li>
+      <li>Authorization for private videos.</li>
+      <li>Watch history and analytics pipeline.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>Pre-transcoding multiple renditions improves playback quality and latency, but increases storage and processing cost.</li>
+    </ul>
+
+  </div>
+</details>
+
+<details>
+  <summary><strong>Design a collaborative document editor.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>Real-time collaboration or async editing?</li>
+      <li>Max collaborators per document.</li>
+      <li>Offline editing and merge requirements.</li>
+      <li>Version history and comments.</li>
+      <li>Permissions: owner, editor, viewer.</li>
+      <li>Rich media support.</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Document Service</code> stores metadata, permissions, and snapshots.</li>
+      <li>Clients connect to <code class="language-plaintext highlighter-rouge">Collaboration Service</code> over WebSocket.</li>
+      <li>Edits are sent as operations and ordered per document.</li>
+      <li>Active collaborators receive broadcast updates.</li>
+      <li><code class="language-plaintext highlighter-rouge">Snapshot Worker</code> periodically compacts operation logs into snapshots.</li>
+      <li><code class="language-plaintext highlighter-rouge">Version Store</code> keeps history and restore points.</li>
+    </ul>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>Operational transform or CRDTs.</li>
+      <li>Operation ordering and conflict resolution.</li>
+      <li>Reconnect and replay from last known version.</li>
+      <li>Presence and cursor positions.</li>
+      <li>Offline merge.</li>
+      <li>Permission enforcement on every session.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>Real-time editing improves UX, but conflict resolution and offline support are complex.</li>
+    </ul>
+
+  </div>
+</details>
+
+<details>
+  <summary><strong>Design a leaderboard for a game.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>Global, regional, friend-based, or seasonal leaderboard?</li>
+      <li>Real-time ranking or periodic updates?</li>
+      <li>Score write frequency.</li>
+      <li>Tie-breaking rules.</li>
+      <li>Anti-cheat requirements.</li>
+      <li>Historical rankings needed?</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Score API</code> receives score submissions from game servers.</li>
+      <li><code class="language-plaintext highlighter-rouge">Validation Service</code> checks score legitimacy.</li>
+      <li><code class="language-plaintext highlighter-rouge">Leaderboard Store</code> uses Redis sorted sets for current rankings.</li>
+      <li><code class="language-plaintext highlighter-rouge">Event Store</code> persists score events for audit and replay.</li>
+      <li><code class="language-plaintext highlighter-rouge">Snapshot Job</code> saves historical leaderboard states.</li>
+    </ul>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>Partition by game, region, season, or mode.</li>
+      <li>Idempotent score updates.</li>
+      <li>Best score vs latest score.</li>
+      <li>Rank lookup by user.</li>
+      <li>Cache rebuild from durable events.</li>
+      <li>Suspicious score detection.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>Redis gives fast rank reads, but durable event storage is needed for recovery and fraud investigation.</li>
+    </ul>
+
+  </div>
+</details>
+
+<details>
+  <summary><strong>Design a web crawler for indexing websites.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>Crawl scope: one site, many sites, or the public web?</li>
+      <li>Freshness target.</li>
+      <li>Robots.txt and politeness requirements.</li>
+      <li>Duplicate handling.</li>
+      <li>Output: search index, analytics, or archive.</li>
+      <li>Dynamic pages in scope?</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Seed URL Store</code> starts the crawl.</li>
+      <li><code class="language-plaintext highlighter-rouge">Frontier Queue</code> prioritizes URLs.</li>
+      <li><code class="language-plaintext highlighter-rouge">Crawler Workers</code> fetch pages with per-domain throttling.</li>
+      <li><code class="language-plaintext highlighter-rouge">Parser</code> extracts links and page content.</li>
+      <li><code class="language-plaintext highlighter-rouge">Dedup Service</code> normalizes URLs and checks content hashes.</li>
+      <li><code class="language-plaintext highlighter-rouge">Object Storage</code> keeps raw pages; <code class="language-plaintext highlighter-rouge">Index Pipeline</code> processes parsed documents.</li>
+    </ul>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>URL normalization.</li>
+      <li>Per-host rate limits.</li>
+      <li>Robots.txt caching.</li>
+      <li>Retry and timeout policy.</li>
+      <li>Duplicate page detection.</li>
+      <li>Crawl priority and recrawl scheduling.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>Crawling faster improves freshness, but can violate politeness rules or overload target sites.</li>
+    </ul>
+
+  </div>
+</details>
+
+<details>
+  <summary><strong>Design an autocomplete service for a search box.</strong></summary>
+
+<div>
+
+    <p><strong>Clarify</strong></p>
+    <ul>
+      <li>Latency target, usually very low.</li>
+      <li>Data source: search logs, product names, locations, documents.</li>
+      <li>Personalization required?</li>
+      <li>Typo tolerance and multilingual support.</li>
+      <li>Update frequency and freshness.</li>
+      <li>Query volume and peak traffic.</li>
+    </ul>
+
+    <p><strong>High-Level Design</strong></p>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">Ingestion Job</code> collects candidate suggestions.</li>
+      <li><code class="language-plaintext highlighter-rouge">Ranking Job</code> scores by popularity, freshness, and business rules.</li>
+      <li><code class="language-plaintext highlighter-rouge">Suggestion Index</code> stores prefix-searchable terms.</li>
+      <li><code class="language-plaintext highlighter-rouge">Autocomplete API</code> serves top suggestions with low latency.</li>
+      <li><code class="language-plaintext highlighter-rouge">Cache</code> stores hot prefixes.</li>
+    </ul>
+
+    <p><strong>Deep Dive</strong></p>
+    <ul>
+      <li>Trie, prefix index, or search engine.</li>
+      <li>Hot prefix caching.</li>
+      <li>Ranking and filtering.</li>
+      <li>Bad-query and abuse filtering.</li>
+      <li>Incremental index updates.</li>
+      <li>p99 latency monitoring.</li>
+    </ul>
+
+    <p><strong>Tradeoff</strong></p>
+    <ul>
+      <li>A precomputed index is fast, but fresh trends may lag unless incremental updates are supported.</li>
+    </ul>
+
+  </div>
+</details>
+
+    </article>
+  </main>
+
+  <div id="imageModal" class="image-modal">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <button class="modal-nav modal-prev">&#8249;</button>
+    <button class="modal-nav modal-next">&#8250;</button>
+    <img id="modalImage" src="" alt="">
+    <div id="modalCaption"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('imageModal');
+  const modalImg = document.getElementById('modalImage');
+  const modalCaption = document.getElementById('modalCaption');
+  const modalClose = document.querySelector('.modal-close');
+  const modalPrev = document.querySelector('.modal-prev');
+  const modalNext = document.querySelector('.modal-next');
+
+  const SCALE_STEP = 0.2;
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 3;
+
+  let modalImages = [];
+  let currentIndex = -1;
+  let currentScale = MIN_SCALE;
+  let translateX = 0;
+  let translateY = 0;
+  let isDragging = false;
+  let isTouchDragging = false;
+  let isPinching = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let pinchStartDistance = 0;
+  let pinchStartScale = MIN_SCALE;
+  let transitionTimeout;
+
+  function refreshModalImages() {
+    modalImages = Array.from(document.querySelectorAll('.modal-trigger'));
+  }
+
+  function applyTransform(withTransition = false) {
+    if (currentScale <= MIN_SCALE) {
+      currentScale = MIN_SCALE;
+      translateX = 0;
+      translateY = 0;
+    }
+
+    if (transitionTimeout) {
+      clearTimeout(transitionTimeout);
+      transitionTimeout = null;
+    }
+
+    modalImg.style.transition = withTransition ? 'transform 0.15s ease' : 'none';
+    modalImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+    modalImg.style.cursor = currentScale > MIN_SCALE
+      ? (isDragging || isTouchDragging ? 'grabbing' : 'grab')
+      : 'auto';
+
+    if (withTransition) {
+      transitionTimeout = setTimeout(() => {
+        modalImg.style.transition = 'none';
+      }, 160);
+    }
+  }
+
+  function resetTransform() {
+    currentScale = MIN_SCALE;
+    translateX = 0;
+    translateY = 0;
+    applyTransform(false);
+  }
+
+  function getDistance(touch1, touch2) {
+    return Math.hypot(
+      touch1.clientX - touch2.clientX,
+      touch1.clientY - touch2.clientY
+    );
+  }
+
+  function openModalAtIndex(index) {
+    refreshModalImages();
+
+    if (!modalImages.length) {
+      return;
+    }
+
+    if (index < 0) {
+      index = modalImages.length - 1;
+    } else if (index >= modalImages.length) {
+      index = 0;
+    }
+
+    const target = modalImages[index];
+    if (!target) {
+      return;
+    }
+
+    currentIndex = index;
+    const src = target.dataset.modalSrc || target.src;
+    const caption = target.getAttribute('data-caption') || target.alt;
+
+    modalImg.src = src;
+    modalCaption.textContent = caption || '';
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    resetTransform();
+  }
+
+  function closeModal() {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+    currentIndex = -1;
+    isDragging = false;
+    isTouchDragging = false;
+    isPinching = false;
+    resetTransform();
+  }
+
+  refreshModalImages();
+
+  modalImg.addEventListener('dragstart', event => event.preventDefault());
+
+  document.addEventListener('click', event => {
+    const trigger = event.target.closest('.modal-trigger');
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+    refreshModalImages();
+    const index = modalImages.indexOf(trigger);
+    openModalAtIndex(index > -1 ? index : 0);
+  });
+
+  modalClose?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', event => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    switch (event.key) {
+      case 'Escape':
+        closeModal();
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        openModalAtIndex(currentIndex - 1);
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        openModalAtIndex(currentIndex + 1);
+        break;
+      case '+':
+      case '=':
+        event.preventDefault();
+        currentScale = Math.min(MAX_SCALE, currentScale + SCALE_STEP);
+        applyTransform(true);
+        break;
+      case '-':
+        event.preventDefault();
+        currentScale = Math.max(MIN_SCALE, currentScale - SCALE_STEP);
+        applyTransform(true);
+        break;
+      case '0':
+        event.preventDefault();
+        resetTransform();
+        applyTransform(true);
+        break;
+      default:
+        break;
+    }
+  });
+
+  modal.addEventListener('wheel', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -SCALE_STEP : SCALE_STEP;
+    const nextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale + delta));
+
+    if (nextScale === currentScale) {
+      return;
+    }
+
+    currentScale = nextScale;
+    applyTransform(true);
+  }, { passive: false });
+
+  if (modalPrev) {
+    modalPrev.addEventListener('click', event => {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex - 1);
+    });
+  }
+
+  if (modalNext) {
+    modalNext.addEventListener('click', event => {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex + 1);
+    });
+  }
+
+  modalImg.addEventListener('mousedown', event => {
+    if (!modal.classList.contains('show') || currentScale <= MIN_SCALE) {
+      return;
+    }
+
+    event.preventDefault();
+    isDragging = true;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    modalImg.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', event => {
+    if (!isDragging) {
+      return;
+    }
+
+    event.preventDefault();
+    translateX += event.clientX - dragStartX;
+    translateY += event.clientY - dragStartY;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    applyTransform(false);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) {
+      return;
+    }
+    isDragging = false;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modalImg.addEventListener('touchstart', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.touches.length === 1 && currentScale > MIN_SCALE) {
+      event.preventDefault();
+      isTouchDragging = true;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      modalImg.style.cursor = 'grabbing';
+    } else if (event.touches.length === 2) {
+      event.preventDefault();
+      isTouchDragging = false;
+      isPinching = true;
+      pinchStartDistance = getDistance(event.touches[0], event.touches[1]);
+      pinchStartScale = currentScale;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+    }
+  }, { passive: false });
+
+  modalImg.addEventListener('touchmove', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (isPinching && event.touches.length === 2) {
+      event.preventDefault();
+      const distance = getDistance(event.touches[0], event.touches[1]);
+      if (pinchStartDistance > 0) {
+        const scaleRatio = distance / pinchStartDistance;
+        currentScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchStartScale * scaleRatio));
+        applyTransform(false);
+      }
+    } else if (isTouchDragging && event.touches.length === 1) {
+      event.preventDefault();
+      translateX += event.touches[0].clientX - dragStartX;
+      translateY += event.touches[0].clientY - dragStartY;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      applyTransform(false);
+    }
+  }, { passive: false });
+
+  modalImg.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.touches.length === 0) {
+      isTouchDragging = false;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+    }
+
+    if (event.touches.length < 2) {
+      isPinching = false;
+      pinchStartDistance = 0;
+      pinchStartScale = currentScale;
+    }
+  });
+
+  modalImg.addEventListener('touchcancel', () => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    isTouchDragging = false;
+    isPinching = false;
+    pinchStartDistance = 0;
+    pinchStartScale = currentScale;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modal.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.target === modal && event.changedTouches.length === 1 && !isTouchDragging && !isPinching) {
+      closeModal();
+    }
+  }, { passive: true });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-snippet-id]').forEach(caption => {
+    const snippetId = caption.getAttribute('data-snippet-id');
+    const snippetElement = document.getElementById(snippetId);
+
+    if (snippetElement) {
+      const content = snippetElement.textContent.replace(/"/g, '&quot;');
+      caption.setAttribute('data-tooltip', content);
+      caption.classList.add('diagram-caption');
+    }
+  });
+});
+</script>
+
+
+  <!-- Floating Table of Contents -->
+  <div id="floating-toc" class="floating-toc">
+    <div class="toc-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"></line>
+        <line x1="8" y1="12" x2="21" y2="12"></line>
+        <line x1="8" y1="18" x2="21" y2="18"></line>
+        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+      </svg>
+    </div>
+    <div class="toc-content">
+      <div class="toc-header">
+        <span>Contents</span>
+        <button class="toc-close" aria-label="Close table of contents">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="toc-nav" id="toc-nav">
+        <!-- Generated by JavaScript -->
+      </nav>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Dark mode functionality
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      
+      // Check for saved theme preference or default to light mode
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      
+      // Toggle dark mode
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    
+    // Initialize dark mode immediately to prevent flash
+    initDarkMode();
+    
+    // Initialize highlight.js and floating TOC after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Floating TOC functionality - only show on sub-study pages
+      const floatingToc = document.getElementById('floating-toc');
+      const tocNav = document.getElementById('toc-nav');
+      const tocClose = document.querySelector('.toc-close');
+      
+      // Check if we're on a sub-study page (not the main study index)
+      const isSubStudyPage = window.location.pathname !== '/study/' && 
+                            window.location.pathname !== '/study' && 
+                            window.location.pathname.startsWith('/study/');
+      
+      if (floatingToc && tocNav && isSubStudyPage) {
+        // Generate TOC from headings
+        function generateTOC() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          if (headings.length === 0) {
+            floatingToc.style.display = 'none';
+            return;
+          }
+          
+          const tocList = document.createElement('ul');
+          let currentLevel = 0;
+          let currentList = tocList;
+          const listStack = [tocList];
+          
+          headings.forEach((heading, index) => {
+            const level = parseInt(heading.tagName.charAt(1));
+            const id = heading.id || `heading-${index}`;
+            
+            // Ensure heading has an ID
+            if (!heading.id) {
+              heading.id = id;
+            }
+            
+            // Create list item
+            const listItem = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = `#${id}`;
+            link.textContent = heading.textContent.trim();
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetElement = document.getElementById(id);
+              if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Close TOC after clicking
+                floatingToc.classList.remove('toc-open');
+              }
+            });
+            
+            listItem.appendChild(link);
+            
+            // Handle nesting
+            if (level > currentLevel) {
+              // Go deeper
+              for (let i = currentLevel; i < level; i++) {
+                const newList = document.createElement('ul');
+                currentList.appendChild(newList);
+                listStack.push(newList);
+                currentList = newList;
+              }
+            } else if (level < currentLevel) {
+              // Go shallower
+              for (let i = currentLevel; i > level; i--) {
+                listStack.pop();
+                currentList = listStack[listStack.length - 1];
+              }
+            }
+            
+            currentList.appendChild(listItem);
+            currentLevel = level;
+          });
+          
+          tocNav.appendChild(tocList);
+        }
+        
+        // Generate the TOC
+        generateTOC();
+        
+        // Handle close button
+        if (tocClose) {
+          tocClose.addEventListener('click', function() {
+            floatingToc.classList.remove('toc-open');
+          });
+        }
+        
+        // Handle click on icon to toggle
+        const tocIcon = document.querySelector('.toc-icon');
+        if (tocIcon) {
+          tocIcon.addEventListener('click', function() {
+            floatingToc.classList.toggle('toc-open');
+          });
+        }
+        
+        // Active section highlighting
+        function updateActiveSection() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          const tocLinks = tocNav.querySelectorAll('a');
+          
+          // Remove active class from all links
+          tocLinks.forEach(link => link.classList.remove('active'));
+          
+          // Find the current section
+          let currentHeading = null;
+          const scrollPosition = window.scrollY + 100; // Offset for better UX
+          
+          for (let i = headings.length - 1; i >= 0; i--) {
+            const heading = headings[i];
+            const headingTop = heading.offsetTop;
+            
+            if (headingTop <= scrollPosition) {
+              currentHeading = heading;
+              break;
+            }
+          }
+          
+          // Add active class to current section
+          if (currentHeading) {
+            const activeLink = tocNav.querySelector(`a[href="#${currentHeading.id}"]`);
+            if (activeLink) {
+              activeLink.classList.add('active');
+            }
+          }
+        }
+        
+        // Update active section on scroll
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+          if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+          }
+          scrollTimeout = setTimeout(updateActiveSection, 10);
+        });
+        
+        // Initial update
+        updateActiveSection();
+      } else if (floatingToc && !isSubStudyPage) {
+        // Hide floating TOC on main study page
+        floatingToc.style.display = 'none';
+      }
+      
+      // Legacy TOC functionality (for existing markdown TOCs)
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Hide the floating TOC if there's already a markdown TOC
+        if (floatingToc) {
+          floatingToc.style.display = 'none';
+        }
+        
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>
