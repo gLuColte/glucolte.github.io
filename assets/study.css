@@ -1,5 +1,16 @@
 /* Study Pages Specific Styles */
 
+/* Inline study links need stronger contrast than the global gray accent in dark mode. */
+[data-theme="dark"] .content a {
+  color: #93c5fd;
+  border-bottom-color: rgba(147, 197, 253, 0.65);
+}
+
+[data-theme="dark"] .content a:hover {
+  color: #bfdbfe;
+  border-bottom-color: transparent;
+}
+
 /* Study table styling - consistent with base styles */
 .study-table {
   width: 100%;
@@ -25,6 +36,21 @@
 .study-table th {
   font-weight: bold;
   text-align: center;
+}
+
+.study-table:has(thead th:nth-child(3)) th:nth-child(1),
+.study-table:has(thead th:nth-child(3)) td:nth-child(1) {
+  width: 16%;
+}
+
+.study-table:has(thead th:nth-child(3)) th:nth-child(2),
+.study-table:has(thead th:nth-child(3)) td:nth-child(2) {
+  width: 42%;
+}
+
+.study-table:has(thead th:nth-child(3)) th:nth-child(3),
+.study-table:has(thead th:nth-child(3)) td:nth-child(3) {
+  width: 42%;
 }
 
 .study-table tbody tr td[colspan] {

@@ -64,9 +64,23 @@
     <article class="content">
       <h1 id="hour-glass">Hourglass Design</h1>
 
-<p>The <strong>Hourglass Design</strong> is something I came up with as a way to think about system design without falling into endless loops of detail. At the top sit the <strong>Sources</strong>—devices, services, or users—each producing data in different forms and rhythms. That raw input is defined by its <strong>Type</strong>, the schema, format, and encoding that determine how data is understood and carried forward. From there, the flow narrows through the <strong>Access Pattern</strong>, where you decide how data can be searched, filtered, or aggregated, and through the <strong>Core API</strong> that governs how the business interacts with <strong>Storage</strong>. This middle is the waist of the hourglass: a stable contract that gives freedom to change databases, pipelines, or infrastructure without rewriting the entire system.</p>
+<p>The <strong>Hourglass Design</strong> is a way to think about system design as data transformation: consume data from a source, turn it into something useful, and present it to the end user at the right place, at the right time, and in the right format.</p>
 
-<p>At the bottom is the <strong>Presentation layer</strong>, where data is delivered outward again—whether to people (UI) or to other systems (External APIs). Around the glass, the cross-cutting forces—<strong>Scalability, Security, Reliability, Observability, and Deployment</strong>—define how well each component can expand, resist failure, and stay operable in practice. The shape is simple but powerful: many inputs narrow through one clear contract before expanding again into many outputs.</p>
+<p>This is similar to <strong>just-in-time manufacturing</strong>: do not produce every possible output upfront. Understand demand first, then decide what must be prebuilt, what can be assembled on demand, and what should be delivered only when the user or downstream system needs it. In system design terms, that means choosing what to store raw, what to transform ahead of time, what to compute on read, and what to cache close to the consumer.</p>
+
+<p>The top of the hourglass is broad because many things can produce data: users, devices, services, partners, files, jobs, and webhooks. The middle narrows because a good system needs a clear transformation contract: what data means, where it is stored, how it is queried, and what business logic turns input into useful output. The bottom widens again because transformed data may be presented through mobile apps, dashboards, notifications, exports, APIs, search, feeds, or analytics.</p>
+
+<p>Use the hourglass with the interview flow from <a href="/study/systemDesignInterviewTips">Interview Tips</a>: clarify the scope, draw the high-level data flow, then deep dive where the design risk is highest. The six core blocks are <strong>Source, Type, Storage, Pattern, Logic, and Presentation</strong>. Around them, the cross-cutting concerns are <strong>Security, Scalability, Reliability, Observability, and Infrastructure</strong>.</p>
+
+<p>The short version:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Source tells you what Data A is
+Type tells you what Data A means
+Storage tells you what state must be kept
+Pattern tells you how Data B will be requested
+Logic tells you how Data A becomes Data B
+Presentation tells you how Data B is delivered
+</code></pre></div></div>
 
 <div class="image-wrapper">
   <img src="./assets/hourglass.png" alt="Hourglass Structure" class="modal-trigger" />
@@ -75,238 +89,97 @@
 
 <hr />
 
-<table class="study-table">
-  <thead>
-    <tr>
-      <th>Critical Question</th>
-      <th>Impact on Design</th>
-    </tr>
-  </thead>
-  <tbody>
+<h2 id="hourglass-checklist">Hourglass Checklist</h2>
 
-    <!-- Source -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Source (Data Origin &amp; Ingress)</strong></td></tr>
-    <tr>
-      <td>Who are the producers (IoT, user, service)?</td>
-      <td>Protocol &amp; scale: MQTT/Kafka for IoT; REST/gRPC for apps; webhooks for partners.</td>
-    </tr>
-    <tr>
-      <td>Push or pull?</td>
-      <td>Push → broker/queue; Pull → scheduler/poller with backoff.</td>
-    </tr>
-    <tr>
-      <td>How frequent (stream vs batch)?</td>
-      <td>Stream → streaming pipeline &amp; backpressure; Batch → ETL windows &amp; SLAs.</td>
-    </tr>
-    <tr>
-      <td>Can sources pre-filter or pre-compute?</td>
-      <td>Yes → lower ingest cost/noise; No → server-side filtering &amp; enrichment.</td>
-    </tr>
-    <tr>
-      <td>Are sources uniquely identifiable?</td>
-      <td>Stable IDs enable partitioning, idempotency, and lineage.</td>
-    </tr>
+<p>Use this as a vertical checklist while designing. Each step should produce an answer that makes the next step easier. Start with one unit of <strong>Data A</strong>, scale it into a dataset, then follow the transformation until <strong>Data B</strong> is ready for the final user-facing output.</p>
 
-    <!-- Type -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Type (Schema, Format, Encoding)</strong></td></tr>
-    <tr>
-      <td>Is schema enforced?</td>
-      <td>Yes → SQL or registry (Avro/Protobuf); No → JSON/NoSQL/object storage.</td>
-    </tr>
-    <tr>
-      <td>Narrow or wide payload?</td>
-      <td>Narrow → time-series stores; Wide → columnar OLAP.</td>
-    </tr>
-    <tr>
-      <td>Compact or human-readable?</td>
-      <td>Compact (Avro/Protobuf) vs readable (JSON/CSV) affects cost &amp; DX.</td>
-    </tr>
-    <tr>
-      <td>Nested or flat values?</td>
-      <td>Nested → JSONB/NoSQL; Flat → relational with indexes.</td>
-    </tr>
+<h3 id="1-source-what-does-one-producer-emit">1. Source: what does one producer emit?</h3>
 
-    <!-- Storage -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Storage (Scale, Structure, Retention)</strong></td></tr>
-    <tr>
-      <td>Daily volume &amp; retention?</td>
-      <td>High/long → tiered storage (S3 + hot DB) &amp; lifecycle policies.</td>
-    </tr>
-    <tr>
-      <td>Write pattern: hot or cold?</td>
-      <td>Hot → append logs/stream DB; Cold → relational with indices.</td>
-    </tr>
-    <tr>
-      <td>Mutable or immutable?</td>
-      <td>Mutable → versioning/locks; Immutable → event store/compaction.</td>
-    </tr>
-    <tr>
-      <td>Joins vs time filters?</td>
-      <td>Joins → relational; Time-range → TSDB/partitioned tables.</td>
-    </tr>
-    <tr>
-      <td>Consistency needs?</td>
-      <td>Strong → RDBMS; Eventual → NoSQL/object storage.</td>
-    </tr>
+<p>Core question: for a single producer, what is one unit of Data A?</p>
 
-    <!-- Access Pattern -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Access Pattern (Read Behavior &amp; Consumers)</strong></td></tr>
-    <tr>
-      <td>Real-time, periodic, or ad-hoc?</td>
-      <td>Real-time → cache/precompute; Ad-hoc → OLAP/query planner.</td>
-    </tr>
-    <tr>
-      <td>Read by ID, time, or search?</td>
-      <td>ID → key-value; Time → TSDB; Search → inverted index.</td>
-    </tr>
-    <tr>
-      <td>Global or scoped (user/region)?</td>
-      <td>Partitioning, row-level access, tenant isolation.</td>
-    </tr>
-    <tr>
-      <td>Do consumers need aggregates?</td>
-      <td>Pre-aggregated/materialized views improve latency &amp; cost.</td>
-    </tr>
+<ul>
+  <li><strong>Producer:</strong> user, device, service, partner, file, scheduled job, or webhook.</li>
+  <li><strong>Event:</strong> the payload emitted by that producer.</li>
+  <li><strong>Ingress:</strong> protocol or mechanism: REST, gRPC, MQTT, webhook, queue, upload, or batch job.</li>
+  <li><strong>Identity and trust:</strong> source ID, event ID, auth, validation, and deduplication.</li>
+</ul>
 
-    <!-- API -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Core API (Interface &amp; Protocols)</strong></td></tr>
-    <tr>
-      <td>User-triggered or system-triggered?</td>
-      <td>User → REST/GraphQL; System → webhooks, MQTT, Kafka.</td>
-    </tr>
-    <tr>
-      <td>Is real-time push needed?</td>
-      <td>Yes → WebSocket/SSE/MQTT; No → polling with ETags &amp; caching.</td>
-    </tr>
-    <tr>
-      <td>Precompute or on-demand?</td>
-      <td>Precompute → Redis/materialized views; On-demand → compute budget.</td>
-    </tr>
-    <tr>
-      <td>Large/batch downloads?</td>
-      <td>Async job + signed URL; otherwise paginated endpoints.</td>
-    </tr>
+<p>Output: one clear <strong>Data A</strong> event. This feeds Type because you now know what fields must be understood at scale.</p>
 
-    <!-- Presentation -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Presentation (Frontend/Analytics)</strong></td></tr>
-    <tr>
-      <td>Need low-latency/live updates?</td>
-      <td>Push or fast polling; optimistic UI.</td>
-    </tr>
-    <tr>
-      <td>Large lists/maps?</td>
-      <td>Pagination, infinite scroll, viewport virtualization.</td>
-    </tr>
-    <tr>
-      <td>Advanced search/filter?</td>
-      <td>Search engine (Typesense/Meilisearch/Elasticsearch).</td>
-    </tr>
-    <tr>
-      <td>Offline or flaky networks?</td>
-      <td>Service Workers, IndexedDB/LocalStorage, sync queues.</td>
-    </tr>
-    <tr>
-      <td>Personalized views?</td>
-      <td>RBAC + query-level filters.</td>
-    </tr>
+<h3 id="2-type-what-does-data-a-look-like-across-all-producers">2. Type: what does Data A look like across all producers?</h3>
 
-    <!-- Security -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Security (Auth, Privacy, Protection)</strong></td></tr>
-    <tr>
-      <td>Who can access what?</td>
-      <td>Public read vs private scopes; IAM/JWT/API keys; WAF.</td>
-    </tr>
-    <tr>
-      <td>Tenant or user boundaries?</td>
-      <td>Row-level security, per-tenant schemas/keys, encryption.</td>
-    </tr>
-    <tr>
-      <td>Is access audited?</td>
-      <td>Append-only audit logs, forwarding &amp; retention.</td>
-    </tr>
-    <tr>
-      <td>Abuse protection?</td>
-      <td>Rate limits, CAPTCHA, throttling/backoff.</td>
-    </tr>
+<p>Core question: when many producers emit Data A, what dataset does that create?</p>
 
-    <!-- Scalability -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Scalability (Throughput &amp; Growth)</strong></td></tr>
-    <tr>
-      <td>Growth: linear or exponential?</td>
-      <td>Plan sharding/partitions early; avoid single-writer bottlenecks.</td>
-    </tr>
-    <tr>
-      <td>CPU, memory, or I/O bound?</td>
-      <td>Match scaling: workers, queues/backpressure, caches/batching.</td>
-    </tr>
-    <tr>
-      <td>Horizontal scale possible?</td>
-      <td>Stateless services, partitioned DBs, idempotent handlers.</td>
-    </tr>
-    <tr>
-      <td>Natural partition keys?</td>
-      <td>Device ID, region, tenant → predictable scale-out.</td>
-    </tr>
+<ul>
+  <li><strong>Schema:</strong> required fields, optional fields, validation rules, and schema evolution.</li>
+  <li><strong>Representation:</strong> JSON, Protobuf, Avro, CSV, image, video, log line, or binary payload.</li>
+  <li><strong>Meaning:</strong> units, timestamps, time zones, IDs, encoding, enums, and field semantics.</li>
+  <li><strong>Scale shape:</strong> producer count × per-producer frequency × event size.</li>
+</ul>
 
-    <!-- Reliability -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Reliability</strong></td></tr>
-    <tr>
-      <td>Impact of a component failure?</td>
-      <td>Retries with jitter, fallbacks, circuit breakers, graceful degradation.</td>
-    </tr>
-    <tr>
-      <td>Are retries safe?</td>
-      <td>Idempotency keys, sequence numbers; avoid duplicate side effects.</td>
-    </tr>
-    <tr>
-      <td>Durability vs availability?</td>
-      <td>Sync replication/WAL/backups vs looser RPO/RTO.</td>
-    </tr>
-    <tr>
-      <td>Dependency isolation?</td>
-      <td>Bulkheads, timeouts, rate limits, queues.</td>
-    </tr>
+<p>Output: schema, event size, event rate, and rough daily volume. This feeds Storage because volume and shape determine what can be stored, indexed, or discarded.</p>
 
-    <!-- Observability -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Observability (Monitoring, Logging, Tracing)</strong></td></tr>
-    <tr>
-      <td>Alert on the right signals?</td>
-      <td>Golden signals &amp; anomaly detection; dead-man’s switch for silence.</td>
-    </tr>
-    <tr>
-      <td>Trace across services?</td>
-      <td>Correlation IDs, OpenTelemetry, X-Ray/Jaeger.</td>
-    </tr>
-    <tr>
-      <td>Structured, centralized logs?</td>
-      <td>ELK/Loki/Datadog; consistent fields &amp; sampling.</td>
-    </tr>
-    <tr>
-      <td>Business KPIs as metrics?</td>
-      <td>Emit product KPIs alongside infra metrics.</td>
-    </tr>
+<h3 id="3-storage-where-do-data-a-and-data-b-live">3. Storage: where do Data A and Data B live?</h3>
 
-    <!-- Deployment -->
-    <tr><td colspan="2" style="text-align:center;"><strong>Infrastructure</strong></td></tr>
-    <tr>
-      <td>Cloud, hybrid, or on-prem?</td>
-      <td>Managed services vs portable containers/orchestration.</td>
-    </tr>
-    <tr>
-      <td>Multi-region?</td>
-      <td>Global DNS, replication strategy, active-active/DR.</td>
-    </tr>
-    <tr>
-      <td>IaC &amp; CI/CD?</td>
-      <td>Terraform/CDK + pipelines; policy as code.</td>
-    </tr>
-    <tr>
-      <td>Release safety?</td>
-      <td>Canary, feature flags, rollbacks; infra drift detection.</td>
-    </tr>
+<p>Core question: what must be stored as source-of-truth Data A, and what can be rebuilt as derived Data B?</p>
 
-  </tbody>
-</table>
+<ul>
+  <li><strong>Source of truth:</strong> canonical records, raw events, objects, or transaction state.</li>
+  <li><strong>Derived state:</strong> feeds, search indexes, aggregates, reports, caches, and analytics.</li>
+  <li><strong>Lifecycle:</strong> mutability, retention, archival, deletion, and consistency needs.</li>
+</ul>
+
+<p>Output: what is stored, what is derived, how long it lives, and how consistent it must be. This feeds Pattern because stored state must match how Data B will be read.</p>
+
+<h3 id="4-pattern-how-will-data-b-be-requested">4. Pattern: how will Data B be requested?</h3>
+
+<p>Core question: what access pattern does Data B need to support?</p>
+
+<ul>
+  <li><strong>Lookup:</strong> by ID, owner, time range, location, search term, relationship, or tenant.</li>
+  <li><strong>Shape:</strong> single object, list, feed, aggregate, ranking, map, graph, export, or stream.</li>
+  <li><strong>Freshness and scope:</strong> latest vs stale, global vs tenant/user/region/permission scoped.</li>
+</ul>
+
+<p>Output: query shape, indexes, partition keys, cache keys, and freshness expectations. This feeds Logic because the transformation should produce Data B in the shape consumers need.</p>
+
+<h3 id="5-logic-how-does-data-a-become-data-b">5. Logic: how does Data A become Data B?</h3>
+
+<p>Core question: what validation, enrichment, computation, and side effects turn Data A into useful Data B?</p>
+
+<ul>
+  <li><strong>Validation:</strong> reject invalid, duplicate, unauthorized, or malformed input.</li>
+  <li><strong>Transformation:</strong> enrich, join, normalize, classify, geocode, rank, score, summarize, or aggregate.</li>
+  <li><strong>Timing:</strong> compute on write, on read, on a schedule, or continuously in a stream.</li>
+  <li><strong>Side effects:</strong> notifications, search indexing, analytics, billing, emails, and webhooks.</li>
+</ul>
+
+<p>Output: the transformation plan from Data A to Data B. This feeds Presentation because the final surface should receive useful, timely, correctly shaped data.</p>
+
+<h3 id="6-presentation-how-is-data-b-delivered-just-in-time">6. Presentation: how is Data B delivered just in time?</h3>
+
+<p>Core question: who needs Data B, where do they need it, when do they need it, and in what format?</p>
+
+<ul>
+  <li><strong>Audience:</strong> end users, admins, partners, internal operators, analysts, or other systems.</li>
+  <li><strong>Delivery:</strong> mobile, web, dashboard, notification, API, export, embedded widget, or report.</li>
+  <li><strong>Timing:</strong> instant, live, eventually, scheduled, or on demand.</li>
+  <li><strong>Format:</strong> table, chart, map, feed, ranking, card, file, alert, or machine-readable response.</li>
+</ul>
+
+<p>Output: the delivery contract for Data B: audience, place, time, format, latency, and permissions.</p>
+
+<h3 id="cross-cutting-checks">Cross-Cutting Checks</h3>
+
+<p>After the six core blocks, check the system qualities around the hourglass:</p>
+
+<ul>
+  <li><strong>Security:</strong> who can create, transform, store, and view each piece of data?</li>
+  <li><strong>Scalability:</strong> what grows: sources, objects, writes, reads, transformations, or outputs?</li>
+  <li><strong>Reliability:</strong> can the system retry safely, recover from failure, and rebuild derived data?</li>
+  <li><strong>Observability:</strong> can we see data moving from source to transformed output?</li>
+  <li><strong>Infrastructure:</strong> where does the logic run, and how are schema, code, index, and job changes released safely?</li>
+</ul>
 
 <hr />
 
@@ -319,7 +192,7 @@
 <h1 id="system-design-scenarios">System Design Scenarios</h1>
 
 <p>These scenarios illustrate how to apply the <strong>Hourglass Design Method</strong> to real-world systems, from IoT to social platforms to eCommerce.<br />
-Each table follows the same structure: <strong>Block → Design Choice → Justification</strong>.</p>
+Each scenario first names <strong>Data A</strong> and <strong>Data B</strong>, then the table follows the same structure: <strong>Block → Design Choice → Justification</strong>.</p>
 
 <hr />
 
@@ -330,6 +203,13 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
   <li><strong>Realtime heatmap</strong> (~10s latency)</li>
   <li><strong>Historical dashboard</strong> (daily/weekly/monthly)</li>
   <li><strong>Retention</strong>: 6 months</li>
+</ul>
+
+<p><strong>Data A → Data B</strong></p>
+
+<ul>
+  <li><strong>Data A:</strong> raw sensor readings: <code class="language-plaintext highlighter-rouge">device_id</code>, timestamp, temperature, and device metadata.</li>
+  <li><strong>Data B:</strong> live regional heatmap cells, historical aggregates, alertable trends, and dashboard-ready time-series views.</li>
 </ul>
 
 <table class="study-table">
@@ -343,26 +223,26 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
 <tbody>
 <tr>
 <td><strong>Source</strong></td>
-<td>MQTT protocol, 1M IoT devices<br />JSON payload: <code>{ device_id, timestamp, temperature }</code></td>
-<td>MQTT is lightweight, supports millions of persistent low-power clients</td>
+<td>One sensor publishes one reading over MQTT<br />Single-device payload: <code>{ device_id, lat, lon, timestamp, temperature }</code></td>
+<td>Estimate one reading first: <code>device_id</code> (<code>8 B</code>) + lat/lon doubles (<code>16 B</code>) + temperature double (<code>8 B</code>) + timestamp (<code>8 B</code>) = ~40 B before overhead. JSON is often ~100-200 B because field names and punctuation are included.</td>
 </tr>
 <tr>
 <td><strong>Type</strong></td>
-<td>Structured time-series, fixed schema<br />JSON at ingest → binary at storage</td>
-<td>Efficient parsing and optimized storage</td>
+<td>Structured time-series across 1M devices<br />1M devices / 10s = ~100K readings/sec<br />Fixed schema with timestamp, location, and numeric temperature<br />JSON at ingest → binary at storage</td>
+<td>Type scales the single reading: ~100K readings/sec × 86,400 sec ≈ 8.64B readings/day. At ~100 B each, raw ingest is ~864 GB/day before replicas and indexes.</td>
 </tr>
 <tr>
 <td><strong>Storage</strong></td>
-<td>Realtime table (~16 MB)<br />Daily aggregation (~2.9 GB / 180 days)<br />Metadata (~20 MB)<br /><strong>Total ≈ 3.5 GB</strong></td>
-<td>Tiered storage: hot (real-time) vs cold (aggregates)</td>
+<td>Realtime latest-value table (~16 MB)<br />Daily aggregation (~2.9 GB / 180 days)<br />Metadata (~20 MB)<br />Raw readings optional: much larger if retained</td>
+<td>Storage follows retention: latest-value storage stays tiny, aggregate storage is compact, but retaining all raw readings for 180 days would be ~155 TB before replicas/indexes.</td>
 </tr>
 <tr>
-<td><strong>Preprocessing / Compute</strong></td>
+<td><strong>Logic / Transformation</strong></td>
 <td>Realtime updates per reading<br />Daily min/max aggregation<br />Redis for fast compare<br />Batch writes → TimescaleDB</td>
 <td>Low latency ingest + efficient aggregation</td>
 </tr>
 <tr>
-<td><strong>Core API</strong></td>
+<td><strong>Pattern / Access</strong></td>
 <td>REST polling every 10s (map)<br />REST queries (historical)</td>
 <td>Polling is simple, cost-efficient for low concurrency</td>
 </tr>
@@ -410,6 +290,13 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
   <li><strong>Support search, hashtags, user timelines</strong></li>
 </ul>
 
+<p><strong>Data A → Data B</strong></p>
+
+<ul>
+  <li><strong>Data A:</strong> user actions: posts, likes, follows, replies, media uploads, hashtags, and mentions.</li>
+  <li><strong>Data B:</strong> personalized timelines, searchable posts, notifications, counters, and profile/user timeline views.</li>
+</ul>
+
 <table class="study-table">
 <thead>
 <tr>
@@ -421,26 +308,26 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
 <tbody>
 <tr>
 <td><strong>Source</strong></td>
-<td>User posts (tweets), likes, follows<br />Ingest via REST API + WebSockets</td>
-<td>REST for write operations; WebSocket for live updates</td>
+<td>One user emits one action: create post, like, follow, reply, or upload media<br />Example post payload: <code>{ author_id, text, media_ids, created_at }</code></td>
+<td>Estimate one post first: IDs/timestamp are ~24 B, 280 chars of English UTF-8 is ~280 B, worst-case UTF-8 can be ~1.1 KB, and media pointers/counters add tens to hundreds of bytes.</td>
 </tr>
 <tr>
 <td><strong>Type</strong></td>
-<td>JSON payloads (id, user_id, timestamp, text, media_url)<br />Hashtags/mentions indexed</td>
-<td>Schema is semi-structured but consistent enough for indexing</td>
+<td>Mixed event stream across millions of users<br />Post, like, follow, reply, and media events have related but different schemas<br />Text fields need UTF-8 sizing; hashtags/mentions become indexed fields</td>
+<td>Type scales the event family: a post metadata row is roughly ~0.5-2 KB. At 10M posts/day and ~1 KB average, post metadata is ~10 GB/day before indexes.</td>
 </tr>
 <tr>
 <td><strong>Storage</strong></td>
 <td>OLTP DB (Postgres/CockroachDB) for metadata<br />Object store (S3) for media<br />ElasticSearch for search/index</td>
-<td>Separate transactional vs. search workloads</td>
+<td>Storage separates workloads: if 10% of 10M posts include 1 MB media, media adds ~1 TB/day, which dominates metadata storage.</td>
 </tr>
 <tr>
-<td><strong>Preprocessing / Compute</strong></td>
+<td><strong>Logic / Transformation</strong></td>
 <td>Fanout service builds timelines<br />Kafka for async event distribution</td>
-<td>Decouples writes from personalized feed building</td>
+<td>Logic can multiply writes: 10M posts/day × 200 followers average ≈ 2B timeline write events/day, so fanout should be async.</td>
 </tr>
 <tr>
-<td><strong>Core API</strong></td>
+<td><strong>Pattern / Access</strong></td>
 <td>REST (post, follow)<br />WebSocket/GraphQL (feed updates)</td>
 <td>REST reliable for writes; streaming API for low-latency feeds</td>
 </tr>
@@ -488,6 +375,13 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
   <li><strong>Scalable search + inventory</strong></li>
 </ul>
 
+<p><strong>Data A → Data B</strong></p>
+
+<ul>
+  <li><strong>Data A:</strong> product updates, browsing events, cart changes, checkout requests, inventory changes, and payment callbacks.</li>
+  <li><strong>Data B:</strong> searchable catalog pages, available inventory, cart state, confirmed orders, receipts, and fulfillment events.</li>
+</ul>
+
 <table class="study-table">
 <thead>
 <tr>
@@ -499,26 +393,26 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
 <tbody>
 <tr>
 <td><strong>Source</strong></td>
-<td>Users browsing, adding to cart, checkout actions<br />External payment gateway callbacks</td>
-<td>Standard REST ingestion with webhook integration</td>
+<td>One producer emits one event: product update, product view, add-to-cart, checkout request, inventory update, or payment callback</td>
+<td>Estimate one product record first: IDs and numeric fields are small, title is ~100 B, description can be ~1-4 KB, attributes JSON ~0.5-3 KB, and media URLs ~300 B-1 KB.</td>
 </tr>
 <tr>
 <td><strong>Type</strong></td>
-<td>Structured JSON for users/products<br />Catalog with categories, variants</td>
-<td>Strong schema required for payments + orders</td>
+<td>Structured event families: product/catalog records, cart events, order commands, inventory mutations, payment callbacks<br />Catalog is read-heavy; checkout/payment is correctness-heavy</td>
+<td>Type separates scale profiles: catalog rows are often ~2-10 KB, cart events are small and ephemeral, while checkout/payment events need strict validation.</td>
 </tr>
 <tr>
 <td><strong>Storage</strong></td>
 <td>RDBMS (Aurora/MySQL) for orders/payments<br />DynamoDB for cart sessions<br />S3 for product media</td>
-<td>Transactional consistency for payments; NoSQL for ephemeral cart</td>
+<td>Storage follows object type: 1M products × ~5 KB average ≈ 5 GB catalog metadata, while 1M × 3 images × 500 KB ≈ 1.5 TB media.</td>
 </tr>
 <tr>
-<td><strong>Preprocessing / Compute</strong></td>
+<td><strong>Logic / Transformation</strong></td>
 <td>Inventory service decrements stock<br />Async order events via SNS/SQS</td>
-<td>Event-driven ensures reliable order flow</td>
+<td>Checkout math drives correctness: 10K checkout/min ≈ 167 checkout/sec, but browsing/search reads may be 100x higher.</td>
 </tr>
 <tr>
-<td><strong>Core API</strong></td>
+<td><strong>Pattern / Access</strong></td>
 <td>REST (catalog, cart, order)<br />GraphQL (flexible queries for product search)</td>
 <td>REST for critical workflows; GraphQL for frontend flexibility</td>
 </tr>
@@ -566,6 +460,13 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
   <li><strong>Analytics</strong> (clicks, geo, referrer)</li>
 </ul>
 
+<p><strong>Data A → Data B</strong></p>
+
+<ul>
+  <li><strong>Data A:</strong> long URL, owner, optional alias/TTL, redirect request, and click metadata such as timestamp, referrer, device, and geo.</li>
+  <li><strong>Data B:</strong> short code mapping, low-latency redirect response, QR/shareable link, and aggregated click analytics.</li>
+</ul>
+
 <table class="study-table">
 <thead>
 <tr>
@@ -577,26 +478,26 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
 <tbody>
 <tr>
 <td><strong>Source</strong></td>
-<td>REST API: <code>POST /shorten</code>, <code>GET /{code}</code></td>
-<td>Simple CRUD over HTTPS; easy client integration</td>
+<td>One client request creates a mapping or resolves a code<br />Create payload: <code>{ long_url, owner_id, ttl }</code><br />Redirect request: <code>GET /{code}</code></td>
+<td>Estimate one mapping first: short code is 7 ASCII chars (~7 B), owner ID is ~8 B, timestamps/TTL ~16 B, and long URL is often ~100-2,000 chars.</td>
 </tr>
 <tr>
 <td><strong>Type</strong></td>
-<td>JSON: <code>{ long_url, owner_id, ttl }</code></td>
-<td>Minimal schema for fast validation and storage</td>
+<td>Two main data shapes: mapping records and click events<br />Mapping records are small but durable; click events are append-only and much higher volume</td>
+<td>Type separates durable mappings from click logs: mapping rows are often ~200 B-2 KB, while click events with IP/referrer/user-agent/geo are often ~300 B-1 KB.</td>
 </tr>
 <tr>
 <td><strong>Storage</strong></td>
 <td>DynamoDB (PK=code) for mapping; S3 for logs</td>
-<td>Single-digit ms reads; elastic scale; cheap analytics storage</td>
+<td>Storage separates hot lookups and analytics: 100M URLs × ~500 B ≈ 50 GB mapping metadata; 1B click logs/day × ~500 B ≈ 500 GB/day in logs.</td>
 </tr>
 <tr>
-<td><strong>Preprocessing / Compute</strong></td>
+<td><strong>Logic / Transformation</strong></td>
 <td>Code gen via base62/ULID; optional custom alias; async analytics (Kinesis)</td>
-<td>Collision avoidance; decouple hot path from analytics</td>
+<td>Code-space math guides collision strategy: 62^7 ≈ 3.5T possible codes, enough for 100M URLs with a large safety margin.</td>
 </tr>
 <tr>
-<td><strong>Core API</strong></td>
+<td><strong>Pattern / Access</strong></td>
 <td>REST + 301/302 redirect; rate-limits per owner</td>
 <td>Browser-native redirect semantics; abuse protection</td>
 </tr>
@@ -644,6 +545,13 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
   <li><strong>Query</strong>: keyword + semantic, filters, facets</li>
 </ul>
 
+<p><strong>Data A → Data B</strong></p>
+
+<ul>
+  <li><strong>Data A:</strong> raw documents, webpages, titles, body text, metadata, facets, links, and uploaded files.</li>
+  <li><strong>Data B:</strong> searchable index entries, ranked result sets, highlighted snippets, facets, autosuggest terms, and vector-search candidates.</li>
+</ul>
+
 <table class="study-table">
 <thead>
 <tr>
@@ -655,26 +563,26 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
 <tbody>
 <tr>
 <td><strong>Source</strong></td>
-<td>Crawler / webhooks / batch uploads (S3)</td>
-<td>Multiple ingestion modes for coverage and freshness</td>
+<td>One crawler fetch, webhook event, or batch upload produces one raw document or document update</td>
+<td>Estimate one document first: document ID ~8-16 B, title ~100 B, body text often ~10 KB, facets/tags ~100-500 B, URL ~100-2,000 chars, metadata JSON ~0.5-2 KB.</td>
 </tr>
 <tr>
 <td><strong>Type</strong></td>
-<td>JSON docs: title, body, facets, embedding</td>
-<td>Supports keyword and vector (semantic) search</td>
+<td>Document corpus across many sources<br />Fields include title, body, URL, facets, metadata, language, and optional embedding</td>
+<td>Type scales one document into a corpus: use ~10-20 KB per raw document for rough sizing; fields support keyword, filter, ranking, and vector search.</td>
 </tr>
 <tr>
 <td><strong>Storage</strong></td>
 <td>OpenSearch/Elastic (inverted index) + vector index; S3 cold store</td>
-<td>Hybrid BM25 + ANN; cheap archive</td>
+<td>Storage can rival raw content: 100M docs × 10 KB ≈ 1 TB raw; search index may add ~300 GB-1 TB; 768-dim float vectors add ~307 GB before index overhead.</td>
 </tr>
 <tr>
-<td><strong>Preprocessing / Compute</strong></td>
+<td><strong>Logic / Transformation</strong></td>
 <td>ETL: clean, dedupe, tokenize, embed; incremental indexing</td>
 <td>Higher relevance; fast refresh with partial updates</td>
 </tr>
 <tr>
-<td><strong>Core API</strong></td>
+<td><strong>Pattern / Access</strong></td>
 <td>Search REST: q, filters, sort; autosuggest endpoint</td>
 <td>Standard search UX; low-latency responses</td>
 </tr>
@@ -722,6 +630,13 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
   <li><strong>Trip lifecycle</strong> events</li>
 </ul>
 
+<p><strong>Data A → Data B</strong></p>
+
+<ul>
+  <li><strong>Data A:</strong> driver locations, rider pickup/dropoff requests, driver availability, trip events, traffic signals, and payment events.</li>
+  <li><strong>Data B:</strong> nearby driver candidates, match decisions, ETA, price quote, live trip state, route updates, and notifications.</li>
+</ul>
+
 <table class="study-table">
 <thead>
 <tr>
@@ -733,26 +648,26 @@ Each table follows the same structure: <strong>Block → Design Choice → Justi
 <tbody>
 <tr>
 <td><strong>Source</strong></td>
-<td>Mobile apps (drivers/riders) → gRPC/HTTP + WebSocket</td>
-<td>Bi-directional updates; efficient on mobile</td>
+<td>One mobile app emits one event: driver location update, rider request, driver accept, trip status update, or payment event</td>
+<td>Estimate one location event first: driver ID ~8 B, lat/lon ~8-16 B, timestamp ~8 B, speed/heading/status ~10-30 B, request metadata ~20-100 B.</td>
 </tr>
 <tr>
 <td><strong>Type</strong></td>
-<td>JSON/Protobuf: lat/lon, speed, status; trip events</td>
-<td>Compact on-wire; structured for stream processing</td>
+<td>Regional event stream across active riders and drivers<br />Location events are high-frequency; trip/payment events are lower-frequency but more correctness-sensitive</td>
+<td>Type separates high-volume telemetry from durable lifecycle events: compact location events are ~60-150 B, while JSON events are often ~150-300 B.</td>
 </tr>
 <tr>
 <td><strong>Storage</strong></td>
 <td>Redis/KeyDB (geo sets) for live locations; Postgres for trips/payments; S3 for telemetry</td>
-<td>Fast geo-nearby; durable transactional store</td>
+<td>Storage follows frequency: 100K active drivers / 5s = 20K location writes/sec; at ~150 B each ≈ 3 MB/sec, ~259 GB/day before replicas/log overhead.</td>
 </tr>
 <tr>
-<td><strong>Preprocessing / Compute</strong></td>
+<td><strong>Logic / Transformation</strong></td>
 <td>Stream (Kafka): location smoothing, ETA calc, surge pricing; ML for ETA/dispatch</td>
-<td>Low-latency decisions; adaptive pricing</td>
+<td>Logic should stay regional: dispatch queries nearby drivers by city/zone rather than scanning the global location set.</td>
 </tr>
 <tr>
-<td><strong>Core API</strong></td>
+<td><strong>Pattern / Access</strong></td>
 <td>REST: request/cancel trip, quote; WebSocket: live driver ETA/track</td>
 <td>Seamless UX for requests + realtime updates</td>
 </tr>
