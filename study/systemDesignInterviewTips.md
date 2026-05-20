@@ -63,6 +63,7 @@ Collaborate with the interviewer. Come up with an initial blueprint, ask for fee
 What to do:
 
 - Draw a box diagram with the key components.
+- List the high-level areas before deep diving: API, data model, storage, cache, async processing, scaling, reliability, observability.
 - Show the main request flow from client to backend to storage.
 - Separate read path and write path if they differ.
 - Identify the API boundary.
@@ -107,6 +108,10 @@ Good areas to deep dive:
 
 How to choose the deep dive:
 
+1. List the high-level areas first.
+2. Ask the interviewer what they want to focus on.
+3. If they do not specify, pick the most important area and deep dive confidently.
+
 ```
 The riskiest part of this design is X because Y.
 I will focus there first unless you would rather explore another part.
@@ -143,6 +148,8 @@ This design prioritizes fast reads and high availability. The main tradeoff is e
 - Let the interviewer know what you are thinking.
 - Suggest multiple approaches when there is a meaningful tradeoff.
 - Start with the big picture first.
+- List the possible deep-dive areas before choosing one.
+- Ask the interviewer where they want to go deeper.
 - Go into component detail only after the high-level design is agreed.
 - Bounce ideas off the interviewer.
 - Use rough numbers to test whether the design is plausible.

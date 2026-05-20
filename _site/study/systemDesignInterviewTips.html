@@ -126,6 +126,7 @@ I will prioritize availability and low read latency over strict consistency.
 
 <ul>
   <li>Draw a box diagram with the key components.</li>
+  <li>List the high-level areas before deep diving: API, data model, storage, cache, async processing, scaling, reliability, observability.</li>
   <li>Show the main request flow from client to backend to storage.</li>
   <li>Separate read path and write path if they differ.</li>
   <li>Identify the API boundary.</li>
@@ -172,6 +173,12 @@ I will prioritize availability and low read latency over strict consistency.
 
 <p>How to choose the deep dive:</p>
 
+<ol>
+  <li>List the high-level areas first.</li>
+  <li>Ask the interviewer what they want to focus on.</li>
+  <li>If they do not specify, pick the most important area and deep dive confidently.</li>
+</ol>
+
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>The riskiest part of this design is X because Y.
 I will focus there first unless you would rather explore another part.
 </code></pre></div></div>
@@ -209,6 +216,8 @@ I will focus there first unless you would rather explore another part.
   <li>Let the interviewer know what you are thinking.</li>
   <li>Suggest multiple approaches when there is a meaningful tradeoff.</li>
   <li>Start with the big picture first.</li>
+  <li>List the possible deep-dive areas before choosing one.</li>
+  <li>Ask the interviewer where they want to go deeper.</li>
   <li>Go into component detail only after the high-level design is agreed.</li>
   <li>Bounce ideas off the interviewer.</li>
   <li>Use rough numbers to test whether the design is plausible.</li>

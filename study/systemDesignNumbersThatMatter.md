@@ -149,12 +149,28 @@ Quick notes:
 
 ## Average Object Sizes {#average-object-sizes}
 
-Use these as rough estimates when converting product requirements into storage, bandwidth, cache, and database sizing. Real systems vary a lot because of encoding, metadata, indexes, compression, replication, and media quality.
+Use these as rough estimates when converting product requirements into storage, bandwidth, cache, and database sizing. Real systems vary a lot because of data types, text encoding, metadata, indexes, compression, replication, and media quality.
+
+For a stored object, start with this mental model:
+
+```
+total object size
+~= primitive fields
+ + text fields
+ + structured format overhead
+ + metadata fields
+ + indexes
+ + storage engine overhead
+ + replication / compression effects
+ + media objects, if any
+```
+
+Primitive fields are the easiest to estimate because they are usually fixed-size:
 
 <table class="study-table">
   <thead>
     <tr>
-      <th>Thing</th>
+      <th>Primitive / Field Type</th>
       <th>Rough Size</th>
       <th>Why It Matters</th>
       <th>Example Estimate</th>
@@ -186,64 +202,271 @@ Use these as rough estimates when converting product requirements into storage, 
       <td>Unix milliseconds or database timestamp</td>
     </tr>
     <tr>
-      <td>Short text field</td>
-      <td>10-100 bytes</td>
-      <td>Usernames, titles, tags, status values.</td>
-      <td><code>@alice</code>, product SKU, category name</td>
+      <td>Decimal / money</td>
+      <td>8-16 bytes</td>
+      <td>Exact decimals often cost more than integers or floats.</td>
+      <td>Price, balance, invoice amount</td>
     </tr>
     <tr>
-      <td>Tweet-like text</td>
-      <td>100-1,000 bytes</td>
-      <td>Depends on character encoding, emoji, links, mentions, and language.</td>
-      <td>280 chars can be ~280 bytes for ASCII, more with Unicode</td>
+      <td>Foreign key pointer</td>
+      <td>4-8 bytes</td>
+      <td>References multiply quickly across relational rows and indexes.</td>
+      <td><code>user_id</code>, <code>product_id</code>, <code>order_id</code></td>
     </tr>
+  </tbody>
+</table>
+
+Text fields depend on character count and encoding:
+
+```
+text bytes ~= character_count x bytes_per_character
+```
+
+Encoding comparison:
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Encoding</th>
+      <th>Bytes per Character</th>
+      <th>What It Represents</th>
+      <th>Design Note</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ASCII</td>
+      <td>1 byte</td>
+      <td>Basic English letters, digits, punctuation, and control characters.</td>
+      <td>Small and simple, but limited to 128 characters.</td>
+    </tr>
+    <tr>
+      <td>UTF-8</td>
+      <td>1-4 bytes</td>
+      <td>Unicode using variable-length bytes.</td>
+      <td>ASCII stays 1 byte; many European characters use 2 bytes; CJK often uses 3 bytes; emoji often use 4 bytes.</td>
+    </tr>
+    <tr>
+      <td>UTF-16</td>
+      <td>2-4 bytes</td>
+      <td>Unicode using 16-bit code units.</td>
+      <td>Common in some runtimes; many common characters use 2 bytes, while some symbols and emoji use 4 bytes.</td>
+    </tr>
+    <tr>
+      <td>UTF-32</td>
+      <td>4 bytes</td>
+      <td>Unicode using fixed-width 32-bit code units.</td>
+      <td>Simple indexing by code unit, but usually wastes space for normal text.</td>
+    </tr>
+  </tbody>
+</table>
+
+The difference is not that UTF-16 or UTF-32 are "richer" than UTF-8. They can represent the same Unicode character set; they just encode characters with different byte layouts. UTF-8 is compact for ASCII-heavy text, UTF-16 is common in some language runtimes, and UTF-32 trades storage efficiency for fixed-width representation.
+
+Useful text estimates:
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Text Field</th>
+      <th>Characters</th>
+      <th>ASCII / English UTF-8</th>
+      <th>Worst-Case UTF-8</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Username</td>
+      <td>20 chars</td>
+      <td>~20 bytes</td>
+      <td>~80 bytes</td>
+    </tr>
+    <tr>
+      <td>Short title</td>
+      <td>100 chars</td>
+      <td>~100 bytes</td>
+      <td>~400 bytes</td>
+    </tr>
+    <tr>
+      <td>Short post text</td>
+      <td>280 chars</td>
+      <td>~280 bytes</td>
+      <td>~1.1 KB</td>
+    </tr>
+    <tr>
+      <td>Description</td>
+      <td>1,000 chars</td>
+      <td>~1 KB</td>
+      <td>~4 KB</td>
+    </tr>
+  </tbody>
+</table>
+
+Composite objects are bigger than the visible text because they include fixed fields, metadata, pointers, and storage overhead:
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Object Type</th>
+      <th>Main Sizing Driver</th>
+      <th>Rough Size</th>
+      <th>Example Estimate</th>
+    </tr>
+  </thead>
+  <tbody>
     <tr>
       <td>Small JSON event</td>
+      <td>Field names + values + quotes + commas + braces</td>
       <td>0.5-2 KB</td>
-      <td>Good default for clickstream, audit, notification, and telemetry events.</td>
       <td><code>{ user_id, action, timestamp, metadata }</code></td>
     </tr>
     <tr>
-      <td>Tweet-like metadata row</td>
+      <td>Metadata row</td>
+      <td>IDs + timestamps + counters + flags + text + pointers</td>
       <td>0.5-2 KB</td>
-      <td>Includes IDs, author, text, counters, timestamps, flags, and pointers to media.</td>
-      <td>Post ID + user ID + text + like/share counts</td>
+      <td>Post ID + author ID + short text + counters + media pointers</td>
     </tr>
     <tr>
       <td>User profile row</td>
+      <td>Bio + settings + links + counters + media pointers</td>
       <td>1-5 KB</td>
-      <td>Profile text is small; avatars and banners are stored separately as media.</td>
       <td>Name, bio, settings, counters, links</td>
     </tr>
     <tr>
       <td>Product catalog row</td>
+      <td>Description + attributes + variants + media URLs</td>
       <td>2-10 KB</td>
-      <td>Structured fields, variants, prices, attributes, and media URLs add up.</td>
       <td>Product title, description, category, price, inventory</td>
     </tr>
     <tr>
       <td>Log line</td>
+      <td>JSON fields + request metadata</td>
       <td>0.5-4 KB</td>
-      <td>Logs can dominate storage because every request may emit several lines.</td>
       <td>JSON log with request ID, route, status, latency</td>
     </tr>
     <tr>
       <td>Thumbnail image</td>
+      <td>Compression quality + resolution + format</td>
       <td>10-100 KB</td>
-      <td>Usually small enough for CDN-heavy delivery.</td>
       <td>Avatar, preview image, product thumbnail</td>
     </tr>
     <tr>
       <td>Compressed photo</td>
+      <td>Compression quality + resolution + format</td>
       <td>0.5-5 MB</td>
-      <td>Media storage and bandwidth usually dwarf metadata storage.</td>
       <td>Phone photo after web/mobile compression</td>
     </tr>
     <tr>
       <td>Short video</td>
+      <td>Resolution + duration + codec + bitrate</td>
       <td>5-100+ MB</td>
-      <td>Video changes the design: object storage, CDN, transcoding, and bandwidth dominate.</td>
       <td>Short social video at multiple renditions</td>
+    </tr>
+  </tbody>
+</table>
+
+How those estimates add up:
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Object Type</th>
+      <th>Example Field Breakdown</th>
+      <th>Why the Range Moves</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Small JSON event</td>
+      <td><code>user_id</code> integer (<code>8 bytes</code>) becomes larger in JSON because the key name and decimal text are stored too; <code>action</code> string, <code>timestamp</code>, and <code>metadata</code> fields add more repeated keys and values.</td>
+      <td>JSON repeats field names on every event, and request/session/device metadata often outweighs the core values.</td>
+    </tr>
+    <tr>
+      <td>Metadata row</td>
+      <td><code>post_id</code> (<code>8 bytes</code>) + <code>author_id</code> (<code>8 bytes</code>) + <code>created_at</code> (<code>8 bytes</code>) + counters + flags + short text + media pointers + row overhead.</td>
+      <td>The text length, number of pointers, and storage engine/index overhead usually decide whether it is closer to 0.5 KB or 2 KB.</td>
+    </tr>
+    <tr>
+      <td>User profile row</td>
+      <td><code>user_id</code> (<code>8 bytes</code>) + handle/name text + bio text + settings JSON + counters/timestamps + links/avatar/banner pointers.</td>
+      <td>Profiles with empty bios are small; rich profiles with settings, links, localization, and media pointers are larger.</td>
+    </tr>
+    <tr>
+      <td>Product catalog row</td>
+      <td><code>product_id</code> (<code>8 bytes</code>) + <code>seller_id</code> (<code>8 bytes</code>) + timestamps/price/inventory + title + description + attributes JSON + category/brand/tags + media URLs.</td>
+      <td>Descriptions, variant attributes, and media URL lists dominate the primitive fields.</td>
+    </tr>
+    <tr>
+      <td>Log line</td>
+      <td><code>request_id</code> UUID string (<code>36 chars</code>) + route/status/latency + timestamp + user/session/IP/user-agent/trace fields.</td>
+      <td>Logs become large when they include stack traces, user agents, headers, request bodies, or nested JSON metadata.</td>
+    </tr>
+    <tr>
+      <td>Thumbnail image</td>
+      <td>Small image file, for example 100x100 to 400x400 pixels, compressed as JPEG/WebP/AVIF; the database row usually stores only the URL or object key.</td>
+      <td>Resolution, image complexity, format, and quality setting dominate. Store the binary in object storage, not inside the row.</td>
+    </tr>
+    <tr>
+      <td>Compressed photo</td>
+      <td>Photo file resized and compressed for web/mobile; the row usually stores metadata and an object-storage pointer, not the binary photo.</td>
+      <td>Original resolution, compression quality, and format matter more than database field sizes.</td>
+    </tr>
+    <tr>
+      <td>Short video</td>
+      <td>Video size is roughly <code>bitrate x duration</code>. For example, 2 Mbps for 30 seconds is about 60 megabits, or ~7.5 MB, before extra renditions.</td>
+      <td>Codec, bitrate, duration, resolution, and number of transcoded renditions dominate everything else.</td>
+    </tr>
+  </tbody>
+</table>
+
+For a database row:
+
+```
+row size
+~= fixed fields
+ + text fields
+ + pointers / URLs
+ + format overhead
+ + storage overhead
+```
+
+Example product catalog row:
+
+<table class="study-table">
+  <thead>
+    <tr>
+      <th>Field Group</th>
+      <th>Rough Size</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>product_id</code>, <code>seller_id</code>, timestamps, price, inventory</td>
+      <td>~40-60 bytes</td>
+    </tr>
+    <tr>
+      <td>Title</td>
+      <td>~100 bytes</td>
+    </tr>
+    <tr>
+      <td>Description</td>
+      <td>~1-4 KB</td>
+    </tr>
+    <tr>
+      <td>Category, brand, tags</td>
+      <td>~100-500 bytes</td>
+    </tr>
+    <tr>
+      <td>Attributes JSON</td>
+      <td>~500 bytes-3 KB</td>
+    </tr>
+    <tr>
+      <td>Media URLs</td>
+      <td>~300 bytes-1 KB</td>
+    </tr>
+    <tr>
+      <td>Rough total</td>
+      <td>~2-10 KB</td>
     </tr>
   </tbody>
 </table>
@@ -256,7 +479,9 @@ Monthly storage ~= daily storage x 30
 With replication ~= raw storage x replication factor
 ```
 
-Example: 100M tweet-like posts/day at 1 KB metadata each is ~100 GB/day of metadata. If 10% include a 1 MB compressed image, media adds ~10 TB/day before replicas, thumbnails, CDN cache, and backups.
+Example: 100M posts/day at 1 KB metadata each is ~100 GB/day of metadata. If 10% include a 1 MB compressed image, media adds ~10 TB/day before replicas, thumbnails, CDN cache, and backups.
+
+Interview shortcut: for text, estimate `characters x encoding size`. For rows, add fixed fields, metadata, pointers, format overhead, and storage overhead. For media, estimate from compression, resolution, codec, and duration because media usually dominates storage and bandwidth.
 
 ---
 
