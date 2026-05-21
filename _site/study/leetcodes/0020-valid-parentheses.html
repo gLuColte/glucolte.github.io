@@ -68,7 +68,7 @@
   <li><strong>Difficulty:</strong> Unknown</li>
   <li><strong>Primary pattern:</strong> Design Problems</li>
   <li><strong>Tags:</strong> String, Stack</li>
-  <li><strong>Time taken:</strong> 13:19</li>
+  <li><strong>Time taken:</strong> 00:00</li>
   <li><a href="https://leetcode.com/problems/valid-parentheses/submissions/1994606873/">LeetCode Link</a></li>
 </ul>
 
@@ -141,8 +141,18 @@
 <h2 id="complexity">Complexity</h2>
 
 <ul>
-  <li>Time:</li>
-  <li>Space:</li>
+  <li>Time: <code class="language-plaintext highlighter-rouge">O(n)</code>
+    <ul>
+      <li>We iterate through the string once.</li>
+      <li>Each character is pushed or popped from the stack at most once.</li>
+    </ul>
+  </li>
+  <li>Space: <code class="language-plaintext highlighter-rouge">O(n)</code>
+    <ul>
+      <li>In the worst case, all characters are opening brackets, so the stack stores up to <code class="language-plaintext highlighter-rouge">n</code> brackets.</li>
+      <li>Example: <code class="language-plaintext highlighter-rouge">"(((((((("</code></li>
+    </ul>
+  </li>
 </ul>
 
     </article>

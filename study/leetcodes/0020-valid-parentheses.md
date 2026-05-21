@@ -10,7 +10,7 @@ topics:
   - "String"
   - "Stack"
 date_solved: 2026-05-04
-time_taken: "13:19"
+time_taken: "00:00"
 language: Python3
 ---
 
@@ -19,7 +19,7 @@ language: Python3
 - **Difficulty:** Unknown
 - **Primary pattern:** Design Problems
 - **Tags:** String, Stack
-- **Time taken:** 13:19
+- **Time taken:** 00:00
 - [LeetCode Link](https://leetcode.com/problems/valid-parentheses/submissions/1994606873/)
 
 ## Key Idea
@@ -90,5 +90,10 @@ class Solution:
 
 ## Complexity
 
-- Time:
-- Space:
+- Time: `O(n)`
+  - We iterate through the string once.
+  - Each character is pushed or popped from the stack at most once.
+
+- Space: `O(n)`
+  - In the worst case, all characters are opening brackets, so the stack stores up to `n` brackets.
+  - Example: `"(((((((("`
