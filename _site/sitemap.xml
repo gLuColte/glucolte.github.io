@@ -43,6 +43,12 @@
 <loc>http://localhost:4000/study/leetcodes/0016-3sum-closest</loc>
 </url>
 <url>
+<loc>http://localhost:4000/study/leetcodes/0017-letter-combinations-of-a-phone-number</loc>
+</url>
+<url>
+<loc>http://localhost:4000/study/leetcodes/0018-4sum</loc>
+</url>
+<url>
 <loc>http://localhost:4000/study/leetcodes/0020-valid-parentheses</loc>
 </url>
 <url>
@@ -79,6 +85,12 @@
 <loc>http://localhost:4000/study/leetcodes/0064-minimum-path-sum</loc>
 </url>
 <url>
+<loc>http://localhost:4000/study/leetcodes/0066-plus-one</loc>
+</url>
+<url>
+<loc>http://localhost:4000/study/leetcodes/0067-add-binary</loc>
+</url>
+<url>
 <loc>http://localhost:4000/study/aiKnowledgebases</loc>
 </url>
 <url>
@@ -91,9 +103,6 @@
 <loc>http://localhost:4000/study/codingLeetcode</loc>
 </url>
 <url>
-<loc>http://localhost:4000/study/</loc>
-</url>
-<url>
 <loc>http://localhost:4000/</loc>
 </url>
 <url>
@@ -101,6 +110,9 @@
 </url>
 <url>
 <loc>http://localhost:4000/projects/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/study/</loc>
 </url>
 <url>
 <loc>http://localhost:4000/study/infrastructureAWSAiServices</loc>
