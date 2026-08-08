@@ -38,18 +38,18 @@
   text-align: center;
 }
 
-.study-table:has(thead th:nth-child(3)) th:nth-child(1),
-.study-table:has(thead th:nth-child(3)) td:nth-child(1) {
+.study-table:has(thead th:nth-child(3)):not(:has(thead th:nth-child(4))) th:nth-child(1),
+.study-table:has(thead th:nth-child(3)):not(:has(thead th:nth-child(4))) td:nth-child(1) {
   width: 16%;
 }
 
-.study-table:has(thead th:nth-child(3)) th:nth-child(2),
-.study-table:has(thead th:nth-child(3)) td:nth-child(2) {
+.study-table:has(thead th:nth-child(3)):not(:has(thead th:nth-child(4))) th:nth-child(2),
+.study-table:has(thead th:nth-child(3)):not(:has(thead th:nth-child(4))) td:nth-child(2) {
   width: 42%;
 }
 
-.study-table:has(thead th:nth-child(3)) th:nth-child(3),
-.study-table:has(thead th:nth-child(3)) td:nth-child(3) {
+.study-table:has(thead th:nth-child(3)):not(:has(thead th:nth-child(4))) th:nth-child(3),
+.study-table:has(thead th:nth-child(3)):not(:has(thead th:nth-child(4))) td:nth-child(3) {
   width: 42%;
 }
 
@@ -78,6 +78,17 @@
   font-weight: bold;
 }
 
+/* Keep each model family visually grouped across all of its rows. */
+.study-table tr.family-row-gpt,
+.study-table tr.family-row-gemini {
+  background-color: var(--card) !important;
+}
+
+.study-table tr.family-row-claude,
+.study-table tr.family-row-deepseek {
+  background-color: #f8f9fa !important;
+}
+
 /* Dark mode table styling */
 [data-theme="dark"] .study-table thead tr {
   background-color: #374151;
@@ -98,6 +109,16 @@
 
 [data-theme="dark"] .study-table tbody tr:nth-child(even) {
   background-color: #374151;
+}
+
+[data-theme="dark"] .study-table tr.family-row-gpt,
+[data-theme="dark"] .study-table tr.family-row-gemini {
+  background-color: var(--card) !important;
+}
+
+[data-theme="dark"] .study-table tr.family-row-claude,
+[data-theme="dark"] .study-table tr.family-row-deepseek {
+  background-color: #374151 !important;
 }
 
 /* Study index tile layout */

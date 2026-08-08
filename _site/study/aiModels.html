@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>study · glucolte</title>
+  <title>Models · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,20 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>study | glucolte</title>
+<title>Models | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="study" />
+<meta property="og:title" content="Models" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/" />
-<meta property="og:url" content="http://localhost:4000/study/" />
+<link rel="canonical" href="http://localhost:4000/study/aiModels" />
+<meta property="og:url" content="http://localhost:4000/study/aiModels" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="study" />
+<meta property="twitter:title" content="Models" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"study","url":"http://localhost:4000/study/"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Models","url":"http://localhost:4000/study/aiModels"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,941 +62,386 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="study">/study</h1>
+      <h1 id="models">Models</h1>
 
-<p>A home for study resources, with a focus on <strong>coding interview prep</strong>.<br />
-Think of this page as your <strong>mental compass</strong> — quick reminders on <em>how to think</em> before diving into the categories.</p>
+<p>Large Language Models (LLMs) differ in reasoning ability, speed, cost, context size and intended workload. There is no universally “best” model; model selection is usually a trade-off between <strong>capability, latency and cost</strong>.</p>
+
+<p>The major general-purpose model families are currently <strong>OpenAI GPT</strong>, <strong>Anthropic Claude</strong>, <strong>Google Gemini</strong> and <strong>DeepSeek</strong>.</p>
+
+<blockquote>
+  <p>Last updated: August 2026. Model names and prices change frequently.</p>
+</blockquote>
+
+<h2 id="section-1-pricing">1. Pricing</h2>
+
+<h3 id="section-1-1-consumer-plans">1.1 Consumer Plans</h3>
+
+<p>Prices below are approximate <strong>USD/month</strong> for individual users.</p>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Provider</th>
+<th>Tier</th>
+<th>USD / Month</th>
+<th>What It Means</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td rowspan="4"><strong>ChatGPT</strong></td>
+<td>Free</td>
+<td>$0</td>
+<td>Basic access to GPT models and tools</td>
+<td>Limited GPT-5.x usage; stricter limits on files, images and data analysis</td>
+</tr>
+
+<tr>
+<td>Go</td>
+<td>$8</td>
+<td>Low-cost paid tier</td>
+<td>More usage than Free</td>
+</tr>
+
+<tr>
+<td>Plus</td>
+<td>$20</td>
+<td>Main individual plan; advanced reasoning, files, images, Deep Research and other tools</td>
+<td>Higher model and tool limits than Free; limits can vary</td>
+</tr>
+
+<tr>
+<td>Pro</td>
+<td>$100 / $200</td>
+<td>Heavy professional usage and access to Pro models/features</td>
+<td>$100 tier ≈ 5× Plus usage; $200 tier ≈ 20× Plus usage</td>
+</tr>
+
+<tr>
+<td rowspan="3"><strong>Claude</strong></td>
+<td>Free</td>
+<td>$0</td>
+<td>Basic Claude chat, coding, writing and image/text analysis</td>
+<td>Limited usage that resets periodically</td>
+</tr>
+
+<tr>
+<td>Pro</td>
+<td>$20</td>
+<td>Everyday professional use; more models, Projects and extended thinking</td>
+<td>Higher usage than Free</td>
+</tr>
+
+<tr>
+<td>Max</td>
+<td>$100 / $200</td>
+<td>Heavy Claude usage, higher output limits, Research and priority access</td>
+<td>Approximately 5× or 20× Pro usage</td>
+</tr>
+
+<tr>
+<td rowspan="4"><strong>Gemini</strong></td>
+<td>Free</td>
+<td>$0</td>
+<td>Standard Gemini access</td>
+<td>Standard compute allowance; 32K context</td>
+</tr>
+
+<tr>
+<td>AI Plus</td>
+<td>$7.99</td>
+<td>Entry paid tier</td>
+<td>≈ 2× Free usage; 128K context</td>
+</tr>
+
+<tr>
+<td>AI Pro</td>
+<td>$19.99</td>
+<td>Regular power-user tier with larger context and advanced features</td>
+<td>≈ 4× Free usage; 1M context</td>
+</tr>
+
+<tr>
+<td>AI Ultra</td>
+<td>$249.99</td>
+<td>Highest access including Deep Think and premium generation features</td>
+<td>Approximately 5×–20× AI Pro usage; 1M context</td>
+</tr>
+
+<tr>
+<td><strong>DeepSeek</strong></td>
+<td>Free</td>
+<td>$0</td>
+<td>Consumer web/app access to DeepSeek models</td>
+<td>Service-dependent limits; API is separately usage-based</td>
+</tr>
+</tbody>
+</table>
+
+<p>The tiers can broadly be interpreted as:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Free
+└── Try the service
+    Limited model/tool usage
+    Smaller context or stricter rate limits
+
+Standard / Plus / Pro
+└── Normal individual power user
+    Higher limits
+    Better model selection
+    Advanced reasoning and tools
+
+Max / Ultra / Pro High-Usage
+└── Heavy professional user
+    Much higher compute allowance
+    Priority access
+    Most capable / expensive modes
+</code></pre></div></div>
+
+<h3 id="section-1-2-usage-limits">1.2 Usage Limits</h3>
+
+<p>Consumer AI services generally do <strong>not</strong> provide a fixed number of tokens each month.</p>
+
+<p>Instead they use limits based on factors such as:</p>
+
+<ul>
+  <li>Number of prompts</li>
+  <li>Model used</li>
+  <li>Thinking/reasoning level</li>
+  <li>Length of the conversation</li>
+  <li>File and image processing</li>
+  <li>Deep Research or agent usage</li>
+  <li>System demand</li>
+</ul>
+
+<p>For example, Gemini uses a <strong>compute-based allowance</strong>. AI Plus receives roughly <strong>2×</strong> the standard allowance, AI Pro <strong>4×</strong>, and AI Ultra substantially more. Limits refresh periodically and more expensive reasoning modes consume the allowance faster.</p>
+
+<p>ChatGPT similarly applies model-specific and tool-specific limits. Free users receive limited access within a time window, while Plus and Pro increase the available compute. Exact message caps may change based on capacity.</p>
+
+<p>Claude follows a similar model: Pro increases usage above Free, while Max provides approximately <strong>5× or 20×</strong> the usage available on Pro.</p>
+
+<blockquote>
+  <p>Therefore, “$20/month” should not be interpreted as unlimited model inference. Consumer subscriptions purchase a <strong>usage allowance and feature access</strong>, while APIs are billed directly by tokens.</p>
+</blockquote>
+
+<p>Sources: <a href="https://help.openai.com/en/articles/9275245-chatgpt-free-tier-faq">ChatGPT Free Tier</a>, <a href="https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus">ChatGPT Plus</a>, <a href="https://www.anthropic.com/pricing">Claude Pricing</a>, <a href="https://support.google.com/gemini/answer/16275805">Gemini Usage Limits</a>.</p>
+
+<h3 id="section-1-3-api-pricing">1.3 API Pricing</h3>
+
+<p>API pricing is based on how many tokens the model processes.</p>
+
+<ul>
+  <li><strong>Input tokens</strong> — everything sent into the model, including your prompt, conversation history, system instructions and retrieved documents.</li>
+  <li><strong>Output tokens</strong> — everything the model generates back as its response.</li>
+  <li><strong>Cached input</strong> — previously processed input that can be reused, usually at a lower price.</li>
+</ul>
+
+<p>For example, if a model costs $2 / 1M input tokens and $10 / 1M output tokens, a request using 100,000 input tokens and generating 10,000 output tokens would cost:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Input:  100,000 × $2 / 1M  = $0.20
+Output:  10,000 × $10 / 1M = $0.10
+Total = $0.30
+</code></pre></div></div>
+
+<p>In simple terms:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Input  = what you give the model
+Output = what the model gives you
+</code></pre></div></div>
+
+<p>Output tokens are generally more expensive because generating new tokens requires more computation than processing the input.</p>
+
+<p>Typical text API price per <strong>1 million tokens</strong>:</p>
+
+<table class="study-table">
+<thead>
+<tr><th>Provider</th><th>Model</th><th>Input</th><th>Output</th><th>Position</th></tr>
+</thead>
+<tbody>
+<tr><td>OpenAI</td><td><strong>GPT-5.6 Sol</strong></td><td>$5.00</td><td>$30.00</td><td>Flagship</td></tr>
+<tr><td>OpenAI</td><td><strong>GPT-5.6 Terra</strong></td><td>$2.00</td><td>$12.00</td><td>Balanced</td></tr>
+<tr><td>OpenAI</td><td><strong>GPT-5.6 Luna</strong></td><td>$0.20</td><td>$1.20</td><td>High-volume / cheap</td></tr>
+<tr><td>Anthropic</td><td><strong>Claude Fable 5</strong></td><td>$10.00</td><td>$50.00</td><td>Maximum capability</td></tr>
+<tr><td>Anthropic</td><td><strong>Claude Opus 5</strong></td><td>$5.00</td><td>$25.00</td><td>Complex work</td></tr>
+<tr><td>Anthropic</td><td><strong>Claude Sonnet 5</strong></td><td>$2.00*</td><td>$10.00*</td><td>Balanced</td></tr>
+<tr><td>Anthropic</td><td><strong>Claude Haiku 4.5</strong></td><td>$1.00</td><td>$5.00</td><td>Fast / cheap</td></tr>
+<tr><td>DeepSeek</td><td><strong>V4 Pro</strong></td><td>$0.435</td><td>$0.87</td><td>Higher capability</td></tr>
+<tr><td>DeepSeek</td><td><strong>V4 Flash</strong></td><td>$0.14</td><td>$0.28</td><td>High-volume / cheap</td></tr>
+</tbody>
+</table>
+
+<p>* Sonnet 5 introductory pricing until 31 August 2026; standard pricing becomes $3 input / $15 output.</p>
+
+<p>Google Gemini pricing varies more by model and context size; see the official pricing page rather than treating one price as representative.</p>
+
+<p>Sources: <a href="https://developers.openai.com/api/docs/pricing">OpenAI API Pricing</a>, <a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude API Pricing</a>, <a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini API Pricing</a>, <a href="https://api-docs.deepseek.com/quick_start/pricing">DeepSeek API Pricing</a>. (<a href="https://developers.openai.com/api/docs/models?utm_source=chatgpt.com">OpenAI Developers</a>)</p>
 
 <hr />
 
-<h2 id="infrastructure-cloud">Infrastructure &amp; Cloud</h2>
-
-<p>The following are infrastructure and cloud services study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/infrastructureAWSAiServices" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS AI Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSAppServices" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Application Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSArchitecture" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Best Practices
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSCaching" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Caching Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSCompute" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Compute Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSAnalytics" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Data Analytics Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSDatabases" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Database Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSNetwork" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Network Services
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/infrastructureAWSStorage" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        AWS Storage Services
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/infrastructureOsiModel" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🏗️</span>
-        OSI Model
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-</div>
-
-<p><strong>Note –</strong> These study notes were captured while working through the excellent <strong><a href="https://learn.cantrill.io/l/dashboard">learn.cantrill.io</a></strong> curriculum.</p>
-
-<p>To keep hide the <strong>duplicate lessons</strong> while branching across different study path, I also put together a <strong><a href="https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/">TamperMonkey helper</a></strong> with the help of Codex — expand the block below if you ever need to copy it quickly.</p>
-
-<details class="code-snippet collapsible-snippet">
-  <summary>
-    <div class="code-snippet-header">
-      <span>Cantrill curriculum helper script</span>
-      <button type="button" class="copy-button" id="cantrill-tampermonkey-copy">Copy script</button>
-    </div>
-  </summary>
-  <pre><code class="language-javascript" id="cantrill-tampermonkey-code">// ==UserScript==
-// @name         Cantrill Sidebar Filter (Floating UI)
-// @namespace    cantrill-sidebar-filter
-// @version      1.1.1
-// @description  Hide sidebar items whose lecture title contains any configured ignore strings. Includes a floating bottom-left UI to edit ignore strings.
-// @match        https://learn.cantrill.io/courses/*/lectures/*
-// @grant        GM_getValue
-// @grant        GM_setValue
-// ==/UserScript==
-
-(() =&gt; {
-  &quot;use strict&quot;;
-
-  const KEY_ENABLED = &quot;csf_enabled&quot;;
-  const KEY_IGNORE_LIST = &quot;csf_ignore_list&quot;;
-  const DEFAULT_IGNORE = [&quot;ASSOCIATESHARED&quot;, &quot;SHAREDALL&quot;];
-
-  if (!/\/courses\/[^/]+\/lectures\/[^/?#]+/.test(location.pathname)) return;
-
-  const getEnabled = () =&gt; GM_getValue(KEY_ENABLED, true);
-  const setEnabled = v =&gt; GM_setValue(KEY_ENABLED, !!v);
-
-  const normalizeTokens = tokens =&gt;
-    (tokens || []).map(s =&gt; String(s).trim()).filter(Boolean);
-
-  const parseTokens = text =&gt;
-    normalizeTokens(String(text || &quot;&quot;).split(/[\n,]/g));
-
-  const getIgnoreList = () =&gt; {
-    const raw = GM_getValue(KEY_IGNORE_LIST, null);
-    if (raw == null) return DEFAULT_IGNORE.slice();
-    if (Array.isArray(raw)) return normalizeTokens(raw);
-    return parseTokens(raw);
-  };
-
-  const setIgnoreList = tokens =&gt;
-    GM_setValue(KEY_IGNORE_LIST, normalizeTokens(tokens));
-
-  function shouldHideTitle(title, ignoreTokens) {
-    if (!title) return false;
-    const t = title.toLowerCase();
-    return ignoreTokens.some(tok =&gt; t.includes(tok.toLowerCase()));
-  }
-
-  function applyFilter() {
-    const enabled = getEnabled();
-    const ignoreTokens = getIgnoreList();
-
-    document.querySelectorAll(&quot;li.section-item&quot;).forEach(li =&gt; {
-      const title = li.querySelector(&quot;.lecture-name&quot;)?.textContent ?? &quot;&quot;;
-
-      if (!enabled) {
-        li.style.removeProperty(&quot;display&quot;);
-        li.removeAttribute(&quot;data-csf-hidden&quot;);
-        return;
-      }
-
-      if (shouldHideTitle(title, ignoreTokens)) {
-        li.style.display = &quot;none&quot;;
-        li.setAttribute(&quot;data-csf-hidden&quot;, &quot;1&quot;);
-      } else if (li.getAttribute(&quot;data-csf-hidden&quot;)) {
-        li.style.removeProperty(&quot;display&quot;);
-        li.removeAttribute(&quot;data-csf-hidden&quot;);
-      }
-    });
-
-    updateButtonState();
-  }
-
-  // ---------------- UI ----------------
-  const UI_ID = &quot;csf-ui-root&quot;;
-
-  function injectStyles() {
-    if (document.getElementById(&quot;csf-style&quot;)) return;
-
-    const style = document.createElement(&quot;style&quot;);
-    style.id = &quot;csf-style&quot;;
-    style.textContent = `
-      #${UI_ID} {
-        position: fixed;
-        bottom: 16px;
-        right: 16px;
-        z-index: 999999;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      }
-
-      .csf-fab {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.95);
-        border: 1px solid rgba(0,0,0,0.08);
-        box-shadow: 0 12px 32px rgba(0,0,0,0.22);
-        cursor: pointer;
-        user-select: none;
-      }
-
-      .csf-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 999px;
-        background: #22c55e;
-        box-shadow: 0 0 0 4px rgba(34,197,94,0.18);
-      }
-      .csf-dot.off {
-        background: #ef4444;
-        box-shadow: 0 0 0 4px rgba(239,68,68,0.18);
-      }
-
-      .csf-label {
-        font-size: 13px;
-        font-weight: 600;
-      }
-
-      .csf-panel {
-        margin-bottom: 10px;
-        width: 320px;
-        border-radius: 16px;
-        background: rgba(255,255,255,0.97);
-        border: 1px solid rgba(0,0,0,0.08);
-        box-shadow: 0 18px 50px rgba(0,0,0,0.25);
-        animation: csf-pop 140ms ease-out;
-        transform-origin: bottom left;
-      }
-
-      @keyframes csf-pop {
-        from { transform: scale(0.97); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-      }
-
-      .csf-panel-header {
-        padding: 12px;
-        display: flex;
-        justify-content: space-between;
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-        font-weight: 700;
-      }
-
-      .csf-panel-body {
-        padding: 12px;
-      }
-
-      .csf-textarea {
-        width: 100%;
-        height: 90px;
-        border-radius: 12px;
-        padding: 10px;
-        border: 1px solid rgba(0,0,0,0.12);
-        font-size: 12.5px;
-      }
-
-      .csf-actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 10px;
-      }
-
-      .csf-btn {
-        flex: 1;
-        padding: 9px;
-        border-radius: 12px;
-        border: 1px solid rgba(0,0,0,0.1);
-        cursor: pointer;
-        font-weight: 600;
-      }
-
-      .csf-btn.primary {
-        background: rgba(59,130,246,0.12);
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function createUI() {
-    if (document.getElementById(UI_ID)) return;
-
-    injectStyles();
-
-    const root = document.createElement(&quot;div&quot;);
-    root.id = UI_ID;
-
-    const panel = document.createElement(&quot;div&quot;);
-    panel.className = &quot;csf-panel&quot;;
-    panel.style.display = &quot;none&quot;;
-    panel.innerHTML = `
-      &lt;div class=&quot;csf-panel-header&quot;&gt;
-        Sidebar Filter
-        &lt;span style=&quot;cursor:pointer&quot; class=&quot;csf-close&quot;&gt;×&lt;/span&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;csf-panel-body&quot;&gt;
-        &lt;textarea class=&quot;csf-textarea&quot;&gt;&lt;/textarea&gt;
-        &lt;div class=&quot;csf-actions&quot;&gt;
-          &lt;button class=&quot;csf-btn primary csf-save&quot;&gt;Save&lt;/button&gt;
-          &lt;button class=&quot;csf-btn csf-reset&quot;&gt;Reset&lt;/button&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    `;
-
-    const fab = document.createElement(&quot;div&quot;);
-    fab.className = &quot;csf-fab&quot;;
-    fab.innerHTML = `&lt;div class=&quot;csf-dot&quot;&gt;&lt;/div&gt;&lt;div class=&quot;csf-label&quot;&gt;Filter&lt;/div&gt;`;
-
-    fab.onclick = e =&gt; {
-      e.stopPropagation();
-      panel.style.display = panel.style.display === &quot;none&quot; ? &quot;block&quot; : &quot;none&quot;;
-      panel.querySelector(&quot;.csf-textarea&quot;).value = getIgnoreList().join(&quot;\n&quot;);
-    };
-
-    panel.querySelector(&quot;.csf-close&quot;).onclick = () =&gt; panel.style.display = &quot;none&quot;;
-    panel.querySelector(&quot;.csf-save&quot;).onclick = () =&gt; {
-      setIgnoreList(parseTokens(panel.querySelector(&quot;.csf-textarea&quot;).value));
-      applyFilter();
-      panel.style.display = &quot;none&quot;;
-    };
-    panel.querySelector(&quot;.csf-reset&quot;).onclick = () =&gt; {
-      setIgnoreList(DEFAULT_IGNORE);
-      setEnabled(true);
-      applyFilter();
-    };
-
-    document.addEventListener(&quot;click&quot;, e =&gt; {
-      if (!root.contains(e.target)) panel.style.display = &quot;none&quot;;
-    });
-
-    root.append(panel, fab);
-    document.body.appendChild(root);
-  }
-
-  function updateButtonState() {
-    const dot = document.querySelector(&quot;.csf-dot&quot;);
-    if (dot) dot.classList.toggle(&quot;off&quot;, !getEnabled());
-  }
-
-  new MutationObserver(applyFilter).observe(document.documentElement, {
-    childList: true,
-    subtree: true
-  });
-
-  createUI();
-  applyFilter();
-})();</code></pre>
-</details>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var codeBlock = document.getElementById('cantrill-tampermonkey-code');
-  var copyButton = document.getElementById('cantrill-tampermonkey-copy');
-
-  if (!codeBlock || !copyButton) {
-    return;
-  }
-
-  function showButtonStatus(message) {
-    var originalText = copyButton.textContent;
-    copyButton.textContent = message;
-    copyButton.disabled = true;
-    setTimeout(function() {
-      copyButton.textContent = originalText;
-      copyButton.disabled = false;
-    }, 1800);
-  }
-
-  function fallbackCopy(text) {
-    var textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
-
-    var copied = false;
-    try {
-      copied = document.execCommand('copy');
-    } catch (err) {
-      copied = false;
-    }
-
-    document.body.removeChild(textarea);
-    return copied;
-  }
-
-  copyButton.addEventListener('click', function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    var scriptText = codeBlock.textContent.trim();
-    if (!scriptText) {
-      showButtonStatus('Script empty');
-      return;
-    }
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(scriptText)
-        .then(function() {
-          showButtonStatus('Copied!');
-        })
-        .catch(function() {
-          if (fallbackCopy(scriptText)) {
-            showButtonStatus('Copied!');
-          } else {
-            showButtonStatus('Copy failed');
-          }
-        });
-    } else if (fallbackCopy(scriptText)) {
-      showButtonStatus('Copied!');
-    } else {
-      showButtonStatus('Copy failed');
-    }
-  });
-});
-</script>
+<h2 id="section-2-purpose">2. Purpose</h2>
+
+<p>Model families generally contain several sizes rather than one model.</p>
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Family</th>
+<th>Tier</th>
+<th>Profile</th>
+<th>Key Strengths</th>
+<th>Trade-off</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr class="family-row-gpt"><td rowspan="3"><strong>GPT-5.6</strong></td><td>Sol</td><td>Flagship</td><td>Maximum reasoning, coding and tools</td><td>Highest cost and latency</td><td>Difficult reasoning and coding</td></tr>
+<tr class="family-row-gpt"><td>Terra</td><td>Balanced</td><td>Strong capability with practical speed and cost</td><td>Less capable than Sol</td><td>General-purpose work</td></tr>
+<tr class="family-row-gpt"><td>Luna</td><td>Efficient</td><td>Fast and inexpensive</td><td>Lower reasoning ceiling</td><td>High-volume workloads</td></tr>
+<tr class="family-row-claude"><td rowspan="4"><strong>Claude</strong></td><td>Fable</td><td>Flagship</td><td>Deep reasoning and long-horizon agents</td><td>Highest cost and slower responses</td><td>Complex research and agents</td></tr>
+<tr class="family-row-claude"><td>Opus</td><td>Advanced</td><td>Complex analysis, coding and engineering</td><td>More expensive than Sonnet</td><td>Complex engineering</td></tr>
+<tr class="family-row-claude"><td>Sonnet</td><td>Balanced</td><td>Strong coding and general tools</td><td>Less capable than Opus</td><td>Everyday coding</td></tr>
+<tr class="family-row-claude"><td>Haiku</td><td>Efficient</td><td>Fast and economical</td><td>Lower capability ceiling</td><td>Real-time and batch tasks</td></tr>
+<tr class="family-row-gemini"><td rowspan="3"><strong>Gemini</strong></td><td>Pro</td><td>Flagship</td><td>Strong reasoning, multimodal capability and long context</td><td>Higher cost and latency</td><td>Complex multimodal work</td></tr>
+<tr class="family-row-gemini"><td>Flash</td><td>Balanced</td><td>Fast multimodal and agentic workloads</td><td>Less capable than Pro</td><td>General applications</td></tr>
+<tr class="family-row-gemini"><td>Flash-Lite</td><td>Efficient</td><td>Very fast and low cost</td><td>Lower reasoning ceiling</td><td>Classification and extraction</td></tr>
+<tr class="family-row-deepseek"><td rowspan="2"><strong>DeepSeek V4</strong></td><td>Pro</td><td>Advanced</td><td>Strong reasoning, coding and tool use</td><td>Higher cost and lower concurrency</td><td>Reasoning and coding</td></tr>
+<tr class="family-row-deepseek"><td>Flash</td><td>Efficient</td><td>Fast, inexpensive, with optional thinking</td><td>Lower capability than Pro</td><td>Cost-sensitive workloads</td></tr>
+</tbody>
+</table>
+
+<p>Model tiers are usually differentiated by training quality, reasoning budget, inference compute, context limits, tool support, latency and price—not by parameter count alone. Proprietary providers generally do not publish exact parameter counts, so this page focuses on observable behavior and practical trade-offs.</p>
+
+<p>The pattern is broadly:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>High Capability
+      ↑
+Flagship / Pro / Opus / Sol
+      |
+Balanced / Sonnet / Terra / Flash
+      |
+Mini / Haiku / Luna / Flash-Lite
+      ↓
+High Speed + Low Cost
+</code></pre></div></div>
+
+<p>Provider naming is marketing rather than a technical standard; models at similarly named tiers are not necessarily equivalent. (<a href="https://platform.claude.com/docs/en/about-claude/models/overview.md?utm_source=chatgpt.com">Claude Platform</a>)</p>
 
 <hr />
 
-<h2 id="system-design-fundamentals">System Design Fundamentals</h2>
+<h2 id="section-3-token-usage">3. Token Usage</h2>
 
-<p>The following are system design fundamentals study pages:</p>
+<p>A <strong>token</strong> is a small unit of text processed by a model. English text averages roughly a few characters per token, although tokenisation varies between models and languages.</p>
 
-<div class="study-tiles">
+<p>API cost is approximately:</p>
 
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Cost =
+    input_tokens × input_price
+  + output_tokens × output_price
+</code></pre></div></div>
 
-  
+<p>There are several important token types:</p>
 
-  
+<table class="study-table">
+<thead><tr><th>Token</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><strong>Input</strong></td><td>Prompt, conversation history, documents and retrieved context</td></tr>
+<tr><td><strong>Output</strong></td><td>Tokens generated by the model</td></tr>
+<tr><td><strong>Cached input</strong></td><td>Reused prompt/context, normally significantly cheaper</td></tr>
+<tr><td><strong>Thinking / reasoning</strong></td><td>Internal reasoning compute; billing treatment varies by provider</td></tr>
+</tbody>
+</table>
 
-  
+<p>The <strong>context window</strong> is the maximum amount of information available to the model during one interaction.</p>
 
-  
+<p>Large context is useful for:</p>
 
-  
+<ul>
+  <li>Large codebases</li>
+  <li>Long documents</li>
+  <li>Agent history</li>
+  <li>RAG / retrieved documents</li>
+</ul>
 
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/systemDesignHashing" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        Hashing
-      </div>
-    </a>
-  
-
-  
-
-  
-    <a href="/study/systemDesignHourglass" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        Hourglass Design
-      </div>
-    </a>
-  
-
-  
-
-  
-    <a href="/study/systemDesignInterviewTips" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        Interview Tips
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/systemDesignNumbersThatMatter" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        Numbers That Matter
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/systemDesignSlaSloSli" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        SLA, SLO &amp; SLI
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-</div>
+<p>However, a larger context window does <strong>not</strong> automatically mean better reasoning. Sending unnecessary context also increases latency and cost.</p>
 
 <hr />
 
-<h2 id="ai">AI</h2>
-
-<p>The following are AI study pages:</p>
-
-<div class="study-tiles">
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiSecurity" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        GenAI Security
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiLLMs" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        Large Language Models (LLMs)
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiModels" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        Models
-      </div>
-    </a>
-  
-
-  
-    <a href="/study/aiKnowledgebases" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        Modern Knowledgebases
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <a href="/study/aiSearches" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        Searches
-      </div>
-    </a>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-</div>
+<h2 id="section-4-performance">4. Performance</h2>
+
+<p>Model capability changes quickly, so benchmarks should be treated as indicators rather than absolute rankings.</p>
+
+<p>Representative current generations:</p>
+
+<table class="study-table">
+<thead><tr><th>Provider</th><th>Generation</th><th>Release</th><th>Main Characteristic</th></tr></thead>
+<tbody>
+<tr><td>Anthropic</td><td><strong>Claude Fable 5</strong></td><td>Jun 2026</td><td>Highest-end Claude</td></tr>
+<tr><td>Anthropic</td><td><strong>Claude Opus 5</strong></td><td>Jul 2026</td><td>Frontier coding / knowledge work</td></tr>
+<tr><td>OpenAI</td><td><strong>GPT-5.6</strong></td><td>Jul 2026</td><td>Reasoning, coding and professional work</td></tr>
+<tr><td>DeepSeek</td><td><strong>V4</strong></td><td>Apr–Jul 2026</td><td>Strong open-weight cost/performance</td></tr>
+<tr><td>Google</td><td><strong>Gemini 3.1 Pro</strong></td><td>Feb 2026</td><td>Reasoning + multimodal + long context</td></tr>
+</tbody>
+</table>
+
+<p>OpenAI GPT-5.6 itself contains <strong>Sol, Terra and Luna</strong>, while Claude uses families such as <strong>Fable, Opus, Sonnet and Haiku</strong>. A version number therefore does not tell the full story — the model tier matters as well. (<a href="https://openai.com/index/gpt-5-6/?utm_source=chatgpt.com">OpenAI</a>)</p>
+
+<p>One useful independent comparison is the <strong>Artificial Analysis Intelligence Index</strong>. As of August 2026, frontier models such as Claude Opus/Fable and GPT-5.6 occupy the upper end of its intelligence measurements, while models such as DeepSeek V4 compete particularly strongly on <strong>cost per task</strong>. (<a href="https://artificialanalysis.ai/articles/artificial-analysis-intelligence-index-v4-1-1?utm_source=chatgpt.com">Artificial Analysis</a>)</p>
+
+<p>Common benchmark categories include:</p>
+
+<table class="study-table">
+<thead><tr><th>Benchmark Type</th><th>Measures</th></tr></thead>
+<tbody>
+<tr><td><strong>GPQA</strong></td><td>Difficult scientific reasoning</td></tr>
+<tr><td><strong>Humanity's Last Exam</strong></td><td>Broad expert-level reasoning</td></tr>
+<tr><td><strong>SWE / coding benchmarks</strong></td><td>Software engineering ability</td></tr>
+<tr><td><strong>Terminal-Bench</strong></td><td>Agentic computer / terminal tasks</td></tr>
+<tr><td><strong>MMMU</strong></td><td>Multimodal reasoning</td></tr>
+<tr><td><strong>Arena / Elo</strong></td><td>Human preference between outputs</td></tr>
+</tbody>
+</table>
+
+<p>No single benchmark represents overall model quality.</p>
 
 <hr />
 
-<h2 id="troubleshooting-practices">Troubleshooting Practices</h2>
+<h2 id="section-5-rule-of-thumb">5. Rule of Thumb</h2>
 
-<p>Practice your debugging and troubleshooting skills with hands-on Linux server challenges:</p>
+<p>For most applications:</p>
 
-<div class="study-tiles">
-  <a href="https://sadservers.com/" target="_blank" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">🔧</span>
-      SadServers - "Like LeetCode for Linux"
-    </div>
-    <div style="font-size: 14px; color: var(--muted); margin-top: 8px;">
-      Excellent for SRE/DevOps interview preparation. Get a full remote Linux server with a problem and fix it!
-    </div>
-  </a>
-</div>
+<table class="study-table">
+<thead><tr><th>Requirement</th><th>Start With</th></tr></thead>
+<tbody>
+<tr><td>Hardest reasoning</td><td>GPT-5.6 Sol / Claude Opus or Fable</td></tr>
+<tr><td>Coding / agents</td><td>GPT-5.6 Sol / Claude Opus or Sonnet</td></tr>
+<tr><td>General everyday work</td><td>GPT-5.6 Terra / Claude Sonnet / Gemini Flash</td></tr>
+<tr><td>Very large context / multimodal</td><td>Gemini</td></tr>
+<tr><td>Cheapest API workloads</td><td>DeepSeek V4 Flash / GPT-5.6 Luna</td></tr>
+<tr><td>High-volume simple tasks</td><td>Luna / Haiku / Flash-Lite</td></tr>
+<tr><td>Self-hosting / open weights</td><td>DeepSeek and other open-weight families</td></tr>
+</tbody>
+</table>
 
-<hr />
+<p>A useful selection rule is:</p>
 
-<h2 id="leetcode">LeetCode</h2>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1. Choose the cheapest model that reliably completes the task.
+2. Increase model capability when quality becomes insufficient.
+3. Use reasoning effort only when the task actually needs reasoning.
+4. Minimise unnecessary context.
+5. Measure models against your own workload, not only public benchmarks.
+</code></pre></div></div>
 
-<p>Coding patterns and solved LeetCode problems now live in one searchable problem index.</p>
+<p>For current comparisons, the most useful references are:</p>
 
-<div class="study-tiles">
-  <a href="/study/codingLeetcode" class="study-tile coding">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">💻</span>
-      LeetCode
-    </div>
-    <div style="font-size: 14px; color: var(--muted); margin-top: 8px;">
-      Pattern table, solved question table, filters, and pagination.
-    </div>
-  </a>
-</div>
+<ul>
+  <li><a href="https://artificialanalysis.ai/">Artificial Analysis</a> — intelligence, speed, latency and API cost</li>
+  <li><a href="https://developers.openai.com/api/docs/models">OpenAI Models</a> — official GPT model catalogue</li>
+  <li><a href="https://platform.claude.com/docs/en/about-claude/models/overview">Anthropic Models</a> — official Claude model catalogue</li>
+  <li><a href="https://ai.google.dev/gemini-api/docs/models">Google Gemini Models</a> — official Gemini catalogue</li>
+  <li><a href="https://api-docs.deepseek.com/">DeepSeek API</a> — official DeepSeek models and pricing</li>
+</ul>
 
     </article>
   </main>
