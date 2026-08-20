@@ -3,574 +3,646 @@ title: AWS AI Services
 permalink: /study/infrastructureAWSAiServices
 ---
 
-## 1. Foundation Models vs LLMs {#section-1-foundation-vs-llm}
+# AWS AI Services
 
-Foundation models are massive neural networks trained on diverse data (text, code, audio, video, images) so they can be adapted to many downstream tasks. Large Language Models (LLMs) are a subset focused on token-based language tasks. Use the matrix below for quick exam recall.
+Use this page to map an AI architecture to AWS services. It is intentionally AWS-specific; model mechanics, retrieval theory, agents, and cloud-neutral production controls remain on their dedicated pages.
 
-<table class="study-table">
+## Agent architecture mapped to AWS {#agent-layer-map}
+
+Start with the [bounded agent tool sequence](/study/aiAgents#section-1-boundaries). The layers below map each responsibility in that vendor-neutral design to AWS implementation choices; they are not a mandatory five-service stack.
+
+<table class="study-table agent-layer-table">
   <thead>
     <tr>
-      <th>Dimension</th>
-      <th>Foundation Model</th>
-      <th>Large Language Model (LLM)</th>
+      <th>Layer</th>
+      <th>Bounded-agent responsibility</th>
+      <th>AWS implementation choices</th>
+      <th>Boundary to remember</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>Scope</strong></td>
-      <td>Multi-modal (text, audio, image, video, code) or unimodal</td>
-      <td>Primarily language + code; some add image adapters</td>
+      <td><strong>Interface Layer</strong></td>
+      <td>
+        <ul>
+          <li>Accept the user request.</li>
+          <li>Pass trusted identity to the Agent Controller.</li>
+          <li>Return or stream the response.</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Amazon CloudFront and AWS WAF</li>
+          <li>Amazon API Gateway</li>
+          <li>Amazon Cognito</li>
+          <li>Lambda or ECS application endpoint</li>
+          <li>AgentCore Runtime endpoint where appropriate</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Authenticate the caller.</li>
+          <li>Validate and throttle requests.</li>
+          <li>Convert identity into trusted claims—not prompt text.</li>
+        </ul>
+      </td>
     </tr>
     <tr>
-      <td><strong>Training Task</strong></td>
-      <td>Generic self-supervised objectives (masking, contrastive learning, etc.)</td>
-      <td>Autoregressive next-token prediction</td>
+      <td><strong>Agent Layer</strong></td>
+      <td>
+        <ul>
+          <li>Run the Agent Controller.</li>
+          <li>Build context and choose bounded next steps.</li>
+          <li>Apply policy, budgets, and approval decisions.</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>AgentCore Runtime or Harness</li>
+          <li>AgentCore Identity and Policy</li>
+          <li>AWS Step Functions for deterministic workflow and approval</li>
+          <li>Lambda, ECS, or EKS for custom orchestration</li>
+          <li>Bedrock Agents Classic for existing workloads</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Enforce step, time, token, and cost limits.</li>
+          <li>Treat model output as a proposal.</li>
+          <li>Let policy and workflow make the final execution decision.</li>
+        </ul>
+      </td>
     </tr>
     <tr>
-      <td><strong>Input / Output</strong></td>
-      <td>Any supported modality, embeddings, or metadata</td>
-      <td>Tokens (text/code) with optional tool-calls</td>
+      <td><strong>Memory Layer</strong></td>
+      <td>
+        <ul>
+          <li>Store conversation and working context.</li>
+          <li>Persist task progress, tool results, and idempotency state.</li>
+          <li>Retrieve useful long-term memories.</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>AgentCore Memory for short- and long-term conversational memory</li>
+          <li>Amazon DynamoDB for task and idempotency state</li>
+          <li>Amazon Aurora or RDS for transactional state</li>
+          <li>Amazon S3 for durable artifacts</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Scope memory by actor, session, and tenant.</li>
+          <li>Do not treat inferred memories as verified facts.</li>
+          <li>Keep authoritative business state in an explicit system of record.</li>
+        </ul>
+      </td>
     </tr>
     <tr>
-      <td><strong>Adaptation</strong></td>
-      <td>Task-specific fine-tuning, adapters, RLHF</td>
-      <td>Prompting, instruction tuning, RLHF, guardrails</td>
+      <td><strong>Tooling Layer</strong></td>
+      <td>
+        <ul>
+          <li>Execute approved tool calls.</li>
+          <li>Retrieve external knowledge.</li>
+          <li>Return bounded observations to the Agent Controller.</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>AgentCore Gateway for MCP, API, and Lambda tools</li>
+          <li>Lambda and API Gateway adapters</li>
+          <li>Step Functions for durable actions</li>
+          <li>Bedrock Knowledge Bases, OpenSearch, or Kendra for retrieval</li>
+          <li>EventBridge and SQS for asynchronous work</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Validate schema, authorization, risk, and timeout.</li>
+          <li>Use idempotency for side effects.</li>
+          <li>Do not confuse Gateway connectivity with business permission.</li>
+        </ul>
+      </td>
     </tr>
     <tr>
-      <td><strong>Use Cases</strong></td>
-      <td>Vision, audio, multi-modal search, robotics</td>
-      <td>Chatbots, Q&A, summarization, agents, code-gen</td>
+      <td><strong>Model Layer</strong></td>
+      <td>
+        <ul>
+          <li>Interpret the supplied context.</li>
+          <li>Propose an action or produce the final answer.</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Foundation models through Amazon Bedrock</li>
+          <li>Custom or controlled endpoints through SageMaker AI</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Predict tokens; do not grant permissions.</li>
+          <li>Do not provide transaction guarantees.</li>
+          <li>Do not act as authoritative durable memory.</li>
+        </ul>
+      </td>
     </tr>
   </tbody>
 </table>
 
----
+- AgentCore spans several layers because it is modular:
+  - Runtime/Harness and Policy belong mainly to the Agent Layer;
+  - Memory belongs to the Memory Layer;
+  - Gateway belongs to the Tooling Layer;
+  - Identity connects trusted identity across Interface, Agent, and Tooling boundaries.
+- Cross-cutting controls apply to every layer: IAM and resource policies, KMS, Secrets Manager, VPC endpoints/PrivateLink, CloudWatch, CloudTrail, WAF, and workload evaluation.
+- Read the stack as:
 
-## 2. Training Hyperparameters You Must Know {#section-2-training-basics}
+~~~text
+User → Interface → Agent Controller → Model
+                         ↕
+                       Memory
+                         ↓
+                Tools / Retrieval / Workflows
+~~~
 
-- **Epochs** – One pass over the full training set. Multiple batches make up an epoch; models iterate through many epochs until accuracy converges or validation loss stops improving.
-- **Batch size** – Number of records processed per update. Small batches fit on modest GPUs and introduce more gradient noise (helpful for generalization); large batches use more memory but stabilize training.
-- **Learning rate** – Size of each weight update. High rates (e.g., `1e-1`) converge quickly but can overshoot; low rates (e.g., `5e-5` for BERT) are slower but safer. Most schedulers decay the rate as training progresses.
+## 1. Start with the architecture problem {#section-1-decisions}
 
-Remember: adjusting these three knobs is often enough to fix unstable training before you consider changing the model architecture.
-
----
-
-## 3. Why Transformers Matter {#section-3-transformers}
-
-Transformers replaced recurrent networks by relying on **self-attention**, which lets every token weigh every other token in the sequence to build contextual embeddings. Positional encodings preserve word order, and encoder/decoder stacks process inputs in parallel so latency scales well on GPUs. This architecture powers modern translation, summarization, speech, and vision-language models—and is the backbone of Bedrock and SageMaker JumpStart offerings.
-
----
-
-## 4. Steering LLM Output {#section-4-generation-controls}
-
-- **Temperature (0–1)** – Scales the probability distribution before sampling. Lower values push the model toward the single most likely answer (deterministic); higher values encourage creative or varied text.
-- **Top-p (nucleus sampling)** – Keeps only the smallest set of tokens whose cumulative probability is ≥ `p`. Lower `p` limits the candidate pool to highly probable tokens; higher `p` allows adventurous replies. Amazon Bedrock exposes both parameters for every supported model.
-
-_Exam tip: Control hallucinations by lowering temperature/top-p and grounding answers with retrieved context._
-
-### Prompt Engineering {#section-4-prompt-engineering}
-
-- **Zero-shot** – instruction only; rely on the model’s pre-training.
-- **Few-shot** – add exemplars so the model mimics the pattern.
-- **Chain-of-thought** – ask for step-by-step reasoning to surface intermediate logic.
-- **Few-shot + CoT** – provide worked examples with reasoning, then request the same structure for the new task.
-- **RAG** – retrieve fresh/internal data and inject it into the prompt; complements prompt style by adding knowledge.
-- **Prompt structure checklist** – instruction, context, constraints, output format. Validation happens afterward, not inside the prompt.
-- **Use cases** – chocatalogue2025!ose prompting tweaks for reasoning changes; choose RAG when knowledge gaps exist.
-
----
-
-## 5. Retrieval-Augmented Generation (RAG) {#section-5-rag}
-
-RAG keeps foundation models up to date without re-training:
-
-1. Ingest documents (PDFs, FAQs, catalogs) and chunk them with metadata.
-2. Create embeddings and store them in a vector index such as OpenSearch Serverless, Aurora Postgres + pgvector, or Knowledge Bases for Amazon Bedrock.
-3. When the user asks a question, retrieve the most relevant chunks.
-4. Pass the question + retrieved context to the LLM so the answer cites fresh data.
-
-This pattern is cheaper than fine-tuning every time the knowledge base changes and is the default recommendation on the exam for “most current answers at low cost.”
-
-_Exam tip: Always justify RAG when the requirement is “fresh data without retraining.”_
-
-### Responsible AI and Governance {#section-5-governance}
-
-- Enforce data validation/cleansing pipelines before training or inference to reduce bias and drift.
-- Maintain written data quality standards as core AI governance controls.
-- Responsible AI pillars: fairness, explainability, privacy, robustness, safety, accountability.
-- Apply guardrails/admin controls (e.g., Bedrock guardrails, Amazon Q Business policies) to suppress sensitive or off-topic outputs.
-
-### Security and Compliance {#section-5-security}
-
-- **Layered controls** – access policies (IAM, VPC), data protection (encryption, redaction), detailed logging, and compliance evidence.
-- **Data logging** – record prompts, model invocations, and decisions for monitoring, troubleshooting, and audits.
-- **AWS Artifact** – self-service access to AWS SOC, ISO, and PCI reports when proving compliance.
-- Highlight logging + Artifact in exam answers that mention regulators, internal audits, or shared responsibility clarifications.
-
----
-
-## 6. Specializing a Foundation Model {#section-6-specialization}
-
-### 6.1 Domain Adaptation Fine-Tuning {#section-6-1-domain-adaptation}
-
-- Start with a general foundation model, then fine-tune on labeled domain-specific prompts/responses.
-- Best when you have curated task data (support tickets, contracts, medical summaries) and need the model to follow strict formats or voice.
-- Requires fewer tokens than pre-training because you are only nudging existing weights.
-
-### 6.2 Continued Pre-Training {#section-6-2-continued-pretraining}
-
-- Feed the model a large unlabeled corpus from your domain to extend its vocabulary and context understanding before supervised fine-tuning.
-- Use this when jargon-heavy data (legal, biotech, oil & gas) is missing from the public corpus. You still need to run a fine-tune afterward for task instructions.
-
-Exam tip: choose fine-tuning for adapting behavior on known tasks; choose continued pre-training when the base knowledge is insufficient.
-
-### Evaluation Metrics {#section-6-3-evaluation-metrics}
-
-- **Efficiency** – latency, throughput, or cost-per-token; use when speed/cost limits exist.
-- **Task metrics** – accuracy, F1, BLEU, ROUGE for technical fit-for-purpose checks.
-- **Business/operational metrics** – ARPU, CSAT, deflection; expect exam questions to mix technical and business KPIs to ensure you map each requirement to the correct metric type.
-- Remember: ARPU is a business KPI, not a model performance metric.
-
-### Agents and Real-Time Augmentation {#section-6-4-agents}
-
-- AI agents connect model reasoning to tools, APIs, workflows, and databases to execute tasks.
-- Typical flow: parse natural language intent → map to tool or API call → send results back through the model for explanation.
-- Use retrieval or tool calls when real-time or transactional data is required; prompting alone cannot access live systems.
-- Bedrock Agents or custom orchestration can translate user input into API/SQL calls, keeping humans in the loop for approvals.
-
----
-
-## 7. Embeddings and BERT {#section-7-embeddings}
-
-Embedding models convert words, sentences, or images into dense vectors so that similar items land close together in multi-dimensional space. BERT (Bidirectional Encoder Representations from Transformers) generates contextual embeddings by looking at words both before and after the target token. Because embeddings change with context, BERT excels at intent detection, entity recognition, and semantic search where static word vectors fail.
-
----
-
-## 8. AWS Service Map {#section-8-aws-services}
-
-- Amazon Bedrock – managed foundation-model access for generative apps without training from scratch.
-- Amazon SageMaker – custom ML build/train/tune/deploy lifecycle.
-- Amazon Lex – conversational interface builder using intents and slots.
-- Amazon Kendra – enterprise search with intelligent retrieval over connected document stores.
-- Amazon Q Business – managed enterprise AI assistant with connectors, RBAC, and admin guardrails.
-- Amazon Comprehend – NLP service for sentiment, key phrases, classification, and entity extraction.
-
-<table class="study-table">
-  <thead>
-    <tr>
-      <th>Service</th>
-      <th>Category</th>
-      <th>What to Remember</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Amazon Bedrock</strong></td>
-      <td>Foundation Models</td>
-      <td>Serverless access to Titan, Anthropic, Meta, Cohere, Mistral models; built-in RAG and guardrails.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon SageMaker</strong></td>
-      <td>Build/Train/Deploy</td>
-      <td>Custom training, fine-tuning, autopilot, and JumpStart model zoo.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Transcribe</strong></td>
-      <td>Speech-to-Text</td>
-      <td>Streaming/batch transcription with channel identification and redaction.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Comprehend</strong></td>
-      <td>Natural Language</td>
-      <td>Entity detection, sentiment, key phrases, PII redaction; supports custom classification.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Kendra</strong></td>
-      <td>Enterprise Search</td>
-      <td>High-accuracy semantic search with connectors, relevance tuning, and FAQs.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Rekognition</strong></td>
-      <td>Vision</td>
-      <td>Image/video labels, face search, unsafe content, text detection.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Textract</strong></td>
-      <td>Document AI</td>
-      <td>Structured extraction (forms, tables) beyond OCR.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Polly</strong></td>
-      <td>Text-to-Speech</td>
-      <td>Neural voices, Speech Marks for lip-sync, Lex integration.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Lex</strong></td>
-      <td>Conversational</td>
-      <td>Build chat/voice bots with slots, Lambda fulfillment, multi-lingual support.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Q Business</strong></td>
-      <td>Enterprise AI Assistant</td>
-      <td>Managed assistants with connectors, RBAC, guardrails, and analytics.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Translate</strong></td>
-      <td>Machine Translation</td>
-      <td>Real-time and batch translation with active custom terminology.</td>
-    </tr>
-  </tbody>
-</table>
-
-_Exam tip: Know the basic capability of each managed AI service—questions often ask you to swap Rekognition (vision) vs Textract (document parsing) vs Comprehend (text NLP)._ 
-
-## Exam Traps {#section-exam-traps}
-
-- Prompt validation is post-processing; exam answers that list it as a core prompt element are wrong.
-- ARPU belongs to business KPI dashboards, not ML evaluation tables.
-- RAG adds knowledge; prompt tweaks only change reasoning style—never claim prompting alone provides fresh data.
-
-## Memory Hooks {#section-memory-hooks}
-
-- Bedrock = FM platform
-- SageMaker = custom ML platform
-- Lex = chatbot flow
-- Kendra = retrieval/search
-- Comprehend = NLP extraction
-- Amazon Q Business = enterprise AI assistant
-- RAG = retrieve then generate
-- Agents = LLM + tools/API bridges
-- Efficiency metric = latency/cost focus
-- Data logging = audit trail
-
-## 9. LLM Conversation Flow Diagram {#section-9-llm-diagram}
-
-Use this UML snippet to visualize how user prompts move through retrieval, inference, and back to the UI.
+- Need managed access to foundation models and GenAI building blocks?
+  - Start with **Amazon Bedrock**.
+- Need custom training, full ML lifecycle, serving-container control, or dedicated model endpoints?
+  - Start with **Amazon SageMaker AI**.
+- Need custom lexical, vector, filtered, or hybrid search?
+  - Start with **Amazon OpenSearch Service**.
+- Need managed enterprise search with connectors and document ACL awareness?
+  - Evaluate **Amazon Kendra**.
+- Need managed standard RAG connected to a Bedrock model?
+  - Evaluate **Knowledge Bases for Amazon Bedrock**.
+- Need to deploy and operate custom agents with managed runtime, memory, tools, identity, policy, and tracing?
+  - Evaluate **Amazon Bedrock AgentCore**.
+- These choices can be combined; they are architecture boundaries, not mutually exclusive products.
 
 <div class="image-wrapper">
-  <img src="./assets/llm_conversation_flow.png" alt="llm_conversation_flow" class="modal-trigger" data-caption="🧠 LLM Conversation Flow">
-  <div class="diagram-caption" data-snippet-id="llm_conversation_flow">
-    🧠 LLM Conversation Flow
+  <img src="./assets/llm_conversation_flow.png" alt="AWS AI application flow" class="modal-trigger" data-caption="AWS AI request through identity, retrieval, Bedrock inference, and an approved tool">
+  <div class="diagram-caption" data-snippet-id="aws-ai-flow-snippet">
+    ☁️ AWS AI application request sequence
   </div>
-  <script type="text/plain" id="llm_conversation_flow">
+  <script type="text/plain" id="aws-ai-flow-snippet">
 @startuml
-title LLM + RAG request lifecycle
-
+title AWS AI application request flow
 actor User
-participant "Application UI" as UI
-participant "Retriever\n(Vector DB)" as RETRIEVE
-participant "LLM Gateway\n(Bedrock/SageMaker)" as LLM
-participant "Post-Processing" as POST
-
-User -> UI: Ask question
-UI -> RETRIEVE: search embeddings (top-k)
-RETRIEVE --> UI: relevant context
-UI -> LLM: prompt + context + controls\n(temp, top-p, max tokens)
-LLM --> UI: streamed tokens
-UI -> POST: apply guardrails\n(citations, formatting)
-POST --> User: final answer + sources
-
+participant "API Gateway / Application" as App
+participant "Cognito / IAM" as Identity
+participant "Bedrock Knowledge Base\nOpenSearch / Kendra" as Retrieval
+participant "Amazon Bedrock" as Bedrock
+participant "Lambda / AWS Service Tool" as Tool
+participant "CloudWatch / CloudTrail" as Audit
+User -> App: Request + identity token
+App -> Identity: Authenticate and authorize
+Identity --> App: Trusted principal + claims
+App -> Retrieval: Query + permitted metadata filters
+Retrieval --> App: Ranked evidence + source IDs
+App -> Bedrock: Instructions + evidence + tool schema
+Bedrock --> App: Answer or tool proposal
+alt Tool proposed and authorized
+  App -> Tool: Validated arguments + least-privilege role
+  Tool --> App: Structured result
+  App -> Bedrock: Tool result
+  Bedrock --> App: Final response
+end
+App -> Audit: Metrics, trace, policy decision
+App --> User: Response + citations
 @enduml
   </script>
 </div>
 
----
-## 9. Prompt Engineering Essentials {#section-9-prompt-engineering}
+## 2. Amazon Bedrock {#section-2-bedrock}
 
-- **Zero-shot vs few-shot** – Zero-shot relies purely on instructions, ideal for broad Q&A; few-shot includes curated examples so the model mirrors tone or schema. Prefer few-shot when responses must follow strict formatting.
-- **System vs user prompts** – System prompts set persona/policies; user prompts keep transient context. Adjust system prompts for compliance tone without retraining.
-- **Structured outputs** – Describe the schema (JSON/YAML) and list mandatory/optional fields; combine with Bedrock Guardrails or Lex slot validation to reject malformed payloads.
-- **Decoding controls** – Temperature, top-p, max tokens, and stop sequences govern creativity, latency, and runaway responses. Exams often ask you to lower temperature and add stop sequences to cap emails or policies.
-- **Tool/function calling** – Document available functions (name + parameters). The LLM decides whether to call a tool and returns JSON so the orchestrator can act. Key concept for Bedrock Agents and custom controllers.
+- Bedrock is a fully managed platform for consuming foundation models from Amazon and third-party providers.
+- Bedrock is **not itself a model**.
+- The exact model determines:
+  - modalities;
+  - context and output limits;
+  - tool/structured-output behaviour;
+  - inference parameters;
+  - regional availability;
+  - quota and capacity options.
+- Keep model IDs and Region support in deployment configuration because the catalogue changes.
 
-_Exam tip: Keep prompts short, move reusable policy text to templates, and cap `max_tokens` to avoid surprise billing._
+### 2.1 Inference choices {#section-2-1-inference}
 
----
+- **On-demand inference**:
+  - useful for variable or early-stage workloads;
+  - subject to service/model quotas and throttling.
+- **Streaming inference**:
+  - improves time to first visible output;
+  - does not remove total token cost or the need for output controls.
+- **Batch inference**:
+  - useful for non-interactive, high-volume processing;
+  - requires asynchronous job and output handling.
+- **Inference profiles / cross-Region routing**:
+  - can improve capacity and routing where supported;
+  - require review of permitted processing Regions, IAM, quotas, and data-residency policy.
+- **Provisioned Throughput**:
+  - reserves model capacity where supported;
+  - useful for predictable demand or throughput requirements;
+  - creates commitment/utilization trade-offs.
+- **Custom/imported models**:
+  - Bedrock supports selected customization and import paths;
+  - verify model, Region, deployment, and lifecycle constraints rather than assuming parity with SageMaker AI.
 
-## 10. RAG Architecture & Tuning {#section-10-rag-architecture}
+### 2.2 Bedrock application capabilities {#section-2-2-capabilities}
 
-- **Chunking + overlap** – Target 200–500 token chunks with 10–20% overlap so passages maintain context without blowing up storage.
-- **Embeddings + vector stores** – Use Titan Text Embeddings, Cohere Embed, or open-source (bge/e5) with OpenSearch Serverless, Aurora pgvector, Neptune Analytics, or Bedrock Knowledge Bases.
-- **Top-k retrieval + metadata filters** – Start with `k=3–5`, then filter by product, locale, or classification labels to cut noise.
-- **Reranking + hybrid search** – Combine dense vectors with keyword/BM25 or use rerankers when rare terms or legal phrases matter.
-- **Latency vs cost** – Larger vectors improve recall but add milliseconds and storage fees. Cache popular context windows; pre-compute embeddings offline.
+- **Knowledge Bases**:
+  - managed ingestion and RAG retrieval/generation integration;
+  - covered in the retrieval comparison below.
+- **Bedrock Agents Classic**:
+  - orchestrate model decisions across action groups and knowledge bases;
+  - action groups commonly use Lambda or return control to the application;
+  - use aliases/versions, traces, bounded execution, least-privilege roles, and approval gates;
+  - is an existing-workload path: AWS states that it is no longer open to new customers after 30 July 2026 and directs similar new implementations toward AgentCore.
+- **Flows**:
+  - compose prompts, models, knowledge bases, conditions, and AWS integrations into explicit flows;
+  - useful when visual/managed orchestration fits the process;
+  - compare with Step Functions when broader durable AWS workflow semantics are needed.
+- **Guardrails**:
+  - apply configurable input/output policies such as content, denied topics, word filters, and sensitive-information handling where supported;
+  - can be applied independently in selected workflows;
+  - do not replace IAM, tenant authorization, tool validation, WAF, or domain rules.
+- **Prompt management**:
+  - versions and tests prompt templates and variables;
+  - helps deployment discipline but does not replace repository versioning and end-to-end regression tests.
+- **Evaluation**:
+  - supports model and knowledge-base evaluation capabilities, including automated and human-oriented approaches where available;
+  - retain workload-specific datasets and release gates outside any single managed feature.
+
+## 3. Amazon Bedrock AgentCore {#section-3-agentcore}
+
+- AgentCore is a modular platform for deploying and operating agents; it is **not a model**.
+- It can run agents built with frameworks such as Strands Agents, LangGraph, CrewAI, or LlamaIndex and can use Bedrock or other supported model providers.
+- Adopt only the components the architecture needs:
+  - **Runtime** runs custom agent code in managed, isolated, serverless sessions.
+  - **Harness** provides a managed agent loop when configuring instructions, models, and tools is preferable to owning the loop.
+  - **Gateway** exposes APIs, Lambda functions, and services as controlled tools, including through MCP; it handles tool discovery, ingress authentication, and credential exchange.
+  - **Identity** carries user/agent identity and obtains authorized credentials for AWS or third-party services.
+  - **Policy** applies deterministic action rules independently of what the model proposes.
+  - **Memory** stores short- and long-term agent context; it must be scoped by user and tenant and is not the business system of record.
+  - **Browser** and **Code Interpreter** provide isolated capabilities for browsing and code execution where required.
+  - **Observability** and **Evaluations** expose agent, model, and tool behaviour for tracing and quality measurement.
+- AgentCore does not remove the need for application authentication, source-system authorization, least-privilege IAM, data isolation, or human approval.
+
+### 3.1 AgentCore versus Bedrock Agents Classic versus Step Functions {#section-3-1-agentcore-boundary}
+
+- Choose **AgentCore** for new implementations when custom or managed agent loops need runtime, memory, tool connectivity, identity, policy, and observability.
+- Maintain or migrate **Bedrock Agents Classic** when an existing workload uses managed model-led orchestration around instructions, action groups, and knowledge bases.
+- Choose **Step Functions** when the states, branches, retries, compensations, and approvals are known in advance.
+- Combine them when useful:
+  - AgentCore handles bounded reasoning and tool selection;
+  - Step Functions owns durable business workflow and human approval;
+  - business APIs remain responsible for validating and authorizing every state change.
+
+### 3.2 Industrial example: plant-maintenance agent {#section-3-2-industrial-example}
+
+- **Use case**: a plant engineer asks why a pump is vibrating and, if justified, requests a maintenance work order.
+- **Entry boundary**:
+  - AWS WAF protects the public endpoint;
+  - Amazon Cognito authenticates the engineer;
+  - API Gateway passes trusted identity claims such as `user_id`, `plant_id`, and `role` to the application.
+- **Agent boundary**:
+  - AgentCore Runtime hosts a supervisor agent built with a selected framework;
+  - the agent invokes a Bedrock model for reasoning but treats model output as a proposal;
+  - AgentCore Identity and Policy restrict which tools that principal can invoke for that plant.
+- **Tool boundary**:
+  - AgentCore Gateway exposes narrow tools such as `get_asset_health`, `search_manuals`, and `create_work_order`;
+  - Lambda/API adapters call AWS IoT SiteWise, the maintenance system, or other industrial APIs;
+  - tool schemas, server-side authorization, validation, timeouts, and idempotency remain mandatory.
+- **Knowledge boundary**:
+  - manuals and incident history can be retrieved through Bedrock Knowledge Bases or OpenSearch over documents in S3;
+  - `plant_id`, asset class, and document ACLs constrain retrieval;
+  - metadata relevance filters do not replace authorization at the source.
+- **State boundary**:
+  - AgentCore Memory can retain scoped conversational context and preferences;
+  - asset telemetry and work-order status remain authoritative in their operational systems.
+- **Safety boundary**:
+  - read-only diagnosis may execute automatically when policy permits;
+  - work orders, shutdown requests, or other high-impact actions use Step Functions and human approval;
+  - the agent must not directly write to PLCs or bypass deterministic industrial safety controls.
+- **Operations boundary**:
+  - use VPC connectivity/private endpoints where supported, KMS encryption, and Secrets Manager for credentials;
+  - CloudWatch/OpenTelemetry records the model, policy, retrieval, tool, latency, and outcome trace;
+  - CloudTrail records supported AWS API activity;
+  - EventBridge and SQS decouple telemetry/document ingestion and absorb bursts.
 
 <div class="image-wrapper">
-  <img src="./assets/rag_architecture.png" alt="rag_architecture" class="modal-trigger" data-caption="🧱 RAG Architecture">
-  <div class="diagram-caption" data-snippet-id="rag_architecture">
-    🧱 RAG Architecture
+  <img src="./assets/agentcore_industrial_maintenance_sequence.png" alt="Production industrial maintenance agent using Amazon Bedrock AgentCore" class="modal-trigger" data-caption="Industrial maintenance request through AgentCore with policy and human approval">
+  <div class="diagram-caption" data-snippet-id="agentcore-industrial-sequence-snippet">
+    🏭 Production AgentCore sequence: diagnose freely, mutate only with approval
   </div>
-  <script type="text/plain" id="rag_architecture">
+  <script type="text/plain" id="agentcore-industrial-sequence-snippet">
 @startuml
-title End-to-end RAG flow
+title Industrial maintenance agent with Amazon Bedrock AgentCore
+actor "Plant Engineer" as User
+participant "App + Cognito\nAPI Gateway" as Edge
+participant "AgentCore Runtime\nSupervisor Agent" as Runtime
+participant "AgentCore Identity\nPolicy + Memory" as Controls
+participant "Bedrock Model" as Model
+participant "AgentCore Gateway\nBounded MCP Tools" as Gateway
+participant "Knowledge + Plant Systems\nKB / OpenSearch / CMMS / SiteWise" as Systems
+participant "Step Functions\nHuman Approval" as Approval
+participant "CloudWatch / OTel\nCloudTrail" as Audit
 
-actor User
-participant "Client App" as APP
-participant "Chunk & Embed" as INGEST
-participant "Vector Store" as VECTOR
-participant "LLM Endpoint" as LLM
+User -> Edge: Ask about pump vibration
+Edge -> Edge: Authenticate; derive user, role, plant
+Edge -> Runtime: Request + trusted claims
+Runtime -> Controls: Load plant-scoped memory and permissions
+Controls --> Runtime: Context + allowed actions
+Runtime -> Model: Instructions + evidence needs + tool schemas
+Model --> Runtime: Proposed tool call
+Runtime -> Controls: Authorize principal, plant, tool, arguments
 
-== Ingestion ==
-APP -> INGEST: Upload docs + metadata
-INGEST -> VECTOR: Store embeddings + filters
+alt Read-only diagnosis is permitted
+  Controls --> Runtime: Permit
+  Runtime -> Gateway: get_asset_health / search_manuals
+  Gateway -> Systems: Authorized, validated request
+  Systems --> Gateway: Telemetry / permitted evidence
+  Gateway --> Runtime: Structured result + source IDs
+else State-changing or high-impact action
+  Controls --> Runtime: Require approval
+  Runtime -> Approval: Proposed action + reason + scope
+  Approval -> User: Request approval
+  User --> Approval: Approve or reject
+  Approval --> Runtime: Signed workflow decision
+  Runtime -> Gateway: create_work_order + idempotency key
+  Gateway -> Systems: Authorized business API call
+  Systems --> Gateway: Work-order ID / rejection
+  Gateway --> Runtime: Structured result
+end
 
-== Query ==
-User -> APP: Question
-APP -> VECTOR: similarity search (top-k + filter)
-VECTOR --> APP: relevant chunks
-APP -> LLM: prompt + chunks + decoding controls
-LLM --> APP: grounded answer + citations
-APP --> User: response (low hallucination)
-
+Runtime -> Model: Tool result; request grounded response
+Model --> Runtime: Response draft
+Runtime -> Controls: Store scoped summary, not plant record
+Runtime -> Audit: Trace model, policy, retrieval, tool, outcome
+Runtime --> Edge: Answer + evidence + action status
+Edge --> User: Display result
 @enduml
   </script>
 </div>
 
-_Exam tip: Answer “Use Bedrock Knowledge Bases” whenever the question stresses managed ingestion + retrieval._
+## 4. Amazon Bedrock versus SageMaker AI {#section-4-bedrock-sagemaker}
 
----
+- Choose **Bedrock** when the main goal is to:
+  - consume supported foundation models through managed APIs;
+  - switch among catalogue models with less serving infrastructure;
+  - use managed GenAI capabilities such as Knowledge Bases, Agents, Flows, Guardrails, or prompt management;
+  - integrate with AWS identity, networking, logging, and billing.
+- Choose **SageMaker AI** when the main goal is to:
+  - prepare data and run training jobs;
+  - build custom ML models or use custom training code;
+  - fine-tune with broader control over compute and artifacts;
+  - deploy custom containers/models to controlled endpoints;
+  - choose real-time, serverless, asynchronous, or batch inference patterns where supported;
+  - operate notebooks, experiments, model registry, and ML pipelines/lifecycle.
+- The real decision boundary is **managed model capability versus lifecycle/serving control**, not simply “GenAI versus ML”.
+- Use both when useful:
+  - custom classifier or embedding endpoint on SageMaker AI + generation on Bedrock;
+  - model trained/customized through SageMaker AI and deployed through an appropriate SageMaker or Bedrock path;
+  - Bedrock for rapid evaluation, then a controlled endpoint when economics or specialization justify it.
+- Compare using:
+  - supported model and customization technique;
+  - serving/container and hardware control;
+  - scaling and cold-start behaviour;
+  - networking and encryption requirements;
+  - operations expertise;
+  - utilization and total cost;
+  - model artifact portability.
 
-## 11. Agents & Tool Use {#section-11-agents}
+## 5. Knowledge Bases for Amazon Bedrock {#section-5-bedrock-kb}
 
-- **Agent vs RAG** – Use RAG for better context inside a single response. Use agents when you need planning, multi-step workflows, or to call APIs/DBs dynamically.
-- **Tool calling patterns** – The agent interprets intent, chooses a tool (Lambda/HTTPS/Step Functions), executes it, ingests the result, and may loop until complete.
-- **AWS mapping** – Bedrock Agents orchestrate reasoning, call Lambda for business logic, Step Functions for long-running jobs, and can integrate RAG for grounding.
+- A managed Knowledge Base can coordinate supported parts of:
+  - source connection and ingestion;
+  - parsing and chunking configuration;
+  - embedding generation;
+  - vector/knowledge store integration;
+  - metadata filtering;
+  - retrieval and reranking options;
+  - `Retrieve` or retrieve-and-generate application flows;
+  - citations/source attribution.
+- Managed convenience is strongest for standard RAG with supported sources and stores.
+- Validate rather than assume:
+  - parser quality for PDFs, tables, images, and scanned documents;
+  - chunking strategy and parent/child behaviour;
+  - freshness and sync failure handling;
+  - exact-match and hybrid-search behaviour;
+  - metadata and ACL enforcement;
+  - vector store, Region, embedding, and reranker compatibility;
+  - retrieval traces and evaluation access.
+- Use custom retrieval when the workload needs:
+  - specialized document parsing;
+  - complex entitlement logic;
+  - carefully tuned lexical/vector fusion;
+  - custom query rewriting or reranking;
+  - graph, SQL, API, or multi-index retrieval;
+  - strict freshness or ingestion transactions;
+  - full control over candidate scoring and context assembly.
+- Agentic retrieval can decompose complex questions and iterate across managed knowledge-base retrievers where supported:
+  - useful for multi-step questions;
+  - adds model calls, latency, cost, and more failure paths;
+  - bound iterations and evaluate against simpler retrieval.
 
-This diagram is worth keeping because it clarifies a common point of confusion: the **agent** is the controller/orchestrator, the **model** is the reasoning engine, **tools** perform actions, **state** holds short-term working memory, and the **vector DB** acts as a retrieval index for long-term knowledge.
+## 6. Amazon OpenSearch Service {#section-6-opensearch}
 
-Concrete example: in a coding assistant, a user asks to fix a login bug, the model suggests inspecting `auth.py`, the agent reads the file with a tool, stores the result in state, optionally retrieves related docs from the vector index, and then calls the model again with the updated context.
+- Use OpenSearch when the application needs direct control over search/index design.
+- Relevant capabilities:
+  - inverted indexes and BM25 full-text search;
+  - exact terms, filters, phrases, facets, and aggregations;
+  - vector fields and approximate nearest-neighbour search;
+  - neural/semantic search integrations;
+  - hybrid search and search pipelines for combining signals;
+  - metadata filtering and operational search APIs.
+- Responsibilities that remain with the application/managed layer:
+  - parsing and chunking;
+  - document/ACL synchronization;
+  - embedding lifecycle;
+  - query rewriting;
+  - score/rank fusion tuning;
+  - reranking and context assembly;
+  - generation and citation policy.
+- Deployment choices:
+  - managed domains provide node/topology control;
+  - OpenSearch Serverless reduces cluster operations for supported collection patterns;
+  - evaluate cost shape, scaling behaviour, limits, networking, and feature support.
+- Failure modes:
+  - vector-only retrieval misses identifiers;
+  - raw BM25/vector scores are fused without normalization;
+  - restrictive filters reduce ANN recall;
+  - mappings or embedding dimensions drift;
+  - index refresh or failed ingestion serves stale evidence;
+  - an application filter is mistaken for complete authorization.
 
-<div class="image-wrapper">
-  <img src="./assets/ai_agent_architecture.png" alt="ai_agent_architecture" class="modal-trigger" data-caption="🧭 Agent vs Model vs Tools vs Vector DB">
-  <div class="diagram-caption" data-snippet-id="ai_agent_architecture">
-    🧭 Agent vs Model vs Tools vs Vector DB
-  </div>
-  <script type="text/plain" id="ai_agent_architecture">
-@startuml
-title Agent vs AI Model vs Tools vs Vector DB
+## 7. Amazon Kendra {#section-7-kendra}
 
-actor User
+- Kendra is a managed enterprise search service oriented around organizational content discovery.
+- Useful capabilities include:
+  - data-source connectors;
+  - document indexing and field mapping;
+  - ranked results, excerpts, and FAQ-style content;
+  - document attributes and relevance tuning;
+  - user/group context and ACL-aware filtering where supported.
+- Kendra may be preferable when connector behavior and enterprise permissions are the primary problem.
+- Check exact index type, API, connector, and edition/feature support:
+  - ACL ingestion differs by connector;
+  - documents without ACLs may be treated as public under relevant configurations;
+  - group mapping and identity synchronization must stay current;
+  - relevance tuning changes ranking, not authorization.
+- Kendra returns search evidence; an application or Bedrock integration still owns generation, prompts, validation, and end-to-end citations.
 
-box "Client / Interface Layer" #E3F2FD
-participant "CLI / App\n(Kiro CLI, Cursor,\nChatGPT UI)" as CLI
-end box
+## 8. Kendra versus OpenSearch versus Bedrock Knowledge Bases {#section-8-retrieval-choice}
 
-box "Agent Layer\n(wrapper/controller)" #E8F5E9
-participant "Agent Runtime\nstate + workflow" as Agent
-participant "Agent Configuration\nrole, rules,\npermissions,\nmodel choice" as Config
-participant "Context Builder\nprompt assembly" as Context
-end box
+- Choose **Bedrock Knowledge Bases** when:
+  - managed standard RAG is the priority;
+  - supported sources/stores and retrieval controls meet requirements;
+  - reduced implementation effort is worth less stage-level control.
+- Choose **OpenSearch** when:
+  - exact terms, BM25, vectors, filters, facets, and hybrid tuning are central;
+  - the team can own ingestion, schema, ranking, security integration, and operations.
+- Choose **Kendra** when:
+  - enterprise connectors and search-oriented ACL/user context are central;
+  - managed relevance and organizational knowledge discovery matter more than low-level index control.
+- Combine only with a clear boundary:
+  - Bedrock Knowledge Bases can use supported retrieval stores/services;
+  - a custom application can retrieve from OpenSearch or Kendra and call Bedrock for generation;
+  - avoid indexing the same corpus several times without explicit ownership, freshness, and evaluation reasons.
 
-box "Retrieval / Memory Layer" #FFF3E0
-database "Vector DB / Retrieval Index\nQdrant, Weaviate,\npgvector, Chroma" as VectorDB
-database "Session Memory / Task State\nhistory, summaries,\nprevious tool results" as State
-end box
+## 9. Supporting AWS services by architecture role {#section-9-supporting-services}
 
-box "Tool Layer\nthings the agent can operate" #F3E5F5
-participant "Tools\nfile read/write,\nterminal, MCP,\nAPIs, tests" as Tools
-end box
+### 9.1 Entry, identity, and protection {#section-9-1-entry}
 
-box "AI Model Provider Layer\nactual intelligence engine" #FFEBEE
-participant "AI Model\nGPT / Claude / Gemini\nstateless per call" as Model
-end box
+- **Amazon API Gateway**:
+  - authenticated API boundary, throttling, request validation, and service integration;
+  - confirm streaming and timeout requirements for interactive model responses.
+- **Amazon Cognito**:
+  - application user sign-up/sign-in and token issuance;
+  - pass trusted user/tenant claims into application authorization, not directly as model authority.
+- **AWS IAM**:
+  - least-privilege roles for model invocation, ingestion, retrieval, agents, Lambda, and operators;
+  - use separate runtime and deployment roles; constrain resources and delegated roles.
+- **AWS WAF**:
+  - controls abusive/malformed public traffic and common web attacks;
+  - is not a complete prompt-injection detector.
+- **AWS PrivateLink / VPC endpoints**:
+  - private access to supported services without public internet paths;
+  - verify service/Region support and still enforce IAM and egress controls.
 
-== Agent starts ==
+### 9.2 Compute and orchestration {#section-9-2-compute}
 
-User -> CLI: Send task
-CLI -> Agent: Start agent session
+- **AWS Lambda**:
+  - short ingestion transforms, validation, tool adapters, event handlers, and Agent action groups;
+  - avoid forcing long-running/high-memory parsing or orchestration into Lambda limits.
+- **Amazon ECS**:
+  - containerized parsers, model gateways, retrieval services, workers, and long-running tools with simpler orchestration than Kubernetes.
+- **Amazon EKS**:
+  - Kubernetes-based custom serving and platform control;
+  - justified when Kubernetes capabilities and operational maturity already exist.
+- **AWS Step Functions**:
+  - durable, explicit ingestion, evaluation, approval, and tool workflows;
+  - useful for visible state, retries, compensation, callback, and long-running execution.
+- **Amazon EventBridge**:
+  - routes document, workflow, evaluation, and model lifecycle events between components.
+- **Amazon SQS**:
+  - buffers ingestion or inference jobs, smooths bursts/quotas, and isolates retries;
+  - configure visibility timeout, dead-letter handling, deduplication/idempotency, and queue-age alarms.
 
-Agent -> Config: Load config
-Config --> Agent: Role, rules, allowed tools,\nmodel choice, permissions
+### 9.3 Data and state {#section-9-3-data}
 
-Agent -> State: Load session/task state
-State --> Agent: History, summaries,\nprevious progress
+- **Amazon S3**:
+  - versioned source documents, parser output, prompts, evaluation sets, model artifacts, and batch input/output;
+  - use event-driven ingestion, encryption, access points/policies, lifecycle, and object versioning as required.
+- **Amazon DynamoDB**:
+  - task/conversation state, idempotency keys, tool status, routing configuration, and evaluation metadata;
+  - design tenant-aware keys, conditional writes, and TTL deliberately.
+- **Amazon Aurora / Amazon RDS**:
+  - transactional application data, entitlements, audit relationships, and tool-backed business operations;
+  - vector extensions may fit workloads already centered on relational consistency, but evaluate search scale/features.
+- **AWS Glue**:
+  - catalogues and transforms governed data for batch preparation, metadata enrichment, and analytics/evaluation pipelines;
+  - it is not the online RAG orchestrator.
+- **Amazon Macie**:
+  - discovers sensitive data in S3 before documents enter indexes, prompts, or evaluation datasets;
+  - findings need a response/quarantine workflow.
 
-note over Config,Agent
-Config is not the AI.
-It tells the agent how to behave.
-end note
+### 9.4 Encryption, secrets, and operations {#section-9-4-operations}
 
-== Build first model call ==
+- **AWS KMS**:
+  - customer-managed key policies and encryption boundaries for documents, indexes, logs, databases, and artifacts;
+  - key policy and cross-account design are part of authorization.
+- **AWS Secrets Manager**:
+  - stores and rotates database, provider, and tool credentials;
+  - applications retrieve secrets at runtime and never place them in model context.
+- **AWS CloudTrail**:
+  - records supported AWS control-plane/data events for governance and investigation;
+  - configure the relevant event types, retention, and protected central storage.
+- **Amazon CloudWatch**:
+  - logs, metrics, alarms, dashboards, and traces for latency, throttling, errors, queues, and application outcomes;
+  - redact sensitive prompts/responses and correlate with model/retrieval/tool IDs.
 
-Agent -> Context: Build prompt package
+## 10. Reference AWS decision flow {#section-10-decision-flow}
 
-Context -> VectorDB: Search relevant chunks
-VectorDB --> Context: Relevant docs/code/context
+```text
+Need a managed foundation-model API?
+  └─ Bedrock
 
-Context -> State: Load useful history
-State --> Context: Prior messages / summaries
+Need custom training, serving code, hardware, or ML lifecycle control?
+  └─ SageMaker AI
 
-Context --> Agent: Final prompt package
+Need changing/private knowledge?
+  └─ RAG
+      ├─ managed standard Bedrock integration → Bedrock Knowledge Bases
+      ├─ custom lexical/vector/hybrid search  → OpenSearch
+      └─ enterprise connectors + ACL search  → Kendra
 
-Agent -> Model: Call #1\nrequest + retrieved context + state
-Model --> Agent: Response:\nInspect auth.py token validation
+Need a known multi-step AWS process?
+  └─ Step Functions / application workflow
 
-note over Model
-The model is stateless between calls
-unless context is resent.
-end note
+Need dynamic tool choice?
+  ├─ new agent/runtime implementation → AgentCore
+  └─ existing action-group workload    → Bedrock Agents Classic / migration review
 
-== Agent uses tools ==
+Need known durable states, compensation, or human approval?
+  └─ Step Functions, optionally invoking an AgentCore agent
+```
 
-Agent -> Tools: Read auth.py
-Tools --> Agent: auth.py contents
+## 11. AWS architecture review checklist {#section-11-checklist}
 
-Agent -> State: Store tool result / task progress
-State --> Agent: Updated state saved
+- Model and Region:
+  - exact model ID, quota, capacity mode, fallback, and deprecation plan are known.
+- Identity:
+  - caller, runtime role, agent/tool role, and deployment role are distinct and least privileged.
+- Data:
+  - classification, processing Region, encryption, retention, and provider-use terms are approved.
+- Retrieval:
+  - parser, chunking, embedding, lexical/hybrid behaviour, ACL sync, freshness, and evaluation are explicit.
+- Network:
+  - ingress, private endpoints, outbound destinations, DNS, and cross-account paths are documented.
+- Reliability:
+  - timeout, retry, idempotency, queue, quota, fallback, and degraded mode are tested.
+- Safety:
+  - guardrails, WAF, authorization, schema validation, and human approval have separate responsibilities.
+- Observability:
+  - one trace links API caller, model, retrieval, tool, IAM/policy decision, latency, tokens, and outcome.
+- Evaluation:
+  - prompt/model/retrieval changes run against a versioned workload suite before promotion.
 
-== Second model call ==
+For how retrieval works internally, see [AI knowledge bases](/study/aiKnowledgebases). For vendor-neutral security, reliability, cost, and evaluation, see [AI infrastructure and evaluation](/study/aiInfrastructure).
 
-Agent -> Context: Rebuild prompt package
-Context -> State: Load updated state
-State --> Context: File contents + previous response
-Context -> VectorDB: Optional search again
-VectorDB --> Context: More relevant context
+## Official references {#official-references}
 
-Context --> Agent: Updated prompt package
-
-Agent -> Model: Call #2\nrequest + file contents + prior step
-Model --> Agent: Response:\nPatch token check and run tests
-
-== Tool use again ==
-
-Agent -> Tools: Edit auth.py
-Tools --> Agent: Diff
-
-Agent -> Tools: Run auth tests
-Tools --> Agent: Test output
-
-Agent -> State: Save diff + test output
-State --> Agent: Updated state saved
-
-== Final model call ==
-
-Agent -> Context: Rebuild final context
-Context -> State: Load latest state
-State --> Context: Diff + test output + summary
-Context --> Agent: Final prompt package
-
-Agent -> Model: Call #3\nlatest context + result
-Model --> Agent: Final answer
-
-Agent -> CLI: Return result
-CLI -> User: Show answer / diff / status
-
-note over Agent,Model
-Agent = controller/orchestrator.
-AI Model = reasoning engine.
-Tools = action surface.
-State = short-term working memory.
-Vector DB = retrieval index.
-end note
-
-@enduml
-  </script>
-</div>
-
-<div class="image-wrapper">
-  <img src="./assets/agent_tool_chain.png" alt="agent_tool_chain" class="modal-trigger" data-caption="🤖 Agent Tool Chain">
-  <div class="diagram-caption" data-snippet-id="agent_tool_chain">
-    🤖 Agent Tool Chain
-  </div>
-  <script type="text/plain" id="agent_tool_chain">
-@startuml
-title Bedrock Agent invoking tools
-
-actor User
-participant "Bedrock Agent" as AGENT
-participant "RAG Retriever" as RAG
-participant "Lambda Tool" as LAMBDA
-participant "Step Functions" as STEP
-participant "Final Response" as RESP
-
-User -> AGENT: Complex task
-AGENT -> RAG: fetch context (optional)
-RAG --> AGENT: supporting data
-AGENT -> LAMBDA: call tool (JSON params)
-LAMBDA --> AGENT: tool output
-AGENT -> STEP: orchestrate long workflow
-STEP --> AGENT: completion state
-AGENT -> RESP: compose answer + actions
-RESP --> User: explanation + citations
-
-@enduml
-  </script>
-</div>
-
-_Exam tip: If the requirement says “call internal APIs and external SaaS with reasoning,” pick Bedrock Agents with Lambda tools._
-
----
-
-## 12. Evaluation & Hallucination Control {#section-12-eval}
-
-- **Offline evaluation** – Score prompts/models against golden datasets for accuracy, BLEU/ROUGE, or custom rubric. Automate in SageMaker pipelines.
-- **Human + LLM-as-judge** – SMEs validate edge cases; LLM judges accelerate regression testing but must be calibrated.
-- **Grounding + citations** – Return snippet IDs or URLs so auditors can verify answers. Bedrock Knowledge Bases can include citations automatically.
-- **Temperature + guardrails** – Keep temperature/top-p low for factual tasks and add Guardrails for profanity/PII filters or JSON schemas.
-
-_Exam tip: When compliance reviewers are mentioned, respond with “human-in-the-loop evaluation plus logged citations.”_
-
----
-
-## 13. Responsible AI, Privacy, Security {#section-13-responsible-ai}
-
-- **Bias/fairness** – Audit datasets, compare outputs across demographic slices, and document mitigations.
-- **PII governance** – Mask prompts, encrypt data (KMS), route calls through VPC endpoints/PrivateLink, and restrict IAM roles for agents/tools.
-- **Hallucination + safety** – Pair RAG grounding with Guardrails to block unsafe content and require human review for high-risk actions.
-- **AWS mapping** – Use Bedrock Guardrails, IAM least privilege, CloudTrail logging, and encrypted vector stores/S3 buckets.
-
----
-
-## 14. Cost Optimization for GenAI {#section-14-cost}
-
-- **Token drivers** – Shorten system prompts, trim few-shot examples, and cap max tokens. Every unused token is direct cost.
-- **Caching** – Cache embeddings, retrieval hits, and deterministic responses to avoid re-querying the LLM.
-- **Model sizing** – Start with smaller models (e.g., 13B) and scale up only if KPIs demand it. Use distillation or parameter-efficient fine-tuning for narrow tasks.
-- **Batch vs real-time** – Batch summarize archives or compliance logs; reserve real-time endpoints for interactive needs. SageMaker and Bedrock both support asynchronous invocations.
-- **RAG vs fine-tune vs prompt** – RAG minimizes retraining when knowledge updates frequently, fine-tuning lowers per-request tokens for repetitive tasks, and improved prompting can defer expensive training entirely.
-
-_Exam tip: Mention “use Bedrock serverless invocation + caching” whenever the question references “spiky demand” or “cost control.”_
-
----
-
-## 15. Decision Matrix {#section-15-decision-matrix}
-
-<table class="study-table">
-  <thead>
-    <tr>
-      <th>Approach</th>
-      <th>When to Choose</th>
-      <th>Exam Trigger Words</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Prompting</strong></td>
-      <td>General knowledge, low customization, rapid experimentation.</td>
-      <td>“No training budget,” “quick prototype.”</td>
-    </tr>
-    <tr>
-      <td><strong>RAG</strong></td>
-      <td>Fresh proprietary data, citations, large document sets.</td>
-      <td>“Latest manuals,” “ground answers,” “no retraining.”</td>
-    </tr>
-    <tr>
-      <td><strong>Fine-tuning</strong></td>
-      <td>Strict formats, domain tone, curated labeled data.</td>
-      <td>“Consistent summaries,” “approved style guide.”</td>
-    </tr>
-    <tr>
-      <td><strong>Continued Pretraining</strong></td>
-      <td>Missing vocabulary/jargon, massive unlabeled domain corpus.</td>
-      <td>“Industry-specific terms,” “expand base knowledge.”</td>
-    </tr>
-    <tr>
-      <td><strong>Agents</strong></td>
-      <td>Multi-step reasoning, tool invocation, integrations.</td>
-      <td>“Plan workflow,” “call APIs,” “take actions.”</td>
-    </tr>
-  </tbody>
-</table>
-
----
+- [Amazon Bedrock documentation](https://docs.aws.amazon.com/bedrock/)
+- [Amazon Bedrock AgentCore overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html)
+- [AgentCore Memory types](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html)
+- [AgentCore Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html)
+- [AgentCore VPC connectivity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html)
+- [AgentCore multi-tenant reference architecture](https://aws.amazon.com/blogs/machine-learning/shared-infrastructure-isolated-tenants-pool-model-multi-tenancy-with-amazon-bedrock-agentcore/)
+- [Bedrock Agents Classic action groups and maintenance notice](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-action-create.html)
+- [Deploy models for inference with SageMaker AI](https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html)
+- [Amazon OpenSearch Service neural and hybrid search](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-configure-neural-search.html)
+- [Amazon Kendra user-context filtering](https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html)
+- [Amazon Kendra relevance tuning](https://docs.aws.amazon.com/kendra/latest/dg/tuning.html)

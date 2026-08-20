@@ -11,6 +11,46 @@
   border-bottom-color: transparent;
 }
 
+/* Markdown-generated tables do not carry the study-table class. */
+.content table:not(.study-table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+.content table:not(.study-table) th,
+.content table:not(.study-table) td {
+  border: 1px solid #d1d5db;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.content table:not(.study-table) th {
+  background-color: #f3f4f6;
+  font-weight: 700;
+}
+
+.content table:not(.study-table) tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+[data-theme="dark"] .content table:not(.study-table) th,
+[data-theme="dark"] .content table:not(.study-table) td {
+  border-color: #4b5563;
+}
+
+[data-theme="dark"] .content table:not(.study-table) th {
+  background-color: #374151;
+}
+
+[data-theme="dark"] .content table:not(.study-table) tbody tr:nth-child(even) {
+  background-color: #1f2937;
+}
+
 /* Study table styling - consistent with base styles */
 .study-table {
   width: 100%;
@@ -76,6 +116,15 @@
 
 .study-table tbody tr td:first-child {
   font-weight: bold;
+}
+
+.agent-layer-table td ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.agent-layer-table td li + li {
+  margin-top: 5px;
 }
 
 /* Keep each model family visually grouped across all of its rows. */

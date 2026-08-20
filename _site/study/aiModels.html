@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Models · glucolte</title>
+  <title>AI Models and Providers · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,9 +13,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Models | glucolte</title>
+<title>AI Models and Providers | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="Models" />
+<meta property="og:title" content="AI Models and Providers" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
@@ -24,9 +24,9 @@
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Models" />
+<meta property="twitter:title" content="AI Models and Providers" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Models","url":"http://localhost:4000/study/aiModels"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Models and Providers","url":"http://localhost:4000/study/aiModels"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,386 +62,604 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="models">Models</h1>
+      <h1 id="ai-models-and-providers">AI Models and Providers</h1>
 
-<p>Large Language Models (LLMs) differ in reasoning ability, speed, cost, context size and intended workload. There is no universally “best” model; model selection is usually a trade-off between <strong>capability, latency and cost</strong>.</p>
+<p>Use this page to select a model and decide how to consume it. It merges model characteristics and provider choices because they are evaluated together, while keeping the distinction explicit.</p>
 
-<p>The major general-purpose model families are currently <strong>OpenAI GPT</strong>, <strong>Anthropic Claude</strong>, <strong>Google Gemini</strong> and <strong>DeepSeek</strong>.</p>
+<h2 id="section-1-boundaries">1. Model, provider, and cloud are different</h2>
+
+<ul>
+  <li><strong>Model</strong>: the trained artifact and inference behaviour.</li>
+  <li><strong>Model provider</strong>: the organisation that trains, publishes, or serves a model family.</li>
+  <li><strong>Cloud/model platform</strong>: the commercial and technical access path around the model.</li>
+  <li>Example:
+    <ul>
+      <li>Claude is an Anthropic model family;</li>
+      <li>it can be consumed directly from Anthropic or through Amazon Bedrock;</li>
+      <li>the access path changes API shape, regions, quotas, billing, networking, and governance;</li>
+      <li>it does not make Bedrock the model.</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>workload → model capability → provider/model family → access path → production controls
+</code></pre></div></div>
+
+<h3 id="section-1-1-model-package">1.1 What belongs to the model</h3>
+
+<ul>
+  <li>A usable model/checkpoint normally expects a compatible package:
+    <ul>
+      <li>tokenizer rules and vocabulary;</li>
+      <li>token-ID mapping;</li>
+      <li>internal embedding and transformer weights;</li>
+      <li>output vocabulary/projection;</li>
+      <li>detokenizer/configuration.</li>
+    </ul>
+  </li>
+  <li>These components are trained or defined together and are not generally interchangeable across model families.</li>
+  <li>Even versions within one family may change tokenizer, architecture, context limits, special tokens, or chat format; compatibility must be documented and tested.</li>
+  <li>General algorithms such as softmax, temperature sampling, and top-p are not owned by one model provider, although exposed controls and serving behaviour vary.</li>
+  <li>The request lifecycle and coupling are explained in <a href="/study/aiFundamentals#section-3-1-coupling">AI Fundamentals</a>.</li>
+</ul>
+
+<h3 id="section-1-2-ownership">1.2 Who owns and hosts what</h3>
+
+<ul>
+  <li><strong>Model creator/publisher</strong>:
+    <ul>
+      <li>trains or releases the model family and defines its model artifacts/licence.</li>
+    </ul>
+  </li>
+  <li><strong>Direct API provider</strong>:
+    <ul>
+      <li>serves its own or licensed models behind an API;</li>
+      <li>owns runtime concerns such as batching, capacity, upgrades, moderation, and exposed parameters.</li>
+    </ul>
+  </li>
+  <li><strong>Cloud model platform</strong>:
+    <ul>
+      <li>provides access to models from one or more creators with cloud identity, networking, billing, governance, and regional availability;</li>
+      <li>does not become the creator of every model it hosts.</li>
+    </ul>
+  </li>
+  <li><strong>Self-hosting operator</strong>:
+    <ul>
+      <li>runs compatible open-weight artifacts and owns serving engines, hardware, quantization, scaling, patching, and safety controls.</li>
+    </ul>
+  </li>
+  <li>The same model family can be available through several access paths, but API features, versions, latency, quotas, and governance can differ.</li>
+</ul>
+
+<h2 id="section-2-selection">2. Select by workload, not leaderboard</h2>
+
+<ul>
+  <li>Start with representative tasks and explicit acceptance thresholds.</li>
+  <li>Choose the smallest, fastest, least expensive model that passes quality and safety requirements.</li>
+  <li>Evaluate the full system because prompt, retrieval, tools, and model behaviour interact.</li>
+  <li>Public benchmarks are useful for shortlisting, but may not represent:
+    <ul>
+      <li>domain terminology;</li>
+      <li>long documents;</li>
+      <li>exact identifiers;</li>
+      <li>tool schemas;</li>
+      <li>refusal policy;</li>
+      <li>production latency and throttling.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Core dimensions:</p>
+
+<ul>
+  <li><strong>Task quality</strong>: correctness, relevance, completeness, groundedness, and consistency.</li>
+  <li><strong>Reasoning</strong>: performance on multi-step constraints, planning, calculations, and ambiguous tasks.</li>
+  <li><strong>Instruction following</strong>: ability to respect policy, format, length, and evidence requirements.</li>
+  <li><strong>Context performance</strong>: usable recall across long input, not only the advertised maximum.</li>
+  <li><strong>Modalities</strong>: text, image, audio, video, and document input/output requirements.</li>
+  <li><strong>Tool use</strong>: correct tool selection, argument accuracy, recovery from tool errors, and parallel calls.</li>
+  <li><strong>Structured output</strong>: schema-valid output plus semantic field correctness.</li>
+  <li><strong>Latency</strong>: time to first token, tokens per second, and p95/p99 end-to-end time.</li>
+  <li><strong>Throughput</strong>: concurrent requests, quota, batching, and provisioned capacity.</li>
+  <li><strong>Cost</strong>: input/output tokens, retries, reasoning tokens, retrieval, tools, and idle capacity.</li>
+  <li><strong>Operations</strong>: availability, regional support, versioning, deprecation, observability, and support.</li>
+</ul>
+
+<h2 id="section-3-categories">3. Model categories</h2>
+
+<ul>
+  <li>Categories overlap; they describe workload role and inference behaviour more than universal neural-network architectures.</li>
+  <li>A <strong>general-purpose model</strong> is broad, not automatically fast:
+    <ul>
+      <li>smaller, distilled, quantized, or serving-optimized variants are usually the fast tiers;</li>
+      <li>a large general model can still be slower and more expensive than a smaller reasoning model.</li>
+    </ul>
+  </li>
+  <li>A <strong>reasoning model</strong> is usually still an autoregressive transformer, but its training and serving encourage more useful intermediate deliberation:
+    <ul>
+      <li>reinforcement learning or related post-training can reward decomposition, checking, and correction;</li>
+      <li>more reasoning effort/test-time compute can generate more internal tokens before the final answer;</li>
+      <li>later tokens can attend to earlier reasoning and correct course, but the model does not literally rewrite earlier token IDs in place;</li>
+      <li>provider internals vary and may include hidden reasoning, verifiers, search, or other techniques.</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="image-wrapper">
+  <img src="./assets/model_reasoning_paths.png" alt="Comparison of direct model generation, internal reasoning within one model call, and external multi-step tool orchestration" class="modal-trigger" data-caption="Direct generation versus internal model reasoning versus application-controlled multi-step execution" />
+  <div class="diagram-caption" data-snippet-id="model-reasoning-paths-snippet">
+    🧭 Three execution paths: direct, reasoning, and external multi-step
+  </div>
+  <script type="text/plain" id="model-reasoning-paths-snippet">
+@startuml
+title Direct generation, internal reasoning, and external multi-step work
+actor User
+participant "Application / Router" as App
+participant "Selected Model" as Model
+participant "Policy + Tool Executor" as Tools
+
+User -> App: Request
+
+alt Simple or well-defined task
+  App -> Model: Prompt + runtime context\nlow/default reasoning effort
+  Model -> Model: Autoregressive decode
+  Model --> App: Direct answer
+else Difficult reasoning; no external state needed
+  App -> Model: Prompt + runtime context\nhigher reasoning effort where supported
+  group One model call
+    Model -> Model: Internal deliberation tokens\nplan → test → correct
+    Model -> Model: Generate final answer
+  end
+  Model --> App: Final answer
+else Live data, actions, or durable steps needed
+  loop Bounded application-controlled steps
+    App -> Model: Goal + observations + permitted tools
+    Model --> App: Proposed action
+    App -> Tools: Authorize, validate, execute
+    Tools --> App: Live result / durable state
+  end
+  App -> Model: Final permitted evidence
+  Model --> App: Grounded final answer
+end
+
+App --> User: Result
+@enduml
+  </script>
+</div>
+
+<ul>
+  <li><strong>Internal multi-step reasoning</strong> occurs inside one model call and consumes inference time/tokens; providers may expose only a summary or no reasoning trace.</li>
+  <li><strong>External multi-step execution</strong> is an application, workflow, or agent loop across model calls and tools; the application owns authorization, state, limits, and retries.</li>
+  <li>Shared conceptual levers include:
+    <ul>
+      <li>model/tier selection;</li>
+      <li>prompt and runtime context;</li>
+      <li>input/output token budgets;</li>
+      <li>RAG and tools around the model;</li>
+      <li>latency, cost, and quality thresholds.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Model-specific levers include reasoning effort/thinking level, temperature/top-p availability, tool/structured-output support, and context/output limits. The names and semantics are not portable guarantees.</p>
+  </li>
+  <li><strong>General-purpose model</strong>:
+    <ul>
+      <li>broad generation, summarisation, extraction, coding, and conversation;</li>
+      <li>good default when task distribution is varied;</li>
+      <li>may be expensive and less predictable than a specialist.</li>
+    </ul>
+  </li>
+  <li><strong>Reasoning model</strong>:
+    <ul>
+      <li>is post-trained and served to spend more useful inference compute on difficult multi-step tasks;</li>
+      <li>useful for difficult planning, coding, and constraint solving;</li>
+      <li>watch latency, token use, and unnecessary use on simple tasks.</li>
+    </ul>
+  </li>
+  <li><strong>Small language model</strong>:
+    <ul>
+      <li>useful for classification, routing, extraction, moderation, and high-volume transformations;</li>
+      <li>lower cost and latency;</li>
+      <li>weaker on ambiguity and long-tail reasoning.</li>
+    </ul>
+  </li>
+  <li><strong>Embedding model</strong>:
+    <ul>
+      <li>maps queries and documents into vectors for retrieval or clustering;</li>
+      <li>does not generate answers;</li>
+      <li>changing model/version/dimension usually requires re-embedding the corpus.</li>
+    </ul>
+  </li>
+  <li><strong>Reranking model</strong>:
+    <ul>
+      <li>scores a query jointly with retrieved candidates;</li>
+      <li>improves top-result precision after cheaper broad retrieval;</li>
+      <li>adds per-candidate latency and cost.</li>
+    </ul>
+  </li>
+  <li><strong>Specialised model</strong>:
+    <ul>
+      <li>targets speech, vision, classification, extraction, moderation, or a domain task;</li>
+      <li>can be cheaper and easier to evaluate than a general LLM.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Primary examples: <a href="https://openai.com/index/learning-to-reason-with-llms/">OpenAI reasoning training and test-time compute</a>, the <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1 paper</a>, and <a href="https://ai.google.dev/gemini-api/docs/thinking">Gemini thinking controls</a>.</p>
+
+<h2 id="section-4-deployment">4. Open weights versus managed models</h2>
+
+<ul>
+  <li><strong>Managed hosted API</strong>:
+    <ul>
+      <li>fastest implementation path;</li>
+      <li>no GPU serving or model patching;</li>
+      <li>constrained by provider quotas, regions, API changes, and data terms.</li>
+    </ul>
+  </li>
+  <li><strong>Cloud model platform</strong>:
+    <ul>
+      <li>central identity, billing, governance, regional integration, and model choice;</li>
+      <li>introduces platform-specific capabilities and uneven model availability.</li>
+    </ul>
+  </li>
+  <li><strong>Self-hosted open weights</strong>:
+    <ul>
+      <li>control over version, deployment location, serving, quantization, and some customization;</li>
+      <li>requires accelerator capacity, autoscaling, batching, monitoring, patching, and safety controls;</li>
+      <li>may be justified by data boundaries, sustained volume, offline use, or specialized latency;</li>
+      <li>is rarely cheaper at low or unpredictable utilization.</li>
+    </ul>
+  </li>
+  <li>Open-weight does not necessarily mean open-source or unrestricted:
+    <ul>
+      <li>inspect licence terms;</li>
+      <li>permitted use;</li>
+      <li>redistribution;</li>
+      <li>training-data transparency;</li>
+      <li>derivative-model obligations.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-5-providers">5. Provider landscape</h2>
+
+<p>Treat this as an ecosystem map, not a permanent ranking.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Organisation</th>
+      <th>Famous model families</th>
+      <th>Typical shape</th>
+      <th>Common access paths</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>OpenAI</strong></td>
+      <td><strong>GPT</strong>; current GPT tiers include Sol, Terra, and Luna</td>
+      <td>Hosted general-purpose reasoning, coding, multimodal, structured-output, and tool models</td>
+      <td>OpenAI API and OpenAI applications</td>
+    </tr>
+    <tr>
+      <td><strong>Anthropic</strong></td>
+      <td><strong>Claude</strong>: Fable, Opus, Sonnet, and Haiku tiers</td>
+      <td>Hosted reasoning, coding, long-context, and agent/tool workloads</td>
+      <td>Claude API, Amazon Bedrock, Google Cloud, and other supported platforms</td>
+    </tr>
+    <tr>
+      <td><strong>Google / Google DeepMind</strong></td>
+      <td><strong>Gemini</strong>: Pro, Flash, and Flash-Lite tiers; Gemma open models</td>
+      <td>Multimodal models with strong Google Cloud/data integration</td>
+      <td>Gemini Developer API and Vertex AI</td>
+    </tr>
+    <tr>
+      <td><strong>DeepSeek</strong></td>
+      <td><strong>DeepSeek V4 Pro and V4 Flash</strong></td>
+      <td>Reasoning/coding with low-cost APIs and open-weight options</td>
+      <td>DeepSeek API, compatible API formats, and self/third-party hosting</td>
+    </tr>
+    <tr>
+      <td><strong>Meta</strong></td>
+      <td><strong>Llama</strong></td>
+      <td>Open-weight ecosystem with many sizes and community serving stacks</td>
+      <td>Self-hosting and many cloud/model hosts</td>
+    </tr>
+    <tr>
+      <td><strong>Mistral AI</strong></td>
+      <td><strong>Mistral and Mixtral</strong> families</td>
+      <td>Hosted and open-weight models, often emphasizing efficient deployment</td>
+      <td>Mistral API, self-hosting, and cloud/model hosts</td>
+    </tr>
+    <tr>
+      <td><strong>Cohere</strong></td>
+      <td><strong>Command, Embed, and Rerank</strong></td>
+      <td>Enterprise generation plus dedicated retrieval and ranking models</td>
+      <td>Cohere API and supported cloud platforms</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon</strong></td>
+      <td><strong>Nova</strong> generation models and <strong>Titan</strong> embedding/model families</td>
+      <td>AWS-native model families and managed delivery</td>
+      <td>Amazon Bedrock</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>GPT is a model family; ChatGPT is an application that uses models and additional product services.</li>
+  <li>Claude is Anthropic’s model family; Claude.ai is an application, while Claude can also be invoked through other platforms.</li>
+  <li>Gemini is used as both a model-family and product brand, so record the exact API model ID and access path.</li>
+  <li>A cloud platform may host another organisation’s model without becoming that model’s creator.</li>
+  <li>For every evaluation, record the exact model ID, API/access path, Region, date, and configuration.</li>
+</ul>
+
+<h2 id="section-6-pricing">6. API pricing and cost comparison</h2>
 
 <blockquote>
-  <p>Last updated: August 2026. Model names and prices change frequently.</p>
+  <p>Pricing snapshot: <strong>20 August 2026</strong>, USD per 1 million tokens (<code class="language-plaintext highlighter-rouge">MTok</code>). Prices, previews, discounts, and model availability change; verify the linked official pages before making a production decision.</p>
 </blockquote>
 
-<h2 id="section-1-pricing">1. Pricing</h2>
+<p>Representative hosted text-model rates:</p>
 
-<h3 id="section-1-1-consumer-plans">1.1 Consumer Plans</h3>
-
-<p>Prices below are approximate <strong>USD/month</strong> for individual users.</p>
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Provider</th>
-<th>Tier</th>
-<th>USD / Month</th>
-<th>What It Means</th>
-<th>Usage</th>
-</tr>
-</thead>
-<tbody>
-
-<tr>
-<td rowspan="4"><strong>ChatGPT</strong></td>
-<td>Free</td>
-<td>$0</td>
-<td>Basic access to GPT models and tools</td>
-<td>Limited GPT-5.x usage; stricter limits on files, images and data analysis</td>
-</tr>
-
-<tr>
-<td>Go</td>
-<td>$8</td>
-<td>Low-cost paid tier</td>
-<td>More usage than Free</td>
-</tr>
-
-<tr>
-<td>Plus</td>
-<td>$20</td>
-<td>Main individual plan; advanced reasoning, files, images, Deep Research and other tools</td>
-<td>Higher model and tool limits than Free; limits can vary</td>
-</tr>
-
-<tr>
-<td>Pro</td>
-<td>$100 / $200</td>
-<td>Heavy professional usage and access to Pro models/features</td>
-<td>$100 tier ≈ 5× Plus usage; $200 tier ≈ 20× Plus usage</td>
-</tr>
-
-<tr>
-<td rowspan="3"><strong>Claude</strong></td>
-<td>Free</td>
-<td>$0</td>
-<td>Basic Claude chat, coding, writing and image/text analysis</td>
-<td>Limited usage that resets periodically</td>
-</tr>
-
-<tr>
-<td>Pro</td>
-<td>$20</td>
-<td>Everyday professional use; more models, Projects and extended thinking</td>
-<td>Higher usage than Free</td>
-</tr>
-
-<tr>
-<td>Max</td>
-<td>$100 / $200</td>
-<td>Heavy Claude usage, higher output limits, Research and priority access</td>
-<td>Approximately 5× or 20× Pro usage</td>
-</tr>
-
-<tr>
-<td rowspan="4"><strong>Gemini</strong></td>
-<td>Free</td>
-<td>$0</td>
-<td>Standard Gemini access</td>
-<td>Standard compute allowance; 32K context</td>
-</tr>
-
-<tr>
-<td>AI Plus</td>
-<td>$7.99</td>
-<td>Entry paid tier</td>
-<td>≈ 2× Free usage; 128K context</td>
-</tr>
-
-<tr>
-<td>AI Pro</td>
-<td>$19.99</td>
-<td>Regular power-user tier with larger context and advanced features</td>
-<td>≈ 4× Free usage; 1M context</td>
-</tr>
-
-<tr>
-<td>AI Ultra</td>
-<td>$249.99</td>
-<td>Highest access including Deep Think and premium generation features</td>
-<td>Approximately 5×–20× AI Pro usage; 1M context</td>
-</tr>
-
-<tr>
-<td><strong>DeepSeek</strong></td>
-<td>Free</td>
-<td>$0</td>
-<td>Consumer web/app access to DeepSeek models</td>
-<td>Service-dependent limits; API is separately usage-based</td>
-</tr>
-</tbody>
+<table>
+  <thead>
+    <tr>
+      <th>Provider</th>
+      <th>Model</th>
+      <th>Position</th>
+      <th style="text-align: right">Standard/cache-miss input / MTok</th>
+      <th style="text-align: right">Output / MTok</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>OpenAI</td>
+      <td>GPT-5.6 Sol</td>
+      <td>Frontier</td>
+      <td style="text-align: right">$5.00</td>
+      <td style="text-align: right">$30.00</td>
+    </tr>
+    <tr>
+      <td>OpenAI</td>
+      <td>GPT-5.6 Terra</td>
+      <td>Balanced</td>
+      <td style="text-align: right">$2.00</td>
+      <td style="text-align: right">$12.00</td>
+    </tr>
+    <tr>
+      <td>OpenAI</td>
+      <td>GPT-5.6 Luna</td>
+      <td>High-volume</td>
+      <td style="text-align: right">$0.20</td>
+      <td style="text-align: right">$1.20</td>
+    </tr>
+    <tr>
+      <td>Anthropic</td>
+      <td>Claude Fable 5</td>
+      <td>Highest capability</td>
+      <td style="text-align: right">$10.00</td>
+      <td style="text-align: right">$50.00</td>
+    </tr>
+    <tr>
+      <td>Anthropic</td>
+      <td>Claude Opus 4.8</td>
+      <td>Advanced</td>
+      <td style="text-align: right">$5.00</td>
+      <td style="text-align: right">$25.00</td>
+    </tr>
+    <tr>
+      <td>Anthropic</td>
+      <td>Claude Sonnet 5</td>
+      <td>Balanced</td>
+      <td style="text-align: right">$2.00*</td>
+      <td style="text-align: right">$10.00*</td>
+    </tr>
+    <tr>
+      <td>Anthropic</td>
+      <td>Claude Haiku 4.5</td>
+      <td>Fast</td>
+      <td style="text-align: right">$1.00</td>
+      <td style="text-align: right">$5.00</td>
+    </tr>
+    <tr>
+      <td>Google</td>
+      <td>Gemini 3.1 Pro Preview</td>
+      <td>Advanced multimodal</td>
+      <td style="text-align: right">$2.00</td>
+      <td style="text-align: right">$12.00</td>
+    </tr>
+    <tr>
+      <td>Google</td>
+      <td>Gemini 3.5 Flash</td>
+      <td>Fast/balanced</td>
+      <td style="text-align: right">$1.50</td>
+      <td style="text-align: right">$9.00</td>
+    </tr>
+    <tr>
+      <td>Google</td>
+      <td>Gemini 3.1 Flash-Lite</td>
+      <td>High-volume</td>
+      <td style="text-align: right">$0.25</td>
+      <td style="text-align: right">$1.50</td>
+    </tr>
+    <tr>
+      <td>DeepSeek</td>
+      <td>DeepSeek V4 Pro</td>
+      <td>Advanced/open-weight</td>
+      <td style="text-align: right">$0.435</td>
+      <td style="text-align: right">$0.87</td>
+    </tr>
+    <tr>
+      <td>DeepSeek</td>
+      <td>DeepSeek V4 Flash</td>
+      <td>High-volume/open-weight</td>
+      <td style="text-align: right">$0.14</td>
+      <td style="text-align: right">$0.28</td>
+    </tr>
+  </tbody>
 </table>
 
-<p>The tiers can broadly be interpreted as:</p>
+<p>* Claude Sonnet 5 introductory rate through 31 August 2026; the documented standard rate is <code class="language-plaintext highlighter-rouge">$3</code> input / <code class="language-plaintext highlighter-rouge">$15</code> output per MTok.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Free
-└── Try the service
-    Limited model/tool usage
-    Smaller context or stricter rate limits
+<p>Basic token-cost calculation:</p>
 
-Standard / Plus / Pro
-└── Normal individual power user
-    Higher limits
-    Better model selection
-    Advanced reasoning and tools
-
-Max / Ultra / Pro High-Usage
-└── Heavy professional user
-    Much higher compute allowance
-    Priority access
-    Most capable / expensive modes
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>request cost ≈
+    input_tokens  / 1,000,000 × input_rate
+  + output_tokens / 1,000,000 × output_rate
 </code></pre></div></div>
 
-<h3 id="section-1-2-usage-limits">1.2 Usage Limits</h3>
+<p>Example using GPT-5.6 Terra:</p>
 
-<p>Consumer AI services generally do <strong>not</strong> provide a fixed number of tokens each month.</p>
-
-<p>Instead they use limits based on factors such as:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>100,000 input tokens × $2 / MTok  = $0.20
+ 10,000 output tokens × $12 / MTok = $0.12
+                                          ─────
+Estimated model-token cost                $0.32
+</code></pre></div></div>
 
 <ul>
-  <li>Number of prompts</li>
-  <li>Model used</li>
-  <li>Thinking/reasoning level</li>
-  <li>Length of the conversation</li>
-  <li>File and image processing</li>
-  <li>Deep Research or agent usage</li>
-  <li>System demand</li>
+  <li>Real cost may also include:
+    <ul>
+      <li>cached-input reads and cache writes;</li>
+      <li>reasoning/thinking tokens;</li>
+      <li>long-context price tiers;</li>
+      <li>batch, flex, priority, or provisioned capacity;</li>
+      <li>web search, grounding, file search, code execution, or other tools;</li>
+      <li>reranking, embeddings, storage, data transfer, and retries;</li>
+      <li>regional/data-residency premiums or cloud-platform pricing.</li>
+    </ul>
+  </li>
+  <li>Output is often more expensive because generation is sequential; minimizing unnecessary output can matter more than small prompt reductions.</li>
+  <li>Compare <strong>cost per successful task</strong>, not only price per token. A cheap model that retries or fails often can cost more overall.</li>
+  <li>Consumer plans such as ChatGPT Plus or Claude Pro purchase application access and usage allowances; they are not interchangeable with API credits or per-token rates.</li>
 </ul>
 
-<p>For example, Gemini uses a <strong>compute-based allowance</strong>. AI Plus receives roughly <strong>2×</strong> the standard allowance, AI Pro <strong>4×</strong>, and AI Ultra substantially more. Limits refresh periodically and more expensive reasoning modes consume the allowance faster.</p>
-
-<p>ChatGPT similarly applies model-specific and tool-specific limits. Free users receive limited access within a time window, while Plus and Pro increase the available compute. Exact message caps may change based on capacity.</p>
-
-<p>Claude follows a similar model: Pro increases usage above Free, while Max provides approximately <strong>5× or 20×</strong> the usage available on Pro.</p>
-
-<blockquote>
-  <p>Therefore, “$20/month” should not be interpreted as unlimited model inference. Consumer subscriptions purchase a <strong>usage allowance and feature access</strong>, while APIs are billed directly by tokens.</p>
-</blockquote>
-
-<p>Sources: <a href="https://help.openai.com/en/articles/9275245-chatgpt-free-tier-faq">ChatGPT Free Tier</a>, <a href="https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus">ChatGPT Plus</a>, <a href="https://www.anthropic.com/pricing">Claude Pricing</a>, <a href="https://support.google.com/gemini/answer/16275805">Gemini Usage Limits</a>.</p>
-
-<h3 id="section-1-3-api-pricing">1.3 API Pricing</h3>
-
-<p>API pricing is based on how many tokens the model processes.</p>
+<p>Official references:</p>
 
 <ul>
-  <li><strong>Input tokens</strong> — everything sent into the model, including your prompt, conversation history, system instructions and retrieved documents.</li>
-  <li><strong>Output tokens</strong> — everything the model generates back as its response.</li>
-  <li><strong>Cached input</strong> — previously processed input that can be reused, usually at a lower price.</li>
+  <li><a href="https://developers.openai.com/api/docs/models">OpenAI models and prices</a></li>
+  <li><a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic Claude pricing</a></li>
+  <li><a href="https://ai.google.dev/gemini-api/docs/pricing">Google Gemini API pricing</a></li>
+  <li><a href="https://api-docs.deepseek.com/quick_start/pricing/">DeepSeek models and pricing</a></li>
 </ul>
 
-<p>For example, if a model costs $2 / 1M input tokens and $10 / 1M output tokens, a request using 100,000 input tokens and generating 10,000 output tokens would cost:</p>
+<h2 id="section-7-routing">7. Routing, cascades, and fallback</h2>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Input:  100,000 × $2 / 1M  = $0.20
-Output:  10,000 × $10 / 1M = $0.10
-Total = $0.30
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>request → policy + difficulty classifier
+          ├─ simple classification/extraction → small model
+          ├─ retrieve documents              → embedding model
+          ├─ reorder candidates              → reranker
+          ├─ normal generation               → general model
+          └─ difficult reasoning             → reasoning model
+                                      failure ↓
+                              tested semantic fallback
 </code></pre></div></div>
-
-<p>In simple terms:</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Input  = what you give the model
-Output = what the model gives you
-</code></pre></div></div>
-
-<p>Output tokens are generally more expensive because generating new tokens requires more computation than processing the input.</p>
-
-<p>Typical text API price per <strong>1 million tokens</strong>:</p>
-
-<table class="study-table">
-<thead>
-<tr><th>Provider</th><th>Model</th><th>Input</th><th>Output</th><th>Position</th></tr>
-</thead>
-<tbody>
-<tr><td>OpenAI</td><td><strong>GPT-5.6 Sol</strong></td><td>$5.00</td><td>$30.00</td><td>Flagship</td></tr>
-<tr><td>OpenAI</td><td><strong>GPT-5.6 Terra</strong></td><td>$2.00</td><td>$12.00</td><td>Balanced</td></tr>
-<tr><td>OpenAI</td><td><strong>GPT-5.6 Luna</strong></td><td>$0.20</td><td>$1.20</td><td>High-volume / cheap</td></tr>
-<tr><td>Anthropic</td><td><strong>Claude Fable 5</strong></td><td>$10.00</td><td>$50.00</td><td>Maximum capability</td></tr>
-<tr><td>Anthropic</td><td><strong>Claude Opus 5</strong></td><td>$5.00</td><td>$25.00</td><td>Complex work</td></tr>
-<tr><td>Anthropic</td><td><strong>Claude Sonnet 5</strong></td><td>$2.00*</td><td>$10.00*</td><td>Balanced</td></tr>
-<tr><td>Anthropic</td><td><strong>Claude Haiku 4.5</strong></td><td>$1.00</td><td>$5.00</td><td>Fast / cheap</td></tr>
-<tr><td>DeepSeek</td><td><strong>V4 Pro</strong></td><td>$0.435</td><td>$0.87</td><td>Higher capability</td></tr>
-<tr><td>DeepSeek</td><td><strong>V4 Flash</strong></td><td>$0.14</td><td>$0.28</td><td>High-volume / cheap</td></tr>
-</tbody>
-</table>
-
-<p>* Sonnet 5 introductory pricing until 31 August 2026; standard pricing becomes $3 input / $15 output.</p>
-
-<p>Google Gemini pricing varies more by model and context size; see the official pricing page rather than treating one price as representative.</p>
-
-<p>Sources: <a href="https://developers.openai.com/api/docs/pricing">OpenAI API Pricing</a>, <a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude API Pricing</a>, <a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini API Pricing</a>, <a href="https://api-docs.deepseek.com/quick_start/pricing">DeepSeek API Pricing</a>. (<a href="https://developers.openai.com/api/docs/models?utm_source=chatgpt.com">OpenAI Developers</a>)</p>
-
-<hr />
-
-<h2 id="section-2-purpose">2. Purpose</h2>
-
-<p>Model families generally contain several sizes rather than one model.</p>
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Family</th>
-<th>Tier</th>
-<th>Profile</th>
-<th>Key Strengths</th>
-<th>Trade-off</th>
-<th>Best For</th>
-</tr>
-</thead>
-<tbody>
-<tr class="family-row-gpt"><td rowspan="3"><strong>GPT-5.6</strong></td><td>Sol</td><td>Flagship</td><td>Maximum reasoning, coding and tools</td><td>Highest cost and latency</td><td>Difficult reasoning and coding</td></tr>
-<tr class="family-row-gpt"><td>Terra</td><td>Balanced</td><td>Strong capability with practical speed and cost</td><td>Less capable than Sol</td><td>General-purpose work</td></tr>
-<tr class="family-row-gpt"><td>Luna</td><td>Efficient</td><td>Fast and inexpensive</td><td>Lower reasoning ceiling</td><td>High-volume workloads</td></tr>
-<tr class="family-row-claude"><td rowspan="4"><strong>Claude</strong></td><td>Fable</td><td>Flagship</td><td>Deep reasoning and long-horizon agents</td><td>Highest cost and slower responses</td><td>Complex research and agents</td></tr>
-<tr class="family-row-claude"><td>Opus</td><td>Advanced</td><td>Complex analysis, coding and engineering</td><td>More expensive than Sonnet</td><td>Complex engineering</td></tr>
-<tr class="family-row-claude"><td>Sonnet</td><td>Balanced</td><td>Strong coding and general tools</td><td>Less capable than Opus</td><td>Everyday coding</td></tr>
-<tr class="family-row-claude"><td>Haiku</td><td>Efficient</td><td>Fast and economical</td><td>Lower capability ceiling</td><td>Real-time and batch tasks</td></tr>
-<tr class="family-row-gemini"><td rowspan="3"><strong>Gemini</strong></td><td>Pro</td><td>Flagship</td><td>Strong reasoning, multimodal capability and long context</td><td>Higher cost and latency</td><td>Complex multimodal work</td></tr>
-<tr class="family-row-gemini"><td>Flash</td><td>Balanced</td><td>Fast multimodal and agentic workloads</td><td>Less capable than Pro</td><td>General applications</td></tr>
-<tr class="family-row-gemini"><td>Flash-Lite</td><td>Efficient</td><td>Very fast and low cost</td><td>Lower reasoning ceiling</td><td>Classification and extraction</td></tr>
-<tr class="family-row-deepseek"><td rowspan="2"><strong>DeepSeek V4</strong></td><td>Pro</td><td>Advanced</td><td>Strong reasoning, coding and tool use</td><td>Higher cost and lower concurrency</td><td>Reasoning and coding</td></tr>
-<tr class="family-row-deepseek"><td>Flash</td><td>Efficient</td><td>Fast, inexpensive, with optional thinking</td><td>Lower capability than Pro</td><td>Cost-sensitive workloads</td></tr>
-</tbody>
-</table>
-
-<p>Model tiers are usually differentiated by training quality, reasoning budget, inference compute, context limits, tool support, latency and price—not by parameter count alone. Proprietary providers generally do not publish exact parameter counts, so this page focuses on observable behavior and practical trade-offs.</p>
-
-<p>The pattern is broadly:</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>High Capability
-      ↑
-Flagship / Pro / Opus / Sol
-      |
-Balanced / Sonnet / Terra / Flash
-      |
-Mini / Haiku / Luna / Flash-Lite
-      ↓
-High Speed + Low Cost
-</code></pre></div></div>
-
-<p>Provider naming is marketing rather than a technical standard; models at similarly named tiers are not necessarily equivalent. (<a href="https://platform.claude.com/docs/en/about-claude/models/overview.md?utm_source=chatgpt.com">Claude Platform</a>)</p>
-
-<hr />
-
-<h2 id="section-3-token-usage">3. Token Usage</h2>
-
-<p>A <strong>token</strong> is a small unit of text processed by a model. English text averages roughly a few characters per token, although tokenisation varies between models and languages.</p>
-
-<p>API cost is approximately:</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Cost =
-    input_tokens × input_price
-  + output_tokens × output_price
-</code></pre></div></div>
-
-<p>There are several important token types:</p>
-
-<table class="study-table">
-<thead><tr><th>Token</th><th>Meaning</th></tr></thead>
-<tbody>
-<tr><td><strong>Input</strong></td><td>Prompt, conversation history, documents and retrieved context</td></tr>
-<tr><td><strong>Output</strong></td><td>Tokens generated by the model</td></tr>
-<tr><td><strong>Cached input</strong></td><td>Reused prompt/context, normally significantly cheaper</td></tr>
-<tr><td><strong>Thinking / reasoning</strong></td><td>Internal reasoning compute; billing treatment varies by provider</td></tr>
-</tbody>
-</table>
-
-<p>The <strong>context window</strong> is the maximum amount of information available to the model during one interaction.</p>
-
-<p>Large context is useful for:</p>
 
 <ul>
-  <li>Large codebases</li>
-  <li>Long documents</li>
-  <li>Agent history</li>
-  <li>RAG / retrieved documents</li>
+  <li>Route using task type, risk, context length, latency budget, and measured confidence.</li>
+  <li>Use cascades when a cheap first pass can reliably identify uncertain cases.</li>
+  <li>Set an escalation budget; repeated model retries can cost more than using the stronger model once.</li>
+  <li>A fallback must preserve a tested contract:
+    <ul>
+      <li>supported modalities;</li>
+      <li>tool names and schemas;</li>
+      <li>structured-output behaviour;</li>
+      <li>safety/refusal policy;</li>
+      <li>context and output limits.</li>
+    </ul>
+  </li>
+  <li>A configured second model is not a fallback until it has passed the same regression suite.</li>
 </ul>
 
-<p>However, a larger context window does <strong>not</strong> automatically mean better reasoning. Sending unnecessary context also increases latency and cost.</p>
-
-<hr />
-
-<h2 id="section-4-performance">4. Performance</h2>
-
-<p>Model capability changes quickly, so benchmarks should be treated as indicators rather than absolute rankings.</p>
-
-<p>Representative current generations:</p>
-
-<table class="study-table">
-<thead><tr><th>Provider</th><th>Generation</th><th>Release</th><th>Main Characteristic</th></tr></thead>
-<tbody>
-<tr><td>Anthropic</td><td><strong>Claude Fable 5</strong></td><td>Jun 2026</td><td>Highest-end Claude</td></tr>
-<tr><td>Anthropic</td><td><strong>Claude Opus 5</strong></td><td>Jul 2026</td><td>Frontier coding / knowledge work</td></tr>
-<tr><td>OpenAI</td><td><strong>GPT-5.6</strong></td><td>Jul 2026</td><td>Reasoning, coding and professional work</td></tr>
-<tr><td>DeepSeek</td><td><strong>V4</strong></td><td>Apr–Jul 2026</td><td>Strong open-weight cost/performance</td></tr>
-<tr><td>Google</td><td><strong>Gemini 3.1 Pro</strong></td><td>Feb 2026</td><td>Reasoning + multimodal + long context</td></tr>
-</tbody>
-</table>
-
-<p>OpenAI GPT-5.6 itself contains <strong>Sol, Terra and Luna</strong>, while Claude uses families such as <strong>Fable, Opus, Sonnet and Haiku</strong>. A version number therefore does not tell the full story — the model tier matters as well. (<a href="https://openai.com/index/gpt-5-6/?utm_source=chatgpt.com">OpenAI</a>)</p>
-
-<p>One useful independent comparison is the <strong>Artificial Analysis Intelligence Index</strong>. As of August 2026, frontier models such as Claude Opus/Fable and GPT-5.6 occupy the upper end of its intelligence measurements, while models such as DeepSeek V4 compete particularly strongly on <strong>cost per task</strong>. (<a href="https://artificialanalysis.ai/articles/artificial-analysis-intelligence-index-v4-1-1?utm_source=chatgpt.com">Artificial Analysis</a>)</p>
-
-<p>Common benchmark categories include:</p>
-
-<table class="study-table">
-<thead><tr><th>Benchmark Type</th><th>Measures</th></tr></thead>
-<tbody>
-<tr><td><strong>GPQA</strong></td><td>Difficult scientific reasoning</td></tr>
-<tr><td><strong>Humanity's Last Exam</strong></td><td>Broad expert-level reasoning</td></tr>
-<tr><td><strong>SWE / coding benchmarks</strong></td><td>Software engineering ability</td></tr>
-<tr><td><strong>Terminal-Bench</strong></td><td>Agentic computer / terminal tasks</td></tr>
-<tr><td><strong>MMMU</strong></td><td>Multimodal reasoning</td></tr>
-<tr><td><strong>Arena / Elo</strong></td><td>Human preference between outputs</td></tr>
-</tbody>
-</table>
-
-<p>No single benchmark represents overall model quality.</p>
-
-<hr />
-
-<h2 id="section-5-rule-of-thumb">5. Rule of Thumb</h2>
-
-<p>For most applications:</p>
-
-<table class="study-table">
-<thead><tr><th>Requirement</th><th>Start With</th></tr></thead>
-<tbody>
-<tr><td>Hardest reasoning</td><td>GPT-5.6 Sol / Claude Opus or Fable</td></tr>
-<tr><td>Coding / agents</td><td>GPT-5.6 Sol / Claude Opus or Sonnet</td></tr>
-<tr><td>General everyday work</td><td>GPT-5.6 Terra / Claude Sonnet / Gemini Flash</td></tr>
-<tr><td>Very large context / multimodal</td><td>Gemini</td></tr>
-<tr><td>Cheapest API workloads</td><td>DeepSeek V4 Flash / GPT-5.6 Luna</td></tr>
-<tr><td>High-volume simple tasks</td><td>Luna / Haiku / Flash-Lite</td></tr>
-<tr><td>Self-hosting / open weights</td><td>DeepSeek and other open-weight families</td></tr>
-</tbody>
-</table>
-
-<p>A useful selection rule is:</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1. Choose the cheapest model that reliably completes the task.
-2. Increase model capability when quality becomes insufficient.
-3. Use reasoning effort only when the task actually needs reasoning.
-4. Minimise unnecessary context.
-5. Measure models against your own workload, not only public benchmarks.
-</code></pre></div></div>
-
-<p>For current comparisons, the most useful references are:</p>
+<h2 id="section-8-portability">8. Portability and lock-in</h2>
 
 <ul>
-  <li><a href="https://artificialanalysis.ai/">Artificial Analysis</a> — intelligence, speed, latency and API cost</li>
-  <li><a href="https://developers.openai.com/api/docs/models">OpenAI Models</a> — official GPT model catalogue</li>
-  <li><a href="https://platform.claude.com/docs/en/about-claude/models/overview">Anthropic Models</a> — official Claude model catalogue</li>
-  <li><a href="https://ai.google.dev/gemini-api/docs/models">Google Gemini Models</a> — official Gemini catalogue</li>
-  <li><a href="https://api-docs.deepseek.com/">DeepSeek API</a> — official DeepSeek models and pricing</li>
+  <li>Separate three kinds of portability:
+    <ul>
+      <li><strong>API portability</strong>: another adapter can send messages and receive output.</li>
+      <li><strong>Behavioural portability</strong>: the replacement preserves quality, tools, schemas, safety, and latency for the workload.</li>
+      <li><strong>Artifact compatibility</strong>: tokenizer, weights, and runtime formats can actually be loaded together; this mainly matters when self-hosting.</li>
+    </ul>
+  </li>
+  <li>Put a thin internal boundary around:
+    <ul>
+      <li>messages and content parts;</li>
+      <li>timeouts, retries, and cancellation;</li>
+      <li>tracing and token/cost accounting;</li>
+      <li>tool and structured-output schemas;</li>
+      <li>model selection and fallback;</li>
+      <li>safety policy.</li>
+    </ul>
+  </li>
+  <li>Keep provider-native features behind explicit adapters.</li>
+  <li>Store prompts, tool schemas, and evaluation datasets outside provider consoles where practical.</li>
+  <li>Expect portability work because models and serving access paths differ in:
+    <ul>
+      <li>tokenization and context behaviour;</li>
+      <li>streaming events;</li>
+      <li>tool-call semantics;</li>
+      <li>multimodal formats;</li>
+      <li>reasoning controls;</li>
+      <li>safety refusals;</li>
+      <li>rate limits and errors.</li>
+    </ul>
+  </li>
+  <li>When changing generation models:
+    <ul>
+      <li>retain raw text/messages and tokenize them with the target model; never migrate cached token IDs blindly;</li>
+      <li>recalculate context and output limits;</li>
+      <li>retest prompts, tool schemas, structured output, safety, latency, and cost;</li>
+      <li>invalidate model-specific prompt/token caches;</li>
+      <li>re-embed a RAG corpus only if its dedicated embedding model or preprocessing changes—not merely because the generation model changed.</li>
+    </ul>
+  </li>
+  <li>Do not reduce every provider to the lowest common denominator if a native feature creates measurable value; isolate and test the dependency instead.</li>
 </ul>
+
+<h2 id="section-9-enterprise">9. Enterprise decision checklist</h2>
+
+<ul>
+  <li>Quality:
+    <ul>
+      <li>Does it pass the workload regression set and worst-case slices?</li>
+    </ul>
+  </li>
+  <li>Data:
+    <ul>
+      <li>Are prompts retained, logged, or used for training?</li>
+      <li>Where is data processed and stored?</li>
+    </ul>
+  </li>
+  <li>Security:
+    <ul>
+      <li>Are private connectivity, encryption keys, audit logs, and least-privilege access supported?</li>
+    </ul>
+  </li>
+  <li>Reliability:
+    <ul>
+      <li>What are quotas, rate limits, SLAs, regional availability, and deprecation policies?</li>
+    </ul>
+  </li>
+  <li>Operations:
+    <ul>
+      <li>Can requests, tokens, model versions, errors, and safety decisions be traced?</li>
+    </ul>
+  </li>
+  <li>Commercial:
+    <ul>
+      <li>What is cost per successful task under realistic prompt/output sizes and retry rates?</li>
+    </ul>
+  </li>
+  <li>Exit:
+    <ul>
+      <li>Can prompts, evaluation data, traces, and routing be moved?</li>
+      <li>Which native features would need replacement?</li>
+    </ul>
+  </li>
+</ul>
+
+<p>See <a href="/study/aiInfrastructure">AI evaluation and infrastructure</a> for workload testing and production controls. AWS-specific access decisions are in <a href="/study/infrastructureAWSAiServices">AWS AI services</a>.</p>
 
     </article>
   </main>

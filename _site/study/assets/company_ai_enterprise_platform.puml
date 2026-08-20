@@ -1,0 +1,30 @@
+@startuml
+title Modern enterprise GenAI platform
+actor User
+participant "Product Application" as Product
+participant "AI Gateway / Orchestrator" as Platform
+participant "Identity + Policy" as Policy
+database "Authorized Knowledge" as Knowledge
+participant "Approved Model" as Model
+participant "Business Tool" as Tool
+participant "Trace + Evaluation" as Observe
+User -> Product: Task
+Product -> Platform: Task + trusted identity + use-case ID
+Platform -> Policy: Authorize model, data, and capabilities
+Policy --> Platform: Allowed policy and limits
+Platform -> Knowledge: Retrieve with tenant/ACL filters
+Knowledge --> Platform: Ranked evidence + source IDs
+Platform -> Model: Versioned prompt + evidence + tool schema
+Model --> Platform: Answer or tool proposal
+alt Authorized tool proposal
+  Platform -> Policy: Validate action and arguments
+  Policy --> Platform: Allow / require approval / deny
+  Platform -> Tool: Execute allowed action with idempotency
+  Tool --> Platform: Structured observation
+  Platform -> Model: Observation
+  Model --> Platform: Final answer
+end
+Platform -> Observe: Trace model, retrieval, policy, tool, tokens, outcome
+Platform --> Product: Validated response + citations
+Product --> User: Result
+@enduml

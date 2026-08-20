@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Modern Knowledgebases · glucolte</title>
+  <title>AI Knowledge Bases and Retrieval · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,9 +13,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Modern Knowledgebases | glucolte</title>
+<title>AI Knowledge Bases and Retrieval | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="Modern Knowledgebases" />
+<meta property="og:title" content="AI Knowledge Bases and Retrieval" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
@@ -24,9 +24,9 @@
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Modern Knowledgebases" />
+<meta property="twitter:title" content="AI Knowledge Bases and Retrieval" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Modern Knowledgebases","url":"http://localhost:4000/study/aiKnowledgebases"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Knowledge Bases and Retrieval","url":"http://localhost:4000/study/aiKnowledgebases"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,460 +62,549 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="modern-knowledgebases">Modern Knowledgebases</h1>
+      <h1 id="ai-knowledge-bases-and-retrieval">AI Knowledge Bases and Retrieval</h1>
 
-<p>A few weeks ago, I migrated a dataset of around 30 million rows from <strong>MySQL</strong> to <strong>Parquet + DuckDB</strong>.<br />
-The query time dropped from nearly a minute to just a few seconds.<br />
-That shift changed how I thought about data: sometimes, the biggest gains come not from more compute,<br />
-but from <strong>how data is organized and read</strong>.</p>
+<p>Use this page to understand retrieval-augmented generation (RAG): how external knowledge is ingested, found, authorized, ranked, supplied to a model, and evaluated.</p>
 
-<p>That realization made me curious — if columnar databases redefined analytics,<br />
-what’s the equivalent shift happening in <strong>knowledge systems</strong>?</p>
+<h2 id="section-1-why-rag">1. Why RAG exists</h2>
 
-<p>Over the past year, I’ve been exploring how new systems—<strong>vector databases</strong>, <strong>embedding models</strong>, and <strong>retrieval frameworks</strong>—are quietly rebuilding the foundation of how machines represent and reason over information.<br />
-This post is my attempt to organize that understanding.</p>
+<ul>
+  <li>Model weights are difficult to update, cannot provide reliable source provenance, and should not contain every tenant’s private data.</li>
+  <li>RAG keeps changing or private facts in external stores and retrieves evidence at request time.</li>
+  <li>The split is deliberate:
+    <ul>
+      <li><strong>retrieval</strong> decides which evidence is available;</li>
+      <li><strong>generation</strong> uses that evidence to form an answer;</li>
+      <li><strong>authorization</strong> decides which evidence the caller may access.</li>
+    </ul>
+  </li>
+  <li>RAG improves freshness and traceability, but does not guarantee correctness:
+    <ul>
+      <li>the right evidence may not be retrieved;</li>
+      <li>unauthorized evidence may be exposed by a broken filter;</li>
+      <li>the model may ignore or misinterpret correct evidence.</li>
+    </ul>
+  </li>
+</ul>
 
-<hr />
+<h3 id="section-1-1-example">1.1 Running example: fictional Apple battery policy</h3>
 
-<h2 id="1-the-architecture-of-modern-knowledgebases">1. The Architecture of Modern Knowledgebases</h2>
+<ul>
+  <li>Assume the base model does not reliably know Apple’s current private support policy.</li>
+  <li>The fictional source document is:</li>
+</ul>
 
-<p>At a high level, every modern “AI knowledgebase” sits on a stack of layers.<br />
-Each one has a distinct responsibility—from raw storage to semantic reasoning.</p>
-
-<table class="study-table">
-  <thead>
-    <tr>
-      <th>Layer</th>
-      <th>Responsibility</th>
-      <th>Focus Area</th>
-      <th>Analogy</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>L0 – Physical Storage</strong></td>
-      <td>Where the bytes actually live: disk, SSD, S3, or block storage.</td>
-      <td>Durability, throughput, cost.</td>
-      <td>The warehouse floor — where everything physically sits.</td>
-    </tr>
-    <tr>
-      <td><strong>L1 – Data Layout</strong></td>
-      <td>How vectors and metadata are serialized or chunked on disk.</td>
-      <td>Data formats, compression, compaction.</td>
-      <td>The shelving system — how boxes are arranged.</td>
-    </tr>
-    <tr>
-      <td><strong>L2 – Indexing &amp; Retrieval</strong></td>
-      <td>How we find similar vectors quickly, without scanning everything.</td>
-      <td>ANN algorithms like HNSW, IVF, PQ, DiskANN.</td>
-      <td>The map of aisles — guiding you to the right shelf.</td>
-    </tr>
-    <tr>
-      <td><strong>L3 – Search &amp; API Layer</strong></td>
-      <td>The database interface: how you insert, query, and filter.</td>
-      <td>Schema design, access control, hybrid filters.</td>
-      <td>The reception desk — turns requests into lookups.</td>
-    </tr>
-    <tr>
-      <td><strong>L4 – Integration / Retrieval Orchestration</strong></td>
-      <td>Coordinates ingestion, embeddings, hybrid search, and reranking.</td>
-      <td>Connectors, embedding pipelines, rerankers, query rewriting.</td>
-      <td>The librarian — knows where to look and stacks the right boxes for you.</td>
-    </tr>
-    <tr>
-      <td><strong>L5 – Reasoning / Generation</strong></td>
-      <td>The layer that actually “thinks.” Uses context from L4 and responds in language.</td>
-      <td>Prompting, planning, grounding, LLM reasoning.</td>
-      <td>The subject-matter expert — reads the boxes and explains.</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Notes:</p>
-<ol>
-  <li><strong>Vector stores (L0–L3)</strong> handle how knowledge is stored, indexed, and retrieved efficiently.</li>
-  <li><strong>Integration layers (L4)</strong> orchestrate embeddings, rerankers, and retrieval pipelines.</li>
-  <li><strong>Reasoning layers (L5)</strong> use that context to generate insights, answers, or summaries.</li>
-  <li><strong>Weaviate</strong> extends into L4; <strong>Kendra</strong> is a managed retrieval system; <strong>LangChain</strong> and <strong>LlamaIndex</strong> span both retrieval and reasoning.</li>
-  <li>Together, these layers define the architecture of a <strong>modern AI knowledgebase</strong> — a system that doesn’t just <em>store</em> information, but can <em>understand and communicate</em> it.</li>
-</ol>
-
-<hr />
-
-<h2 id="2-vectors-and-meaning">2. Vectors and Meaning</h2>
-
-<p>At the heart of this new architecture is the <strong>vector</strong> — a numerical representation of meaning.</p>
-
-<p>For example:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"The cat sits on the mat" → [0.12, -0.45, 0.88, ...] # 1536-dimensional embedding
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Document: POL-BAT-AU-2026
+Section:  Battery service eligibility
+Text:     An iPhone battery qualifies for service when tested capacity is
+          below 80%, subject to diagnostic and coverage checks.
+Metadata: product=iPhone, region=AU, status=current
 </code></pre></div></div>
 
-<p>A vector is just a long list of floating-point numbers, but its geometry captures relationships:<br />
-sentences or images that “mean” similar things are close together in this high-dimensional space.<br />
-Different models produce different kinds of embeddings, depending on what they were trained for.</p>
-
-<table class="study-table">
-  <thead>
-    <tr>
-      <th>Model</th>
-      <th>Training Focus</th>
-      <th>Strengths</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>OpenAI text-embedding-3-large</strong></td>
-      <td>General-purpose text</td>
-      <td>Broad coverage and strong multilingual performance.</td>
-    </tr>
-    <tr>
-      <td><strong>AWS Titan Embeddings G1</strong></td>
-      <td>Enterprise documents</td>
-      <td>Handles structured, factual content effectively.</td>
-    </tr>
-    <tr>
-      <td><strong>Cohere Embed v3</strong></td>
-      <td>Multi-domain semantic search</td>
-      <td>Tunable for classification and retrieval tasks.</td>
-    </tr>
-    <tr>
-      <td><strong>CLIP (OpenAI)</strong></td>
-      <td>Image ↔ text alignment</td>
-      <td>Bridges visual and language representations.</td>
-    </tr>
-    <tr>
-      <td><strong>E5 (Microsoft)</strong></td>
-      <td>Sentence-level retrieval</td>
-      <td>Optimized for semantic search and ranking.</td>
-    </tr>
-    <tr>
-      <td><strong>Instructor XL</strong></td>
-      <td>Task-specific embeddings</td>
-      <td>Performs well in RAG and domain-tuned workflows.</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Understanding embeddings is the first step.<br />
-But storing and searching through millions of them efficiently is what brought about <strong>vector databases</strong>.</p>
-
-<hr />
-
-<h2 id="3-vector-databases-how-they-differ">3. Vector Databases: How They Differ</h2>
-
-<p>Not all vector stores are built the same way.<br />
-Some focus on scalability, others on analytics or simplicity.<br />
-Each can be understood through the same layered lens used above.</p>
-
-<table class="study-table">
-  <thead>
-    <tr>
-      <th>System</th>
-      <th>Implements</th>
-      <th>Indexing (L2)</th>
-      <th>Storage Layout (L1)</th>
-      <th>Physical Storage (L0)</th>
-      <th>Summary</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Weaviate</strong></td>
-      <td>L3–L0 (+ optional L4 modules)</td>
-      <td>HNSW / DiskANN</td>
-      <td>Custom KV schema</td>
-      <td>Disk + S3 backup</td>
-      <td>A full-featured vector database with built-in hybrid search and RAG extensions.</td>
-    </tr>
-    <tr>
-      <td><strong>LanceDB</strong></td>
-      <td>L3–L0</td>
-      <td>IVF_FLAT / PQ (Arrow-native)</td>
-      <td>Apache Arrow / Lance</td>
-      <td>Local / S3</td>
-      <td>Columnar and analytics-friendly, ideal for local or hybrid workloads.</td>
-    </tr>
-    <tr>
-      <td><strong>ChromaDB</strong></td>
-      <td>L3–L0</td>
-      <td>FAISS / HNSW</td>
-      <td>DuckDB / SQLite</td>
-      <td>Local</td>
-      <td>Lightweight and Python-first — great for experimentation and rapid prototyping.</td>
-    </tr>
-    <tr>
-      <td><strong>S3 Vector Bucket</strong></td>
-      <td>L3–L0 (managed)</td>
-      <td>AWS-managed ANN</td>
-      <td>Proprietary format</td>
-      <td>S3</td>
-      <td>Serverless and fully managed; indexing and scaling handled by AWS.</td>
-    </tr>
-    <tr>
-      <td><strong>OpenSearch (KNN Plugin)</strong></td>
-      <td>L3–L0 (Lucene-based)</td>
-      <td>HNSW / IVF / PQ</td>
-      <td>Lucene segments</td>
-      <td>Disk / EBS</td>
-      <td>Text-first search engine with added vector retrieval capabilities.</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Common indexing methods:</p>
 <ul>
-  <li><strong>HNSW</strong> – graph-based, high recall with good latency.</li>
-  <li><strong>DiskANN</strong> – optimized for billion-scale datasets on disk.</li>
-  <li><strong>IVF_FLAT / IVF_PQ</strong> – cluster-based approaches balancing memory and speed.</li>
-  <li><strong>FAISS</strong> – a foundational library for many open-source vector stores.</li>
-  <li><strong>AWS-managed ANN</strong> – a proprietary, abstracted approach used in serverless systems.</li>
+  <li>The user asks:</li>
 </ul>
 
-<hr />
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"When does an iPhone battery qualify for service
+under today's Australian support policy?"
+</code></pre></div></div>
 
-<h2 id="4-from-storage-to-understanding">4. From Storage to Understanding</h2>
-
-<p>Once the data is stored and indexed, the next challenge is orchestration — how to retrieve and reason over it.</p>
-
-<table class="study-table">
-  <thead>
-    <tr>
-      <th>System</th>
-      <th>L0</th>
-      <th>L1</th>
-      <th>L2</th>
-      <th>L3</th>
-      <th>L4</th>
-      <th>L5</th>
-      <th>Notes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Weaviate</strong></td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅ (auto-embed, hybrid, rerank, “generative” plugins)</td>
-      <td>❌</td>
-      <td>Has optional L4 modules but relies on external LLMs for reasoning.</td>
-    </tr>
-    <tr>
-      <td><strong>Pinecone</strong></td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>Pure vector database; bring your own orchestration and reasoning layers.</td>
-    </tr>
-    <tr>
-      <td><strong>LanceDB</strong></td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>Minimal</td>
-      <td>❌</td>
-      <td>Focused on analytics; orchestration handled externally.</td>
-    </tr>
-    <tr>
-      <td><strong>ChromaDB</strong></td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>Light</td>
-      <td>❌</td>
-      <td>Great for quick RAG prototypes via LangChain or LlamaIndex.</td>
-    </tr>
-    <tr>
-      <td><strong>OpenSearch (KNN)</strong></td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>Hybrid keyword + vector</td>
-      <td>❌</td>
-      <td>Adds ANN to a text-based search engine.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Kendra</strong></td>
-      <td>Managed</td>
-      <td>Managed</td>
-      <td>Managed</td>
-      <td>Managed</td>
-      <td>✅</td>
-      <td>❌*</td>
-      <td>A managed retrieval system; for generation, pair with Bedrock or another LLM.</td>
-    </tr>
-    <tr>
-      <td><strong>LangChain</strong></td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>Framework that orchestrates retrieval (L4) and reasoning (L5) across data sources.</td>
-    </tr>
-    <tr>
-      <td><strong>LlamaIndex</strong></td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>✅</td>
-      <td>✅</td>
-      <td>Similar to LangChain; adds graph-based indexing and composability.</td>
-    </tr>
-    <tr>
-      <td><strong>Bedrock / OpenAI / Claude / Gemini</strong></td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>✅</td>
-      <td>Pure reasoning layer — uses retrieved context to generate answers.</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>“Managed” means the internal indexing and storage details are not visible to the user.</p>
-
-<hr />
-
-<h2 id="5-e2e-flow">5. E2E Flow</h2>
-
-<h3 id="ingestion-pipeline">Ingestion Pipeline</h3>
 <ul>
-  <li>Vector Store (L0–L3) handles the upserts and index commits.</li>
-  <li>L4 performs connectors, chunking, embedding, and ACL registration.</li>
-  <li>Metadata goes to a metadata store for filters, facets, and citations.</li>
+  <li>RAG should retrieve that permitted policy section and supply it to the model; it does not retrain or modify the model’s weights.</li>
+  <li>All Apple policy details and identifiers on this page are fictional and exist only to explain retrieval.</li>
+  <li>Keep two lifecycles separate:
+    <ul>
+      <li><strong>ingestion</strong> runs asynchronously when documents are added or changed;</li>
+      <li><strong>query/answering</strong> runs for each user request.</li>
+    </ul>
+  </li>
+  <li>A reranker is an optional per-request query step:
+    <ul>
+      <li>first-stage search cheaply retrieves a small candidate set from the index;</li>
+      <li>the reranker compares the current question with those candidates and reorders them;</li>
+      <li>it does not normally process the whole corpus or run during ingestion.</li>
+    </ul>
+  </li>
 </ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INGESTION: documents → parse → chunk → enrich → embed/index → searchable corpus
+QUERY:     question → process → retrieve → authorize → fuse → rerank
+                                                       ↓
+             cited answer ← LLM ← context assembly ← permitted evidence
+</code></pre></div></div>
 
 <div class="image-wrapper">
-  <img src="./assets/kb_ingestion_pipeline.png" alt="KB Ingestion Pipeline" class="modal-trigger" />
-  <div class="diagram-caption" data-snippet-id="kb-ingestion-snippet">
-    🖼️ KB - Ingestion Pipeline Example 
+  <img src="./assets/rag_architecture.png" alt="Separate asynchronous ingestion and per-user-request RAG phases for a fictional Apple support assistant" class="modal-trigger" data-caption="Offline ingestion versus per-request retrieval, optional reranking, and generation" />
+  <div class="diagram-caption" data-snippet-id="rag-architecture-snippet">
+    🍎 Two RAG lifecycles: ingest documents, then answer each client request
   </div>
-    <!-- Keep your PlantUML raw here -->
-  <script type="text/plain" id="kb-ingestion-snippet">
+  <script type="text/plain" id="rag-architecture-snippet">
 @startuml
-title Add Document to Knowledgebase (Ingestion)
+title Fictional Apple policy RAG: ingestion versus one user request
+actor "Customer / Support User\n(client)" as User
+participant "AI Support Application" as App
+participant "Policy Repository" as Docs
+participant "Ingestion Pipeline" as Ingest
+database "Hybrid Search Index\nBM25 + vectors" as Index
+participant "Reranker\noptional per request" as Reranker
+participant LLM
 
-autonumber
-actor Producer as U
-participant "L4 Orchestrator\n(ingestion service)" as L4
-participant "Connector\n(S3/Drive/HTTP)" as Conn
-participant "Chunker\n(splitter/cleaner)" as Chunker
-participant "Embedding Model\n(encoder)" as Embed
-participant "Vector Store\n(L0–L3)" as VS
-participant "Metadata Store\n(SQL/Doc/Index)" as Meta
-participant "ACL/Policy\n(enforcement)" as ACL
+== Phase 1 — asynchronous ingestion when policy changes ==
+Docs -> Ingest: POL-BAT-AU-2026 PDF
+Ingest -> Ingest: Parse → section-aware chunks\nmetadata → embeddings
+Ingest -> Index: Terms + vectors + source ID + ACL metadata
 
-U -> L4: Submit document reference / upload
-L4 -> Conn: Fetch raw bytes
-Conn --> L4: Bytes/stream
+== Phase 2 — query-time work for this user request ==
+User -> App: Ask battery-policy question + login token
+App -> App: Authenticate; derive document entitlements\nbuild standalone search query
+App -> Index: BM25 + vector search\nproduct=iPhone, region=AU, status=current\n+ permitted-document filters
+Index --> App: Top K permitted candidates
 
-L4 -> Chunker: Normalize + chunk (size/overlap)
-Chunker --> L4: Chunks [{text, attrs}]
-
-loop for each chunk
-  L4 -> Embed: Encode text → vector
-  Embed --> L4: vector[d]
-  L4 -> VS: upsert({id, vector, metadata-ref})
-  L4 -> Meta: upsert({id, doc_id, text, attrs})
+opt Reranking enabled
+  App -> Reranker: Current question + Top K candidates
+  Reranker --> App: Candidates reordered for this question
 end
 
-L4 -> ACL: Register permissions (owners, groups, tags)
-ACL --> L4: OK
-
-L4 -> VS: Optimize/commit index (async allowed)
-VS --> L4: OK
-
-L4 --> U: Ingestion complete {doc_id, chunk_count}
+App -> App: Take Top N; build runtime context\nwith evidence + source IDs
+App -> LLM: Instructions + evidence + question
+LLM --> App: Grounded answer draft
+App --> User: "Below 80%, subject to checks" + citation
 @enduml
-
   </script>
 </div>
 
-<h3 id="query-the-knowledgebase-retrieval-orchestration--llm">Query the knowledgebase (retrieval orchestration + LLM)</h3>
+<h2 id="section-2-parsing">2. Parsing: preserve meaning before retrieval</h2>
 
-<p>In this sequence, the LLM (L5) is drawn directly beside the User because it’s the layer the user interacts with — the conversational or reasoning interface.</p>
+<ul>
+  <li>Parsing converts source formats into a canonical document representation.</li>
+  <li>Preserve:
+    <ul>
+      <li>title, headings, paragraphs, lists, and reading order;</li>
+      <li>page/slide/sheet numbers and source URI;</li>
+      <li>table rows, columns, headers, units, and footnotes;</li>
+      <li>image captions and OCR coordinates where useful;</li>
+      <li>document version, timestamp, language, owner, tenant, and ACL metadata.</li>
+    </ul>
+  </li>
+  <li>Format-specific risks:
+    <ul>
+      <li><strong>PDF</strong>: visual order may differ from extracted order; headers and footers can repeat in every chunk.</li>
+      <li><strong>HTML</strong>: navigation, cookie banners, and hidden text can dominate useful content.</li>
+      <li><strong>Markdown/code</strong>: heading hierarchy, code fences, symbols, and file paths carry meaning.</li>
+      <li><strong>Tables</strong>: flattening cells can detach values from their row and column headers.</li>
+      <li><strong>Scans/images</strong>: OCR can corrupt identifiers, decimals, and punctuation.</li>
+    </ul>
+  </li>
+  <li>Practical controls:
+    <ul>
+      <li>keep the original document and parser version;</li>
+      <li>test representative difficult files, not only clean prose;</li>
+      <li>reject or quarantine low-confidence extraction;</li>
+      <li>render and compare parsed output during ingestion QA.</li>
+    </ul>
+  </li>
+  <li>Apple example: if a PDF table separates <strong>iPhone</strong>, <strong>AU</strong>, <strong>below 80%</strong>, and its effective date into different columns, flattening it incorrectly can detach the threshold from its product, Region, or policy version.</li>
+  <li>Failure principle: embeddings cannot recover structure or text discarded by the parser.</li>
+</ul>
 
-<p>Conceptually, however, L5 depends on L4: the orchestrator (L4) handles retrieval, embeddings, reranking, filtering, and context assembly before the LLM can reason over it.</p>
+<h2 id="section-3-chunking">3. Chunking: choose the retrieval unit</h2>
 
-<p>In other words, L4 prepares the knowledge, and L5 expresses it.
-The Vector Store (L0–L3) remains purely a retrieval substrate — it stores, indexes, and returns vectors, but performs no reasoning or synthesis.</p>
+<ul>
+  <li><strong>Fixed-size chunks</strong>:
+    <ul>
+      <li>simple and predictable;</li>
+      <li>can split headings, procedures, code, and tables.</li>
+    </ul>
+  </li>
+  <li><strong>Overlap</strong>:
+    <ul>
+      <li>preserves concepts crossing a boundary;</li>
+      <li>increases index size, duplicate retrieval, and prompt cost.</li>
+    </ul>
+  </li>
+  <li><strong>Paragraph/sentence chunks</strong>:
+    <ul>
+      <li>preserve natural prose boundaries;</li>
+      <li>vary widely in length and can separate a heading from its content.</li>
+    </ul>
+  </li>
+  <li><strong>Section-aware chunks</strong>:
+    <ul>
+      <li>retain heading path and document structure;</li>
+      <li>depend on reliable parsing and fallback logic.</li>
+    </ul>
+  </li>
+  <li><strong>Semantic chunks</strong>:
+    <ul>
+      <li>detect topic changes dynamically;</li>
+      <li>add compute and can create unstable boundaries across parser/model changes.</li>
+    </ul>
+  </li>
+  <li><strong>Parent-child retrieval</strong>:
+    <ul>
+      <li>retrieve a small child for precision;</li>
+      <li>expand to a larger parent for context;</li>
+      <li>requires stable IDs, deduplication, and careful token budgets.</li>
+    </ul>
+  </li>
+  <li><strong>Hierarchical retrieval</strong>:
+    <ul>
+      <li>first select document/section, then passage;</li>
+      <li>useful for large corpora but can lose recall at either stage.</li>
+    </ul>
+  </li>
+</ul>
 
-<div class="image-wrapper">
-  <img src="./assets/kb_llm_query.png" alt="KB Query Pipeline" class="modal-trigger" />
-  <div class="diagram-caption" data-snippet-id="kb-query-snippet">
-    🖼️ KB - Query Pipeline Example 
-  </div>
-    <!-- Keep your PlantUML raw here -->
-  <script type="text/plain" id="kb-query-snippet">
-@startuml
-title Query Knowledgebase (LLM next to User; L4 orchestrates retrieval)
+<p>Tune together:</p>
 
-autonumber
-actor User as U
-participant "LLM (L5)\n(reasoning/generation)" as LLM
-participant "L4 Orchestrator\n(query service)" as L4
-participant "Embedding Model\n(query encoder)" as EmbedQ
-participant "Vector Store\n(L0–L3)" as VS
-participant "Keyword Index\n(BM25/OpenSearch)" as KW
-participant "Reranker\n(cross-encoder)" as Rerank
-participant "Policy/ACL Filter" as ACL
-participant "Context Builder\n(citations/dedupe)" as Ctx
-participant "Cache\n(answer/context)" as Cache
+<ul>
+  <li>chunk size and overlap;</li>
+  <li>headings and surrounding context included in embeddings;</li>
+  <li>child retrieval <code class="language-plaintext highlighter-rouge">K</code> and parent expansion;</li>
+  <li>duplicate rate;</li>
+  <li>Recall@K and NDCG;</li>
+  <li>answer quality and prompt tokens.</li>
+</ul>
 
-U -> L4: Ask question (natural language)
+<p>There is no universal chunk size. A useful size is the smallest unit that is independently retrievable while still containing enough evidence to answer.</p>
 
-opt optional query rewrite using LLM
-  L4 -> LLM: Rewrite/expand query (synonyms, entities)
-  LLM --> L4: Rewritten query
-end
+<p>Apple example:</p>
 
-L4 -> EmbedQ: Encode query → vector_q
-EmbedQ --> L4: vector_q
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Poor fixed split:
+  chunk A: "An iPhone battery qualifies when tested capacity is below"
+  chunk B: "80%, subject to diagnostic and coverage checks."
 
-par hybrid retrieval
-  L4 -> VS: ANN search(vector_q, k, filters)
-  VS --> L4: Top-k by similarity
-  L4 -> KW: Keyword/BM25 search(query, k)
-  KW --> L4: Top-k lexical
-end
+Better section-aware chunk:
+  heading: "Battery service eligibility"
+  text:    "An iPhone battery qualifies when tested capacity is below 80%,
+            subject to diagnostic and coverage checks."
+</code></pre></div></div>
 
-L4 -> Rerank: Cross-encode merged candidates
-Rerank --> L4: Reranked list
+<h2 id="section-4-embeddings">4. Embeddings and semantic search</h2>
 
-L4 -> ACL: Filter by user permissions
-ACL --> L4: Permitted items
+<ul>
+  <li>An embedding model maps text into a fixed-length vector where task-related meanings are expected to be near one another.</li>
+  <li>In retrieval:
+    <ul>
+      <li>documents are embedded during ingestion;</li>
+      <li>the query is embedded at request time;</li>
+      <li>the vector index finds nearby document vectors.</li>
+    </ul>
+  </li>
+  <li>Similarity functions:
+    <ul>
+      <li><strong>cosine similarity</strong> compares vector direction;</li>
+      <li><strong>dot product</strong> compares alignment and magnitude;</li>
+      <li><strong>Euclidean distance</strong> measures geometric distance.</li>
+    </ul>
+  </li>
+  <li>Use the metric, normalization, dimensions, and query/document prefixes expected by the embedding model.</li>
+  <li>Query and document vectors must be compatible; changing the embedding model normally requires re-embedding and rebuilding the index.</li>
+</ul>
 
-L4 -> Ctx: Build prompt context (dedupe, window, citations)
-Ctx --> L4: Context blocks
+<p>Semantic search is strong when vocabulary differs:</p>
 
-alt cache hit
-  L4 -> Cache: Lookup(query hash, scope)
-  Cache --> L4: Answer/context
-else cache miss
-  L4 -> LLM: Prompt = {instructions, query, context}
-  LLM --> L4: Answer + citations
-  L4 -> Cache: Store(answer/context, TTL)
-end
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>query:    "When will Apple service a worn-out phone battery?"
+document: "An iPhone battery qualifies when tested capacity is below 80%."
+</code></pre></div></div>
 
-L4 --> U: Final answer + citations/snippets
-@enduml
+<p>Semantic search can fail on:</p>
 
+<ul>
+  <li>exact identifiers: <strong>POL-BAT-AU-2026</strong>;</li>
+  <li>error strings: <code class="language-plaintext highlighter-rouge">InvalidInstanceID.NotFound</code>;</li>
+  <li>short ambiguous queries;</li>
+  <li>acronyms and uncommon product names;</li>
+  <li>numbers, dates, negation, and small wording differences with large operational meaning;</li>
+  <li>domains not represented by the embedding model;</li>
+  <li>chunks containing several unrelated topics.</li>
+</ul>
 
-  </script>
-</div>
+<h2 id="section-5-hybrid">5. Lexical and hybrid search</h2>
+
+<ul>
+  <li>Lexical search uses an inverted index from terms to documents.</li>
+  <li><strong>TF-IDF</strong> mental model: a term matters when it is frequent in one document but rare across the corpus.</li>
+  <li><strong>BM25</strong> improves this with:
+    <ul>
+      <li>diminishing returns for repeated terms;</li>
+      <li>document-length normalization;</li>
+      <li>tunable term-frequency and length effects.</li>
+    </ul>
+  </li>
+  <li>Lexical search is strong for identifiers, acronyms, names, quoted phrases, and exact error text.</li>
+  <li>It is weaker when query and document use different vocabulary.</li>
+</ul>
+
+<p>Using the same Apple corpus:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>semantic: "When will Apple service a worn-out battery?"
+          → finds the eligibility wording despite different vocabulary
+
+lexical:  "POL-BAT-AU-2026"
+          → finds the exact policy identifier
+
+hybrid:   "POL-BAT-AU-2026 iPhone battery threshold"
+          → combines the exact identifier with semantic meaning
+</code></pre></div></div>
+
+<p>Hybrid retrieval combines complementary signals:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>BM25 candidates ──────────┐
+                          ├─ normalize/fuse ranks → candidate set → rerank
+vector/ANN candidates ────┘
+</code></pre></div></div>
+
+<ul>
+  <li><strong>Weighted score fusion</strong>:
+    <ul>
+      <li>normalizes lexical and vector scores, then applies weights;</li>
+      <li>offers direct control but is sensitive to score distributions.</li>
+    </ul>
+  </li>
+  <li><strong>Reciprocal Rank Fusion (RRF)</strong>:
+    <ul>
+      <li>combines result positions instead of raw scores;</li>
+      <li>is robust when score scales are incompatible;</li>
+      <li>still needs its constant and candidate depth evaluated.</li>
+    </ul>
+  </li>
+  <li>Hybrid search usually helps mixed enterprise corpora, but can hurt if noisy semantic results displace exact matches.</li>
+  <li>Evaluate by query class; identifiers may need a lexical boost while natural-language questions may benefit from vector weight.</li>
+</ul>
+
+<h2 id="section-6-ann">6. Vector indexes: recall, latency, and memory</h2>
+
+<ul>
+  <li>Exact nearest-neighbour search compares the query with every vector and becomes expensive at scale.</li>
+  <li>Approximate nearest-neighbour (ANN) indexes trade some recall for speed.</li>
+  <li><strong>HNSW</strong>:
+    <ul>
+      <li>builds a navigable multi-layer graph;</li>
+      <li>higher construction/search effort generally improves recall at memory, ingestion, and latency cost;</li>
+      <li>filter selectivity and deletions can affect behaviour.</li>
+    </ul>
+  </li>
+  <li><strong>IVF</strong>:
+    <ul>
+      <li>clusters vectors into partitions;</li>
+      <li>searches selected partitions only;</li>
+      <li>more probes improve recall while increasing work.</li>
+    </ul>
+  </li>
+  <li><strong>Quantization</strong>:
+    <ul>
+      <li>compresses vectors to reduce memory and improve throughput;</li>
+      <li>introduces approximation error.</li>
+    </ul>
+  </li>
+  <li>Tune:
+    <ul>
+      <li>candidate <code class="language-plaintext highlighter-rouge">K</code>;</li>
+      <li>search effort/probes;</li>
+      <li>index construction parameters;</li>
+      <li>replicas and memory;</li>
+      <li>pre-filter versus post-filter behaviour;</li>
+      <li>refresh, deletion, and compaction.</li>
+    </ul>
+  </li>
+  <li>Measure ANN recall against exact search or a high-quality reference set; low latency alone says nothing about relevance.</li>
+</ul>
+
+<h2 id="section-7-query-processing">7. Query processing</h2>
+
+<ul>
+  <li><strong>Conversation rewriting</strong>: converts “what about Australia?” into “What is the current iPhone battery-service threshold in Australia?”</li>
+  <li><strong>Expansion</strong>: adds useful variants such as <strong>battery service</strong>, <strong>battery replacement</strong>, and <strong>capacity threshold</strong>.</li>
+  <li><strong>Decomposition</strong>: splits “Am I eligible and what is Repair #123’s status?” into a policy retrieval query and a live repair-status API call.</li>
+  <li><strong>Multi-query retrieval</strong>: searches several reformulations, increasing recall and cost.</li>
+  <li><strong>HyDE</strong>: generates a hypothetical answer/document and embeds it:
+    <ul>
+      <li>can bridge vocabulary mismatch;</li>
+      <li>can also anchor retrieval on invented assumptions.</li>
+    </ul>
+  </li>
+  <li><strong>Routing</strong>: sends queries to the correct corpus, index, SQL source, graph, API, or search method.</li>
+  <li>Controls:
+    <ul>
+      <li>preserve the original query for exact matching and audit;</li>
+      <li>cap expansions and subqueries;</li>
+      <li>trace every rewritten query;</li>
+      <li>evaluate rewriting separately from retrieval.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-8-authorization">8. Metadata filtering and authorization</h2>
+
+<ul>
+  <li>Useful metadata includes:
+    <ul>
+      <li>tenant and organisation;</li>
+      <li>user/group ACLs;</li>
+      <li>region and jurisdiction;</li>
+      <li>document type and owner;</li>
+      <li>security classification;</li>
+      <li>effective date, expiry, and version;</li>
+      <li>language and product.</li>
+    </ul>
+  </li>
+  <li><strong>Relevance filtering</strong> narrows results to improve quality or speed.</li>
+  <li><strong>Authorization</strong> enforces whether the caller may access a document.</li>
+  <li>They are different concerns even when both use metadata.</li>
+  <li>Apple example:
+    <ul>
+      <li><strong>product=iPhone</strong>, <strong>region=AU</strong>, and <strong>status=current</strong> improve relevance;</li>
+      <li>the caller’s trusted policy/document entitlement determines authorization;</li>
+      <li>matching the right Region does not prove that the caller may read the document.</li>
+    </ul>
+  </li>
+  <li>Security requirements:
+    <ul>
+      <li>derive identity and entitlements from trusted systems, not prompt text;</li>
+      <li>enforce access before evidence reaches the model;</li>
+      <li>fail closed when ACL metadata is absent or stale;</li>
+      <li>re-evaluate access when documents or group memberships change;</li>
+      <li>test tenant leakage and ACL revocation explicitly;</li>
+      <li>authorize source-document and tool access, not only the final answer.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-9-reranking">9. Reranking and context assembly</h2>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>query → retrieve 100 cheaply → rerank permitted candidates → take 5–10
+      → deduplicate/assemble context → LLM → cited answer
+</code></pre></div></div>
+
+<ul>
+  <li><strong>Bi-encoder retrieval</strong>:
+    <ul>
+      <li>encodes query and documents separately;</li>
+      <li>supports fast broad retrieval;</li>
+      <li>loses fine-grained query/document interaction.</li>
+    </ul>
+  </li>
+  <li><strong>Cross-encoder reranking</strong>:
+    <ul>
+      <li>reads the query and each candidate together;</li>
+      <li>often improves top-result precision;</li>
+      <li>adds latency proportional to candidate count.</li>
+    </ul>
+  </li>
+  <li><strong>LLM reranking</strong>:
+    <ul>
+      <li>supports complex relevance rubrics;</li>
+      <li>costs more and may be less stable;</li>
+      <li>should return traceable scores/reasons, not rewrite evidence.</li>
+    </ul>
+  </li>
+  <li>Reranking cannot recover a document absent from first-stage retrieval.</li>
+  <li>Apple example:</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Before reranking:
+1. Mac battery calibration guide
+2. Expired iPhone battery policy for another Region
+3. Current AU iPhone battery eligibility policy
+
+After reranking for the complete question:
+1. Current AU iPhone battery eligibility policy
+</code></pre></div></div>
+
+<ul>
+  <li>Context assembly should:
+    <ul>
+      <li>remove duplicate/overlapping chunks;</li>
+      <li>retain source boundaries, version, and citation IDs;</li>
+      <li>group child chunks with needed parent context;</li>
+      <li>order evidence deliberately;</li>
+      <li>resolve or expose conflicting sources;</li>
+      <li>cap tokens and prefer high-value evidence;</li>
+      <li>instruct the model to report insufficient evidence.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-10-diagnosis">10. Diagnose retrieval and generation separately</h2>
+
+<ul>
+  <li><strong>Retrieval failure</strong>:
+    <ul>
+      <li>relevant content was parsed incorrectly;</li>
+      <li>wrong chunks were indexed;</li>
+      <li>query rewrite lost meaning;</li>
+      <li>filters removed the correct document;</li>
+      <li>ANN or fusion ranked it below <code class="language-plaintext highlighter-rouge">K</code>;</li>
+      <li>reranking promoted the wrong candidate.</li>
+    </ul>
+  </li>
+  <li><strong>Generation failure</strong>:
+    <ul>
+      <li>correct evidence was in context;</li>
+      <li>the model ignored, contradicted, overgeneralized, or mis-cited it.</li>
+    </ul>
+  </li>
+  <li>Apple diagnosis:
+    <ul>
+      <li>retrieving a Mac policy or an expired non-AU policy is a <strong>retrieval failure</strong>;</li>
+      <li>supplying the correct fictional <strong>below 80%</strong> evidence but answering <strong>below 70%</strong> is a <strong>generation failure</strong>.</li>
+    </ul>
+  </li>
+  <li>Debug order:
+    <ul>
+      <li>inspect parsed source and chunk;</li>
+      <li>inspect original and rewritten queries;</li>
+      <li>inspect candidates, scores, filters, and authorization decisions;</li>
+      <li>inspect reranked context sent to the model;</li>
+      <li>only then change the prompt or generation model.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-11-evaluation">11. Retrieval evaluation</h2>
+
+<ul>
+  <li>Build a golden set with:
+    <ul>
+      <li>realistic query;</li>
+      <li>caller/tenant identity;</li>
+      <li>relevant and permitted documents;</li>
+      <li>graded relevance labels;</li>
+      <li>expected citations;</li>
+      <li>exact-match, stale, ambiguous, and no-answer cases.</li>
+    </ul>
+  </li>
+  <li>Apple golden example:
+    <ul>
+      <li>query: the Australian iPhone battery-eligibility question;</li>
+      <li>expected source: <strong>POL-BAT-AU-2026</strong>, eligibility section;</li>
+      <li>expected retrieval: current AU policy ranked in the first K;</li>
+      <li>expected answer evidence: <strong>below 80%</strong>, including its conditions and citation.</li>
+    </ul>
+  </li>
+  <li>Metrics:
+    <ul>
+      <li><strong>Recall@K</strong>: fraction of relevant items found in the first <code class="language-plaintext highlighter-rouge">K</code> results;</li>
+      <li><strong>Precision@K</strong>: fraction of first <code class="language-plaintext highlighter-rouge">K</code> results that are relevant;</li>
+      <li><strong>MRR</strong>: reciprocal rank of the first relevant result, averaged across queries;</li>
+      <li><strong>NDCG</strong>: ranking quality when relevance has grades and order matters.</li>
+    </ul>
+  </li>
+  <li>Also measure:
+    <ul>
+      <li>authorization leakage and revocation;</li>
+      <li>freshness and indexing delay;</li>
+      <li>duplicate context rate;</li>
+      <li>no-result correctness;</li>
+      <li>p50/p95 latency;</li>
+      <li>cost per successful answer.</li>
+    </ul>
+  </li>
+  <li>Evaluate by query class and corpus segment; one average can hide poor exact-ID or tenant-specific performance.</li>
+</ul>
+
+<p>For production controls see <a href="/study/aiInfrastructure">AI infrastructure and evaluation</a>. For AWS implementations see <a href="/study/infrastructureAWSAiServices">AWS AI services</a>.</p>
 
     </article>
   </main>

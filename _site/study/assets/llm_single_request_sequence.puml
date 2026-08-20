@@ -1,0 +1,30 @@
+@startuml
+title Single LLM request: text to generated text
+actor User
+participant Application as App
+participant Tokenizer
+participant "Internal Embedding Layer" as Embed
+participant "Transformer" as Model
+participant "Logits / Softmax" as Scores
+participant Decoder
+User -> App: "Hello, this is Gary"
+App -> App: Build ordered context and reserve output space
+App -> Tokenizer: Serialize and tokenize context
+Tokenizer --> Embed: Input token IDs
+Embed --> Model: Token vectors + positional information
+Model -> Model: Prefill prompt and build KV cache
+loop One output token at a time
+  Model -> Scores: Next-token logits
+  Scores -> Scores: Temperature scaling + softmax
+  Scores -> Decoder: Probability distribution
+  Decoder -> Decoder: Apply top-p / decoding strategy
+  Decoder --> Tokenizer: Selected output token ID
+  Tokenizer --> App: Detokenized text piece
+  App --> User: Stream text piece
+  Decoder --> Embed: Append selected token ID
+  Embed --> Model: New token vector
+  Model -> Model: Decode using existing KV cache
+end
+Model --> App: Stop token / output limit / stop sequence
+App --> User: Completed response
+@enduml

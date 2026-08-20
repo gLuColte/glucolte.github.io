@@ -1,0 +1,18 @@
+@startuml
+title Traditional software and predictive ML
+actor User
+participant "Business Application" as App
+participant "Rules / Workflow" as Rules
+database "Operational Data" as Data
+participant "Predictive ML Endpoint" as ML
+User -> App: Structured request
+App -> Rules: Validate identity and business rules
+Rules -> Data: Read permitted records
+Data --> Rules: Structured facts
+opt Narrow prediction needed
+  Rules -> ML: Curated features
+  ML --> Rules: Score / class / forecast
+end
+Rules --> App: Deterministic outcome
+App --> User: Screen, report, or transaction result
+@enduml

@@ -1,0 +1,1576 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AI Fundamentals · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/study.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>AI Fundamentals | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="AI Fundamentals" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/study/aiFundamentals" />
+<meta property="og:url" content="http://localhost:4000/study/aiFundamentals" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="AI Fundamentals" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Fundamentals","url":"http://localhost:4000/study/aiFundamentals"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container">
+    <article class="content">
+      <h1 id="ai-fundamentals">AI Fundamentals</h1>
+
+<p>This page follows one request from text on the screen to generated text. The running example is:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"Hello, this is Gary"
+</code></pre></div></div>
+
+<h2 id="section-1-request">1. The request at a glance</h2>
+
+<ul>
+  <li>An LLM is a learned function that predicts the <strong>next token</strong> from the tokens already in its context.</li>
+  <li>It does not generate an entire sentence in one step.</li>
+  <li>The complete path is:</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>text
+  → tokenizer
+  → token IDs
+  → internal token-embedding lookup
+  → transformer and attention
+  → next-token logits
+  → softmax probabilities
+  → decoding selects one token ID
+  → append and repeat
+  → detokenize / stream text
+</code></pre></div></div>
+
+<ul>
+  <li>The surrounding application builds the request and owns memory, retrieval, tools, permissions, and validation.</li>
+</ul>
+
+<h2 id="section-2-tokenization">2. Text becomes tokens and token IDs</h2>
+
+<ul>
+  <li>A <strong>tokenizer</strong> splits text using a vocabulary designed for that model.</li>
+  <li>A token may be:
+    <ul>
+      <li>a whole word;</li>
+      <li>part of a word;</li>
+      <li>punctuation;</li>
+      <li>a whitespace pattern;</li>
+      <li>one or more bytes.</li>
+    </ul>
+  </li>
+  <li>Leading spaces can be part of a token, which is why examples often show tokens such as <code class="language-plaintext highlighter-rouge">" Gary"</code>.</li>
+</ul>
+
+<p>Illustrative tokenization:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"Hello, this is Gary"
+          ↓ tokenizer
+["Hello", ",", " this", " is", " Gary"]
+          ↓ vocabulary lookup
+[882, 11, 341, 291, 9281]
+</code></pre></div></div>
+
+<ul>
+  <li>The numbers are illustrative; every tokenizer/model can assign different boundaries and IDs.</li>
+  <li>A <strong>token ID</strong> is an integer index into the model vocabulary.</li>
+  <li><code class="language-plaintext highlighter-rouge">882</code> does not itself contain the meaning of “Hello”; it identifies the relevant vocabulary entry.</li>
+  <li>Tokenization affects:
+    <ul>
+      <li>context usage and input cost;</li>
+      <li>truncation;</li>
+      <li>latency;</li>
+      <li>handling of code, URLs, identifiers, tables, and different languages.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-3-embedding-lookup">3. Token IDs become internal vectors</h2>
+
+<ul>
+  <li>The transformer does not meaningfully reason over raw integers such as <code class="language-plaintext highlighter-rouge">882</code>.</li>
+  <li>The model contains a learned <strong>token-embedding table</strong>.</li>
+  <li>The token ID selects one row from that table:</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>token ID 882
+      ↓ embedding lookup
+[0.83, 0.17, -0.31, ...]
+</code></pre></div></div>
+
+<ul>
+  <li>Each input token becomes a vector with the model’s internal hidden dimension.</li>
+  <li>These vectors were learned with the rest of the model during training.</li>
+  <li>The vectors begin as token representations; transformer layers then make them contextual.</li>
+</ul>
+
+<p>Important boundary:</p>
+
+<ul>
+  <li>Standard LLM inference normally uses the generation model’s <strong>internal embedding layer</strong>.</li>
+  <li>It does not normally call a separate external embedding model before generation.</li>
+  <li>A dedicated embedding model used for semantic search or a vector database is a different model and interface; see <a href="/study/aiKnowledgebases">AI Knowledge Bases</a>.</li>
+</ul>
+
+<h3 id="section-3-1-coupling">3.1 The model pipeline is coupled</h3>
+
+<ul>
+  <li>The tokenizer, vocabulary, internal embedding weights, transformer weights, output vocabulary, and detokenizer form one model-compatible pipeline.</li>
+  <li>This coupling is <strong>model-specific or checkpoint/model-family-specific</strong>, not simply provider-specific.</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>                    MODEL / CHECKPOINT
+                           │
+          ┌────────────────┼────────────────┐
+          ↓                ↓                ↓
+ tokenizer/vocabulary  embedding table  transformer weights
+          │                │                │
+     token IDs       learned vectors   contextual processing
+          └────────────────┼────────────────┘
+                           ↓
+                  vocabulary logits
+                           ↓
+                  matching detokenizer
+</code></pre></div></div>
+
+<ul>
+  <li>Token ID <code class="language-plaintext highlighter-rouge">882</code> only means something relative to its tokenizer vocabulary.</li>
+  <li>Arbitrary token IDs from Model A cannot normally be supplied to Model B.</li>
+  <li>The internal embedding table and transformer are trained together; GPT’s internal vectors cannot normally be substituted into Llama’s transformer, for example.</li>
+  <li>Output logits correspond to the same model vocabulary, so generated IDs need the matching detokenizer.</li>
+  <li>The concepts of softmax, greedy decoding, temperature, and top-p are general; providers decide which controls and implementations their serving APIs expose.</li>
+  <li>Through an API, this coupled machinery is normally packaged behind a text/messages-in → text/tokens-out interface.</li>
+</ul>
+
+<h2 id="section-4-prefill">4. Prefill processes the prompt</h2>
+
+<ul>
+  <li>The model first processes the supplied input tokens in the <strong>prefill phase</strong>.</li>
+  <li>Prompt tokens can generally be processed together across each transformer layer, subject to causal attention.</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"Hello, this is Gary"
+          ↓
+[882, 11, 341, 291, 9281]
+          ↓ embedding lookup
+[vector, vector, vector, vector, vector]
+          ↓
+transformer prefill
+</code></pre></div></div>
+
+<ul>
+  <li>A causal mask prevents a token position from reading future positions.</li>
+  <li>The last input position can use the earlier prompt when predicting what comes next.</li>
+  <li>During prefill, the model normally builds a <strong>key-value (KV) cache</strong> containing reusable attention information for each processed token.</li>
+  <li><strong>Time to first token (TTFT)</strong> includes:
+    <ul>
+      <li>request/network overhead;</li>
+      <li>tokenization and scheduling;</li>
+      <li>prefill computation;</li>
+      <li>generation of the first output token.</li>
+    </ul>
+  </li>
+  <li>Larger prompts require more prefill work and memory, so they commonly increase TTFT before output appears.</li>
+</ul>
+
+<h2 id="section-5-transformer">5. The transformer makes tokens contextual</h2>
+
+<ul>
+  <li><strong>Positional information</strong> tells the model where tokens occur in the sequence.
+    <ul>
+      <li>Exact implementations vary; many modern models apply relative or rotary positional information in attention.</li>
+    </ul>
+  </li>
+  <li><strong>Self-attention</strong> lets each token position weigh relevant earlier positions.
+    <ul>
+      <li>When predicting after <code class="language-plaintext highlighter-rouge">"Hello, this is Gary"</code>, the final representation can use <code class="language-plaintext highlighter-rouge">"Gary"</code>, <code class="language-plaintext highlighter-rouge">"Hello"</code>, and the surrounding words.</li>
+    </ul>
+  </li>
+  <li><strong>Multiple attention heads</strong> can focus on different relationships, such as:
+    <ul>
+      <li>local syntax;</li>
+      <li>names and references;</li>
+      <li>long-range dependencies;</li>
+      <li>task or formatting patterns.</li>
+    </ul>
+  </li>
+  <li><strong>Feed-forward layers</strong> transform each position after attention.</li>
+  <li><strong>Residual connections</strong> preserve and combine earlier representations.</li>
+  <li><strong>Normalization</strong> keeps activations stable through a deep network.</li>
+  <li>This attention-plus-transformation block is repeated through many transformer layers.</li>
+</ul>
+
+<p>Engineering mental model:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>initial token vectors
+        ↓
+attention: gather relevant context
+        ↓
+feed-forward: transform each position
+        ↓
+residual + normalization
+        ↓
+repeat through many layers
+        ↓
+contextual representation used for next-token prediction
+</code></pre></div></div>
+
+<ul>
+  <li>Attention learns useful contextual patterns; it does not guarantee logical reasoning or factual verification.</li>
+</ul>
+
+<h2 id="section-6-logits-decoding">6. Contextual representation becomes the next token</h2>
+
+<ul>
+  <li>The transformer projects the final position’s representation into one score for every token in its output vocabulary.</li>
+  <li>These raw scores are <strong>logits</strong>.</li>
+  <li>Logits are not yet probabilities and do not need to sum to anything.</li>
+</ul>
+
+<p>Illustrative first assistant-token candidates:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Token</th>
+      <th style="text-align: right">Logit</th>
+      <th style="text-align: right">Probability after decoding controls</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">"Hello"</code></td>
+      <td style="text-align: right">8.4</td>
+      <td style="text-align: right">47%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">"Hi"</code></td>
+      <td style="text-align: right">7.9</td>
+      <td style="text-align: right">28%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">"Nice"</code></td>
+      <td style="text-align: right">7.2</td>
+      <td style="text-align: right">14%</td>
+    </tr>
+    <tr>
+      <td>other tokens</td>
+      <td style="text-align: right">…</td>
+      <td style="text-align: right">11%</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>The values are illustrative, not output from a particular model.</li>
+  <li>Decoding occurs at this exact boundary:
+    <ul>
+      <li><strong>temperature</strong> scales logits before softmax;</li>
+      <li><strong>softmax</strong> converts the logits into a probability distribution;</li>
+      <li><strong>top-p</strong> can restrict sampling to a high-probability cumulative set;</li>
+      <li>greedy decoding or sampling selects the next token ID.</li>
+    </ul>
+  </li>
+  <li>Lower temperature concentrates probability on likely tokens; it does not make them factual.</li>
+  <li>Maximum output tokens, stop sequences, or an end-of-sequence token stop generation.</li>
+</ul>
+
+<h2 id="section-7-autoregressive">7. Output generation is autoregressive</h2>
+
+<p>The input/output distinction is fundamental:</p>
+
+<ul>
+  <li><strong>Input/prefill</strong>: many prompt tokens can be processed together.</li>
+  <li><strong>Output/decode</strong>: token <code class="language-plaintext highlighter-rouge">N + 1</code> depends on token <code class="language-plaintext highlighter-rouge">N</code>, so generation is sequential.</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>prompt context
+      ↓
+predict token ID for "Hello"
+      ↓ append to context
+predict token ID for " Gary"
+      ↓ append to context
+predict token ID for "!"
+      ↓ append to context
+predict end-of-sequence
+</code></pre></div></div>
+
+<ul>
+  <li>Every generated token becomes part of the context used to predict the next token.</li>
+  <li>The KV cache lets decoding reuse attention information from previous tokens instead of recomputing the entire prefix each time.</li>
+  <li>The new token must still pass through the transformer before the following token can be chosen.</li>
+  <li><strong>Time per output token (TPOT)</strong> measures the average decode time between generated tokens.</li>
+  <li>TPOT is influenced by model size, serving hardware, batch/load, KV-cache size, and provider implementation.</li>
+  <li>Because tokens are produced one at a time, the server can stream each completed text piece to the client instead of waiting for the full response.</li>
+</ul>
+
+<h2 id="section-8-detokenization">8. Token IDs become text again</h2>
+
+<ul>
+  <li>The decoder produces token IDs.</li>
+  <li>The tokenizer maps each selected ID back to its token text/bytes and joins the pieces.</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>3912 → "Hello"
+9281 → " Gary"
+   0 → "!"
+        ↓ detokenize
+"Hello Gary!"
+</code></pre></div></div>
+
+<ul>
+  <li>IDs are illustrative and model-specific.</li>
+  <li>The output does <strong>not</strong> pass through an embedding model again.</li>
+  <li>With streaming enabled, the application may receive and display decoded text pieces incrementally.</li>
+  <li>A client may buffer incomplete byte/Unicode sequences so only valid text is displayed.</li>
+</ul>
+
+<h2 id="section-9-context-window">9. Conversation, context, and context window</h2>
+
+<ul>
+  <li><strong>Conversation</strong>: the logical history stored by the application or agent.</li>
+  <li><strong>Context</strong>: the tokens actually constructed and supplied to this particular model call.</li>
+  <li><strong>Context window</strong>: the model-defined maximum token budget available to one call, usually covering input context plus generated output.</li>
+  <li>Each API call is independent:
+    <ul>
+      <li>the model does not automatically retain the previous call;</li>
+      <li>the application stores messages or another memory representation;</li>
+      <li>the application selects and resends the relevant history for the next call.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>The application may build context from:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>system/developer instructions
++ previous user messages
++ previous assistant messages
++ retrieved documents
++ tool definitions and tool results
++ current user message
++ space reserved for generated output
+</code></pre></div></div>
+
+<ul>
+  <li><strong>Runtime context</strong> is the actual content assembled for one independent LLM call; generated token IDs join the running context during decoding.</li>
+  <li><strong>Runtime context = contents. Context window = maximum capacity.</strong></li>
+  <li>A <strong>128K</strong> context window in the diagram is illustrative; limits differ by model and may include separate output constraints.</li>
+  <li>RAG and tools run outside the model, then add retrieved evidence or tool results to that context.</li>
+  <li>The transformer has no special “RAG mode”: after tokenization, attention processes evidence, history, instructions, and the question as tokens in the same context.</li>
+  <li>Model parameter count and context-window size are separate:
+    <ul>
+      <li>parameters are learned weights inside the model;</li>
+      <li>the context window is the per-request token budget.</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="image-wrapper">
+  <img src="./assets/llm_runtime_context.png" alt="Application assembling runtime context from instructions, history, RAG evidence, tools, and a user question before one LLM call" class="modal-trigger" data-caption="Runtime context is assembled outside the LLM and supplied to one independent call" />
+  <div class="diagram-caption" data-snippet-id="llm-runtime-context-snippet">
+    🧩 Runtime context: application inputs become one LLM request
+  </div>
+  <script type="text/plain" id="llm-runtime-context-snippet">
+@startuml
+title Runtime context, context window, and LLM model boundary
+top to bottom direction
+skinparam componentStyle rectangle
+
+rectangle "APPLICATION / ORCHESTRATOR\n(outside the model)" {
+  component "Context Builder" as Builder
+  component "Current User Question" as Question
+  database "Conversation Store" as History
+  component "RAG Retriever" as RAG
+  component "Tool / API" as Tool
+
+  Question --> Builder : current question
+  History --> Builder : selected history
+  RAG --> Builder : retrieved evidence
+  Tool --> Builder : live result
+}
+
+rectangle "ONE INDEPENDENT MODEL CALL\n(serving pipeline)" {
+  rectangle "CONTEXT WINDOW CAPACITY\nmaximum 128K tokens (illustrative)" {
+    card "RUNTIME CONTEXT CONTENTS\n\nSystem instructions\nSelected conversation history\nCurrent user question\nRAG retrieved evidence\nTool definitions and results\nGenerated token IDs join during decoding" as Context
+  }
+
+  component Tokenizer
+  component "Token IDs" as IDs
+
+  rectangle "LLM MODEL\n(learned parameters)" {
+    component "Internal Embedding Layer" as Embeddings
+    component "Transformer Layers / Attention\nquestion ↔ evidence ↔ history" as Transformer
+    component "Output Projection\nNext-token Logits" as Logits
+
+    Embeddings --> Transformer
+    Transformer --> Logits
+  }
+
+  component "Softmax + Decoding Strategy\nSelect Next Token ID" as Decoder
+  component "Append Token ID to Running Context\nRepeat Until Stop" as Append
+  component "Detokenize / Stream Text" as Detokenizer
+
+  Context --> Tokenizer
+  Tokenizer --> IDs
+  IDs --> Embeddings
+  Logits --> Decoder
+  Decoder --> Append
+  Append --> Detokenizer
+}
+
+component "Application Receives Response" as Output
+Builder -down-> Context : assemble selected input
+Detokenizer -down-> Output : generated text / tool proposal
+@enduml
+  </script>
+</div>
+
+<ul>
+  <li>Python analogy:</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">MAX_CONTEXT_TOKENS</span> <span class="o">=</span> <span class="mi">128_000</span>  <span class="c1"># illustrative model limit
+</span><span class="n">model_parameters</span> <span class="o">=</span> <span class="n">load_learned_weights</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">llm_call</span><span class="p">(</span><span class="n">input_tokens</span><span class="p">,</span> <span class="n">max_output_tokens</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_tokens</span><span class="p">)</span> <span class="o">+</span> <span class="n">max_output_tokens</span> <span class="o">&lt;=</span> <span class="n">MAX_CONTEXT_TOKENS</span>
+    <span class="n">running_context</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">input_tokens</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_output_tokens</span><span class="p">):</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">model_forward</span><span class="p">(</span><span class="n">model_parameters</span><span class="p">,</span> <span class="n">running_context</span><span class="p">)</span>
+        <span class="n">next_token_id</span> <span class="o">=</span> <span class="n">decode</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+        <span class="n">running_context</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">next_token_id</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">detokenize</span><span class="p">(</span><span class="n">next_token_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_stop_token</span><span class="p">(</span><span class="n">next_token_id</span><span class="p">):</span>
+            <span class="k">break</span>
+</code></pre></div></div>
+
+<ul>
+  <li><strong>model_parameters</strong> stay fixed during inference; <strong>running_context</strong> is different for every call and grows during generation.</li>
+  <li>
+    <p>The pseudocode shows the mental model; production serving normally reuses a KV cache rather than recomputing the entire prefix.</p>
+  </li>
+  <li>The selected context is serialized according to the model’s chat format, tokenized, and supplied to a new inference call.</li>
+  <li>Message roles are structured context conventions:
+    <ul>
+      <li><strong>system/developer</strong>: application behaviour and constraints;</li>
+      <li><strong>user</strong>: caller request and data;</li>
+      <li><strong>assistant</strong>: earlier or generated model output;</li>
+      <li><strong>tool</strong>: observation returned by external execution.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="section-9-1-calculation">9.1 A 1,000-token calculation</h3>
+
+<p>The diagram used <code class="language-plaintext highlighter-rouge">128K</code> to show the boundary. Shrink it to <code class="language-plaintext highlighter-rouge">1,000</code> tokens to make the same capacity calculation easier to follow:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>input context tokens + generated output tokens ≤ context window
+</code></pre></div></div>
+
+<p>Each call is independent, but resending selected conversation history usually makes later input contexts larger:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CALL 1 — independent request
+Input context: [system + user] = 15 tokens
+Output:                              8 tokens
+Total used:                   15 + 8 = 23 / 1,000
+Unused capacity:            1,000 - 23 = 977 tokens
+Application stores the 8-token assistant response.
+
+CALL 2 — new independent request
+Input context:
+[system + previous user + previous assistant + new user] = 29 tokens
+Theoretical output headroom:                    1,000 - 29 = 971 tokens
+Application stores the new response.
+
+CALL 3 — new independent request
+Input context:
+[previous context + previous response + new message] = 43 tokens
+Theoretical output headroom:                    1,000 - 43 = 957 tokens
+</code></pre></div></div>
+
+<ul>
+  <li>The previous output consumed Call 1’s budget while it was generated.</li>
+  <li>If the application resends that output in Call 2, it is counted again as part of Call 2’s input context.</li>
+  <li>Theoretical headroom is not necessarily the allowed output size:</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>available output budget = minimum of:
+  configured max output tokens
+  model/provider output limit
+  context window - input context tokens
+</code></pre></div></div>
+
+<div class="image-wrapper">
+  <img src="./assets/llm_conversation_context_sequence.png" alt="Conversation history stored by an application and rebuilt into independent LLM calls" class="modal-trigger" data-caption="Conversation state → rebuilt context → independent LLM calls" />
+  <div class="diagram-caption" data-snippet-id="llm-conversation-context-snippet">
+    💬 Conversation history and independent context windows
+  </div>
+  <script type="text/plain" id="llm-conversation-context-snippet">
+@startuml
+title Conversation state becomes per-call context
+actor User
+participant Application as App
+database "Conversation Store" as Store
+participant LLM
+group Call 1 — independent
+  User -> App: Initial message
+  App -> LLM: system + user (15 input tokens)
+  LLM --> App: assistant response (8 output tokens)
+  App -> Store: Store user + assistant messages
+end
+group Call 2 — new independent call
+  User -> App: New message
+  App -> Store: Load relevant history
+  Store --> App: Previous user + assistant
+  App -> LLM: Rebuilt context (29 input tokens)
+  LLM --> App: New response
+  App -> Store: Store response
+end
+group Call 3 — new independent call
+  User -> App: Another message
+  App -> Store: Load/select relevant history
+  Store --> App: Stored conversation state
+  App -> LLM: Rebuilt context (43 input tokens)
+  LLM --> App: New response
+  App -> Store: Store response
+end
+@enduml
+  </script>
+</div>
+
+<ul>
+  <li>A useful prompt makes the task, required evidence, refusal conditions, and output shape explicit.</li>
+  <li>Prompting can improve model behaviour; it cannot enforce identity, authorization, factual truth, or transaction integrity.</li>
+  <li>Treat user text, retrieved documents, and tool results as untrusted data because they may contain conflicting or malicious instructions.</li>
+  <li>Practical consequences:
+    <ul>
+      <li>longer context increases input tokens, cost, prefill work, TTFT, and KV-cache memory;</li>
+      <li>output capacity must be reserved;</li>
+      <li>excess history must be trimmed, summarized/compacted, or retrieved selectively;</li>
+      <li>important evidence can be buried in irrelevant or repeated content;</li>
+      <li>a larger advertised window does not guarantee reliable attention to every detail.</li>
+    </ul>
+  </li>
+  <li>A provider may offer managed conversation state, but that remains an application/platform feature around independent inference calls.</li>
+</ul>
+
+<h2 id="section-10-training">10. Training, fine-tuning, and inference</h2>
+
+<ul>
+  <li><strong>Pretraining</strong>:
+    <ul>
+      <li>adjusts model parameters to reduce next-token prediction error over large datasets;</li>
+      <li>learns language and broad patterns without creating a traceable facts database.</li>
+    </ul>
+  </li>
+  <li><strong>Instruction/preference tuning</strong>:
+    <ul>
+      <li>shapes task following, response style, refusals, and preferred behaviour.</li>
+    </ul>
+  </li>
+  <li><strong>Fine-tuning</strong>:
+    <ul>
+      <li>adapts behaviour, terminology, format, or a narrow task using examples;</li>
+      <li>is not the default solution for frequently changing facts, citations, or authorization.</li>
+    </ul>
+  </li>
+  <li><strong>Inference</strong>:
+    <ul>
+      <li>runs the trained parameters for the current request;</li>
+      <li>consists of prefill followed by autoregressive decoding.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Fictional thought experiment: assume the base model was trained before Apple Inc. existed, so its weights strongly associate <code class="language-plaintext highlighter-rouge">Apple → fruit</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Approach</th>
+      <th>What changes?</th>
+      <th>Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Prompt</strong></td>
+      <td>Add “Apple means the technology company” to this request.</td>
+      <td>The model can follow that meaning for this request; weights do not change.</td>
+    </tr>
+    <tr>
+      <td><strong>RAG</strong></td>
+      <td>Retrieve current Apple documents into this request’s context.</td>
+      <td>The model can answer from supplied evidence; weights do not change.</td>
+    </tr>
+    <tr>
+      <td><strong>Fine-tuning</strong></td>
+      <td>Train further on many representative Apple examples.</td>
+      <td>Weights change, making terminology and behavioural associations more consistent.</td>
+    </tr>
+    <tr>
+      <td><strong>New pretraining</strong></td>
+      <td>Train a new base model on newer broad data containing Apple Inc.</td>
+      <td>Apple-company associations become part of base training.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>old model weights: Apple → mostly fruit
+                         +
+request context: Apple Inc. is a technology company ...
+                         ↓
+transformer processes question + current context
+                         ↓
+answer: Apple is a technology company ...
+</code></pre></div></div>
+
+<ul>
+  <li>Without that prompt/RAG context on a later independent call, the unchanged model may return to the fruit interpretation.</li>
+  <li>Fine-tuning can change learned associations, but it remains a poor database for products, prices, executives, policies, or inventory that change frequently.</li>
+  <li>Use RAG for current document knowledge and APIs/tools for authoritative live state.</li>
+</ul>
+
+<h3 id="section-10-1-mechanism">10.1 Apply it: an Apple support assistant</h3>
+
+<p>Apple now builds a support assistant for Gary’s device repair. <strong>Apple wants the assistant</strong> to behave consistently, but the surrounding application—not the model—must enforce security and transactions.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Need</th>
+      <th>Example</th>
+      <th>Use</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Behaviour</strong></td>
+      <td>Apple wants the assistant to call service requests <strong>Repairs</strong>, use its support tone, and follow its classification conventions.</td>
+      <td>Prompt first → fine-tuning if stronger consistency is needed</td>
+    </tr>
+    <tr>
+      <td><strong>Knowledge</strong></td>
+      <td>Gary asks, “Does my battery qualify for service under today’s support policy?”</td>
+      <td>RAG retrieves the current policy</td>
+    </tr>
+    <tr>
+      <td><strong>Live state</strong></td>
+      <td>Gary asks, “What is the current status of Repair #123?”</td>
+      <td>API/tool reads the repair system</td>
+    </tr>
+    <tr>
+      <td><strong>Identity</strong></td>
+      <td>The application must verify that the signed-in caller is Gary.</td>
+      <td>Authentication</td>
+    </tr>
+    <tr>
+      <td><strong>Authorization</strong></td>
+      <td>The application must decide whether Gary may view or approve Repair #123.</td>
+      <td>Authorization / IAM</td>
+    </tr>
+    <tr>
+      <td><strong>Transaction integrity</strong></td>
+      <td>After Gary confirms, create one replacement order—even if the request is retried.</td>
+      <td>Deterministic application/database logic</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Gary signs in → authenticate → authorize Repair #123
+              → retrieve current policy with RAG
+              → read live repair status through an API
+              → assistant explains the result
+Gary confirms → application creates one replacement order transactionally
+</code></pre></div></div>
+
+<ul>
+  <li>Prompting/fine-tuning changes how the assistant <strong>tends to behave</strong>. Start with prompts, examples, and schemas; fine-tune only when complex repeated behaviour remains inconsistent.</li>
+  <li>RAG can also retrieve behavioural instructions, but supplying “how to behave” on each request differs from making that behaviour a consistent model default.</li>
+  <li>Model output is only a proposal. Authentication, authorization, validation, idempotency, and database guarantees remain deterministic application controls.</li>
+</ul>
+
+<p>For deeper treatment, see <a href="/study/aiKnowledgebases">AI Knowledge Bases</a>, <a href="/study/aiAgents">AI Agents</a>, and <a href="/study/aiInfrastructure">AI Infrastructure and Evaluation</a>.</p>
+
+<h2 id="section-11-hallucination">11. Hallucination, grounding, and structured output</h2>
+
+<ul>
+  <li>The model selects plausible next tokens from learned patterns and supplied context; it does not automatically verify claims.</li>
+  <li>A <strong>hallucination</strong> is a claim, citation, entity, calculation, or tool argument unsupported by available evidence.</li>
+</ul>
+
+<p>Fictional example:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Question: "Who is the CEO of Glucolte?"
+Trusted evidence in this request: none
+
+After "The CEO of Glucolte is ..."
+illustrative next-token probabilities:
+  "Gary"     38%
+  "John"     21%
+  "Michael"  12%
+  ...
+
+Generated answer: "The CEO of Glucolte is Gary Lu."
+</code></pre></div></div>
+
+<ul>
+  <li>The probabilities are illustrative; names may also span several tokens.</li>
+  <li>The answer is grammatical and may sound confident, but the request contained no evidence supporting it. Even if it were accidentally correct, the answer would still be ungrounded.</li>
+  <li>The model does not reliably execute an internal rule such as <code class="language-plaintext highlighter-rouge">fact unknown → stop</code>. Its basic operation remains:</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>learned weights + supplied context
+               ↓
+next-token probability distribution
+               ↓
+plausible continuation
+</code></pre></div></div>
+
+<ul>
+  <li>Unsupported output can arise because:
+    <ul>
+      <li>the fact was absent, incorrect, or stale in training data;</li>
+      <li>the request context is missing or conflicting;</li>
+      <li>retrieval returned irrelevant or outdated evidence;</li>
+      <li>the model ignored or incorrectly combined valid evidence.</li>
+    </ul>
+  </li>
+  <li>RAG improves the evidence available to next-token prediction; it does not change the underlying generation process:</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>without RAG: weights + question                         → plausible guess
+with RAG:    weights + question + authoritative evidence → better-grounded answer
+</code></pre></div></div>
+
+<ul>
+  <li>RAG therefore reduces hallucination risk but cannot eliminate it: retrieval can fail, and the model can still misuse correct evidence.</li>
+  <li>Low temperature does not solve this:
+    <ul>
+      <li>it makes high-probability continuations more likely;</li>
+      <li>a likely continuation can still be wrong;</li>
+      <li>the model may repeat the same wrong answer more consistently.</li>
+    </ul>
+  </li>
+  <li>Reduce risk by:
+    <ul>
+      <li>supplying authoritative evidence through retrieval or tools;</li>
+      <li>requiring an insufficient-evidence response;</li>
+      <li>carrying source IDs into citations;</li>
+      <li>validating calculations, identifiers, and business rules in code;</li>
+      <li>using human approval for high-impact outcomes.</li>
+    </ul>
+  </li>
+  <li><strong>Structured output</strong> constrains syntax or shape, not truth:
+    <ul>
+      <li>valid JSON can contain a nonexistent customer;</li>
+      <li>schema-valid tool arguments can still be unauthorized or unsafe.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="section-12-boundaries">12. What remains outside the model</h2>
+
+<ul>
+  <li>The model can propose text, structured data, or a tool call.</li>
+  <li>The surrounding application must own:
+    <ul>
+      <li>authentication and authorization;</li>
+      <li>retrieval of permitted evidence;</li>
+      <li>tool execution and least-privilege credentials;</li>
+      <li>schema and domain validation;</li>
+      <li>retries, idempotency, state, and approvals;</li>
+      <li>logging, evaluation, and user-visible error handling.</li>
+    </ul>
+  </li>
+  <li>Prompt instructions cannot enforce permissions or transaction integrity.</li>
+  <li>Never treat generated tool arguments as authorization.</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>user request → model proposes tool + arguments
+             → application validates identity, policy, schema, and risk
+             → tool executes with least privilege
+             → model receives bounded observation
+             → model produces the next token or final answer
+</code></pre></div></div>
+
+<ul>
+  <li>Retrieval internals: <a href="/study/aiKnowledgebases">AI Knowledge Bases</a></li>
+  <li>Tool loops and agents: <a href="/study/aiAgents">AI Agents</a></li>
+  <li>Production controls: <a href="/study/aiInfrastructure">AI Infrastructure and Evaluation</a></li>
+</ul>
+
+<h2 id="section-13-complete-flow">13. Complete request flow</h2>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application builds context
+        ↓
+Tokenizer
+        ↓
+Token IDs
+        ↓
+Internal embedding lookup
+        ↓
+Transformer / attention
+        ↓
+Next-token logits
+        ↓
+Temperature → softmax → top-p / decoding strategy
+        ↓
+Next token ID
+        ↓
+Append to context ───────────────┐
+        ↑                        │
+        └── repeat transformer ──┘
+        ↓ stop condition
+Detokenize / stream
+        ↓
+User sees text
+</code></pre></div></div>
+
+<div class="image-wrapper">
+  <img src="./assets/llm_single_request_sequence.png" alt="Single LLM request from text through tokenization, prefill, decoding, and streamed output" class="modal-trigger" data-caption="Single LLM request: text → token IDs → embeddings → prefill → autoregressive decode → streamed text" />
+  <div class="diagram-caption" data-snippet-id="llm-single-request-snippet">
+    🧠 Complete single-request sequence
+  </div>
+  <script type="text/plain" id="llm-single-request-snippet">
+@startuml
+title Single LLM request: text to generated text
+actor User
+participant Application as App
+participant Tokenizer
+participant "Internal Embedding Layer" as Embed
+participant "Transformer" as Model
+participant "Logits / Softmax" as Scores
+participant Decoder
+User -> App: "Hello, this is Gary"
+App -> App: Build ordered context and reserve output space
+App -> Tokenizer: Serialize and tokenize context
+Tokenizer --> Embed: Input token IDs
+Embed --> Model: Token vectors + positional information
+Model -> Model: Prefill prompt and build KV cache
+loop One output token at a time
+  Model -> Scores: Next-token logits
+  Scores -> Scores: Temperature scaling + softmax
+  Scores -> Decoder: Probability distribution
+  Decoder -> Decoder: Apply top-p / decoding strategy
+  Decoder --> Tokenizer: Selected output token ID
+  Tokenizer --> App: Detokenized text piece
+  App --> User: Stream text piece
+  Decoder --> Embed: Append selected token ID
+  Embed --> Model: New token vector
+  Model -> Model: Decode using existing KV cache
+end
+Model --> App: Stop token / output limit / stop sequence
+App --> User: Completed response
+@enduml
+  </script>
+</div>
+
+    </article>
+  </main>
+
+  <div id="imageModal" class="image-modal">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <button class="modal-nav modal-prev">&#8249;</button>
+    <button class="modal-nav modal-next">&#8250;</button>
+    <img id="modalImage" src="" alt="">
+    <div id="modalCaption"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('imageModal');
+  const modalImg = document.getElementById('modalImage');
+  const modalCaption = document.getElementById('modalCaption');
+  const modalClose = document.querySelector('.modal-close');
+  const modalPrev = document.querySelector('.modal-prev');
+  const modalNext = document.querySelector('.modal-next');
+
+  const SCALE_STEP = 0.2;
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 3;
+
+  let modalImages = [];
+  let currentIndex = -1;
+  let currentScale = MIN_SCALE;
+  let translateX = 0;
+  let translateY = 0;
+  let isDragging = false;
+  let isTouchDragging = false;
+  let isPinching = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let pinchStartDistance = 0;
+  let pinchStartScale = MIN_SCALE;
+  let transitionTimeout;
+
+  function refreshModalImages() {
+    modalImages = Array.from(document.querySelectorAll('.modal-trigger'));
+  }
+
+  function applyTransform(withTransition = false) {
+    if (currentScale <= MIN_SCALE) {
+      currentScale = MIN_SCALE;
+      translateX = 0;
+      translateY = 0;
+    }
+
+    if (transitionTimeout) {
+      clearTimeout(transitionTimeout);
+      transitionTimeout = null;
+    }
+
+    modalImg.style.transition = withTransition ? 'transform 0.15s ease' : 'none';
+    modalImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+    modalImg.style.cursor = currentScale > MIN_SCALE
+      ? (isDragging || isTouchDragging ? 'grabbing' : 'grab')
+      : 'auto';
+
+    if (withTransition) {
+      transitionTimeout = setTimeout(() => {
+        modalImg.style.transition = 'none';
+      }, 160);
+    }
+  }
+
+  function resetTransform() {
+    currentScale = MIN_SCALE;
+    translateX = 0;
+    translateY = 0;
+    applyTransform(false);
+  }
+
+  function getDistance(touch1, touch2) {
+    return Math.hypot(
+      touch1.clientX - touch2.clientX,
+      touch1.clientY - touch2.clientY
+    );
+  }
+
+  function openModalAtIndex(index) {
+    refreshModalImages();
+
+    if (!modalImages.length) {
+      return;
+    }
+
+    if (index < 0) {
+      index = modalImages.length - 1;
+    } else if (index >= modalImages.length) {
+      index = 0;
+    }
+
+    const target = modalImages[index];
+    if (!target) {
+      return;
+    }
+
+    currentIndex = index;
+    const src = target.dataset.modalSrc || target.src;
+    const caption = target.getAttribute('data-caption') || target.alt;
+
+    modalImg.src = src;
+    modalCaption.textContent = caption || '';
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    resetTransform();
+  }
+
+  function closeModal() {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+    currentIndex = -1;
+    isDragging = false;
+    isTouchDragging = false;
+    isPinching = false;
+    resetTransform();
+  }
+
+  refreshModalImages();
+
+  modalImg.addEventListener('dragstart', event => event.preventDefault());
+
+  document.addEventListener('click', event => {
+    const trigger = event.target.closest('.modal-trigger');
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+    refreshModalImages();
+    const index = modalImages.indexOf(trigger);
+    openModalAtIndex(index > -1 ? index : 0);
+  });
+
+  modalClose?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', event => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    switch (event.key) {
+      case 'Escape':
+        closeModal();
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        openModalAtIndex(currentIndex - 1);
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        openModalAtIndex(currentIndex + 1);
+        break;
+      case '+':
+      case '=':
+        event.preventDefault();
+        currentScale = Math.min(MAX_SCALE, currentScale + SCALE_STEP);
+        applyTransform(true);
+        break;
+      case '-':
+        event.preventDefault();
+        currentScale = Math.max(MIN_SCALE, currentScale - SCALE_STEP);
+        applyTransform(true);
+        break;
+      case '0':
+        event.preventDefault();
+        resetTransform();
+        applyTransform(true);
+        break;
+      default:
+        break;
+    }
+  });
+
+  modal.addEventListener('wheel', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -SCALE_STEP : SCALE_STEP;
+    const nextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale + delta));
+
+    if (nextScale === currentScale) {
+      return;
+    }
+
+    currentScale = nextScale;
+    applyTransform(true);
+  }, { passive: false });
+
+  if (modalPrev) {
+    modalPrev.addEventListener('click', event => {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex - 1);
+    });
+  }
+
+  if (modalNext) {
+    modalNext.addEventListener('click', event => {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        return;
+      }
+      openModalAtIndex(currentIndex + 1);
+    });
+  }
+
+  modalImg.addEventListener('mousedown', event => {
+    if (!modal.classList.contains('show') || currentScale <= MIN_SCALE) {
+      return;
+    }
+
+    event.preventDefault();
+    isDragging = true;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    modalImg.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', event => {
+    if (!isDragging) {
+      return;
+    }
+
+    event.preventDefault();
+    translateX += event.clientX - dragStartX;
+    translateY += event.clientY - dragStartY;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    applyTransform(false);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) {
+      return;
+    }
+    isDragging = false;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modalImg.addEventListener('touchstart', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.touches.length === 1 && currentScale > MIN_SCALE) {
+      event.preventDefault();
+      isTouchDragging = true;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      modalImg.style.cursor = 'grabbing';
+    } else if (event.touches.length === 2) {
+      event.preventDefault();
+      isTouchDragging = false;
+      isPinching = true;
+      pinchStartDistance = getDistance(event.touches[0], event.touches[1]);
+      pinchStartScale = currentScale;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+    }
+  }, { passive: false });
+
+  modalImg.addEventListener('touchmove', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (isPinching && event.touches.length === 2) {
+      event.preventDefault();
+      const distance = getDistance(event.touches[0], event.touches[1]);
+      if (pinchStartDistance > 0) {
+        const scaleRatio = distance / pinchStartDistance;
+        currentScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchStartScale * scaleRatio));
+        applyTransform(false);
+      }
+    } else if (isTouchDragging && event.touches.length === 1) {
+      event.preventDefault();
+      translateX += event.touches[0].clientX - dragStartX;
+      translateY += event.touches[0].clientY - dragStartY;
+      dragStartX = event.touches[0].clientX;
+      dragStartY = event.touches[0].clientY;
+      applyTransform(false);
+    }
+  }, { passive: false });
+
+  modalImg.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.touches.length === 0) {
+      isTouchDragging = false;
+      modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+    }
+
+    if (event.touches.length < 2) {
+      isPinching = false;
+      pinchStartDistance = 0;
+      pinchStartScale = currentScale;
+    }
+  });
+
+  modalImg.addEventListener('touchcancel', () => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    isTouchDragging = false;
+    isPinching = false;
+    pinchStartDistance = 0;
+    pinchStartScale = currentScale;
+    modalImg.style.cursor = currentScale > MIN_SCALE ? 'grab' : 'auto';
+  });
+
+  modal.addEventListener('touchend', event => {
+    if (!modal.classList.contains('show')) {
+      return;
+    }
+
+    if (event.target === modal && event.changedTouches.length === 1 && !isTouchDragging && !isPinching) {
+      closeModal();
+    }
+  }, { passive: true });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-snippet-id]').forEach(caption => {
+    const snippetId = caption.getAttribute('data-snippet-id');
+    const snippetElement = document.getElementById(snippetId);
+
+    if (snippetElement) {
+      const content = snippetElement.textContent.replace(/"/g, '&quot;');
+      caption.setAttribute('data-tooltip', content);
+      caption.classList.add('diagram-caption');
+    }
+  });
+});
+</script>
+
+
+  <!-- Floating Table of Contents -->
+  <div id="floating-toc" class="floating-toc">
+    <div class="toc-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"></line>
+        <line x1="8" y1="12" x2="21" y2="12"></line>
+        <line x1="8" y1="18" x2="21" y2="18"></line>
+        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+      </svg>
+    </div>
+    <div class="toc-content">
+      <div class="toc-header">
+        <span>Contents</span>
+        <button class="toc-close" aria-label="Close table of contents">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="toc-nav" id="toc-nav">
+        <!-- Generated by JavaScript -->
+      </nav>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Dark mode functionality
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      
+      // Check for saved theme preference or default to light mode
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      
+      // Toggle dark mode
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    
+    // Initialize dark mode immediately to prevent flash
+    initDarkMode();
+    
+    // Initialize highlight.js and floating TOC after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      hljs.highlightAll();
+      
+      // Floating TOC functionality - only show on sub-study pages
+      const floatingToc = document.getElementById('floating-toc');
+      const tocNav = document.getElementById('toc-nav');
+      const tocClose = document.querySelector('.toc-close');
+      
+      // Check if we're on a sub-study page (not the main study index)
+      const isSubStudyPage = window.location.pathname !== '/study/' && 
+                            window.location.pathname !== '/study' && 
+                            window.location.pathname.startsWith('/study/');
+      
+      if (floatingToc && tocNav && isSubStudyPage) {
+        // Generate TOC from headings
+        function generateTOC() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          if (headings.length === 0) {
+            floatingToc.style.display = 'none';
+            return;
+          }
+          
+          const tocList = document.createElement('ul');
+          let currentLevel = 0;
+          let currentList = tocList;
+          const listStack = [tocList];
+          
+          headings.forEach((heading, index) => {
+            const level = parseInt(heading.tagName.charAt(1));
+            const id = heading.id || `heading-${index}`;
+            
+            // Ensure heading has an ID
+            if (!heading.id) {
+              heading.id = id;
+            }
+            
+            // Create list item
+            const listItem = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = `#${id}`;
+            link.textContent = heading.textContent.trim();
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetElement = document.getElementById(id);
+              if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Close TOC after clicking
+                floatingToc.classList.remove('toc-open');
+              }
+            });
+            
+            listItem.appendChild(link);
+            
+            // Handle nesting
+            if (level > currentLevel) {
+              // Go deeper
+              for (let i = currentLevel; i < level; i++) {
+                const newList = document.createElement('ul');
+                currentList.appendChild(newList);
+                listStack.push(newList);
+                currentList = newList;
+              }
+            } else if (level < currentLevel) {
+              // Go shallower
+              for (let i = currentLevel; i > level; i--) {
+                listStack.pop();
+                currentList = listStack[listStack.length - 1];
+              }
+            }
+            
+            currentList.appendChild(listItem);
+            currentLevel = level;
+          });
+          
+          tocNav.appendChild(tocList);
+        }
+        
+        // Generate the TOC
+        generateTOC();
+        
+        // Handle close button
+        if (tocClose) {
+          tocClose.addEventListener('click', function() {
+            floatingToc.classList.remove('toc-open');
+          });
+        }
+        
+        // Handle click on icon to toggle
+        const tocIcon = document.querySelector('.toc-icon');
+        if (tocIcon) {
+          tocIcon.addEventListener('click', function() {
+            floatingToc.classList.toggle('toc-open');
+          });
+        }
+        
+        // Active section highlighting
+        function updateActiveSection() {
+          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          const tocLinks = tocNav.querySelectorAll('a');
+          
+          // Remove active class from all links
+          tocLinks.forEach(link => link.classList.remove('active'));
+          
+          // Find the current section
+          let currentHeading = null;
+          const scrollPosition = window.scrollY + 100; // Offset for better UX
+          
+          for (let i = headings.length - 1; i >= 0; i--) {
+            const heading = headings[i];
+            const headingTop = heading.offsetTop;
+            
+            if (headingTop <= scrollPosition) {
+              currentHeading = heading;
+              break;
+            }
+          }
+          
+          // Add active class to current section
+          if (currentHeading) {
+            const activeLink = tocNav.querySelector(`a[href="#${currentHeading.id}"]`);
+            if (activeLink) {
+              activeLink.classList.add('active');
+            }
+          }
+        }
+        
+        // Update active section on scroll
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+          if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+          }
+          scrollTimeout = setTimeout(updateActiveSection, 10);
+        });
+        
+        // Initial update
+        updateActiveSection();
+      } else if (floatingToc && !isSubStudyPage) {
+        // Hide floating TOC on main study page
+        floatingToc.style.display = 'none';
+      }
+      
+      // Legacy TOC functionality (for existing markdown TOCs)
+      const toc = document.querySelector('#markdown-toc');
+      if (toc) {
+        // Hide the floating TOC if there's already a markdown TOC
+        if (floatingToc) {
+          floatingToc.style.display = 'none';
+        }
+        
+        // Create TOC container with header
+        const tocContainer = document.createElement('div');
+        tocContainer.className = 'toc-container';
+        tocContainer.style.cssText = `
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 16px;
+          margin: 20px 0;
+          position: relative;
+        `;
+        
+        // Add TOC header
+        const tocHeader = document.createElement('h3');
+        tocHeader.textContent = 'Table of Contents';
+        tocHeader.style.cssText = `
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #374151;
+        `;
+        
+        // Add back to top button
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.textContent = '↑ Top';
+        backToTopBtn.style.cssText = `
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 12px;
+          cursor: pointer;
+          color: #6b7280;
+          transition: all 0.2s ease;
+        `;
+        
+        // Add hover effect for back to top button
+        backToTopBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#f3f4f6';
+          this.style.color = '#374151';
+        });
+        
+        backToTopBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#ffffff';
+          this.style.color = '#6b7280';
+        });
+        
+        // Back to top functionality
+        backToTopBtn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Style the TOC list
+        toc.style.cssText = `
+          margin: 0;
+          padding: 0;
+          font-size: 14px;
+          line-height: 1.5;
+        `;
+        
+        // Insert header and button into container
+        tocContainer.appendChild(tocHeader);
+        tocContainer.appendChild(backToTopBtn);
+        tocContainer.appendChild(toc);
+        
+        // Replace the original TOC with the new container
+        toc.parentNode.insertBefore(tocContainer, toc);
+        tocContainer.appendChild(toc);
+        
+        // Add smooth scrolling to TOC links
+        const tocLinks = toc.querySelectorAll('a');
+        tocLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

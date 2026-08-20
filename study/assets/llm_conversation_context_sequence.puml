@@ -1,0 +1,29 @@
+@startuml
+title Conversation state becomes per-call context
+actor User
+participant Application as App
+database "Conversation Store" as Store
+participant LLM
+group Call 1 — independent
+  User -> App: Initial message
+  App -> LLM: system + user (15 input tokens)
+  LLM --> App: assistant response (8 output tokens)
+  App -> Store: Store user + assistant messages
+end
+group Call 2 — new independent call
+  User -> App: New message
+  App -> Store: Load relevant history
+  Store --> App: Previous user + assistant
+  App -> LLM: Rebuilt context (29 input tokens)
+  LLM --> App: New response
+  App -> Store: Store response
+end
+group Call 3 — new independent call
+  User -> App: Another message
+  App -> Store: Load/select relevant history
+  Store --> App: Stored conversation state
+  App -> LLM: Rebuilt context (43 input tokens)
+  LLM --> App: New response
+  App -> Store: Store response
+end
+@enduml

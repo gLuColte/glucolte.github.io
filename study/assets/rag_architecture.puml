@@ -1,0 +1,31 @@
+@startuml
+title Fictional Apple policy RAG: ingestion versus one user request
+actor "Customer / Support User\n(client)" as User
+participant "AI Support Application" as App
+participant "Policy Repository" as Docs
+participant "Ingestion Pipeline" as Ingest
+database "Hybrid Search Index\nBM25 + vectors" as Index
+participant "Reranker\noptional per request" as Reranker
+participant LLM
+
+== Phase 1 — asynchronous ingestion when policy changes ==
+Docs -> Ingest: POL-BAT-AU-2026 PDF
+Ingest -> Ingest: Parse → section-aware chunks\nmetadata → embeddings
+Ingest -> Index: Terms + vectors + source ID + ACL metadata
+
+== Phase 2 — query-time work for this user request ==
+User -> App: Ask battery-policy question + login token
+App -> App: Authenticate; derive document entitlements\nbuild standalone search query
+App -> Index: BM25 + vector search\nproduct=iPhone, region=AU, status=current\n+ permitted-document filters
+Index --> App: Top K permitted candidates
+
+opt Reranking enabled
+  App -> Reranker: Current question + Top K candidates
+  Reranker --> App: Candidates reordered for this question
+end
+
+App -> App: Take Top N; build runtime context\nwith evidence + source IDs
+App -> LLM: Instructions + evidence + question
+LLM --> App: Grounded answer draft
+App --> User: "Below 80%, subject to checks" + citation
+@enduml

@@ -17,7 +17,7 @@ The following are infrastructure and cloud services study pages:
 <div class="study-tiles">
 {% assign all_pages = site.pages | sort: "title" %}
 {% for p in all_pages %}
-  {% if p.url contains '/study/infrastructure' %}
+  {% if p.url contains '/study/infrastructure' and p.url != '/study/infrastructureAWSAiServices' %}
     <a href="{{ p.url | relative_url }}" class="study-tile system-design">
       <div class="study-tile-title">
         <span class="study-tile-icon">🏗️</span>
@@ -370,7 +370,7 @@ The following are system design fundamentals study pages:
 <div class="study-tiles">
 {% assign all_pages = site.pages | sort: "title" %}
 {% for p in all_pages %}
-  {% if p.url contains '/study/systemDesign' and p.url != '/study/' %}
+  {% if p.url contains '/study/systemDesign' and p.url != '/study/' and p.hidden != true %}
     <a href="{{ p.url | relative_url }}" class="study-tile system-design">
       <div class="study-tile-title">
         <span class="study-tile-icon">📊</span>
@@ -386,20 +386,46 @@ The following are system design fundamentals study pages:
 
 ## AI {#ai}
 
-The following are AI study pages:
+- Recommended order: fundamentals → models/providers → retrieval → agents → infrastructure/evaluation → AWS services.
+- The tiles below are the only AI index. Merged and legacy URLs remain available for old bookmarks but are hidden here.
 
 <div class="study-tiles">
-{% assign all_pages = site.pages | sort: "title" %}
-{% for p in all_pages %}
-  {% if p.url contains '/study/ai' and p.url != '/study/' %}
-    <a href="{{ p.url | relative_url }}" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">🤖</span>
-        {{ p.title | default: p.url }}
-      </div>
-    </a>
-  {% endif %}
-{% endfor %}
+  <a href="{{ '/study/aiFundamentals' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">1️⃣</span>
+      AI Fundamentals
+    </div>
+  </a>
+  <a href="{{ '/study/aiModels' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">2️⃣</span>
+      AI Models and Providers
+    </div>
+  </a>
+  <a href="{{ '/study/aiKnowledgebases' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">3️⃣</span>
+      AI Knowledge Bases and Retrieval
+    </div>
+  </a>
+  <a href="{{ '/study/aiAgents' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">4️⃣</span>
+      AI Agents
+    </div>
+  </a>
+  <a href="{{ '/study/aiInfrastructure' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">5️⃣</span>
+      AI Infrastructure and Evaluation
+    </div>
+  </a>
+  <a href="{{ '/study/infrastructureAWSAiServices' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">6️⃣</span>
+      AWS AI Services
+    </div>
+  </a>
 </div>
 
 ---

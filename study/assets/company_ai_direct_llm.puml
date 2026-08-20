@@ -1,0 +1,19 @@
+@startuml
+title Early GenAI point solution
+actor User
+participant "Product Application" as App
+database "Application Data" as Data
+participant "Hosted LLM API" as LLM
+User -> App: Natural-language request
+App -> Data: Read selected context
+Data --> App: Business data
+App -> App: Build prompt inside product code
+App -> LLM: Prompt + copied context
+LLM --> App: Generated response
+App -> App: Basic format/content check
+App --> User: Response
+note over App,LLM
+Each product team may duplicate credentials,
+prompts, policy, logging, evaluation, and fallback.
+end note
+@enduml

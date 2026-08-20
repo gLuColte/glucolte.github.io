@@ -1,0 +1,33 @@
+@startuml
+title Direct generation, internal reasoning, and external multi-step work
+actor User
+participant "Application / Router" as App
+participant "Selected Model" as Model
+participant "Policy + Tool Executor" as Tools
+
+User -> App: Request
+
+alt Simple or well-defined task
+  App -> Model: Prompt + runtime context\nlow/default reasoning effort
+  Model -> Model: Autoregressive decode
+  Model --> App: Direct answer
+else Difficult reasoning; no external state needed
+  App -> Model: Prompt + runtime context\nhigher reasoning effort where supported
+  group One model call
+    Model -> Model: Internal deliberation tokens\nplan → test → correct
+    Model -> Model: Generate final answer
+  end
+  Model --> App: Final answer
+else Live data, actions, or durable steps needed
+  loop Bounded application-controlled steps
+    App -> Model: Goal + observations + permitted tools
+    Model --> App: Proposed action
+    App -> Tools: Authorize, validate, execute
+    Tools --> App: Live result / durable state
+  end
+  App -> Model: Final permitted evidence
+  Model --> App: Grounded final answer
+end
+
+App --> User: Result
+@enduml

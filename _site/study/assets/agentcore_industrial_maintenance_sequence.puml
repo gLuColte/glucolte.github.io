@@ -1,0 +1,46 @@
+@startuml
+title Industrial maintenance agent with Amazon Bedrock AgentCore
+actor "Plant Engineer" as User
+participant "App + Cognito\nAPI Gateway" as Edge
+participant "AgentCore Runtime\nSupervisor Agent" as Runtime
+participant "AgentCore Identity\nPolicy + Memory" as Controls
+participant "Bedrock Model" as Model
+participant "AgentCore Gateway\nBounded MCP Tools" as Gateway
+participant "Knowledge + Plant Systems\nKB / OpenSearch / CMMS / SiteWise" as Systems
+participant "Step Functions\nHuman Approval" as Approval
+participant "CloudWatch / OTel\nCloudTrail" as Audit
+
+User -> Edge: Ask about pump vibration
+Edge -> Edge: Authenticate; derive user, role, plant
+Edge -> Runtime: Request + trusted claims
+Runtime -> Controls: Load plant-scoped memory and permissions
+Controls --> Runtime: Context + allowed actions
+Runtime -> Model: Instructions + evidence needs + tool schemas
+Model --> Runtime: Proposed tool call
+Runtime -> Controls: Authorize principal, plant, tool, arguments
+
+alt Read-only diagnosis is permitted
+  Controls --> Runtime: Permit
+  Runtime -> Gateway: get_asset_health / search_manuals
+  Gateway -> Systems: Authorized, validated request
+  Systems --> Gateway: Telemetry / permitted evidence
+  Gateway --> Runtime: Structured result + source IDs
+else State-changing or high-impact action
+  Controls --> Runtime: Require approval
+  Runtime -> Approval: Proposed action + reason + scope
+  Approval -> User: Request approval
+  User --> Approval: Approve or reject
+  Approval --> Runtime: Signed workflow decision
+  Runtime -> Gateway: create_work_order + idempotency key
+  Gateway -> Systems: Authorized business API call
+  Systems --> Gateway: Work-order ID / rejection
+  Gateway --> Runtime: Structured result
+end
+
+Runtime -> Model: Tool result; request grounded response
+Model --> Runtime: Response draft
+Runtime -> Controls: Store scoped summary, not plant record
+Runtime -> Audit: Trace model, policy, retrieval, tool, outcome
+Runtime --> Edge: Answer + evidence + action status
+Edge --> User: Display result
+@enduml

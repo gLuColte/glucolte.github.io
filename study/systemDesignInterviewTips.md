@@ -1,171 +1,402 @@
 ---
-title: Interview Tips
+title: System Design Interviews with C4
 permalink: /study/systemDesignInterviewTips
 ---
 
-# Interview Tips {#interview-tips}
+# System Design Interviews with C4 {#interview-tips}
 
-System design interviews are not speed tests. Answering fast does not give extra points if the design is shallow, unscoped, or ignores tradeoffs. Interviewers usually care more about how you reason: whether you ask the right questions, make explicit assumptions, compare options, and adjust when new constraints appear.
+A strong system design answer should move through clear levels of abstraction instead of mixing users, services, databases, classes, and infrastructure on one diagram. The [C4 model](https://c4model.com/introduction) gives us that structure:
 
-The goal is not to build a perfect real-world production system in 45 minutes. The goal is to show a clear design process.
+1. **Context:** the system in its world.
+2. **Container:** the applications and data stores inside the system.
+3. **Component:** the major building blocks inside one container.
+4. **Code:** implementation detail inside one component.
+
+This is a better backbone than treating source, storage, logic, presentation, infrastructure, and interview technique as parallel steps. Those are still useful **design concerns**, but they should be considered at the appropriate C4 zoom level.
+
+One qualification matters: C4 is a way to **describe and communicate** architecture, not a complete design method or a mandatory four-step process. Requirements, sizing, data flow, security, reliability, and trade-offs still drive the design. In most interviews, Context and Container are enough; zoom into Components only for the riskiest part, and use Code only when it genuinely explains an algorithm or data structure.
+
+---
+
+## The Interview Flow {#the-interview-flow}
+
+Use this sequence:
+
+~~~
+0. Scope and constraints
+1. Context
+2. Container
+3. Component, only where risk justifies it
+4. Code, rarely
+5. Dynamic and deployment views, when useful
+6. Review and wrap up
+~~~
+
+The rule is simple: **finish the story at one zoom level before moving inward**. Tell the interviewer when you zoom in and name the parent element you are opening.
+
+| Stage | Main question | Typical output |
+|---|---|---|
+| Scope | What are we building, for whom, and under what constraints? | Functional requirements, quality goals, assumptions, scale |
+| Context | How does the system fit into the world? | People, system boundary, external systems, major relationships |
+| Container | What runs or stores data inside the system? | Applications, services, jobs, queues, caches, and data stores |
+| Component | How does one high-risk container work internally? | Major responsibilities and their relationships |
+| Code | Which implementation detail needs explanation? | Class, function, algorithm, state machine, or schema detail |
+| Supporting views | How does a scenario execute and where does it run? | Dynamic or deployment diagram |
+| Wrap-up | Is the design plausible and what does it trade off? | Bottlenecks, failure modes, decisions, next steps |
 
 ---
 
 ## Core Mindset {#core-mindset}
 
-- Do not jump straight into solution mode.
-- Do not think in silence; explain what you are considering.
-- Always clarify the problem before drawing.
-- Ask at least 10 useful questions before committing to a design.
-- Make assumptions explicit when the interviewer does not provide an answer.
-- Treat the interviewer like a teammate, not a judge waiting for one exact answer.
-- Prefer tradeoffs over absolute claims. Say what each option improves and what it costs.
-- Start broad, then go deep only after the interviewer agrees on the high-level shape.
+- Clarify the problem before drawing architecture.
+- Make assumptions explicit when exact answers are unavailable.
+- Think aloud and treat the interviewer as a design partner.
+- Tie every box to a requirement; do not add technology decoratively.
+- Prefer explicit trade-offs over absolute claims.
+- Keep each diagram at one abstraction level.
+- Start broad and zoom in only after the current view is understood.
+- Spend detail where uncertainty or risk is highest.
+- Use rough numbers to test plausibility, not to create false precision.
 
 ---
 
-## Step 1: Understand the Problem and Establish Scope {#step-1-understand-the-problem-and-establish-scope}
+## Step 0: Scope and Constraints {#step-0-scope-and-constraints}
 
-Ask the right questions, make reasonable assumptions, and gather the information needed to design the system. You are not expected to build every detail of a real-world product; you are being evaluated on process, prioritization, and engineering judgment.
+C4 starts with a system boundary, but requirements tell you where that boundary belongs and what must happen inside it.
 
-Good scoping questions:
+### Functional scope
 
-- What specific features are we building?
-- Which features are explicitly out of scope?
-- Is this for mobile, web, internal users, external users, or all of them?
-- How many users does the product have today?
-- How many daily active users, monthly active users, or requests per second should we expect?
-- How fast does the company expect to scale? What are the expected numbers in 3 months, 6 months, and 1 year?
-- Is the workload read-heavy, write-heavy, or balanced?
-- What latency target matters to users?
-- What availability target matters to the business?
-- What data must be durable?
-- What data can be eventually consistent?
-- Are there privacy, compliance, or security requirements?
-- What is the existing technology stack?
-- Are there existing services we should reuse to simplify the design?
-- Which part of the system is most important to optimize: cost, speed, reliability, developer velocity, or correctness?
+Ask enough high-value questions to identify:
 
-After asking, summarize the scope:
+- Primary users and their goals.
+- Critical use cases and user journeys.
+- Features explicitly in and out of scope.
+- Inputs, outputs, and external integrations.
+- Web, mobile, machine-to-machine, batch, or realtime clients.
 
-```
-I will design X for Y users, supporting A, B, and C features.
-I will assume read traffic is higher than write traffic.
-I will prioritize availability and low read latency over strict consistency.
-```
+Summarize before designing:
 
----
+~~~
+I will design X for Y users, supporting A, B, and C.
+D and E are out of scope.
+The critical journey is A -> B -> C.
+~~~
 
-## Step 2: Propose a High-Level Design and Get Buy-In {#step-2-propose-a-high-level-design-and-get-buy-in}
+### Quality attributes
 
-Collaborate with the interviewer. Come up with an initial blueprint, ask for feedback, and make sure you are both solving the same problem before going deeper.
+Make vague words measurable:
 
-What to do:
+- **Scale:** users, requests per second, events per second, object count, event size, and growth.
+- **Latency:** target p50, p95, or p99 for critical operations.
+- **Availability:** which journeys must remain available and the acceptable downtime.
+- **Durability:** which data cannot be lost.
+- **Consistency:** where stale reads or conflicting writes are unacceptable.
+- **Security and privacy:** identity, authorization, tenancy, compliance, retention, and deletion.
+- **Cost and delivery constraints:** team size, existing stack, time, and operating budget.
 
-- Draw a box diagram with the key components.
-- List the high-level areas before deep diving: API, data model, storage, cache, async processing, scaling, reliability, observability.
-- Show the main request flow from client to backend to storage.
-- Separate read path and write path if they differ.
-- Identify the API boundary.
-- Identify storage choices and why they fit the access pattern.
-- Do quick back-of-the-envelope calculations to evaluate scale.
-- Mention the main use cases and walk one or two through the design.
-- Ask: "Does this high-level direction match what you want me to focus on?"
+Use [Numbers That Matter](/study/systemDesignNumbersThatMatter) for quick sizing and [SLA, SLO & SLI](/study/systemDesignSlaSloSli) for measurable reliability targets.
 
-Useful structure:
+### Back-of-the-envelope sizing
 
-```
-Client -> API Gateway / Load Balancer -> Service Layer -> Storage
-                                      -> Cache
-                                      -> Queue / Stream
-                                      -> Workers
-                                      -> Search / Analytics
-```
+Calculate only numbers that can change the architecture:
 
-Use [Numbers That Matter](/study/systemDesignNumbersThatMatter) for quick sizing estimates.
+~~~
+average QPS = requests per day / 86,400
+peak QPS = average QPS x peak factor
+daily ingest = events per second x bytes per event x 86,400
+retained storage = daily ingest x retention x replication/index overhead
+bandwidth = requests per second x response bytes
+~~~
+
+State the consequence of each estimate. “100K writes/second suggests partitioned ingestion” is useful; an isolated number is not.
 
 ---
 
-## Step 3: Design Deep Dive {#step-3-design-deep-dive}
+## Level 1: System Context {#level-1-system-context}
 
-At this stage, you and the interviewer should be on the same wavelength. Now identify the most important components and go deeper.
+The Context diagram answers: **What is the system, who uses it, and what does it depend on?**
 
-Do not get carried away with unnecessary implementation details. This is a system design interview, not a framework or syntax interview. Go deep where the design risk is highest.
+Draw:
 
-Good areas to deep dive:
+- One box for the software system in scope.
+- People or roles that use it.
+- External software systems it communicates with.
+- Directed, labelled relationships that describe intent.
 
-- Data model and key entities.
-- API contracts for critical flows.
-- Database choice and indexing strategy.
-- Cache strategy and invalidation.
-- Queue or stream processing.
-- Partitioning and sharding.
-- Consistency model.
-- Rate limiting and abuse protection.
-- Failure handling and retries.
-- Observability: metrics, logs, tracing, alerts.
-- Deployment and rollback strategy.
+Do not draw internal APIs, databases, queues, caches, frameworks, or classes here. Those belong at deeper levels.
 
-How to choose the deep dive:
+### Context checklist
 
-1. List the high-level areas first.
-2. Ask the interviewer what they want to focus on.
-3. If they do not specify, pick the most important area and deep dive confidently.
+- What business or user responsibility does the system own?
+- Who initiates each critical use case?
+- Which external systems supply or receive information?
+- Where are the trust and ownership boundaries?
+- Which relationships are synchronous, asynchronous, batch, or manual?
+- Which critical requirement motivates the design?
 
-```
-The riskiest part of this design is X because Y.
-I will focus there first unless you would rather explore another part.
-```
+A good relationship label says **why** the interaction exists, such as “submits ride request” or “sends payment authorization”, rather than the generic “uses”.
 
----
+End this level by walking through one critical journey and confirming the boundary:
 
-## Step 4: Wrap Up {#step-4-wrap-up}
-
-The interviewer may ask you to identify bottlenecks and discuss improvements. A strong wrap-up shows that you understand the design is not finished just because the boxes are drawn.
-
-Cover:
-
-- Recap the design in 30-60 seconds.
-- Identify likely bottlenecks.
-- Discuss error cases and failure modes.
-- Mention operational concerns: monitoring, logs, alerts, CI/CD, rollback.
-- Explain what you would improve next with more time.
-- Revisit tradeoffs: what the design optimizes for and what it sacrifices.
-
-Good closing sentence:
-
-```
-This design prioritizes fast reads and high availability. The main tradeoff is extra complexity around cache invalidation and async processing. If we had more time, I would go deeper into failure recovery and data consistency.
-```
+~~~
+At the Context level, the rider requests a trip from the Ride Platform.
+The platform obtains payment authorization from the Payment Provider
+and sends status notifications through the Notification Provider.
+Does this boundary match the problem you want me to solve?
+~~~
 
 ---
 
-## DOs {#dos}
+## Level 2: Containers {#level-2-containers}
 
-- Always ask for clarification.
-- Understand the requirements before designing.
-- Repeat the requirements back to confirm alignment.
-- Let the interviewer know what you are thinking.
-- Suggest multiple approaches when there is a meaningful tradeoff.
-- Start with the big picture first.
-- List the possible deep-dive areas before choosing one.
-- Ask the interviewer where they want to go deeper.
-- Go into component detail only after the high-level design is agreed.
-- Bounce ideas off the interviewer.
-- Use rough numbers to test whether the design is plausible.
-- Call out tradeoffs explicitly.
+The Container diagram answers: **What are the major runnable applications and data stores inside the system, and how do they collaborate?**
+
+In C4, a container is not necessarily Docker. It is an application or data store that runs code or holds data: a web app, mobile app, API, worker, database, object store, queue, or search index.
+
+For each container, show:
+
+- A specific name.
+- Its responsibility.
+- Its technology, when the choice matters.
+- Directed and labelled relationships.
+- The system boundary around all in-scope containers.
+
+This is usually the most valuable interview diagram because it exposes service boundaries, data ownership, communication style, and the high-level read/write paths.
+
+### Design the main paths
+
+Walk through the critical use case rather than listing disconnected boxes:
+
+1. Where does the request or event enter?
+2. Which container validates and authorizes it?
+3. Which container owns the business decision?
+4. What is the source of truth?
+5. Which derived stores, caches, indexes, or events are updated?
+6. How does the result reach the user or downstream system?
+7. What happens if a dependency is slow, unavailable, or returns twice?
+
+Separate read and write paths when they differ. Label protocols only when relevant, such as HTTPS/JSON, gRPC, WebSocket, or events on a named topic.
+
+### Data and request-flow lens {#data-and-request-flow-lens}
+
+The useful part of the old Hourglass model becomes a checklist within the C4 views, not a competing sequence of abstraction levels:
+
+| Concern | Context view | Container view | Component view |
+|---|---|---|---|
+| Source | Person or external system that starts the flow | Ingress application, API, upload, topic, or job | Validator, adapter, consumer, or handler |
+| Type | Business information crossing the boundary | Payload/event family, size, rate, and serialization | Schema validation and evolution |
+| Storage | Usually omitted | Source of truth, derived stores, cache, index, retention | Repository, partition/index strategy, invalidation |
+| Access pattern | Major user/system relationship | Read/write API, lookup shape, stream, or batch path | Query, key, cursor, ranking, or aggregation logic |
+| Transformation | System responsibility | Service/worker pipeline and sync/async boundary | Domain rules, enrichment, deduplication, state transition |
+| Presentation | Person or external consumer receiving value | Web/mobile/API/notification/export container | Presenter, formatter, subscription, or delivery adapter |
+
+For each important flow, define **Data A -> Data B**:
+
+- What does one producer emit?
+- What does that become across all producers?
+- What must be canonical, and what can be rebuilt?
+- How will consumers request or subscribe to the result?
+- What is computed on write, on read, on a schedule, or continuously?
+- What freshness, ordering, consistency, and permission rules apply?
+
+This keeps data reasoning intact while ensuring every decision appears at the correct zoom level.
+
+### Choosing containers from requirements
+
+Choose technology only after identifying workload and access pattern:
+
+- Use a relational store when transactions, constraints, and relational access dominate.
+- Use a key-value/document store when partitioned key access and horizontal scale dominate.
+- Use object storage for large immutable blobs.
+- Add a cache only for repeated reads that tolerate a freshness strategy.
+- Add a queue or stream only when buffering, asynchronous work, or independent consumers justify it.
+- Add a search index only when query requirements exceed the source-of-truth store.
+- Split a service when a business boundary, scaling profile, ownership boundary, or reliability requirement justifies independent operation.
+
+A container diagram is not improved by having more boxes. Each boundary creates operational and consistency costs.
 
 ---
 
-## DON'Ts {#donts}
+## Level 3: Components {#level-3-components}
 
-- Do not jump into solution mode immediately.
-- Do not silently draw for several minutes.
-- Do not optimize for one requirement while ignoring others.
-- Do not pretend a design has no tradeoffs.
-- Do not dive into database schema, class design, or code too early.
-- Do not choose technology because it is popular; connect it to the access pattern and constraints.
-- Do not spend the whole interview on one component unless the interviewer asks for it.
+The Component diagram answers: **How does one selected container fulfil its responsibilities?**
+
+First name the container you are opening. Do not show components from several containers on the same component diagram.
+
+Useful components are cohesive responsibility boundaries, for example:
+
+- API/controller or message consumer.
+- Authorization policy.
+- Domain service.
+- Matching, ranking, pricing, or scheduling engine.
+- Repository or external-system adapter.
+- Publisher and retry coordinator.
+
+Choose this level only for the highest-risk part of the design. Good interview deep dives include:
+
+- Feed fanout.
+- Seat reservation and payment coordination.
+- Message ordering.
+- Geo-spatial dispatch.
+- Rate-limit decisions.
+- Cache invalidation.
+- Search indexing and ranking.
+- Idempotent event processing.
+
+At this level, discuss the contracts and hard trade-offs: data model, indexes, partition keys, concurrency control, ordering, idempotency, retries, backpressure, consistency, and failure recovery.
+
+~~~
+The riskiest container is Reservation Service because concurrent buyers
+can claim the same seat. I will zoom into that container and show the
+hold, inventory, payment, and expiry components.
+~~~
+
+---
+
+## Level 4: Code {#level-4-code}
+
+The Code diagram answers: **How is one component implemented?**
+
+This level may show classes, functions, interfaces, tables, algorithms, or a state machine. It is rarely needed in a system design interview and becomes stale quickly. Use it when the implementation mechanism is itself the design risk, such as:
+
+- Token-bucket state and atomic update logic.
+- Consistent-hashing ring.
+- Reservation state machine.
+- Conflict-resolution algorithm.
+- Critical schema or index layout.
+
+Do not descend to code just because C4 has a fourth level. Stop at the level that communicates the decision.
+
+---
+
+## Supporting Views {#supporting-views}
+
+The four C4 levels describe static structure. Real systems also need behaviour and runtime placement.
+
+### Dynamic diagram
+
+Use a numbered sequence of interactions for one important scenario:
+
+- Successful write and read paths.
+- Retry after timeout.
+- Duplicate event handling.
+- Cache miss and fill.
+- Payment succeeds but confirmation fails.
+- Regional failover or degraded mode.
+
+A dynamic view should reuse the same names as the Context, Container, and Component views. It is often clearer than adding more arrows to a static diagram.
+
+### Deployment diagram
+
+Use a deployment view when infrastructure changes the answer:
+
+- Regions, availability zones, and failover.
+- Replicas, shards, and partition placement.
+- CDN and edge locations.
+- Public/private networks and trust boundaries.
+- Autoscaling, load balancing, and service discovery.
+- Deployment, migration, rollback, and disaster recovery.
+
+Do not mix AWS or Kubernetes nodes into the logical Container diagram. First show what the software is; then show where instances run.
+
+### System landscape
+
+Use a landscape view only when several peer software systems and organizational ownership boundaries matter. For a single-system interview prompt, Context is normally sufficient.
+
+---
+
+## Cross-Cutting Qualities {#cross-cutting-qualities}
+
+These concerns are not extra C4 levels. Apply them to every relevant element and relationship:
+
+- **Security:** authentication, authorization, encryption, secrets, abuse prevention, audit, privacy, and deletion.
+- **Scalability:** the dimension that grows, partition key, hot spots, fanout, backpressure, and scaling limit.
+- **Reliability:** timeouts, retries with jitter, idempotency, replication, failover, recovery, and degraded modes.
+- **Observability:** user-facing SLIs, metrics, logs, traces, queue lag, data freshness, and actionable alerts.
+- **Operability:** configuration, schema migration, deployment, rollback, capacity, and cost.
+- **Data governance:** ownership, lineage, retention, residency, correction, and rebuildability.
+
+Attach these to concrete elements. For example, “the worker retries with an idempotency key and sends exhausted messages to a dead-letter queue” is stronger than a floating “reliability” box.
+
+---
+
+## A Practical 45-Minute Sequence {#practical-45-minute-sequence}
+
+| Time | Activity |
+|---|---|
+| 0-7 min | Clarify scope, critical journeys, quality goals, and assumptions |
+| 7-12 min | Estimate the few numbers that affect the architecture |
+| 12-17 min | Draw and validate the Context view |
+| 17-29 min | Draw the Container view and walk read/write paths |
+| 29-39 min | Deep dive into one risky container with Components or a Dynamic view |
+| 39-45 min | Test failures, bottlenecks, security, trade-offs, and summarize |
+
+Treat the timing as a guide. Follow the interviewer’s signals and spend time where the discussion creates evidence of engineering judgment.
+
+---
+
+## Diagram Discipline {#diagram-discipline}
+
+Each diagram should include:
+
+- A title naming the diagram type and scope.
+- A clear boundary for the element being described.
+- Element type, name, and concise responsibility.
+- Technology where relevant.
+- One-way arrows with descriptions that match their direction.
+- A legend if colour, shape, or line style carries meaning.
+
+Keep names consistent across every view. Avoid ambiguous boxes such as “backend”, “business logic”, “data”, or “cloud”. Never place a database beside a class or a person beside an internal component on the same static diagram.
+
+---
+
+## Wrap Up {#wrap-up}
+
+A strong closing takes 30-60 seconds:
+
+1. Restate the scope and critical journey.
+2. Summarize the Context and Container decisions.
+3. Name the deepest design risk and its mitigation.
+4. Identify the likely bottleneck or failure mode.
+5. State the main trade-off.
+6. Explain what you would explore next.
+
+~~~
+This design keeps booking inventory strongly consistent while allowing
+catalogue reads and notifications to be eventually consistent. The main
+risk is the reservation-to-payment transition, so the design uses
+short-lived holds, idempotent commands, and reconciliation. With more
+time, I would validate multi-region recovery and capacity under the
+on-sale spike.
+~~~
+
+---
+
+## Final Review Checklist {#final-review-checklist}
+
+Before finishing, check:
+
+- Does every diagram stay at one abstraction level?
+- Is the system boundary explicit?
+- Are all elements named and described?
+- Are relationships directed and labelled?
+- Can you trace the critical journey end to end?
+- Are the source of truth and derived data clear?
+- Do storage choices match access patterns and consistency needs?
+- Are scale estimates connected to design decisions?
+- Are retries idempotent and failure modes recoverable?
+- Are security and observability attached to concrete paths?
+- Did you explain what the design optimizes for and sacrifices?
+- Did you stop zooming when further detail stopped adding value?
+
+---
+
+## Official C4 References {#official-c4-references}
+
+- [Introduction and the four zoom levels](https://c4model.com/introduction)
+- [Core and supporting diagram types](https://c4model.com/diagrams)
+- [Diagram review checklist](https://c4model.com/diagrams/checklist)
+- [C4 diagram FAQ](https://c4model.com/diagrams/faq)
 
 ---
 
@@ -303,7 +534,7 @@ p50 is the median request latency. p95 means 95% of requests are faster than tha
 
 ## Scenario Practice Questions {#scenario-practice-questions}
 
-These are full scenario-style prompts. The collapsed answer is not the only correct design; it is a structured way to think through scope, high-level architecture, tradeoffs, and deep-dive topics. This list avoids the detailed scenarios already covered in [Hourglass Design](/study/systemDesignHourglass).
+These are full scenario-style prompts. The collapsed answer is not the only correct design; it is a structured way to think through scope, Context, Containers, trade-offs, and possible deep dives. Additional sizing-heavy examples appear in [Detailed Scenario Design Checks](#system-design-scenarios).
 
 <details>
   <summary><strong>Design a notification system for email, SMS, and push notifications.</strong></summary>
@@ -712,3 +943,496 @@ These are full scenario-style prompts. The collapsed answer is not the only corr
 
 </div>
 </details>
+
+
+---
+
+## Detailed Scenario Design Checks {#system-design-scenarios}
+
+These detailed examples preserve the useful sizing and data-flow analysis from the former Hourglass page. Start each one with Context and Container diagrams, then use the table to test the design. The concern rows are **not** C4 levels; they are checks applied to elements at the appropriate zoom.
+
+---
+
+### Scenario 1: Realtime Temperature Monitoring (IoT Sensors) {#scenario-1-realtime-temperature-monitoring-iot-sensors}
+
+**Goal**: Build a system for **1M IoT devices** reporting temperature every 10s across NSW.
+- **Realtime heatmap** (~10s latency)
+- **Historical dashboard** (daily/weekly/monthly)
+- **Retention**: 6 months
+
+**Data A → Data B**
+
+- **Data A:** raw sensor readings: `device_id`, timestamp, temperature, and device metadata.
+- **Data B:** live regional heatmap cells, historical aggregates, alertable trends, and dashboard-ready time-series views.
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Design Concern</th>
+<th>Design Choice</th>
+<th>Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Context: source</strong></td>
+<td>One sensor publishes one reading over MQTT<br>Single-device payload: <code>{ device_id, lat, lon, timestamp, temperature }</code></td>
+<td>Estimate one reading first: <code>device_id</code> (<code>8 B</code>) + lat/lon doubles (<code>16 B</code>) + temperature double (<code>8 B</code>) + timestamp (<code>8 B</code>) = ~40 B before overhead. JSON is often ~100-200 B because field names and punctuation are included.</td>
+</tr>
+<tr>
+<td><strong>Container: data type</strong></td>
+<td>Structured time-series across 1M devices<br>1M devices / 10s = ~100K readings/sec<br>Fixed schema with timestamp, location, and numeric temperature<br>JSON at ingest → binary at storage</td>
+<td>Type scales the single reading: ~100K readings/sec × 86,400 sec ≈ 8.64B readings/day. At ~100 B each, raw ingest is ~864 GB/day before replicas and indexes.</td>
+</tr>
+<tr>
+<td><strong>Container: storage</strong></td>
+<td>Realtime latest-value table (~16 MB)<br>Daily aggregation (~2.9 GB / 180 days)<br>Metadata (~20 MB)<br>Raw readings optional: much larger if retained</td>
+<td>Storage follows retention: latest-value storage stays tiny, aggregate storage is compact, but retaining all raw readings for 180 days would be ~155 TB before replicas/indexes.</td>
+</tr>
+<tr>
+<td><strong>Container/Component: transformation</strong></td>
+<td>Realtime updates per reading<br>Daily min/max aggregation<br>Redis for fast compare<br>Batch writes → TimescaleDB</td>
+<td>Low latency ingest + efficient aggregation</td>
+</tr>
+<tr>
+<td><strong>Container: access pattern</strong></td>
+<td>REST polling every 10s (map)<br>REST queries (historical)</td>
+<td>Polling is simple, cost-efficient for low concurrency</td>
+</tr>
+<tr>
+<td><strong>Context/Container: delivery</strong></td>
+<td>Web map grid updated every 10s<br>Historical dashboard with calendar filter</td>
+<td>Lightweight visualization for end users</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: security</strong></td>
+<td>No login<br>API throttling (CloudFront + WAF)<br>MQTT cert-based auth</td>
+<td>Basic protection, open data model</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: scalability</strong></td>
+<td>~100K writes/sec<br>Kafka/Kinesis buffer<br>Partition DB by device_id + time<br>Stateless API, autoscaling</td>
+<td>Horizontal scalability and decoupling</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: reliability</strong></td>
+<td>MQTT at-least-once<br>Retry pipeline<br>Re-runnable daily jobs</td>
+<td>Ensures data completeness under failure</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: observability</strong></td>
+<td>Metrics: ingest rate, write latency, last_seen<br>Logs: ingestion + API</td>
+<td>Full visibility into data pipeline health</td>
+</tr>
+<tr>
+<td><strong>Deployment view</strong></td>
+<td>AWS IoT Core or EMQX → Kinesis/Kafka → ECS/Fargate → TimescaleDB<br>IaC: Terraform/CDK</td>
+<td>Cloud-native, modular, reproducible</td>
+</tr>
+</tbody>
+</table>
+
+---
+
+### Scenario 2: Twitter-like Microblogging Platform {#scenario-2-twitter-like-microblogging-platform}
+
+**Goal**: Design a social platform similar to Twitter.
+- **Realtime feed updates**
+- **Millions of posts/day**
+- **Support search, hashtags, user timelines**
+
+**Data A → Data B**
+
+- **Data A:** user actions: posts, likes, follows, replies, media uploads, hashtags, and mentions.
+- **Data B:** personalized timelines, searchable posts, notifications, counters, and profile/user timeline views.
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Design Concern</th>
+<th>Design Choice</th>
+<th>Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Context: source</strong></td>
+<td>One user emits one action: create post, like, follow, reply, or upload media<br>Example post payload: <code>{ author_id, text, media_ids, created_at }</code></td>
+<td>Estimate one post first: IDs/timestamp are ~24 B, 280 chars of English UTF-8 is ~280 B, worst-case UTF-8 can be ~1.1 KB, and media pointers/counters add tens to hundreds of bytes.</td>
+</tr>
+<tr>
+<td><strong>Container: data type</strong></td>
+<td>Mixed event stream across millions of users<br>Post, like, follow, reply, and media events have related but different schemas<br>Text fields need UTF-8 sizing; hashtags/mentions become indexed fields</td>
+<td>Type scales the event family: a post metadata row is roughly ~0.5-2 KB. At 10M posts/day and ~1 KB average, post metadata is ~10 GB/day before indexes.</td>
+</tr>
+<tr>
+<td><strong>Container: storage</strong></td>
+<td>OLTP DB (Postgres/CockroachDB) for metadata<br>Object store (S3) for media<br>ElasticSearch for search/index</td>
+<td>Storage separates workloads: if 10% of 10M posts include 1 MB media, media adds ~1 TB/day, which dominates metadata storage.</td>
+</tr>
+<tr>
+<td><strong>Container/Component: transformation</strong></td>
+<td>Fanout service builds timelines<br>Kafka for async event distribution</td>
+<td>Logic can multiply writes: 10M posts/day × 200 followers average ≈ 2B timeline write events/day, so fanout should be async.</td>
+</tr>
+<tr>
+<td><strong>Container: access pattern</strong></td>
+<td>REST (post, follow)<br>WebSocket/GraphQL (feed updates)</td>
+<td>REST reliable for writes; streaming API for low-latency feeds</td>
+</tr>
+<tr>
+<td><strong>Context/Container: delivery</strong></td>
+<td>Web + mobile apps<br>Infinite scroll timeline, notifications</td>
+<td>Optimized UX for engagement</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: security</strong></td>
+<td>OAuth2 login<br>Rate limiting (API Gateway)<br>WAF for spam</td>
+<td>Standard identity + abuse protection</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: scalability</strong></td>
+<td>Sharded user/tweet DB<br>CDN for media<br>Async fanout to caches</td>
+<td>Ensures horizontal scale to millions of users</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: reliability</strong></td>
+<td>Durable Kafka log<br>Retry for writes<br>Timeline cache fallback</td>
+<td>Feed always eventually consistent</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: observability</strong></td>
+<td>Metrics: post latency, fanout lag<br>Logs: auth, API, feed delivery</td>
+<td>Critical for SLO monitoring</td>
+</tr>
+<tr>
+<td><strong>Deployment view</strong></td>
+<td>AWS: API Gateway + Lambda/ECS, DynamoDB/Postgres, S3, ElasticSearch</td>
+<td>Mix of serverless + managed DB for scale</td>
+</tr>
+</tbody>
+</table>
+
+---
+
+### Scenario 3: eCommerce Platform {#scenario-3-ecommerce-platform}
+
+**Goal**: Design a modern eCommerce system.
+- **Product catalog, cart, checkout**
+- **User accounts, payments**
+- **Scalable search + inventory**
+
+**Data A → Data B**
+
+- **Data A:** product updates, browsing events, cart changes, checkout requests, inventory changes, and payment callbacks.
+- **Data B:** searchable catalog pages, available inventory, cart state, confirmed orders, receipts, and fulfillment events.
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Design Concern</th>
+<th>Design Choice</th>
+<th>Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Context: source</strong></td>
+<td>One producer emits one event: product update, product view, add-to-cart, checkout request, inventory update, or payment callback</td>
+<td>Estimate one product record first: IDs and numeric fields are small, title is ~100 B, description can be ~1-4 KB, attributes JSON ~0.5-3 KB, and media URLs ~300 B-1 KB.</td>
+</tr>
+<tr>
+<td><strong>Container: data type</strong></td>
+<td>Structured event families: product/catalog records, cart events, order commands, inventory mutations, payment callbacks<br>Catalog is read-heavy; checkout/payment is correctness-heavy</td>
+<td>Type separates scale profiles: catalog rows are often ~2-10 KB, cart events are small and ephemeral, while checkout/payment events need strict validation.</td>
+</tr>
+<tr>
+<td><strong>Container: storage</strong></td>
+<td>RDBMS (Aurora/MySQL) for orders/payments<br>DynamoDB for cart sessions<br>S3 for product media</td>
+<td>Storage follows object type: 1M products × ~5 KB average ≈ 5 GB catalog metadata, while 1M × 3 images × 500 KB ≈ 1.5 TB media.</td>
+</tr>
+<tr>
+<td><strong>Container/Component: transformation</strong></td>
+<td>Inventory service decrements stock<br>Async order events via SNS/SQS</td>
+<td>Checkout math drives correctness: 10K checkout/min ≈ 167 checkout/sec, but browsing/search reads may be 100x higher.</td>
+</tr>
+<tr>
+<td><strong>Container: access pattern</strong></td>
+<td>REST (catalog, cart, order)<br>GraphQL (flexible queries for product search)</td>
+<td>REST for critical workflows; GraphQL for frontend flexibility</td>
+</tr>
+<tr>
+<td><strong>Context/Container: delivery</strong></td>
+<td>Web + mobile storefront<br>Search, cart, checkout flows</td>
+<td>Responsive UX, optimized conversions</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: security</strong></td>
+<td>OAuth2 login, MFA for admin<br>PCI-DSS compliant payment handling<br>WAF + Shield</td>
+<td>Protects sensitive user/payment data</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: scalability</strong></td>
+<td>Autoscaling ALB/NLB<br>ElasticSearch for catalog search<br>CDN for static assets</td>
+<td>Handles traffic spikes during sales</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: reliability</strong></td>
+<td>Multi-AZ RDS<br>Order queue with DLQ<br>Event replay for payments</td>
+<td>Ensures orders are never lost</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: observability</strong></td>
+<td>Metrics: checkout latency, error rate<br>Logs: API + payment gateway</td>
+<td>Monitors user impact and failures</td>
+</tr>
+<tr>
+<td><strong>Deployment view</strong></td>
+<td>AWS: ALB + ECS, Aurora, DynamoDB, S3, ElasticSearch, CloudFront</td>
+<td>Mix of managed + serverless services for resilience</td>
+</tr>
+</tbody>
+</table>
+
+---
+
+### Scenario 4: Short URL Service (URL Shortener) {#scenario-a-short-url}
+
+**Goal**: Map long URLs to short codes with **low latency**, **high write QPS**, and **massive read QPS**.
+- **Create** short code, **redirect** instantly
+- **Unique codes**, collision-resistant
+- **Analytics** (clicks, geo, referrer)
+
+**Data A → Data B**
+
+- **Data A:** long URL, owner, optional alias/TTL, redirect request, and click metadata such as timestamp, referrer, device, and geo.
+- **Data B:** short code mapping, low-latency redirect response, QR/shareable link, and aggregated click analytics.
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Design Concern</th>
+<th>Design Choice</th>
+<th>Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Context: source</strong></td>
+<td>One client request creates a mapping or resolves a code<br>Create payload: <code>{ long_url, owner_id, ttl }</code><br>Redirect request: <code>GET /{code}</code></td>
+<td>Estimate one mapping first: short code is 7 ASCII chars (~7 B), owner ID is ~8 B, timestamps/TTL ~16 B, and long URL is often ~100-2,000 chars.</td>
+</tr>
+<tr>
+<td><strong>Container: data type</strong></td>
+<td>Two main data shapes: mapping records and click events<br>Mapping records are small but durable; click events are append-only and much higher volume</td>
+<td>Type separates durable mappings from click logs: mapping rows are often ~200 B-2 KB, while click events with IP/referrer/user-agent/geo are often ~300 B-1 KB.</td>
+</tr>
+<tr>
+<td><strong>Container: storage</strong></td>
+<td>DynamoDB (PK=code) for mapping; S3 for logs</td>
+<td>Storage separates hot lookups and analytics: 100M URLs × ~500 B ≈ 50 GB mapping metadata; 1B click logs/day × ~500 B ≈ 500 GB/day in logs.</td>
+</tr>
+<tr>
+<td><strong>Container/Component: transformation</strong></td>
+<td>Code gen via base62/ULID; optional custom alias; async analytics (Kinesis)</td>
+<td>Code-space math guides collision strategy: 62^7 ≈ 3.5T possible codes, enough for 100M URLs with a large safety margin.</td>
+</tr>
+<tr>
+<td><strong>Container: access pattern</strong></td>
+<td>REST + 301/302 redirect; rate-limits per owner</td>
+<td>Browser-native redirect semantics; abuse protection</td>
+</tr>
+<tr>
+<td><strong>Context/Container: delivery</strong></td>
+<td>Simple web console + CLI; QR export</td>
+<td>Low-friction creation and sharing</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: security</strong></td>
+<td>Auth (API keys/OAuth); domain allowlist; malware scanning</td>
+<td>Prevents phishing/abuse; protects brand domains</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: scalability</strong></td>
+<td>CloudFront → Lambda@Edge redirect cache; hot keys sharded</td>
+<td>Edge-cached redirects minimize origin load/latency</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: reliability</strong></td>
+<td>Multi-Region table (global tables); DLQ for failed writes</td>
+<td>Regional failover; durable retry</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: observability</strong></td>
+<td>Metrics: p50/p99 redirect latency, 4xx/5xx; click streams</td>
+<td>Track UX and abuse; support analytics</td>
+</tr>
+<tr>
+<td><strong>Deployment view</strong></td>
+<td>API Gateway + Lambda, DynamoDB, Kinesis, S3, CloudFront, WAF</td>
+<td>Serverless, cost-efficient at any scale</td>
+</tr>
+</tbody>
+</table>
+
+---
+
+### Scenario 5: Search Engine (Vertical Site/Search Service) {#scenario-b-search-engine}
+
+**Goal**: Index documents/webpages and provide **full-text search** with **filters**, **ranking**, and **autosuggest**.
+- **Ingest & crawl** sources
+- **Index** fields + vectors
+- **Query**: keyword + semantic, filters, facets
+
+**Data A → Data B**
+
+- **Data A:** raw documents, webpages, titles, body text, metadata, facets, links, and uploaded files.
+- **Data B:** searchable index entries, ranked result sets, highlighted snippets, facets, autosuggest terms, and vector-search candidates.
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Design Concern</th>
+<th>Design Choice</th>
+<th>Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Context: source</strong></td>
+<td>One crawler fetch, webhook event, or batch upload produces one raw document or document update</td>
+<td>Estimate one document first: document ID ~8-16 B, title ~100 B, body text often ~10 KB, facets/tags ~100-500 B, URL ~100-2,000 chars, metadata JSON ~0.5-2 KB.</td>
+</tr>
+<tr>
+<td><strong>Container: data type</strong></td>
+<td>Document corpus across many sources<br>Fields include title, body, URL, facets, metadata, language, and optional embedding</td>
+<td>Type scales one document into a corpus: use ~10-20 KB per raw document for rough sizing; fields support keyword, filter, ranking, and vector search.</td>
+</tr>
+<tr>
+<td><strong>Container: storage</strong></td>
+<td>OpenSearch/Elastic (inverted index) + vector index; S3 cold store</td>
+<td>Storage can rival raw content: 100M docs × 10 KB ≈ 1 TB raw; search index may add ~300 GB-1 TB; 768-dim float vectors add ~307 GB before index overhead.</td>
+</tr>
+<tr>
+<td><strong>Container/Component: transformation</strong></td>
+<td>ETL: clean, dedupe, tokenize, embed; incremental indexing</td>
+<td>Higher relevance; fast refresh with partial updates</td>
+</tr>
+<tr>
+<td><strong>Container: access pattern</strong></td>
+<td>Search REST: q, filters, sort; autosuggest endpoint</td>
+<td>Standard search UX; low-latency responses</td>
+</tr>
+<tr>
+<td><strong>Context/Container: delivery</strong></td>
+<td>Web UI: search box, facets, highlighting; pagination</td>
+<td>Discoverability and relevance feedback</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: security</strong></td>
+<td>Signed requests; per-tenant filter; index-level RBAC</td>
+<td>Isolation and least privilege</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: scalability</strong></td>
+<td>Sharded indexes; warm replicas; query cache/CDN for hot queries</td>
+<td>Throughput and low tail latency</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: reliability</strong></td>
+<td>Multi-AZ cluster; snapshot to S3; blue/green index swaps</td>
+<td>Safe reindex; fast recovery</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: observability</strong></td>
+<td>Metrics: QPS, p99, recall@k/CTR; slow logs; relevancy dashboards</td>
+<td>Quality and performance tuning</td>
+</tr>
+<tr>
+<td><strong>Deployment view</strong></td>
+<td>ECS/EKS crawlers, Lambda ETL, OpenSearch, S3, API Gateway, CloudFront</td>
+<td>Managed search + serverless ETL</td>
+</tr>
+</tbody>
+</table>
+
+---
+
+### Scenario 6: Ride-Sharing (Dispatch & Matching) {#scenario-c-ride-sharing}
+
+**Goal**: Match **riders ↔ drivers** in real time with **ETA estimates**, **pricing**, and **tracking**.
+- **High write** (location updates) + **low-latency reads** (nearby drivers)
+- **Geo-index** + **surge pricing**
+- **Trip lifecycle** events
+
+**Data A → Data B**
+
+- **Data A:** driver locations, rider pickup/dropoff requests, driver availability, trip events, traffic signals, and payment events.
+- **Data B:** nearby driver candidates, match decisions, ETA, price quote, live trip state, route updates, and notifications.
+
+<table class="study-table">
+<thead>
+<tr>
+<th>Design Concern</th>
+<th>Design Choice</th>
+<th>Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Context: source</strong></td>
+<td>One mobile app emits one event: driver location update, rider request, driver accept, trip status update, or payment event</td>
+<td>Estimate one location event first: driver ID ~8 B, lat/lon ~8-16 B, timestamp ~8 B, speed/heading/status ~10-30 B, request metadata ~20-100 B.</td>
+</tr>
+<tr>
+<td><strong>Container: data type</strong></td>
+<td>Regional event stream across active riders and drivers<br>Location events are high-frequency; trip/payment events are lower-frequency but more correctness-sensitive</td>
+<td>Type separates high-volume telemetry from durable lifecycle events: compact location events are ~60-150 B, while JSON events are often ~150-300 B.</td>
+</tr>
+<tr>
+<td><strong>Container: storage</strong></td>
+<td>Redis/KeyDB (geo sets) for live locations; Postgres for trips/payments; S3 for telemetry</td>
+<td>Storage follows frequency: 100K active drivers / 5s = 20K location writes/sec; at ~150 B each ≈ 3 MB/sec, ~259 GB/day before replicas/log overhead.</td>
+</tr>
+<tr>
+<td><strong>Container/Component: transformation</strong></td>
+<td>Stream (Kafka): location smoothing, ETA calc, surge pricing; ML for ETA/dispatch</td>
+<td>Logic should stay regional: dispatch queries nearby drivers by city/zone rather than scanning the global location set.</td>
+</tr>
+<tr>
+<td><strong>Container: access pattern</strong></td>
+<td>REST: request/cancel trip, quote; WebSocket: live driver ETA/track</td>
+<td>Seamless UX for requests + realtime updates</td>
+</tr>
+<tr>
+<td><strong>Context/Container: delivery</strong></td>
+<td>Mobile map with live driver markers; push notifications</td>
+<td>High-frequency updates with low battery impact</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: security</strong></td>
+<td>JWT auth; signed location updates; fraud detection rules</td>
+<td>Protects users and platform integrity</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: scalability</strong></td>
+<td>Region-sharded dispatch; partition by city/zone; edge caches for maps/tiles</td>
+<td>Reduces cross-region chatter; scales horizontally</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: reliability</strong></td>
+<td>Leader election per region; idempotent trip ops; DLQs for events</td>
+<td>Failover and consistent trip lifecycle</td>
+</tr>
+<tr>
+<td><strong>Cross-cutting: observability</strong></td>
+<td>Metrics: match time, cancel rate, ETA error; traces for dispatch path</td>
+<td>Operational and model quality monitoring</td>
+</tr>
+<tr>
+<td><strong>Deployment view</strong></td>
+<td>API Gateway + ECS/EKS, Redis Geo, Kafka, Postgres/Aurora, S3, CloudFront, Pinpoint/SNS</td>
+<td>Mix of in-memory geo + durable stores</td>
+</tr>
+</tbody>
+</table>

@@ -1,0 +1,51 @@
+@startuml
+title Runtime context, context window, and LLM model boundary
+top to bottom direction
+skinparam componentStyle rectangle
+
+rectangle "APPLICATION / ORCHESTRATOR\n(outside the model)" {
+  component "Context Builder" as Builder
+  component "Current User Question" as Question
+  database "Conversation Store" as History
+  component "RAG Retriever" as RAG
+  component "Tool / API" as Tool
+
+  Question --> Builder : current question
+  History --> Builder : selected history
+  RAG --> Builder : retrieved evidence
+  Tool --> Builder : live result
+}
+
+rectangle "ONE INDEPENDENT MODEL CALL\n(serving pipeline)" {
+  rectangle "CONTEXT WINDOW CAPACITY\nmaximum 128K tokens (illustrative)" {
+    card "RUNTIME CONTEXT CONTENTS\n\nSystem instructions\nSelected conversation history\nCurrent user question\nRAG retrieved evidence\nTool definitions and results\nGenerated token IDs join during decoding" as Context
+  }
+
+  component Tokenizer
+  component "Token IDs" as IDs
+
+  rectangle "LLM MODEL\n(learned parameters)" {
+    component "Internal Embedding Layer" as Embeddings
+    component "Transformer Layers / Attention\nquestion ↔ evidence ↔ history" as Transformer
+    component "Output Projection\nNext-token Logits" as Logits
+
+    Embeddings --> Transformer
+    Transformer --> Logits
+  }
+
+  component "Softmax + Decoding Strategy\nSelect Next Token ID" as Decoder
+  component "Append Token ID to Running Context\nRepeat Until Stop" as Append
+  component "Detokenize / Stream Text" as Detokenizer
+
+  Context --> Tokenizer
+  Tokenizer --> IDs
+  IDs --> Embeddings
+  Logits --> Decoder
+  Decoder --> Append
+  Append --> Detokenizer
+}
+
+component "Application Receives Response" as Output
+Builder -down-> Context : assemble selected input
+Detokenizer -down-> Output : generated text / tool proposal
+@enduml
