@@ -1,0 +1,16 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+Person(user, "Support User", "Asks policy questions and requests Case actions")
+Person(agent, "Support Agent", "Reviews escalations and approves sensitive actions")
+System(assistant, "Enterprise Support Assistant", "Answers grounded questions and performs governed support actions")
+System_Ext(idp, "Company Identity Provider", "Authenticates users and supplies identity claims")
+System_Ext(knowledge, "Knowledge Repositories", "Store approved policies and support documentation")
+System_Ext(cases, "Case Management System", "Owns live Case state and transactions")
+System_Ext(bedrock, "Amazon Bedrock", "Provides foundation-model inference")
+Rel(user, assistant, "Asks questions and requests actions")
+Rel(agent, assistant, "Reviews escalations and approvals")
+Rel(assistant, idp, "Authenticates users")
+Rel(assistant, knowledge, "Retrieves approved evidence")
+Rel(assistant, cases, "Reads or modifies authorized Cases")
+Rel(assistant, bedrock, "Requests model inference")
+@enduml

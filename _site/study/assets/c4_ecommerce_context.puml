@@ -1,0 +1,14 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+Person(customer, "Customer", "Browses products and places orders")
+Person(manager, "Store Manager", "Manages products, prices, and stock")
+System(commerce, "eCommerce Platform", "Supports discovery, carts, checkout, orders, and fulfillment")
+System_Ext(payment, "Payment Provider", "Authorizes and captures payments")
+System_Ext(warehouse, "Warehouse System", "Fulfils confirmed orders and reports status")
+System_Ext(notification, "Notification Provider", "Delivers order confirmations and updates")
+Rel(customer, commerce, "Browses, checks out, and tracks orders")
+Rel(manager, commerce, "Manages catalogue and inventory")
+Rel(commerce, payment, "Authorizes and captures payment")
+Rel(commerce, warehouse, "Sends orders and receives fulfillment status")
+Rel(commerce, notification, "Sends customer notifications")
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+Container(api, "Support API", "Application Service", "Invokes the agent with user identity")
+Container_Boundary(runtime, "Agent Runtime — custom code hosted by AgentCore Runtime") {
+    Component(handler, "Request Handler", "Application Component", "Validates request, identity context, and execution limits")
+    Component(contextBuilder, "Context Builder", "Application Component", "Combines instructions, history, evidence, and tool results")
+    Component(agentLoop, "Bounded Agent Loop", "Domain Component", "Selects the next response or permitted action")
+    Component(approval, "Approval Coordinator", "Domain Component", "Pauses sensitive actions until a human approves")
+    Component(response, "Response Composer", "Application Component", "Returns citations, action results, or safe escalation")
+}
+Container(retrieval, "Knowledge Retrieval", "RAG Service", "Returns authorized evidence")
+Container(memory, "Conversation Memory", "AgentCore Memory", "Stores scoped conversational context")
+Container(gateway, "Tool Gateway", "AgentCore Gateway + Policy", "Authorizes and invokes bounded tools")
+System_Ext(bedrock, "Amazon Bedrock", "Foundation-model inference")
+Rel(api, handler, "Invokes")
+Rel(handler, contextBuilder, "Starts request")
+Rel(contextBuilder, retrieval, "Gets evidence")
+Rel(contextBuilder, memory, "Gets scoped history")
+Rel(contextBuilder, agentLoop, "Supplies runtime context")
+Rel(agentLoop, bedrock, "Requests next decision")
+Rel(agentLoop, gateway, "Requests read-only tool")
+Rel(agentLoop, approval, "Requests approval for sensitive action")
+Rel(approval, gateway, "Invokes approved action")
+Rel(agentLoop, response, "Returns answer or action result")
+Rel(response, api, "Returns response and trace reference")
+@enduml

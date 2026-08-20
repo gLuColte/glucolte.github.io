@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/systemDesignInterviewTips" />
-<meta property="og:url" content="http://localhost:4000/study/systemDesignInterviewTips" />
+<link rel="canonical" href="https://glucolte.github.io/study/systemDesignInterviewTips" />
+<meta property="og:url" content="https://glucolte.github.io/study/systemDesignInterviewTips" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="System Design Interviews with C4" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"System Design Interviews with C4","url":"http://localhost:4000/study/systemDesignInterviewTips"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"System Design Interviews with C4","url":"https://glucolte.github.io/study/systemDesignInterviewTips"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -64,1162 +64,805 @@
     <article class="content">
       <h1 id="interview-tips">System Design Interviews with C4</h1>
 
-<p>A strong system design answer should move through clear levels of abstraction instead of mixing users, services, databases, classes, and infrastructure on one diagram. The <a href="https://c4model.com/introduction">C4 model</a> gives us that structure:</p>
+<p>Use C4 to keep the discussion at one abstraction level at a time:</p>
 
-<ol>
-  <li><strong>Context:</strong> the system in its world.</li>
-  <li><strong>Container:</strong> the applications and data stores inside the system.</li>
-  <li><strong>Component:</strong> the major building blocks inside one container.</li>
-  <li><strong>Code:</strong> implementation detail inside one component.</li>
-</ol>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Scope        What problem and constraints are we solving?
+   ↓
+Context      Who uses the system, and what is outside it?
+   ↓
+Container    Which applications and data stores own the work?
+   ↓
+Component    How does one high-risk container work internally?
+   ↓
+Detail       Which critical mechanism needs further explanation?
+</code></pre></div></div>
 
-<p>This is a better backbone than treating source, storage, logic, presentation, infrastructure, and interview technique as parallel steps. Those are still useful <strong>design concerns</strong>, but they should be considered at the appropriate C4 zoom level.</p>
+<ul>
+  <li><strong>Scope is not a C4 level.</strong> It establishes the boundary and design drivers before drawing.</li>
+  <li><strong>Context</strong> treats the platform as one software system.</li>
+  <li><strong>Container</strong> opens that system into independently runnable applications and data stores. A C4 container does not mean only a Docker container.</li>
+  <li><strong>Component</strong> opens one selected container; it does not combine internals from several containers.</li>
+  <li><strong>Detail is optional.</strong> Stop when the important decision is understood.</li>
+</ul>
 
-<p>One qualification matters: C4 is a way to <strong>describe and communicate</strong> architecture, not a complete design method or a mandatory four-step process. Requirements, sizing, data flow, security, reliability, and trade-offs still drive the design. In most interviews, Context and Container are enough; zoom into Components only for the riskiest part, and use Code only when it genuinely explains an algorithm or data structure.</p>
+<p>C4 communicates architecture; it does not replace requirements, sizing, data modelling, security, reliability, or trade-off analysis.</p>
 
 <hr />
 
-<h2 id="the-interview-flow">The Interview Flow</h2>
+<h2 id="the-interview-flow">Interview Flow</h2>
 
-<p>Use this sequence:</p>
+<h3 id="mindset">Mindset</h3>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0. Scope and constraints
-1. Context
-2. Container
-3. Component, only where risk justifies it
-4. Code, rarely
-5. Dynamic and deployment views, when useful
-6. Review and wrap up
-</code></pre></div></div>
+<ul>
+  <li>Clarify before drawing.</li>
+  <li>State assumptions instead of becoming blocked by missing numbers.</li>
+  <li>Follow one critical user journey through the design.</li>
+  <li>Tie every box to a requirement or risk.</li>
+  <li>Keep names and abstraction levels consistent.</li>
+  <li>Zoom into the highest-risk part, not the most familiar part.</li>
+  <li>Explain trade-offs; do not present technology choices as universally correct.</li>
+  <li>Think aloud and use the interviewer as a design partner.</li>
+</ul>
 
-<p>The rule is simple: <strong>finish the story at one zoom level before moving inward</strong>. Tell the interviewer when you zoom in and name the parent element you are opening.</p>
+<h3 id="the-flow">The flow</h3>
 
-<table>
+<table class="study-table">
   <thead>
     <tr>
       <th>Stage</th>
-      <th>Main question</th>
-      <th>Typical output</th>
+      <th>Key questions</th>
+      <th>Output</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Scope</td>
-      <td>What are we building, for whom, and under what constraints?</td>
-      <td>Functional requirements, quality goals, assumptions, scale</td>
+      <td><strong>1. Scope</strong></td>
+      <td><ul><li>Who are the actors?</li><li>What is the critical journey?</li><li>What is in and out of scope?</li><li>Which quality requirement can change the design?</li></ul></td>
+      <td>Requirements, assumptions, scale, and one critical invariant.</td>
     </tr>
     <tr>
-      <td>Context</td>
-      <td>How does the system fit into the world?</td>
-      <td>People, system boundary, external systems, major relationships</td>
+      <td><strong>2. Context</strong></td>
+      <td><ul><li>What does our system own?</li><li>Which people and external systems interact directly with it?</li><li>Where are the ownership and trust boundaries?</li></ul></td>
+      <td>One in-scope system, its users, external systems, and labelled relationships.</td>
     </tr>
     <tr>
-      <td>Container</td>
-      <td>What runs or stores data inside the system?</td>
-      <td>Applications, services, jobs, queues, caches, and data stores</td>
+      <td><strong>3. Container</strong></td>
+      <td><ul><li>Where does the request enter?</li><li>Which container owns each responsibility and source of truth?</li><li>Which work is synchronous or asynchronous?</li><li>How does the critical journey complete?</li></ul></td>
+      <td>Major applications, services, workers, queues, and data stores.</td>
     </tr>
     <tr>
-      <td>Component</td>
-      <td>How does one high-risk container work internally?</td>
-      <td>Major responsibilities and their relationships</td>
+      <td><strong>4. Deep dive</strong></td>
+      <td><ul><li>Where can correctness, scale, latency, or failure break the design?</li><li>Which one container owns that risk?</li><li>Which mechanism protects it?</li></ul></td>
+      <td>A Component or Dynamic view, plus targeted implementation detail.</td>
     </tr>
     <tr>
-      <td>Code</td>
-      <td>Which implementation detail needs explanation?</td>
-      <td>Class, function, algorithm, state machine, or schema detail</td>
-    </tr>
-    <tr>
-      <td>Supporting views</td>
-      <td>How does a scenario execute and where does it run?</td>
-      <td>Dynamic or deployment diagram</td>
-    </tr>
-    <tr>
-      <td>Wrap-up</td>
-      <td>Is the design plausible and what does it trade off?</td>
-      <td>Bottlenecks, failure modes, decisions, next steps</td>
+      <td><strong>5. Review</strong></td>
+      <td><ul><li>What is the bottleneck?</li><li>What fails, retries, or degrades?</li><li>What must be strongly consistent?</li><li>What did we optimize and sacrifice?</li></ul></td>
+      <td>Main decisions, failure modes, trade-offs, and next investigation.</td>
     </tr>
   </tbody>
 </table>
 
-<hr />
-
-<h2 id="core-mindset">Core Mindset</h2>
+<h3 id="data-and-request-flow-lens">Key questions at every level</h3>
 
 <ul>
-  <li>Clarify the problem before drawing architecture.</li>
-  <li>Make assumptions explicit when exact answers are unavailable.</li>
-  <li>Think aloud and treat the interviewer as a design partner.</li>
-  <li>Tie every box to a requirement; do not add technology decoratively.</li>
-  <li>Prefer explicit trade-offs over absolute claims.</li>
-  <li>Keep each diagram at one abstraction level.</li>
-  <li>Start broad and zoom in only after the current view is understood.</li>
-  <li>Spend detail where uncertainty or risk is highest.</li>
-  <li>Use rough numbers to test plausibility, not to create false precision.</li>
-</ul>
-
-<hr />
-
-<h2 id="step-0-scope-and-constraints">Step 0: Scope and Constraints</h2>
-
-<p>C4 starts with a system boundary, but requirements tell you where that boundary belongs and what must happen inside it.</p>
-
-<h3 id="functional-scope">Functional scope</h3>
-
-<p>Ask enough high-value questions to identify:</p>
-
-<ul>
-  <li>Primary users and their goals.</li>
-  <li>Critical use cases and user journeys.</li>
-  <li>Features explicitly in and out of scope.</li>
-  <li>Inputs, outputs, and external integrations.</li>
-  <li>Web, mobile, machine-to-machine, batch, or realtime clients.</li>
-</ul>
-
-<p>Summarize before designing:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>I will design X for Y users, supporting A, B, and C.
-D and E are out of scope.
-The critical journey is A -&gt; B -&gt; C.
-</code></pre></div></div>
-
-<h3 id="quality-attributes">Quality attributes</h3>
-
-<p>Make vague words measurable:</p>
-
-<ul>
-  <li><strong>Scale:</strong> users, requests per second, events per second, object count, event size, and growth.</li>
-  <li><strong>Latency:</strong> target p50, p95, or p99 for critical operations.</li>
-  <li><strong>Availability:</strong> which journeys must remain available and the acceptable downtime.</li>
-  <li><strong>Durability:</strong> which data cannot be lost.</li>
-  <li><strong>Consistency:</strong> where stale reads or conflicting writes are unacceptable.</li>
-  <li><strong>Security and privacy:</strong> identity, authorization, tenancy, compliance, retention, and deletion.</li>
-  <li><strong>Cost and delivery constraints:</strong> team size, existing stack, time, and operating budget.</li>
+  <li><strong>Data:</strong> what enters, what is stored, and what is returned?</li>
+  <li><strong>Ownership:</strong> which component is authoritative for each state transition?</li>
+  <li><strong>Scale:</strong> what grows, how quickly, and where is the hot spot?</li>
+  <li><strong>Correctness:</strong> which invariant must never be violated?</li>
+  <li><strong>Failure:</strong> what happens on timeout, retry, duplicate delivery, or dependency failure?</li>
+  <li><strong>Security:</strong> who is authenticated, what are they authorized to do, and where is sensitive data handled?</li>
+  <li><strong>Observability:</strong> which latency, error, saturation, and business metrics prove the journey works?</li>
 </ul>
 
 <p>Use <a href="/study/systemDesignNumbersThatMatter">Numbers That Matter</a> for quick sizing and <a href="/study/systemDesignSlaSloSli">SLA, SLO &amp; SLI</a> for measurable reliability targets.</p>
 
-<h3 id="back-of-the-envelope-sizing">Back-of-the-envelope sizing</h3>
+<hr />
 
-<p>Calculate only numbers that can change the architecture:</p>
+<h2 id="system-design-scenarios">Worked Examples</h2>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>average QPS = requests per day / 86,400
-peak QPS = average QPS x peak factor
-daily ingest = events per second x bytes per event x 86,400
-retained storage = daily ingest x retention x replication/index overhead
-bandwidth = requests per second x response bytes
+<p>Each example uses the same progression:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>World → Software System → High-risk Container → Critical mechanism
 </code></pre></div></div>
 
-<p>State the consequence of each estimate. “100K writes/second suggests partitioned ingestion” is useful; an isolated number is not.</p>
-
-<hr />
-
-<h2 id="level-1-system-context">Level 1: System Context</h2>
-
-<p>The Context diagram answers: <strong>What is the system, who uses it, and what does it depend on?</strong></p>
-
-<p>Draw:</p>
-
-<ul>
-  <li>One box for the software system in scope.</li>
-  <li>People or roles that use it.</li>
-  <li>External software systems it communicates with.</li>
-  <li>Directed, labelled relationships that describe intent.</li>
-</ul>
-
-<p>Do not draw internal APIs, databases, queues, caches, frameworks, or classes here. Those belong at deeper levels.</p>
-
-<h3 id="context-checklist">Context checklist</h3>
-
-<ul>
-  <li>What business or user responsibility does the system own?</li>
-  <li>Who initiates each critical use case?</li>
-  <li>Which external systems supply or receive information?</li>
-  <li>Where are the trust and ownership boundaries?</li>
-  <li>Which relationships are synchronous, asynchronous, batch, or manual?</li>
-  <li>Which critical requirement motivates the design?</li>
-</ul>
-
-<p>A good relationship label says <strong>why</strong> the interaction exists, such as “submits ride request” or “sends payment authorization”, rather than the generic “uses”.</p>
-
-<p>End this level by walking through one critical journey and confirming the boundary:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>At the Context level, the rider requests a trip from the Ride Platform.
-The platform obtains payment authorization from the Payment Provider
-and sends status notifications through the Notification Provider.
-Does this boundary match the problem you want me to solve?
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="level-2-containers">Level 2: Containers</h2>
-
-<p>The Container diagram answers: <strong>What are the major runnable applications and data stores inside the system, and how do they collaborate?</strong></p>
-
-<p>In C4, a container is not necessarily Docker. It is an application or data store that runs code or holds data: a web app, mobile app, API, worker, database, object store, queue, or search index.</p>
-
-<p>For each container, show:</p>
-
-<ul>
-  <li>A specific name.</li>
-  <li>Its responsibility.</li>
-  <li>Its technology, when the choice matters.</li>
-  <li>Directed and labelled relationships.</li>
-  <li>The system boundary around all in-scope containers.</li>
-</ul>
-
-<p>This is usually the most valuable interview diagram because it exposes service boundaries, data ownership, communication style, and the high-level read/write paths.</p>
-
-<h3 id="design-the-main-paths">Design the main paths</h3>
-
-<p>Walk through the critical use case rather than listing disconnected boxes:</p>
-
-<ol>
-  <li>Where does the request or event enter?</li>
-  <li>Which container validates and authorizes it?</li>
-  <li>Which container owns the business decision?</li>
-  <li>What is the source of truth?</li>
-  <li>Which derived stores, caches, indexes, or events are updated?</li>
-  <li>How does the result reach the user or downstream system?</li>
-  <li>What happens if a dependency is slow, unavailable, or returns twice?</li>
-</ol>
-
-<p>Separate read and write paths when they differ. Label protocols only when relevant, such as HTTPS/JSON, gRPC, WebSocket, or events on a named topic.</p>
-
-<h3 id="data-and-request-flow-lens">Data and request-flow lens</h3>
-
-<p>The useful part of the old Hourglass model becomes a checklist within the C4 views, not a competing sequence of abstraction levels:</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Concern</th>
-      <th>Context view</th>
-      <th>Container view</th>
-      <th>Component view</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Source</td>
-      <td>Person or external system that starts the flow</td>
-      <td>Ingress application, API, upload, topic, or job</td>
-      <td>Validator, adapter, consumer, or handler</td>
-    </tr>
-    <tr>
-      <td>Type</td>
-      <td>Business information crossing the boundary</td>
-      <td>Payload/event family, size, rate, and serialization</td>
-      <td>Schema validation and evolution</td>
-    </tr>
-    <tr>
-      <td>Storage</td>
-      <td>Usually omitted</td>
-      <td>Source of truth, derived stores, cache, index, retention</td>
-      <td>Repository, partition/index strategy, invalidation</td>
-    </tr>
-    <tr>
-      <td>Access pattern</td>
-      <td>Major user/system relationship</td>
-      <td>Read/write API, lookup shape, stream, or batch path</td>
-      <td>Query, key, cursor, ranking, or aggregation logic</td>
-    </tr>
-    <tr>
-      <td>Transformation</td>
-      <td>System responsibility</td>
-      <td>Service/worker pipeline and sync/async boundary</td>
-      <td>Domain rules, enrichment, deduplication, state transition</td>
-    </tr>
-    <tr>
-      <td>Presentation</td>
-      <td>Person or external consumer receiving value</td>
-      <td>Web/mobile/API/notification/export container</td>
-      <td>Presenter, formatter, subscription, or delivery adapter</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>For each important flow, define <strong>Data A -&gt; Data B</strong>:</p>
-
-<ul>
-  <li>What does one producer emit?</li>
-  <li>What does that become across all producers?</li>
-  <li>What must be canonical, and what can be rebuilt?</li>
-  <li>How will consumers request or subscribe to the result?</li>
-  <li>What is computed on write, on read, on a schedule, or continuously?</li>
-  <li>What freshness, ordering, consistency, and permission rules apply?</li>
-</ul>
-
-<p>This keeps data reasoning intact while ensuring every decision appears at the correct zoom level.</p>
-
-<h3 id="choosing-containers-from-requirements">Choosing containers from requirements</h3>
-
-<p>Choose technology only after identifying workload and access pattern:</p>
-
-<ul>
-  <li>Use a relational store when transactions, constraints, and relational access dominate.</li>
-  <li>Use a key-value/document store when partitioned key access and horizontal scale dominate.</li>
-  <li>Use object storage for large immutable blobs.</li>
-  <li>Add a cache only for repeated reads that tolerate a freshness strategy.</li>
-  <li>Add a queue or stream only when buffering, asynchronous work, or independent consumers justify it.</li>
-  <li>Add a search index only when query requirements exceed the source-of-truth store.</li>
-  <li>Split a service when a business boundary, scaling profile, ownership boundary, or reliability requirement justifies independent operation.</li>
-</ul>
-
-<p>A container diagram is not improved by having more boxes. Each boundary creates operational and consistency costs.</p>
-
-<hr />
-
-<h2 id="level-3-components">Level 3: Components</h2>
-
-<p>The Component diagram answers: <strong>How does one selected container fulfil its responsibilities?</strong></p>
-
-<p>First name the container you are opening. Do not show components from several containers on the same component diagram.</p>
-
-<p>Useful components are cohesive responsibility boundaries, for example:</p>
-
-<ul>
-  <li>API/controller or message consumer.</li>
-  <li>Authorization policy.</li>
-  <li>Domain service.</li>
-  <li>Matching, ranking, pricing, or scheduling engine.</li>
-  <li>Repository or external-system adapter.</li>
-  <li>Publisher and retry coordinator.</li>
-</ul>
-
-<p>Choose this level only for the highest-risk part of the design. Good interview deep dives include:</p>
-
-<ul>
-  <li>Feed fanout.</li>
-  <li>Seat reservation and payment coordination.</li>
-  <li>Message ordering.</li>
-  <li>Geo-spatial dispatch.</li>
-  <li>Rate-limit decisions.</li>
-  <li>Cache invalidation.</li>
-  <li>Search indexing and ranking.</li>
-  <li>Idempotent event processing.</li>
-</ul>
-
-<p>At this level, discuss the contracts and hard trade-offs: data model, indexes, partition keys, concurrency control, ordering, idempotency, retries, backpressure, consistency, and failure recovery.</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>The riskiest container is Reservation Service because concurrent buyers
-can claim the same seat. I will zoom into that container and show the
-hold, inventory, payment, and expiry components.
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="level-4-code">Level 4: Code</h2>
-
-<p>The Code diagram answers: <strong>How is one component implemented?</strong></p>
-
-<p>This level may show classes, functions, interfaces, tables, algorithms, or a state machine. It is rarely needed in a system design interview and becomes stale quickly. Use it when the implementation mechanism is itself the design risk, such as:</p>
-
-<ul>
-  <li>Token-bucket state and atomic update logic.</li>
-  <li>Consistent-hashing ring.</li>
-  <li>Reservation state machine.</li>
-  <li>Conflict-resolution algorithm.</li>
-  <li>Critical schema or index layout.</li>
-</ul>
-
-<p>Do not descend to code just because C4 has a fourth level. Stop at the level that communicates the decision.</p>
-
-<hr />
-
-<h2 id="supporting-views">Supporting Views</h2>
-
-<p>The four C4 levels describe static structure. Real systems also need behaviour and runtime placement.</p>
-
-<h3 id="dynamic-diagram">Dynamic diagram</h3>
-
-<p>Use a numbered sequence of interactions for one important scenario:</p>
-
-<ul>
-  <li>Successful write and read paths.</li>
-  <li>Retry after timeout.</li>
-  <li>Duplicate event handling.</li>
-  <li>Cache miss and fill.</li>
-  <li>Payment succeeds but confirmation fails.</li>
-  <li>Regional failover or degraded mode.</li>
-</ul>
-
-<p>A dynamic view should reuse the same names as the Context, Container, and Component views. It is often clearer than adding more arrows to a static diagram.</p>
-
-<h3 id="deployment-diagram">Deployment diagram</h3>
-
-<p>Use a deployment view when infrastructure changes the answer:</p>
-
-<ul>
-  <li>Regions, availability zones, and failover.</li>
-  <li>Replicas, shards, and partition placement.</li>
-  <li>CDN and edge locations.</li>
-  <li>Public/private networks and trust boundaries.</li>
-  <li>Autoscaling, load balancing, and service discovery.</li>
-  <li>Deployment, migration, rollback, and disaster recovery.</li>
-</ul>
-
-<p>Do not mix AWS or Kubernetes nodes into the logical Container diagram. First show what the software is; then show where instances run.</p>
-
-<h3 id="system-landscape">System landscape</h3>
-
-<p>Use a landscape view only when several peer software systems and organizational ownership boundaries matter. For a single-system interview prompt, Context is normally sufficient.</p>
-
-<hr />
-
-<h2 id="cross-cutting-qualities">Cross-Cutting Qualities</h2>
-
-<p>These concerns are not extra C4 levels. Apply them to every relevant element and relationship:</p>
-
-<ul>
-  <li><strong>Security:</strong> authentication, authorization, encryption, secrets, abuse prevention, audit, privacy, and deletion.</li>
-  <li><strong>Scalability:</strong> the dimension that grows, partition key, hot spots, fanout, backpressure, and scaling limit.</li>
-  <li><strong>Reliability:</strong> timeouts, retries with jitter, idempotency, replication, failover, recovery, and degraded modes.</li>
-  <li><strong>Observability:</strong> user-facing SLIs, metrics, logs, traces, queue lag, data freshness, and actionable alerts.</li>
-  <li><strong>Operability:</strong> configuration, schema migration, deployment, rollback, capacity, and cost.</li>
-  <li><strong>Data governance:</strong> ownership, lineage, retention, residency, correction, and rebuildability.</li>
-</ul>
-
-<p>Attach these to concrete elements. For example, “the worker retries with an idempotency key and sends exhausted messages to a dead-letter queue” is stronger than a floating “reliability” box.</p>
-
-<hr />
-
-<h2 id="practical-45-minute-sequence">A Practical 45-Minute Sequence</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>Time</th>
-      <th>Activity</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>0-7 min</td>
-      <td>Clarify scope, critical journeys, quality goals, and assumptions</td>
-    </tr>
-    <tr>
-      <td>7-12 min</td>
-      <td>Estimate the few numbers that affect the architecture</td>
-    </tr>
-    <tr>
-      <td>12-17 min</td>
-      <td>Draw and validate the Context view</td>
-    </tr>
-    <tr>
-      <td>17-29 min</td>
-      <td>Draw the Container view and walk read/write paths</td>
-    </tr>
-    <tr>
-      <td>29-39 min</td>
-      <td>Deep dive into one risky container with Components or a Dynamic view</td>
-    </tr>
-    <tr>
-      <td>39-45 min</td>
-      <td>Test failures, bottlenecks, security, trade-offs, and summarize</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Treat the timing as a guide. Follow the interviewer’s signals and spend time where the discussion creates evidence of engineering judgment.</p>
-
-<hr />
-
-<h2 id="diagram-discipline">Diagram Discipline</h2>
-
-<p>Each diagram should include:</p>
-
-<ul>
-  <li>A title naming the diagram type and scope.</li>
-  <li>A clear boundary for the element being described.</li>
-  <li>Element type, name, and concise responsibility.</li>
-  <li>Technology where relevant.</li>
-  <li>One-way arrows with descriptions that match their direction.</li>
-  <li>A legend if colour, shape, or line style carries meaning.</li>
-</ul>
-
-<p>Keep names consistent across every view. Avoid ambiguous boxes such as “backend”, “business logic”, “data”, or “cloud”. Never place a database beside a class or a person beside an internal component on the same static diagram.</p>
-
-<hr />
-
-<h2 id="wrap-up">Wrap Up</h2>
-
-<p>A strong closing takes 30-60 seconds:</p>
-
-<ol>
-  <li>Restate the scope and critical journey.</li>
-  <li>Summarize the Context and Container decisions.</li>
-  <li>Name the deepest design risk and its mitigation.</li>
-  <li>Identify the likely bottleneck or failure mode.</li>
-  <li>State the main trade-off.</li>
-  <li>Explain what you would explore next.</li>
-</ol>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>This design keeps booking inventory strongly consistent while allowing
-catalogue reads and notifications to be eventually consistent. The main
-risk is the reservation-to-payment transition, so the design uses
-short-lived holds, idempotent commands, and reconciliation. With more
-time, I would validate multi-region recovery and capacity under the
-on-sale spike.
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="final-review-checklist">Final Review Checklist</h2>
-
-<p>Before finishing, check:</p>
-
-<ul>
-  <li>Does every diagram stay at one abstraction level?</li>
-  <li>Is the system boundary explicit?</li>
-  <li>Are all elements named and described?</li>
-  <li>Are relationships directed and labelled?</li>
-  <li>Can you trace the critical journey end to end?</li>
-  <li>Are the source of truth and derived data clear?</li>
-  <li>Do storage choices match access patterns and consistency needs?</li>
-  <li>Are scale estimates connected to design decisions?</li>
-  <li>Are retries idempotent and failure modes recoverable?</li>
-  <li>Are security and observability attached to concrete paths?</li>
-  <li>Did you explain what the design optimizes for and sacrifices?</li>
-  <li>Did you stop zooming when further detail stopped adding value?</li>
-</ul>
-
-<hr />
-
-<h2 id="official-c4-references">Official C4 References</h2>
-
-<ul>
-  <li><a href="https://c4model.com/introduction">Introduction and the four zoom levels</a></li>
-  <li><a href="https://c4model.com/diagrams">Core and supporting diagram types</a></li>
-  <li><a href="https://c4model.com/diagrams/checklist">Diagram review checklist</a></li>
-  <li><a href="https://c4model.com/diagrams/faq">C4 diagram FAQ</a></li>
-</ul>
-
-<hr />
-
-<h2 id="why-these-interview-habits-matter">Why These Interview Habits Matter</h2>
-
-<p>These are not really system-design scenario questions. They explain why the interview habits above matter and how to use them during the interview.</p>
-
 <details>
-  <summary><strong>Why should you ask clarifying questions before designing?</strong></summary>
-
-Because different requirements produce different architectures. A system for 10K users can be much simpler than one for 100M users. A read-heavy product may need caching and replicas; a write-heavy product may need queues, partitions, and append-only storage. Clarifying questions prevent solving the wrong problem.
-</details>
-
-<details>
-  <summary><strong>What should you do if the interviewer does not give exact numbers?</strong></summary>
-
-Make reasonable assumptions and say them out loud. For example: "I will assume 10M daily active users, 100M reads/day, and 1M writes/day. If that is too high or low, I can adjust the design." This shows you can move forward without pretending the unknowns do not matter.
-</details>
-
-<details>
-  <summary><strong>How do you decide between SQL and NoSQL?</strong></summary>
-
-Use SQL when you need strong consistency, transactions, relational queries, constraints, and flexible joins. Use NoSQL when the access pattern is simple, scale is very high, schema flexibility matters, or partitioned key-value/document access fits naturally. The answer should include tradeoffs, not just a product name.
-</details>
-
-<details>
-  <summary><strong>When should you introduce a cache?</strong></summary>
-
-Use a cache when reads are frequent, data can tolerate some staleness, and the same data is requested repeatedly. Mention the tradeoff: caches improve latency and reduce database load, but introduce invalidation, consistency, memory cost, and operational complexity.
-</details>
-
-<details>
-  <summary><strong>When should you use a queue or stream?</strong></summary>
-
-Use a queue or stream when work can be processed asynchronously, when you need buffering during traffic spikes, or when multiple consumers need to react to the same event. The tradeoff is that the system becomes eventually consistent and needs retry, idempotency, ordering, and dead-letter handling.
-</details>
-
-<details>
-  <summary><strong>How do you talk about consistency tradeoffs?</strong></summary>
-
-State which data must be strongly consistent and which data can be eventually consistent. Payments, inventory reservation, and account balances often need stronger guarantees. Feeds, counters, analytics, search indexes, and notifications can often lag slightly.
-</details>
-
-<details>
-  <summary><strong>How do you identify bottlenecks?</strong></summary>
-
-Trace the read and write paths and look for shared resources: database writes, hot partitions, cache misses, queue lag, external APIs, large fanout, and cross-region calls. Then connect each bottleneck to a mitigation such as caching, sharding, batching, backpressure, async processing, or graceful degradation.
-</details>
-
-<details>
-  <summary><strong>How should you handle failures in the design?</strong></summary>
-
-Identify what happens when each major dependency fails. Use timeouts, retries with jitter, circuit breakers, idempotency keys, dead-letter queues, health checks, failover, and degraded modes. Also mention observability so the team knows when failure is happening.
-</details>
-
-<details>
-  <summary><strong>How do you avoid overengineering?</strong></summary>
-
-Tie every component to a requirement. If scale is modest, start with a simpler design and explain when you would add complexity. Interviewers usually prefer a design that grows with requirements over a design that adds every possible distributed systems pattern upfront.
-</details>
-
-<details>
-  <summary><strong>What is a good way to wrap up a system design answer?</strong></summary>
-
-Summarize the architecture, the main data flow, key tradeoffs, bottlenecks, and next improvements. A good wrap-up shows ownership: you understand what the design handles well and where it still has risk.
-</details>
-
-<hr />
-
-<h2 id="system-design-concept-checks">System Design Concept Checks</h2>
-
-<p>These are closer to concept questions an interviewer might ask directly. They are not full scenario prompts, but they test whether you understand common building blocks and their tradeoffs.</p>
-
-<details>
-  <summary><strong>What is the difference between vertical scaling and horizontal scaling?</strong></summary>
-
-Vertical scaling means making one machine bigger: more CPU, memory, disk, or network. It is simple but has an upper limit and can become expensive. Horizontal scaling means adding more machines and distributing traffic or data across them. It scales further, but introduces coordination, load balancing, partitioning, and failure handling.
-</details>
-
-<details>
-  <summary><strong>What is the difference between replication and sharding?</strong></summary>
-
-Replication copies the same data to multiple nodes. It improves read capacity, availability, and failover. Sharding splits different data across different nodes. It improves write capacity and total storage capacity. Replication answers "how do we copy data?" Sharding answers "how do we divide data?"
-</details>
-
-<details>
-  <summary><strong>What is consistent hashing and why is it useful?</strong></summary>
-
-Consistent hashing maps keys and servers onto a logical ring so keys move minimally when servers are added or removed. It is useful for distributed caches, storage partitions, and load distribution because it avoids remapping almost every key during scaling events.
-</details>
-
-<details>
-  <summary><strong>What is the difference between strong consistency and eventual consistency?</strong></summary>
-
-Strong consistency means reads return the latest committed write, which is important for payments, inventory, bookings, and account balances. Eventual consistency means replicas may temporarily disagree but converge later, which is often acceptable for feeds, counters, search indexes, notifications, and analytics. Strong consistency is easier to reason about but can cost latency and availability.
-</details>
-
-<details>
-  <summary><strong>What is idempotency and why does it matter?</strong></summary>
-
-An idempotent operation can be retried safely without applying the side effect twice. This matters because distributed systems retry after timeouts, network failures, and worker crashes. Payment creation, order submission, ticket booking, and message delivery often need idempotency keys.
-</details>
-
-<details>
-  <summary><strong>What is backpressure?</strong></summary>
-
-Backpressure is a way for overloaded parts of a system to slow down or reject incoming work instead of failing completely. Queues, rate limits, bounded worker pools, load shedding, and retry-after responses are common backpressure tools.
-</details>
-
-<details>
-  <summary><strong>What is the difference between a queue and a pub/sub stream?</strong></summary>
-
-A queue usually distributes each message to one worker from a consumer group, which is useful for background jobs. A pub/sub stream lets multiple independent consumers process the same event, which is useful for fanout, analytics, search indexing, notifications, and audit pipelines.
-</details>
-
-<details>
-  <summary><strong>What is cache invalidation?</strong></summary>
-
-Cache invalidation is the process of removing or updating stale cached data after the source of truth changes. Common strategies include TTLs, write-through caching, write-around caching, explicit deletes, versioned keys, and event-driven invalidation. The hard part is balancing freshness, latency, and operational complexity.
-</details>
-
-<details>
-  <summary><strong>What is a hot partition?</strong></summary>
-
-A hot partition happens when too much traffic goes to one shard, key, tenant, user, or time range. It can overload one database partition even if the total cluster has enough capacity. Fixes include better partition keys, salting, spreading writes, caching hot reads, and isolating heavy tenants.
-</details>
-
-<details>
-  <summary><strong>What are p50, p95, and p99 latency?</strong></summary>
-
-p50 is the median request latency. p95 means 95% of requests are faster than that value. p99 means 99% are faster and 1% are slower. Tail latency matters because users often feel the slow requests, and multi-service request paths can make p99 much worse.
-</details>
-
-<hr />
-
-<h2 id="scenario-practice-questions">Scenario Practice Questions</h2>
-
-<p>These are full scenario-style prompts. The collapsed answer is not the only correct design; it is a structured way to think through scope, Context, Containers, trade-offs, and possible deep dives. Additional sizing-heavy examples appear in <a href="#system-design-scenarios">Detailed Scenario Design Checks</a>.</p>
-
-<details>
-  <summary><strong>Design a notification system for email, SMS, and push notifications.</strong></summary>
+  <summary><strong>C4 System Design Interview #1 — Ticket Booking System</strong></summary>
 
 <div>
 
-    <p><strong>Clarify</strong></p>
+    <h3 id="exercise">Exercise</h3>
+
+    <p>Design a ticket-booking platform for concerts and sporting events.</p>
+
     <ul>
-      <li>Channels: email, SMS, push, in-app?</li>
-      <li>Volume: notifications per second, burst traffic, peak campaigns.</li>
-      <li>Priority: transactional vs marketing vs low-priority digest.</li>
-      <li>Delivery guarantees: at-least-once, best effort, or exactly-once user experience?</li>
-      <li>User controls: preferences, unsubscribe, quiet hours, locale.</li>
+      <li>Customers browse events and available seats, then select and purchase seats.</li>
+      <li>Event organizers create and manage events and view bookings and sales.</li>
+      <li>The application and email confirm successful bookings.</li>
+      <li>An external payment provider processes payments.</li>
+      <li>An event may have about <code class="language-plaintext highlighter-rouge">50,000</code> seats.</li>
+      <li>Hundreds of thousands of users may arrive within minutes of an on-sale time.</li>
+      <li><strong>Critical invariant:</strong> one seat must never be successfully sold to two customers.</li>
     </ul>
 
-    <p><strong>High-Level Design</strong></p>
+    <p>The critical journey is:</p>
+
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>browse event → inspect seats → hold seat → pay → confirm booking → notify customer
+</code></pre></div>    </div>
+
+    <h3 id="scope-before-c4">1. Scope before C4</h3>
+
+    <p>Identify the actors and the integration boundary before drawing architecture:</p>
+
     <ul>
-      <li><code class="language-plaintext highlighter-rouge">Notification API</code> accepts requests and validates payloads.</li>
-      <li><code class="language-plaintext highlighter-rouge">Template Service</code> renders channel-specific content.</li>
-      <li><code class="language-plaintext highlighter-rouge">Preference Service</code> filters by user settings and compliance rules.</li>
-      <li><code class="language-plaintext highlighter-rouge">Queue / Stream</code> buffers work by channel and priority.</li>
-      <li><code class="language-plaintext highlighter-rouge">Delivery Workers</code> call email/SMS/push providers.</li>
-      <li><code class="language-plaintext highlighter-rouge">Status Store</code> tracks sent, failed, retried, bounced, or delivered.</li>
+      <li><strong>Customer:</strong> browses events and purchases tickets.</li>
+      <li><strong>Event Organizer:</strong> creates and manages events; views bookings and sales.</li>
+      <li><strong>Payment Provider:</strong> authorizes and captures payment.</li>
+      <li><strong>Email Provider:</strong> delivers confirmation emails.</li>
+      <li><strong>Ticket Booking System:</strong> confirms the booking automatically after payment and reservation succeed; organizers do not confirm each booking manually.</li>
     </ul>
 
-    <p><strong>Deep Dive</strong></p>
+    <p>The platform integrates with a payment provider, not normally with banks or card networks directly. Those downstream systems do not belong on this Context diagram because they are outside our direct integration boundary.</p>
+
+    <h3 id="context--the-system-in-its-world">2. Context — the system in its world</h3>
+
+    <p>The first interview mistake is drawing <code class="language-plaintext highlighter-rouge">Booking System</code>, <code class="language-plaintext highlighter-rouge">Payment System</code>, and <code class="language-plaintext highlighter-rouge">Event System</code> inside the Ticket Booking System. That mixes Context and Container levels.</p>
+
+    <p>At Context level, the entire platform is <strong>one software system</strong>. Show only people, that system, directly connected external systems, and why they interact.</p>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_ticket_booking_context.png" alt="C4 System Context diagram for a ticket booking platform" class="modal-trigger" data-caption="C4 Level 1: Ticket Booking System in its world" />
+  <div class="diagram-caption" data-snippet-id="c4-ticket-booking-context-snippet">
+    🔎 Context — who uses the platform and what is outside it?
+  </div>
+  <script type="text/plain" id="c4-ticket-booking-context-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+Person(customer, "Customer", "Browses events and purchases tickets")
+Person(organizer, "Event Organizer", "Creates and manages events")
+System(ticketBookingSystem, "Ticket Booking System", "Allows customers to discover events, reserve seats, purchase tickets, and receive booking confirmation")
+System_Ext(paymentProvider, "Payment Provider", "Processes payment authorization and capture")
+System_Ext(emailProvider, "Email Provider", "Delivers booking confirmation emails")
+Rel(customer, ticketBookingSystem, "Browses events, selects seats, purchases tickets")
+Rel(organizer, ticketBookingSystem, "Creates and manages events, views bookings and sales")
+Rel(ticketBookingSystem, paymentProvider, "Authorizes and captures payments")
+Rel(ticketBookingSystem, emailProvider, "Sends booking confirmation emails")
+@enduml
+
+  </script>
+</div>
+
+    <p>Walk the critical external journey:</p>
+
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Customer → Ticket Booking System → Payment Provider
+Customer ← Email Provider ← Ticket Booking System
+</code></pre></div>    </div>
+
+    <p>Do not expose databases, queues, internal APIs, services, or caches yet.</p>
+
+    <h3 id="container--open-the-ticket-booking-system">3. Container — open the Ticket Booking System</h3>
+
+    <p>Say the zoom explicitly: <strong>“I am opening the Ticket Booking System.”</strong></p>
+
+    <p>Derive containers from the critical journey rather than inventing microservices first:</p>
+
     <ul>
-      <li>Idempotency keys to avoid duplicate sends.</li>
-      <li>Retry with exponential backoff and jitter.</li>
-      <li>Dead-letter queue for poison messages.</li>
-      <li>Provider fallback for SMS/email vendors.</li>
-      <li>Rate limits per provider and per tenant.</li>
-      <li>Metrics: send rate, failure rate, provider latency, queue lag.</li>
+      <li><code class="language-plaintext highlighter-rouge">Event Catalog Service</code> owns events, venues, prices, and seat definitions.</li>
+      <li><code class="language-plaintext highlighter-rouge">Seat Inventory Service</code> owns availability, temporary holds, and reservations.</li>
+      <li><code class="language-plaintext highlighter-rouge">Order Service</code> owns booking and order lifecycle.</li>
+      <li><code class="language-plaintext highlighter-rouge">Payment Service</code> isolates payment-provider coordination.</li>
+      <li><code class="language-plaintext highlighter-rouge">Notification Worker</code> handles confirmation outside the critical transaction.</li>
+      <li>Separate databases make ownership visible; the queue decouples confirmation email.</li>
     </ul>
 
-    <p><strong>Tradeoff</strong></p>
+    <div class="image-wrapper">
+  <img src="./assets/c4_ticket_booking_containers.png" alt="C4 Container diagram for a ticket booking platform" class="modal-trigger" data-caption="C4 Level 2: applications and data stores inside the Ticket Booking System" />
+  <div class="diagram-caption" data-snippet-id="c4-ticket-booking-containers-snippet">
+    🧱 Container — which runnable part owns each responsibility?
+  </div>
+  <script type="text/plain" id="c4-ticket-booking-containers-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+Person(customer, "Customer", "Browses events and purchases tickets")
+Person(organizer, "Event Organizer", "Creates and manages events")
+System_Ext(paymentProvider, "Payment Provider", "Processes payment authorization and capture")
+System_Ext(emailProvider, "Email Provider", "Delivers booking confirmation emails")
+System_Boundary(ticketBookingSystem, "Ticket Booking System") {
+    Container(customerApp, "Customer Web/Mobile App", "Web/Mobile", "Browse events, select seats, and purchase tickets")
+    Container(organizerPortal, "Organizer Portal", "Web App", "Create and manage events and view bookings")
+    Container(api, "Booking API", "Application Service", "Handles customer and organizer requests")
+    Container(eventCatalog, "Event Catalog Service", "Application Service", "Manages events, venues, prices, and metadata")
+    Container(inventoryService, "Seat Inventory Service", "Application Service", "Owns seat availability, holds, and reservations")
+    Container(orderService, "Order Service", "Application Service", "Owns booking and order lifecycle")
+    Container(paymentService, "Payment Service", "Application Service", "Coordinates payment authorization and capture")
+    Container(notificationWorker, "Notification Worker", "Background Worker", "Sends booking confirmations asynchronously")
+    ContainerDb(eventDb, "Event Database", "Relational Database", "Stores events, venues, pricing, and seat definitions")
+    ContainerDb(inventoryDb, "Inventory Database", "Relational Database", "Stores seat state and temporary holds")
+    ContainerDb(orderDb, "Order Database", "Relational Database", "Stores orders and payment state")
+    ContainerQueue(eventQueue, "Event Queue", "Queue", "Carries booking-confirmed events")
+}
+Rel(customer, customerApp, "Uses")
+Rel(organizer, organizerPortal, "Uses")
+Rel(customerApp, api, "HTTPS")
+Rel(organizerPortal, api, "HTTPS")
+Rel(api, eventCatalog, "Reads and manages events")
+Rel(api, inventoryService, "Checks and holds seats")
+Rel(api, orderService, "Creates and retrieves orders")
+Rel(eventCatalog, eventDb, "Reads/writes")
+Rel(inventoryService, inventoryDb, "Reads/writes seat state")
+Rel(orderService, inventoryService, "Confirms or releases seat hold")
+Rel(orderService, paymentService, "Requests payment")
+Rel(orderService, orderDb, "Reads/writes orders")
+Rel(paymentService, paymentProvider, "Authorizes/captures payment")
+Rel(orderService, eventQueue, "Publishes BookingConfirmed")
+Rel(notificationWorker, eventQueue, "Consumes BookingConfirmed")
+Rel(notificationWorker, emailProvider, "Sends confirmation email")
+@enduml
+
+  </script>
+</div>
+
+    <p><code class="language-plaintext highlighter-rouge">Seat Inventory Service</code> and <code class="language-plaintext highlighter-rouge">Order Service</code> could begin as modules in one application. Separate deployment is justified only if responsibility, consistency, scale, ownership, or reliability requires it.</p>
+
+    <p>Here, inventory owns the hardest invariant:</p>
+
+    <blockquote>
+      <p>A seat can belong to at most one successful reservation.</p>
+    </blockquote>
+
+    <p>That makes Seat Inventory Service the best candidate for the next zoom—not because C4 requires another diagram, but because risk does.</p>
+
+    <h3 id="component--open-seat-inventory-service">4. Component — open Seat Inventory Service</h3>
+
+    <p>Say: <strong>“The riskiest container is Seat Inventory Service. I will open that container to explain concurrent seat claims.”</strong></p>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_ticket_booking_inventory_components.png" alt="C4 Component diagram for the Seat Inventory Service" class="modal-trigger" data-caption="C4 Level 3: components inside the Seat Inventory Service" />
+  <div class="diagram-caption" data-snippet-id="c4-ticket-booking-inventory-components-snippet">
+    ⚙️ Component — how does Seat Inventory Service protect seat ownership?
+  </div>
+  <script type="text/plain" id="c4-ticket-booking-inventory-components-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+Container_Boundary(inventoryService, "Seat Inventory Service") {
+    Component(inventoryController, "Inventory API / Command Handler", "Application Component", "Receives seat availability, hold, confirm, and release requests")
+    Component(availabilityQuery, "Availability Query Component", "Application Component", "Reads current seat availability")
+    Component(holdManager, "Seat Hold Manager", "Domain Component", "Creates short-lived seat holds and prevents conflicting reservations")
+    Component(reservationManager, "Reservation Manager", "Domain Component", "Confirms held seats after successful payment")
+    Component(expiryWorker, "Hold Expiry Worker", "Background Component", "Releases expired seat holds")
+    Component(inventoryRepository, "Inventory Repository", "Data Access Component", "Reads and writes seat state using transactional operations")
+    Component(eventPublisher, "Inventory Event Publisher", "Application Component", "Publishes seat-held, seat-released, and seat-confirmed events")
+}
+ContainerDb(inventoryDb, "Inventory Database", "Relational Database", "Stores seat state, hold owner, hold expiry, and reservation status")
+ContainerQueue(eventQueue, "Event Queue", "Queue", "Carries inventory state-change events")
+Container(orderService, "Order Service", "Application Service", "Coordinates the booking lifecycle")
+Rel(orderService, inventoryController, "Requests hold, confirm, or release")
+Rel(inventoryController, availabilityQuery, "Queries availability")
+Rel(inventoryController, holdManager, "Requests seat hold")
+Rel(inventoryController, reservationManager, "Confirms reservation")
+Rel(availabilityQuery, inventoryRepository, "Reads seat state")
+Rel(holdManager, inventoryRepository, "Creates hold atomically")
+Rel(reservationManager, inventoryRepository, "Transitions held seat to reserved")
+Rel(expiryWorker, inventoryRepository, "Finds and releases expired holds")
+Rel(holdManager, eventPublisher, "Publishes hold events")
+Rel(reservationManager, eventPublisher, "Publishes reservation events")
+Rel(expiryWorker, eventPublisher, "Publishes release events")
+Rel(inventoryRepository, inventoryDb, "Reads/writes")
+Rel(eventPublisher, eventQueue, "Publishes events")
+@enduml
+
+  </script>
+</div>
+
+    <p>A Component diagram opens <strong>one</strong> selected Container. The database, queue, and Order Service appear only as dependencies outside that boundary; their internals are not exposed.</p>
+
+    <h3 id="targeted-detail--prevent-double-booking">5. Targeted detail — prevent double booking</h3>
+
+    <p>A read followed by an unconditional write is unsafe:</p>
+
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User A reads A12 = AVAILABLE
+User B reads A12 = AVAILABLE
+User A writes A12 = HELD
+User B writes A12 = HELD       ← race condition
+</code></pre></div>    </div>
+
+    <p>The important property is an <strong>atomic conditional transition</strong>:</p>
+
+    <div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">UPDATE</span> <span class="n">seats</span>
+<span class="k">SET</span> <span class="n">status</span> <span class="o">=</span> <span class="s1">'HELD'</span><span class="p">,</span> <span class="n">hold_id</span> <span class="o">=</span> <span class="o">?</span><span class="p">,</span> <span class="n">expires_at</span> <span class="o">=</span> <span class="o">?</span>
+<span class="k">WHERE</span> <span class="n">seat_id</span> <span class="o">=</span> <span class="s1">'A12'</span>
+  <span class="k">AND</span> <span class="n">status</span> <span class="o">=</span> <span class="s1">'AVAILABLE'</span><span class="p">;</span>
+</code></pre></div>    </div>
+
     <ul>
-      <li>Async delivery absorbs spikes and improves reliability, but users may see delayed notifications.</li>
+      <li><code class="language-plaintext highlighter-rouge">rows_updated == 1</code>: this request acquired the hold.</li>
+      <li><code class="language-plaintext highlighter-rouge">rows_updated == 0</code>: another request changed the seat first.</li>
+      <li>The mechanism could be a transaction, conditional write, optimistic version check, or lock; the invariant matters more than the syntax.</li>
+    </ul>
+
+    <p>The lifecycle is:</p>
+
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>AVAILABLE ── hold atomically ──&gt; HELD ── payment succeeds ──&gt; RESERVED
+                                  │
+                                  └── expires / cancels ──&gt; AVAILABLE
+</code></pre></div>    </div>
+
+    <ul>
+      <li>Hold before taking payment, or the customer may be charged for a seat the platform cannot reserve.</li>
+      <li>Give holds an expiry so abandoned checkouts release inventory.</li>
+      <li>Make hold, payment, and confirmation commands idempotent because clients and services retry after timeouts.</li>
+      <li>If payment succeeds but confirmation is uncertain, preserve payment/order state and reconcile; do not charge again blindly.</li>
+    </ul>
+
+    <p>This is sufficient targeted detail. Do not draw a Level 4 code diagram unless the interviewer asks for the state-machine or storage implementation.</p>
+
+    <h3 id="pressure-test-the-design">6. Pressure-test the design</h3>
+
+    <ul>
+      <li><strong>Traffic spike:</strong> protect hot events with admission control, a virtual waiting room, rate limits, and backpressure.</li>
+      <li><strong>Read scale:</strong> cache event metadata and seat-map views, but never treat cached availability as authority for acquiring a seat.</li>
+      <li><strong>Hot inventory:</strong> partition carefully by event or section; one popular event can become a hot partition even when total database capacity is high.</li>
+      <li><strong>Consistency:</strong> seat transitions require strong conditional writes; catalogue views and email delivery may be eventually consistent.</li>
+      <li><strong>Failure:</strong> use timeouts, bounded retries, idempotency keys, durable events, and reconciliation around payment and confirmation.</li>
+      <li><strong>Security:</strong> authenticate customers and organizers, authorize organizer actions by event, avoid storing raw card details, and audit booking changes.</li>
+      <li><strong>Observability:</strong> measure hold-conflict rate, checkout success, payment/confirmation mismatch, expired holds, queue lag, and p95/p99 booking latency.</li>
+    </ul>
+
+    <h3 id="interview-conclusion">Interview conclusion</h3>
+
+    <ul>
+      <li>Scope established the boundary and the double-sale invariant.</li>
+      <li>Context showed the platform as one system in its world.</li>
+      <li>Container assigned runtime and data ownership.</li>
+      <li>Component opened only the highest-risk container.</li>
+      <li>Targeted detail proved how <code class="language-plaintext highlighter-rouge">AVAILABLE → HELD → RESERVED</code> remains safe under concurrency.</li>
+      <li>The design spends strong consistency on seat ownership while allowing catalogue reads and notifications to scale more loosely.</li>
     </ul>
 
   </div>
 </details>
 
 <details>
-  <summary><strong>Design a rate limiter for an API platform.</strong></summary>
+  <summary><strong>C4 System Design Interview #2 — IoT Sensor Dashboard</strong></summary>
 
 <div>
 
-    <p><strong>Clarify</strong></p>
+    <h3 id="exercise-and-scope">Exercise and scope</h3>
+
+    <p>Design a dashboard for <code class="language-plaintext highlighter-rouge">1 million</code> temperature sensors reporting every <code class="language-plaintext highlighter-rouge">10 seconds</code>.</p>
+
     <ul>
-      <li>Limit subject: user, IP, API key, tenant, endpoint, region.</li>
-      <li>Limit type: requests/sec, requests/day, concurrent requests, bandwidth.</li>
-      <li>Burst behavior: allow short bursts or enforce strict caps?</li>
-      <li>Scope: single region or global?</li>
-      <li>Response: hard block, soft throttle, or <code class="language-plaintext highlighter-rouge">429 Too Many Requests</code>.</li>
+      <li><strong>Sensor Fleet:</strong> publishes timestamped device, location, and temperature readings.</li>
+      <li><strong>Operations User:</strong> views a heatmap within about <code class="language-plaintext highlighter-rouge">10 seconds</code> and historical trends.</li>
+      <li><strong>Critical risk:</strong> sustain bursty ingestion without losing replayability or corrupting aggregates with duplicate events.</li>
     </ul>
 
-    <p><strong>High-Level Design</strong></p>
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sensor reading → ingest → validate/deduplicate → latest state + raw history → aggregate → dashboard
+</code></pre></div>    </div>
+
+    <h3 id="context--one-monitoring-system">Context — one monitoring system</h3>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_iot_dashboard_context.png" alt="C4 System Context diagram for an IoT sensor dashboard" class="modal-trigger" data-caption="C4 Level 1: IoT Monitoring System in its world" />
+  <div class="diagram-caption" data-snippet-id="c4-iot-dashboard-context-snippet">🔎 Context — devices send readings; users consume operational views</div>
+  <script type="text/plain" id="c4-iot-dashboard-context-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+System_Ext(sensors, "Sensor Fleet", "Publishes timestamped temperature and location readings")
+Person(operator, "Operations User", "Monitors current conditions and historical trends")
+System(monitoring, "IoT Monitoring System", "Ingests telemetry and provides realtime and historical dashboards")
+Rel(sensors, monitoring, "Publishes readings", "MQTT")
+Rel(operator, monitoring, "Views heatmap and historical dashboard", "HTTPS")
+@enduml
+
+  </script>
+</div>
+
+    <p>At Context level, MQTT brokers, streams, time-series databases, and workers remain hidden.</p>
+
+    <h3 id="container--open-the-iot-monitoring-system">Container — open the IoT Monitoring System</h3>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_iot_dashboard_containers.png" alt="C4 Container diagram for an IoT sensor dashboard" class="modal-trigger" data-caption="C4 Level 2: ingestion, processing, storage, and dashboard paths" />
+  <div class="diagram-caption" data-snippet-id="c4-iot-dashboard-containers-snippet">🧱 Container — separate the high-volume write path from dashboard reads</div>
+  <script type="text/plain" id="c4-iot-dashboard-containers-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+System_Ext(sensors, "Sensor Fleet", "Publishes temperature readings")
+Person(operator, "Operations User", "Views current and historical conditions")
+System_Boundary(monitoring, "IoT Monitoring System") {
+    Container(gateway, "Device Gateway", "MQTT Ingress", "Authenticates devices and accepts readings")
+    ContainerQueue(stream, "Telemetry Stream", "Durable Stream", "Buffers partitioned readings and supports replay")
+    Container(processor, "Stream Processor", "Stream Application", "Validates, deduplicates, and projects readings")
+    ContainerDb(latest, "Latest-State Store", "Key-Value Store", "Stores the latest reading per device or map cell")
+    ContainerDb(raw, "Raw Telemetry Store", "Object Storage", "Retains immutable readings for replay and audit")
+    Container(aggregator, "Aggregation Worker", "Background Worker", "Builds time-bucketed historical summaries")
+    ContainerDb(history, "Historical Store", "Time-Series Database", "Stores queryable aggregates")
+    Container(api, "Dashboard API", "Application Service", "Serves current and historical views")
+    Container(web, "Dashboard", "Web Application", "Displays heatmaps and trends")
+}
+Rel(sensors, gateway, "Publishes readings", "MQTT")
+Rel(gateway, stream, "Appends accepted readings")
+Rel(stream, processor, "Delivers partitioned readings")
+Rel(processor, latest, "Updates current state idempotently")
+Rel(processor, raw, "Persists immutable readings")
+Rel(processor, aggregator, "Emits validated readings")
+Rel(aggregator, history, "Writes time-bucket aggregates")
+Rel(operator, web, "Uses")
+Rel(web, api, "Requests dashboard data", "HTTPS")
+Rel(api, latest, "Reads current state")
+Rel(api, history, "Queries historical aggregates")
+@enduml
+
+  </script>
+</div>
+
     <ul>
-      <li><code class="language-plaintext highlighter-rouge">API Gateway / Middleware</code> checks the limit before routing.</li>
-      <li><code class="language-plaintext highlighter-rouge">Rate Limit Store</code> keeps counters or token buckets in Redis.</li>
-      <li><code class="language-plaintext highlighter-rouge">Policy Store</code> defines limits by tenant, plan, endpoint, or API key.</li>
-      <li><code class="language-plaintext highlighter-rouge">Decision Engine</code> returns allow, reject, or throttle.</li>
-      <li>Response includes quota headers such as remaining limit and reset time.</li>
+      <li>The durable telemetry stream absorbs bursts and permits replay.</li>
+      <li>The latest-state store serves the heatmap without scanning history.</li>
+      <li>Raw storage preserves rebuildable facts; the aggregate store serves bounded historical queries.</li>
+      <li>The dashboard API reads prepared views rather than coupling users to ingestion.</li>
     </ul>
 
-    <p><strong>Example</strong></p>
+    <h3 id="component--open-stream-processor">Component — open Stream Processor</h3>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_iot_stream_components.png" alt="C4 Component diagram for the IoT stream processor" class="modal-trigger" data-caption="C4 Level 3: components inside the IoT Stream Processor" />
+  <div class="diagram-caption" data-snippet-id="c4-iot-stream-components-snippet">⚙️ Component — validate, deduplicate, route, and checkpoint safely</div>
+  <script type="text/plain" id="c4-iot-stream-components-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+ContainerQueue(stream, "Telemetry Stream", "Durable Stream", "Carries partitioned sensor readings")
+Container_Boundary(processor, "Stream Processor") {
+    Component(consumer, "Partition Consumer", "Stream Component", "Reads ordered records and manages checkpoints")
+    Component(validator, "Reading Validator", "Domain Component", "Rejects malformed, unauthorized, or implausible readings")
+    Component(deduplicator, "Deduplicator", "Domain Component", "Recognizes retried readings by device sequence")
+    Component(projector, "Latest-State Projector", "Application Component", "Updates the current device and map-cell views")
+    Component(rawWriter, "Raw Writer", "Application Component", "Persists immutable accepted readings")
+    Component(aggregatePublisher, "Aggregate Publisher", "Application Component", "Emits validated readings for aggregation")
+}
+ContainerDb(latest, "Latest-State Store", "Key-Value Store", "Current device and map-cell state")
+ContainerDb(raw, "Raw Telemetry Store", "Object Storage", "Replayable raw readings")
+Container(aggregator, "Aggregation Worker", "Background Worker", "Builds time-bucket summaries")
+Rel(stream, consumer, "Delivers records")
+Rel(consumer, validator, "Validates")
+Rel(validator, deduplicator, "Checks accepted reading")
+Rel(deduplicator, projector, "Projects unique reading")
+Rel(deduplicator, rawWriter, "Persists unique reading")
+Rel(deduplicator, aggregatePublisher, "Forwards unique reading")
+Rel(projector, latest, "Updates idempotently")
+Rel(rawWriter, raw, "Appends")
+Rel(aggregatePublisher, aggregator, "Emits validated reading")
+@enduml
+
+  </script>
+</div>
+
+    <h3 id="targeted-detail--size-and-protect-ingestion">Targeted detail — size and protect ingestion</h3>
+
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1,000,000 devices / 10 seconds = 100,000 readings/second average
+100,000 × 100 bytes             = 10 MB/second before overhead
+10 MB × 86,400                  = 864 GB/day
+864 GB × 180 days               ≈ 155 TB raw for six months
+</code></pre></div>    </div>
+
     <ul>
-      <li>Requirement: each API key gets <code class="language-plaintext highlighter-rouge">100 requests/minute</code>, with a small burst allowance.</li>
-      <li>Key format: <code class="language-plaintext highlighter-rouge">rate_limit:{api_key}:{endpoint}</code>.</li>
-      <li>On each request, the gateway checks the key before calling the backend.</li>
-      <li>If allowed, forward the request and return headers such as:
-        <ul>
-          <li><code class="language-plaintext highlighter-rouge">X-RateLimit-Limit: 100</code></li>
-          <li><code class="language-plaintext highlighter-rouge">X-RateLimit-Remaining: 73</code></li>
-          <li><code class="language-plaintext highlighter-rouge">X-RateLimit-Reset: 1710000060</code></li>
-        </ul>
-      </li>
-      <li>If rejected, return <code class="language-plaintext highlighter-rouge">429 Too Many Requests</code> with <code class="language-plaintext highlighter-rouge">Retry-After</code>.</li>
-    </ul>
-
-    <p><strong>Algorithm Choices</strong></p>
-
-    <table class="study-table">
-  <thead>
-    <tr>
-      <th>Algorithm</th>
-      <th>How It Works</th>
-      <th>Pros</th>
-      <th>Cons</th>
-      <th>Use When</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Fixed Window Counter</td>
-      <td>Count requests in fixed time buckets, e.g. 100 requests from 10:00:00 to 10:00:59.</td>
-      <td>Very simple, cheap, easy with Redis <code>INCR</code> + TTL.</td>
-      <td>Boundary bursts: user can send 100 requests at 10:00:59 and 100 more at 10:01:00.</td>
-      <td>Simple APIs where approximate limiting is acceptable.</td>
-    </tr>
-    <tr>
-      <td>Sliding Window Log</td>
-      <td>Store timestamps for each request and remove timestamps older than the window.</td>
-      <td>Very accurate.</td>
-      <td>High memory cost for busy users because every request timestamp is stored.</td>
-      <td>Strict limits for low or moderate traffic keys.</td>
-    </tr>
-    <tr>
-      <td>Sliding Window Counter</td>
-      <td>Use current and previous fixed windows, weighted by how far through the current window you are.</td>
-      <td>More accurate than fixed window, cheaper than sliding log.</td>
-      <td>Still approximate.</td>
-      <td>Good default for high-traffic APIs that need smoother limits.</td>
-    </tr>
-    <tr>
-      <td>Token Bucket</td>
-      <td>Tokens refill at a steady rate. Each request consumes a token. Requests are rejected when the bucket is empty.</td>
-      <td>Allows controlled bursts while enforcing average rate.</td>
-      <td>Needs careful bucket size and refill-rate tuning.</td>
-      <td>Public APIs where short bursts should be allowed.</td>
-    </tr>
-    <tr>
-      <td>Leaky Bucket</td>
-      <td>Requests enter a queue and are processed at a fixed rate, like water leaking from a bucket.</td>
-      <td>Smooths traffic and protects downstream services.</td>
-      <td>Can add latency; queue overflow still needs rejection.</td>
-      <td>When the backend needs a steady request rate.</td>
-    </tr>
-  </tbody>
-</table>
-
-    <p><strong>Deep Dive</strong></p>
-    <ul>
-      <li>Atomic Redis operations or Lua scripts to avoid race conditions.</li>
-      <li>Token bucket: good default when burst allowance matters.</li>
-      <li>Sliding window counter: good default when smoother fairness matters.</li>
-      <li>Fixed window: simple, but boundary bursts are possible.</li>
-      <li>Sliding window log: accurate, but can be memory-heavy.</li>
-      <li>Leaky bucket: smooths backend traffic but may add queueing latency.</li>
-      <li>Hot keys for large tenants.</li>
-      <li>Local fallback if Redis is unavailable.</li>
-      <li>Multi-region limits and eventual consistency.</li>
-    </ul>
-
-    <p><strong>Tradeoff</strong></p>
-    <ul>
-      <li>Strict global limits are more accurate but add coordination and latency. Approximate local limits are faster but less exact.</li>
+      <li>Size for peak and reconnect bursts, not only the average.</li>
+      <li>Partition by a stable device or region key while watching for hot partitions.</li>
+      <li>Assume at-least-once delivery: identify events by <code class="language-plaintext highlighter-rouge">device_id + sequence/timestamp</code> and make updates idempotent.</li>
+      <li>Checkpoint only after required writes succeed; retain raw events so projections can be rebuilt.</li>
+      <li>Downsample historical data by time bucket instead of querying six months of raw readings.</li>
+      <li>Measure ingest lag, invalid/duplicate rate, partition skew, dashboard freshness, and replay time.</li>
     </ul>
 
   </div>
 </details>
 
 <details>
-  <summary><strong>Design a file storage and sharing service like Google Drive or Dropbox.</strong></summary>
+  <summary><strong>C4 System Design Interview #3 — Enterprise Support Chatbot with AgentCore</strong></summary>
 
 <div>
 
-    <p><strong>Clarify</strong></p>
+    <h3 id="exercise-and-scope-1">Exercise and scope</h3>
+
+    <p>Design an authenticated company-support chatbot that can:</p>
+
     <ul>
-      <li>File size limit and total storage per user.</li>
-      <li>Sharing model: private, link-based, team folders, public links.</li>
-      <li>Version history and deletion recovery.</li>
-      <li>Desktop/mobile sync and offline support.</li>
-      <li>Whether collaborative editing is in scope.</li>
+      <li>answer policy questions from private documents;</li>
+      <li>retrieve the live state of a support Case;</li>
+      <li>propose updates to a Case, with authorization and approval;</li>
+      <li>preserve scoped conversation memory;</li>
+      <li>explain actions and produce auditable traces.</li>
     </ul>
 
-    <p><strong>High-Level Design</strong></p>
+    <p>The critical boundary is:</p>
+
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>model proposes an action → policy and application authorize it → deterministic API performs it
+</code></pre></div>    </div>
+
+    <h3 id="context--one-support-assistant">Context — one support assistant</h3>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_agentcore_chatbot_context.png" alt="C4 System Context diagram for an enterprise support chatbot" class="modal-trigger" data-caption="C4 Level 1: Enterprise Support Assistant in its world" />
+  <div class="diagram-caption" data-snippet-id="c4-agentcore-chatbot-context-snippet">🔎 Context — users, company knowledge, live Cases, identity, and the model platform</div>
+  <script type="text/plain" id="c4-agentcore-chatbot-context-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+Person(user, "Support User", "Asks policy questions and requests Case actions")
+Person(agent, "Support Agent", "Reviews escalations and approves sensitive actions")
+System(assistant, "Enterprise Support Assistant", "Answers grounded questions and performs governed support actions")
+System_Ext(idp, "Company Identity Provider", "Authenticates users and supplies identity claims")
+System_Ext(knowledge, "Knowledge Repositories", "Store approved policies and support documentation")
+System_Ext(cases, "Case Management System", "Owns live Case state and transactions")
+System_Ext(bedrock, "Amazon Bedrock", "Provides foundation-model inference")
+Rel(user, assistant, "Asks questions and requests actions")
+Rel(agent, assistant, "Reviews escalations and approvals")
+Rel(assistant, idp, "Authenticates users")
+Rel(assistant, knowledge, "Retrieves approved evidence")
+Rel(assistant, cases, "Reads or modifies authorized Cases")
+Rel(assistant, bedrock, "Requests model inference")
+@enduml
+
+  </script>
+</div>
+
+    <p>AgentCore is not the model or the chatbot itself. It supplies modular runtime, memory, identity, policy, gateway, and observability capabilities around agent code. See the <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html">official AgentCore overview</a>.</p>
+
+    <h3 id="container--open-the-enterprise-support-assistant">Container — open the Enterprise Support Assistant</h3>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_agentcore_chatbot_containers.png" alt="C4 Container diagram for an enterprise support chatbot using AgentCore" class="modal-trigger" data-caption="C4 Level 2: application and AgentCore responsibilities" />
+  <div class="diagram-caption" data-snippet-id="c4-agentcore-chatbot-containers-snippet">🧱 Container — retrieval answers questions; governed tools access live Cases</div>
+  <script type="text/plain" id="c4-agentcore-chatbot-containers-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+Person(user, "Support User", "Asks questions and requests Case actions")
+Person(agent, "Support Agent", "Approves sensitive actions")
+System_Ext(idp, "Company Identity Provider", "Authenticates users")
+System_Ext(knowledge, "Knowledge Repositories", "Approved policies and documentation")
+System_Ext(cases, "Case Management System", "Authoritative Case state and transactions")
+System_Ext(bedrock, "Amazon Bedrock", "Foundation-model inference")
+System_Boundary(assistant, "Enterprise Support Assistant") {
+    Container(chat, "Chat Application", "Web Application", "Collects questions, shows citations, and requests approvals")
+    Container(api, "Support API", "Application Service", "Authenticates sessions and carries user identity")
+    Container(runtime, "Agent Runtime", "Amazon Bedrock AgentCore Runtime", "Hosts the bounded support-agent loop")
+    Container(retrieval, "Knowledge Retrieval", "RAG Service", "Retrieves authorized policy evidence")
+    Container(memory, "Conversation Memory", "AgentCore Memory", "Stores user-scoped short- and long-term context")
+    Container(gateway, "Tool Gateway", "AgentCore Gateway", "Exposes narrow Case tools and exchanges credentials")
+    Container(policy, "Tool Policy", "AgentCore Policy", "Applies deterministic rules before tool execution")
+}
+Rel(user, chat, "Uses")
+Rel(agent, chat, "Reviews escalations and approvals")
+Rel(chat, api, "Sends messages and approvals", "HTTPS")
+Rel(api, idp, "Validates identity")
+Rel(api, runtime, "Invokes agent with user identity")
+Rel(runtime, retrieval, "Requests relevant evidence")
+Rel(retrieval, knowledge, "Searches authorized content")
+Rel(runtime, memory, "Reads and writes scoped conversation context")
+Rel(runtime, bedrock, "Requests reasoning and generation")
+Rel(runtime, gateway, "Requests bounded tools", "MCP")
+Rel(gateway, policy, "Authorizes proposed tool call")
+Rel(gateway, cases, "Invokes approved Case API")
+@enduml
+
+  </script>
+</div>
+
     <ul>
-      <li><code class="language-plaintext highlighter-rouge">Upload API</code> creates signed upload URLs.</li>
-      <li>Client uploads chunks directly to <code class="language-plaintext highlighter-rouge">Object Storage</code>.</li>
-      <li><code class="language-plaintext highlighter-rouge">Metadata Service</code> stores folders, file records, owners, permissions, and versions.</li>
-      <li><code class="language-plaintext highlighter-rouge">Sharing Service</code> handles access rules and public links.</li>
-      <li><code class="language-plaintext highlighter-rouge">Workers</code> scan files, generate thumbnails, index content, and clean up expired versions.</li>
-      <li><code class="language-plaintext highlighter-rouge">CDN</code> accelerates downloads and previews.</li>
+      <li><code class="language-plaintext highlighter-rouge">Support API</code> authenticates the request and carries the user’s identity.</li>
+      <li><code class="language-plaintext highlighter-rouge">Agent Runtime</code> hosts the bounded agent loop and calls the model.</li>
+      <li><code class="language-plaintext highlighter-rouge">Knowledge Retrieval</code> supplies current private policy evidence.</li>
+      <li><code class="language-plaintext highlighter-rouge">AgentCore Memory</code> stores scoped conversational context, not authoritative Case state.</li>
+      <li><code class="language-plaintext highlighter-rouge">AgentCore Gateway</code> exposes narrow tools; <code class="language-plaintext highlighter-rouge">AgentCore Policy</code> deterministically checks proposed calls.</li>
+      <li>The Case Management System remains responsible for authorization, validation, and idempotent transactions.</li>
     </ul>
 
-    <p><strong>Deep Dive</strong></p>
+    <h3 id="component--open-the-agent-runtime">Component — open the Agent Runtime</h3>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_agentcore_runtime_components.png" alt="C4 Component diagram for an enterprise support agent runtime" class="modal-trigger" data-caption="C4 Level 3: custom agent components hosted by AgentCore Runtime" />
+  <div class="diagram-caption" data-snippet-id="c4-agentcore-runtime-components-snippet">⚙️ Component — build context, reason, request tools, require approval, respond</div>
+  <script type="text/plain" id="c4-agentcore-runtime-components-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+Container(api, "Support API", "Application Service", "Invokes the agent with user identity")
+Container_Boundary(runtime, "Agent Runtime — custom code hosted by AgentCore Runtime") {
+    Component(handler, "Request Handler", "Application Component", "Validates request, identity context, and execution limits")
+    Component(contextBuilder, "Context Builder", "Application Component", "Combines instructions, history, evidence, and tool results")
+    Component(agentLoop, "Bounded Agent Loop", "Domain Component", "Selects the next response or permitted action")
+    Component(approval, "Approval Coordinator", "Domain Component", "Pauses sensitive actions until a human approves")
+    Component(response, "Response Composer", "Application Component", "Returns citations, action results, or safe escalation")
+}
+Container(retrieval, "Knowledge Retrieval", "RAG Service", "Returns authorized evidence")
+Container(memory, "Conversation Memory", "AgentCore Memory", "Stores scoped conversational context")
+Container(gateway, "Tool Gateway", "AgentCore Gateway + Policy", "Authorizes and invokes bounded tools")
+System_Ext(bedrock, "Amazon Bedrock", "Foundation-model inference")
+Rel(api, handler, "Invokes")
+Rel(handler, contextBuilder, "Starts request")
+Rel(contextBuilder, retrieval, "Gets evidence")
+Rel(contextBuilder, memory, "Gets scoped history")
+Rel(contextBuilder, agentLoop, "Supplies runtime context")
+Rel(agentLoop, bedrock, "Requests next decision")
+Rel(agentLoop, gateway, "Requests read-only tool")
+Rel(agentLoop, approval, "Requests approval for sensitive action")
+Rel(approval, gateway, "Invokes approved action")
+Rel(agentLoop, response, "Returns answer or action result")
+Rel(response, api, "Returns response and trace reference")
+@enduml
+
+  </script>
+</div>
+
+    <h3 id="targeted-detail--separate-knowledge-state-and-authority">Targeted detail — separate knowledge, state, and authority</h3>
+
     <ul>
-      <li>Resumable multipart upload.</li>
-      <li>Content hash for deduplication.</li>
-      <li>Permission checks on every download/share action.</li>
-      <li>Versioning and restore.</li>
-      <li>Conflict handling for offline sync.</li>
-      <li>Lifecycle policies for old versions and deleted files.</li>
+      <li><strong>Policy answer:</strong> retrieve approved documents, cite them, and abstain when evidence is insufficient.</li>
+      <li><strong>Live Case status:</strong> call a read-only <code class="language-plaintext highlighter-rouge">get_case(case_id)</code> tool using the user’s delegated identity.</li>
+      <li><strong>Case update:</strong> the model may propose <code class="language-plaintext highlighter-rouge">close_case</code>, but policy, user approval, and the Case API decide whether it executes.</li>
+      <li><strong>Transaction safety:</strong> pass an idempotency key; the Case API enforces “close exactly once.”</li>
+      <li><strong>Prompt injection:</strong> retrieved text and tool results are untrusted data, not higher-priority instructions.</li>
+      <li><strong>Failure:</strong> bound agent steps, tool retries, time, and token spend; return a safe partial answer or escalate to a human.</li>
+      <li><strong>Measure:</strong> grounded-answer quality, retrieval success, tool-call success, policy denials, approval rate, latency, tokens, and task completion.</li>
     </ul>
 
-    <p><strong>Tradeoff</strong></p>
-    <ul>
-      <li>Object storage is scalable and cheap for file bytes, but metadata and permissions need careful consistency.</li>
-    </ul>
+    <p>For the full AWS service boundaries and industrial sequence, see <a href="/study/infrastructureAWSAiServices#section-3-agentcore">AWS AI Services — AgentCore</a>. For provider-neutral agent reasoning, see <a href="/study/aiAgents">AI Agents</a>.</p>
 
   </div>
 </details>
 
 <details>
-  <summary><strong>Design a chat system for one-to-one and group messaging.</strong></summary>
+  <summary><strong>C4 System Design Interview #4 — eCommerce Platform</strong></summary>
 
 <div>
 
-    <p><strong>Clarify</strong></p>
+    <h3 id="exercise-and-scope-2">Exercise and scope</h3>
+
+    <p>Design an online store supporting catalogue search, carts, checkout, payment, inventory, fulfillment, and confirmation.</p>
+
     <ul>
-      <li>One-to-one only, groups, or large channels?</li>
-      <li>Real-time requirement and offline delivery.</li>
-      <li>Message history retention.</li>
-      <li>Read receipts, typing indicators, presence.</li>
-      <li>Attachments and media.</li>
-      <li>End-to-end encryption requirement.</li>
+      <li><strong>Customer:</strong> browses products and places orders.</li>
+      <li><strong>Store Manager:</strong> manages products, prices, and stock.</li>
+      <li><strong>Warehouse:</strong> fulfils confirmed orders.</li>
+      <li><strong>Payment Provider:</strong> authorizes and captures payment.</li>
+      <li><strong>Critical invariant:</strong> confirmed orders must not oversell available stock.</li>
     </ul>
 
-    <p><strong>High-Level Design</strong></p>
+    <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>browse → cart → reserve stock → authorize payment → confirm order → fulfil → notify
+</code></pre></div>    </div>
+
+    <h3 id="context--one-commerce-platform">Context — one commerce platform</h3>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_ecommerce_context.png" alt="C4 System Context diagram for an eCommerce platform" class="modal-trigger" data-caption="C4 Level 1: eCommerce Platform in its world" />
+  <div class="diagram-caption" data-snippet-id="c4-ecommerce-context-snippet">🔎 Context — customers, managers, warehouse, payment, and notification</div>
+  <script type="text/plain" id="c4-ecommerce-context-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+Person(customer, "Customer", "Browses products and places orders")
+Person(manager, "Store Manager", "Manages products, prices, and stock")
+System(commerce, "eCommerce Platform", "Supports discovery, carts, checkout, orders, and fulfillment")
+System_Ext(payment, "Payment Provider", "Authorizes and captures payments")
+System_Ext(warehouse, "Warehouse System", "Fulfils confirmed orders and reports status")
+System_Ext(notification, "Notification Provider", "Delivers order confirmations and updates")
+Rel(customer, commerce, "Browses, checks out, and tracks orders")
+Rel(manager, commerce, "Manages catalogue and inventory")
+Rel(commerce, payment, "Authorizes and captures payment")
+Rel(commerce, warehouse, "Sends orders and receives fulfillment status")
+Rel(commerce, notification, "Sends customer notifications")
+@enduml
+
+  </script>
+</div>
+
+    <h3 id="container--open-the-ecommerce-platform">Container — open the eCommerce Platform</h3>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_ecommerce_containers.png" alt="C4 Container diagram for an eCommerce platform" class="modal-trigger" data-caption="C4 Level 2: catalogue, cart, inventory, order, and asynchronous fulfillment" />
+  <div class="diagram-caption" data-snippet-id="c4-ecommerce-containers-snippet">🧱 Container — separate read-heavy discovery from correctness-heavy checkout</div>
+  <script type="text/plain" id="c4-ecommerce-containers-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+Person(customer, "Customer", "Browses and places orders")
+Person(manager, "Store Manager", "Manages catalogue and stock")
+System_Ext(payment, "Payment Provider", "Processes payments")
+System_Ext(warehouse, "Warehouse System", "Fulfils confirmed orders")
+System_Ext(notification, "Notification Provider", "Sends customer messages")
+System_Boundary(commerce, "eCommerce Platform") {
+    Container(storefront, "Storefront", "Web/Mobile Application", "Supports product discovery, cart, checkout, and tracking")
+    Container(admin, "Admin Portal", "Web Application", "Manages products, prices, and stock")
+    Container(api, "Commerce API", "Application Service", "Authenticates and routes customer and manager requests")
+    Container(catalogue, "Catalogue Service", "Application Service", "Owns product data and search projections")
+    Container(cart, "Cart Service", "Application Service", "Owns user-scoped mutable carts")
+    Container(inventory, "Inventory Service", "Application Service", "Owns available and reserved stock")
+    Container(order, "Order Service", "Application Service", "Coordinates checkout and owns order lifecycle")
+    ContainerDb(catalogueData, "Catalogue Store", "Document Store + Search Index", "Stores products and searchable projections")
+    ContainerDb(cartData, "Cart Store", "Key-Value Store", "Stores user-scoped carts")
+    ContainerDb(inventoryData, "Inventory Database", "Relational Database", "Stores authoritative stock quantities")
+    ContainerDb(orderData, "Order Database", "Relational Database", "Stores order and payment state")
+    ContainerQueue(events, "Order Event Stream", "Durable Stream", "Carries committed order events")
+    Container(worker, "Fulfillment Worker", "Event Consumer", "Sends confirmed orders and customer notifications")
+}
+Rel(customer, storefront, "Uses")
+Rel(manager, admin, "Uses")
+Rel(storefront, api, "Sends customer requests", "HTTPS")
+Rel(admin, api, "Sends management requests", "HTTPS")
+Rel(api, catalogue, "Searches and manages products")
+Rel(api, cart, "Reads and changes cart")
+Rel(api, order, "Starts checkout and reads orders")
+Rel(order, inventory, "Reserves, confirms, or releases stock")
+Rel(order, payment, "Authorizes and captures payment")
+Rel(catalogue, catalogueData, "Reads/writes products and projections")
+Rel(cart, cartData, "Reads/writes carts")
+Rel(inventory, inventoryData, "Reads/writes stock")
+Rel(order, orderData, "Reads/writes orders")
+Rel(order, events, "Publishes OrderConfirmed")
+Rel(events, worker, "Delivers order events")
+Rel(worker, warehouse, "Submits fulfillment request")
+Rel(worker, notification, "Sends confirmation and updates")
+@enduml
+
+  </script>
+</div>
+
     <ul>
-      <li>Clients connect to <code class="language-plaintext highlighter-rouge">WebSocket Gateways</code>.</li>
-      <li><code class="language-plaintext highlighter-rouge">Message Service</code> validates, assigns message IDs, and persists messages.</li>
-      <li><code class="language-plaintext highlighter-rouge">Conversation Store</code> partitions history by conversation ID.</li>
-      <li><code class="language-plaintext highlighter-rouge">Stream / Queue</code> fans messages out to recipients.</li>
-      <li><code class="language-plaintext highlighter-rouge">Presence Service</code> tracks online users.</li>
-      <li><code class="language-plaintext highlighter-rouge">Push Notification Service</code> handles offline delivery.</li>
+      <li>Catalogue and search are read-heavy and may use caches or derived indexes.</li>
+      <li>Cart is user-scoped, mutable, and not an inventory guarantee.</li>
+      <li>Inventory is authoritative for reservable quantity.</li>
+      <li>Order owns checkout state and coordinates inventory and payment.</li>
+      <li>Fulfillment and confirmation consume committed order events asynchronously.</li>
     </ul>
 
-    <p><strong>Deep Dive</strong></p>
+    <h3 id="component--open-inventory-service">Component — open Inventory Service</h3>
+
+    <div class="image-wrapper">
+  <img src="./assets/c4_ecommerce_inventory_components.png" alt="C4 Component diagram for an eCommerce inventory service" class="modal-trigger" data-caption="C4 Level 3: components inside the eCommerce Inventory Service" />
+  <div class="diagram-caption" data-snippet-id="c4-ecommerce-inventory-components-snippet">⚙️ Component — reserve quantity atomically and release abandoned reservations</div>
+  <script type="text/plain" id="c4-ecommerce-inventory-components-snippet">
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+Container(order, "Order Service", "Application Service", "Coordinates checkout")
+Container_Boundary(inventory, "Inventory Service") {
+    Component(handler, "Inventory Command Handler", "Application Component", "Receives availability, reserve, confirm, and release commands")
+    Component(query, "Availability Query", "Application Component", "Reads current sellable quantity")
+    Component(reservation, "Stock Reservation Manager", "Domain Component", "Reserves quantity using atomic conditional transitions")
+    Component(release, "Expiry and Reconciliation Worker", "Background Component", "Releases expired reservations and repairs drift")
+    Component(repository, "Inventory Repository", "Data Access Component", "Reads and writes authoritative stock state")
+    Component(publisher, "Inventory Event Publisher", "Application Component", "Publishes reserved, released, and confirmed events")
+}
+ContainerDb(database, "Inventory Database", "Relational Database", "Stores available, reserved, and committed quantities")
+ContainerQueue(events, "Order Event Stream", "Durable Stream", "Carries inventory changes")
+Rel(order, handler, "Requests reserve, confirm, or release")
+Rel(handler, query, "Queries availability")
+Rel(handler, reservation, "Requests stock transition")
+Rel(query, repository, "Reads quantity")
+Rel(reservation, repository, "Updates quantity atomically")
+Rel(release, repository, "Releases or reconciles quantity")
+Rel(reservation, publisher, "Publishes transition")
+Rel(release, publisher, "Publishes correction")
+Rel(repository, database, "Reads/writes")
+Rel(publisher, events, "Publishes events")
+@enduml
+
+  </script>
+</div>
+
+    <h3 id="targeted-detail--prevent-overselling">Targeted detail — prevent overselling</h3>
+
+    <p>The cart may display approximate availability, but checkout needs an atomic conditional reservation:</p>
+
+    <div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">UPDATE</span> <span class="n">inventory</span>
+<span class="k">SET</span> <span class="n">available</span> <span class="o">=</span> <span class="n">available</span> <span class="o">-</span> <span class="o">?</span><span class="p">,</span> <span class="n">reserved</span> <span class="o">=</span> <span class="n">reserved</span> <span class="o">+</span> <span class="o">?</span>
+<span class="k">WHERE</span> <span class="n">sku</span> <span class="o">=</span> <span class="o">?</span>
+  <span class="k">AND</span> <span class="n">available</span> <span class="o">&gt;=</span> <span class="o">?</span><span class="p">;</span>
+</code></pre></div>    </div>
+
     <ul>
-      <li>Ordering within a conversation.</li>
-      <li>Idempotent message send on retry.</li>
-      <li>WebSocket connection routing.</li>
-      <li>Group fanout strategy for small vs large groups.</li>
-      <li>Offline sync from last-read cursor.</li>
-      <li>Read receipts and typing events as lightweight ephemeral data.</li>
-    </ul>
-
-    <p><strong>Tradeoff</strong></p>
-    <ul>
-      <li>Ordering within each conversation is usually enough. Global ordering across all chats is expensive and unnecessary.</li>
-    </ul>
-
-  </div>
-</details>
-
-<details>
-  <summary><strong>Design a ticket booking system for concerts or events.</strong></summary>
-
-<div>
-
-    <p><strong>Clarify</strong></p>
-    <ul>
-      <li>Assigned seats or general admission?</li>
-      <li>Event size and expected on-sale spike.</li>
-      <li>Hold duration before payment.</li>
-      <li>Payment flow and refund/cancellation rules.</li>
-      <li>Waiting room or queueing required?</li>
-      <li>Resale or ticket transfer support?</li>
-    </ul>
-
-    <p><strong>High-Level Design</strong></p>
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">Catalog Service</code> serves event and seat-map reads.</li>
-      <li><code class="language-plaintext highlighter-rouge">Waiting Room / Rate Limiter</code> protects high-demand events.</li>
-      <li><code class="language-plaintext highlighter-rouge">Reservation Service</code> places short-lived holds on seats.</li>
-      <li><code class="language-plaintext highlighter-rouge">Payment Service</code> charges the user.</li>
-      <li><code class="language-plaintext highlighter-rouge">Ticket Service</code> confirms tickets after payment.</li>
-      <li><code class="language-plaintext highlighter-rouge">Notification Service</code> sends confirmation and receipt.</li>
-    </ul>
-
-    <p><strong>Deep Dive</strong></p>
-    <ul>
-      <li>Seat inventory and locking model.</li>
-      <li>Hold expiration with TTL.</li>
-      <li>Payment idempotency.</li>
-      <li>Recovery when payment succeeds but ticket confirmation fails.</li>
-      <li>Fraud checks and bot protection.</li>
-      <li>Read replicas/cache for event browsing.</li>
-    </ul>
-
-    <p><strong>Tradeoff</strong></p>
-    <ul>
-      <li>Seat ownership needs strong consistency. Browsing, recommendations, and confirmation emails can be eventually consistent.</li>
-    </ul>
-
-  </div>
-</details>
-
-<details>
-  <summary><strong>Design a video streaming service.</strong></summary>
-
-<div>
-
-    <p><strong>Clarify</strong></p>
-    <ul>
-      <li>Upload + watch, or watch-only?</li>
-      <li>Video length and quality levels.</li>
-      <li>Global audience and CDN requirements.</li>
-      <li>Live streaming in scope?</li>
-      <li>Recommendations, comments, likes, watch history.</li>
-      <li>Copyright, moderation, and private videos.</li>
-    </ul>
-
-    <p><strong>High-Level Design</strong></p>
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">Upload Service</code> stores raw video in object storage.</li>
-      <li><code class="language-plaintext highlighter-rouge">Transcoding Queue</code> triggers async processing.</li>
-      <li><code class="language-plaintext highlighter-rouge">Transcoding Workers</code> generate multiple renditions and thumbnails.</li>
-      <li><code class="language-plaintext highlighter-rouge">Metadata Store</code> tracks video title, owner, status, renditions, visibility.</li>
-      <li><code class="language-plaintext highlighter-rouge">Playback Service</code> returns manifests and signed CDN URLs.</li>
-      <li><code class="language-plaintext highlighter-rouge">CDN</code> serves video chunks close to users.</li>
-    </ul>
-
-    <p><strong>Deep Dive</strong></p>
-    <ul>
-      <li>Chunked upload and resumability.</li>
-      <li>Adaptive bitrate streaming.</li>
-      <li>Transcoding failure/retry.</li>
-      <li>CDN cache behavior.</li>
-      <li>Authorization for private videos.</li>
-      <li>Watch history and analytics pipeline.</li>
-    </ul>
-
-    <p><strong>Tradeoff</strong></p>
-    <ul>
-      <li>Pre-transcoding multiple renditions improves playback quality and latency, but increases storage and processing cost.</li>
-    </ul>
-
-  </div>
-</details>
-
-<details>
-  <summary><strong>Design a collaborative document editor.</strong></summary>
-
-<div>
-
-    <p><strong>Clarify</strong></p>
-    <ul>
-      <li>Real-time collaboration or async editing?</li>
-      <li>Max collaborators per document.</li>
-      <li>Offline editing and merge requirements.</li>
-      <li>Version history and comments.</li>
-      <li>Permissions: owner, editor, viewer.</li>
-      <li>Rich media support.</li>
-    </ul>
-
-    <p><strong>High-Level Design</strong></p>
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">Document Service</code> stores metadata, permissions, and snapshots.</li>
-      <li>Clients connect to <code class="language-plaintext highlighter-rouge">Collaboration Service</code> over WebSocket.</li>
-      <li>Edits are sent as operations and ordered per document.</li>
-      <li>Active collaborators receive broadcast updates.</li>
-      <li><code class="language-plaintext highlighter-rouge">Snapshot Worker</code> periodically compacts operation logs into snapshots.</li>
-      <li><code class="language-plaintext highlighter-rouge">Version Store</code> keeps history and restore points.</li>
-    </ul>
-
-    <p><strong>Deep Dive</strong></p>
-    <ul>
-      <li>Operational transform or CRDTs.</li>
-      <li>Operation ordering and conflict resolution.</li>
-      <li>Reconnect and replay from last known version.</li>
-      <li>Presence and cursor positions.</li>
-      <li>Offline merge.</li>
-      <li>Permission enforcement on every session.</li>
-    </ul>
-
-    <p><strong>Tradeoff</strong></p>
-    <ul>
-      <li>Real-time editing improves UX, but conflict resolution and offline support are complex.</li>
-    </ul>
-
-  </div>
-</details>
-
-<details>
-  <summary><strong>Design a leaderboard for a game.</strong></summary>
-
-<div>
-
-    <p><strong>Clarify</strong></p>
-    <ul>
-      <li>Global, regional, friend-based, or seasonal leaderboard?</li>
-      <li>Real-time ranking or periodic updates?</li>
-      <li>Score write frequency.</li>
-      <li>Tie-breaking rules.</li>
-      <li>Anti-cheat requirements.</li>
-      <li>Historical rankings needed?</li>
-    </ul>
-
-    <p><strong>High-Level Design</strong></p>
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">Score API</code> receives score submissions from game servers.</li>
-      <li><code class="language-plaintext highlighter-rouge">Validation Service</code> checks score legitimacy.</li>
-      <li><code class="language-plaintext highlighter-rouge">Leaderboard Store</code> uses Redis sorted sets for current rankings.</li>
-      <li><code class="language-plaintext highlighter-rouge">Event Store</code> persists score events for audit and replay.</li>
-      <li><code class="language-plaintext highlighter-rouge">Snapshot Job</code> saves historical leaderboard states.</li>
-    </ul>
-
-    <p><strong>Deep Dive</strong></p>
-    <ul>
-      <li>Partition by game, region, season, or mode.</li>
-      <li>Idempotent score updates.</li>
-      <li>Best score vs latest score.</li>
-      <li>Rank lookup by user.</li>
-      <li>Cache rebuild from durable events.</li>
-      <li>Suspicious score detection.</li>
-    </ul>
-
-    <p><strong>Tradeoff</strong></p>
-    <ul>
-      <li>Redis gives fast rank reads, but durable event storage is needed for recovery and fraud investigation.</li>
-    </ul>
-
-  </div>
-</details>
-
-<details>
-  <summary><strong>Design a web crawler for indexing websites.</strong></summary>
-
-<div>
-
-    <p><strong>Clarify</strong></p>
-    <ul>
-      <li>Crawl scope: one site, many sites, or the public web?</li>
-      <li>Freshness target.</li>
-      <li>Robots.txt and politeness requirements.</li>
-      <li>Duplicate handling.</li>
-      <li>Output: search index, analytics, or archive.</li>
-      <li>Dynamic pages in scope?</li>
-    </ul>
-
-    <p><strong>High-Level Design</strong></p>
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">Seed URL Store</code> starts the crawl.</li>
-      <li><code class="language-plaintext highlighter-rouge">Frontier Queue</code> prioritizes URLs.</li>
-      <li><code class="language-plaintext highlighter-rouge">Crawler Workers</code> fetch pages with per-domain throttling.</li>
-      <li><code class="language-plaintext highlighter-rouge">Parser</code> extracts links and page content.</li>
-      <li><code class="language-plaintext highlighter-rouge">Dedup Service</code> normalizes URLs and checks content hashes.</li>
-      <li><code class="language-plaintext highlighter-rouge">Object Storage</code> keeps raw pages; <code class="language-plaintext highlighter-rouge">Index Pipeline</code> processes parsed documents.</li>
-    </ul>
-
-    <p><strong>Deep Dive</strong></p>
-    <ul>
-      <li>URL normalization.</li>
-      <li>Per-host rate limits.</li>
-      <li>Robots.txt caching.</li>
-      <li>Retry and timeout policy.</li>
-      <li>Duplicate page detection.</li>
-      <li>Crawl priority and recrawl scheduling.</li>
-    </ul>
-
-    <p><strong>Tradeoff</strong></p>
-    <ul>
-      <li>Crawling faster improves freshness, but can violate politeness rules or overload target sites.</li>
-    </ul>
-
-  </div>
-</details>
-
-<details>
-  <summary><strong>Design an autocomplete service for a search box.</strong></summary>
-
-<div>
-
-    <p><strong>Clarify</strong></p>
-    <ul>
-      <li>Latency target, usually very low.</li>
-      <li>Data source: search logs, product names, locations, documents.</li>
-      <li>Personalization required?</li>
-      <li>Typo tolerance and multilingual support.</li>
-      <li>Update frequency and freshness.</li>
-      <li>Query volume and peak traffic.</li>
-    </ul>
-
-    <p><strong>High-Level Design</strong></p>
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">Ingestion Job</code> collects candidate suggestions.</li>
-      <li><code class="language-plaintext highlighter-rouge">Ranking Job</code> scores by popularity, freshness, and business rules.</li>
-      <li><code class="language-plaintext highlighter-rouge">Suggestion Index</code> stores prefix-searchable terms.</li>
-      <li><code class="language-plaintext highlighter-rouge">Autocomplete API</code> serves top suggestions with low latency.</li>
-      <li><code class="language-plaintext highlighter-rouge">Cache</code> stores hot prefixes.</li>
-    </ul>
-
-    <p><strong>Deep Dive</strong></p>
-    <ul>
-      <li>Trie, prefix index, or search engine.</li>
-      <li>Hot prefix caching.</li>
-      <li>Ranking and filtering.</li>
-      <li>Bad-query and abuse filtering.</li>
-      <li>Incremental index updates.</li>
-      <li>p99 latency monitoring.</li>
-    </ul>
-
-    <p><strong>Tradeoff</strong></p>
-    <ul>
-      <li>A precomputed index is fast, but fresh trends may lag unless incremental updates are supported.</li>
+      <li>One updated row means the requested quantity was reserved; zero means insufficient stock or a concurrent buyer won.</li>
+      <li>Reserve stock before payment, expire abandoned reservations, and release stock when checkout fails.</li>
+      <li>Use idempotency keys for order submission, payment requests, reservation confirmation, and event consumers.</li>
+      <li>Reconcile uncertain payment/order states rather than retrying financial side effects blindly.</li>
+      <li>Cache product pages and search results, but never use the cache as checkout authority.</li>
+      <li>Measure reservation conflicts, checkout conversion, payment/order mismatches, inventory drift, event lag, and fulfillment delay.</li>
     </ul>
 
   </div>
@@ -1227,519 +870,31 @@ p50 is the median request latency. p95 means 95% of requests are faster than tha
 
 <hr />
 
-<h2 id="system-design-scenarios">Detailed Scenario Design Checks</h2>
+<h2 id="final-review-checklist">Final Checklist</h2>
 
-<p>These detailed examples preserve the useful sizing and data-flow analysis from the former Hourglass page. Start each one with Context and Container diagrams, then use the table to test the design. The concern rows are <strong>not</strong> C4 levels; they are checks applied to elements at the appropriate zoom.</p>
+<ul>
+  <li>Did I establish actors, scope, scale, and one critical invariant?</li>
+  <li>Does each diagram stay at one abstraction level?</li>
+  <li>Did I announce which parent system or container I was opening?</li>
+  <li>Can I trace one critical journey end to end?</li>
+  <li>Is the source of truth for each important state clear?</li>
+  <li>Did I justify boundaries from responsibility or risk rather than defaulting to microservices?</li>
+  <li>Did I cover concurrency, retries, idempotency, failure, security, and observability where relevant?</li>
+  <li>Did I explain the main trade-off and stop when further zoom added no value?</li>
+</ul>
 
 <hr />
 
-<h3 id="scenario-1-realtime-temperature-monitoring-iot-sensors">Scenario 1: Realtime Temperature Monitoring (IoT Sensors)</h3>
-
-<p><strong>Goal</strong>: Build a system for <strong>1M IoT devices</strong> reporting temperature every 10s across NSW.</p>
-<ul>
-  <li><strong>Realtime heatmap</strong> (~10s latency)</li>
-  <li><strong>Historical dashboard</strong> (daily/weekly/monthly)</li>
-  <li><strong>Retention</strong>: 6 months</li>
-</ul>
-
-<p><strong>Data A → Data B</strong></p>
+<h2 id="official-c4-references">References</h2>
 
 <ul>
-  <li><strong>Data A:</strong> raw sensor readings: <code class="language-plaintext highlighter-rouge">device_id</code>, timestamp, temperature, and device metadata.</li>
-  <li><strong>Data B:</strong> live regional heatmap cells, historical aggregates, alertable trends, and dashboard-ready time-series views.</li>
+  <li><a href="https://c4model.com/introduction">C4 model introduction and abstraction levels</a></li>
+  <li><a href="https://c4model.com/diagrams">C4 core and supplementary diagrams</a></li>
+  <li><a href="https://c4model.com/diagrams/system-context">System Context diagram</a></li>
+  <li><a href="https://c4model.com/diagrams/container">Container diagram</a></li>
+  <li><a href="https://c4model.com/diagrams/component">Component diagram</a></li>
+  <li><a href="https://c4model.com/diagrams/checklist">C4 diagram review checklist</a></li>
 </ul>
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Design Concern</th>
-<th>Design Choice</th>
-<th>Justification</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Context: source</strong></td>
-<td>One sensor publishes one reading over MQTT<br />Single-device payload: <code>{ device_id, lat, lon, timestamp, temperature }</code></td>
-<td>Estimate one reading first: <code>device_id</code> (<code>8 B</code>) + lat/lon doubles (<code>16 B</code>) + temperature double (<code>8 B</code>) + timestamp (<code>8 B</code>) = ~40 B before overhead. JSON is often ~100-200 B because field names and punctuation are included.</td>
-</tr>
-<tr>
-<td><strong>Container: data type</strong></td>
-<td>Structured time-series across 1M devices<br />1M devices / 10s = ~100K readings/sec<br />Fixed schema with timestamp, location, and numeric temperature<br />JSON at ingest → binary at storage</td>
-<td>Type scales the single reading: ~100K readings/sec × 86,400 sec ≈ 8.64B readings/day. At ~100 B each, raw ingest is ~864 GB/day before replicas and indexes.</td>
-</tr>
-<tr>
-<td><strong>Container: storage</strong></td>
-<td>Realtime latest-value table (~16 MB)<br />Daily aggregation (~2.9 GB / 180 days)<br />Metadata (~20 MB)<br />Raw readings optional: much larger if retained</td>
-<td>Storage follows retention: latest-value storage stays tiny, aggregate storage is compact, but retaining all raw readings for 180 days would be ~155 TB before replicas/indexes.</td>
-</tr>
-<tr>
-<td><strong>Container/Component: transformation</strong></td>
-<td>Realtime updates per reading<br />Daily min/max aggregation<br />Redis for fast compare<br />Batch writes → TimescaleDB</td>
-<td>Low latency ingest + efficient aggregation</td>
-</tr>
-<tr>
-<td><strong>Container: access pattern</strong></td>
-<td>REST polling every 10s (map)<br />REST queries (historical)</td>
-<td>Polling is simple, cost-efficient for low concurrency</td>
-</tr>
-<tr>
-<td><strong>Context/Container: delivery</strong></td>
-<td>Web map grid updated every 10s<br />Historical dashboard with calendar filter</td>
-<td>Lightweight visualization for end users</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: security</strong></td>
-<td>No login<br />API throttling (CloudFront + WAF)<br />MQTT cert-based auth</td>
-<td>Basic protection, open data model</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: scalability</strong></td>
-<td>~100K writes/sec<br />Kafka/Kinesis buffer<br />Partition DB by device_id + time<br />Stateless API, autoscaling</td>
-<td>Horizontal scalability and decoupling</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: reliability</strong></td>
-<td>MQTT at-least-once<br />Retry pipeline<br />Re-runnable daily jobs</td>
-<td>Ensures data completeness under failure</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: observability</strong></td>
-<td>Metrics: ingest rate, write latency, last_seen<br />Logs: ingestion + API</td>
-<td>Full visibility into data pipeline health</td>
-</tr>
-<tr>
-<td><strong>Deployment view</strong></td>
-<td>AWS IoT Core or EMQX → Kinesis/Kafka → ECS/Fargate → TimescaleDB<br />IaC: Terraform/CDK</td>
-<td>Cloud-native, modular, reproducible</td>
-</tr>
-</tbody>
-</table>
-
-<hr />
-
-<h3 id="scenario-2-twitter-like-microblogging-platform">Scenario 2: Twitter-like Microblogging Platform</h3>
-
-<p><strong>Goal</strong>: Design a social platform similar to Twitter.</p>
-<ul>
-  <li><strong>Realtime feed updates</strong></li>
-  <li><strong>Millions of posts/day</strong></li>
-  <li><strong>Support search, hashtags, user timelines</strong></li>
-</ul>
-
-<p><strong>Data A → Data B</strong></p>
-
-<ul>
-  <li><strong>Data A:</strong> user actions: posts, likes, follows, replies, media uploads, hashtags, and mentions.</li>
-  <li><strong>Data B:</strong> personalized timelines, searchable posts, notifications, counters, and profile/user timeline views.</li>
-</ul>
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Design Concern</th>
-<th>Design Choice</th>
-<th>Justification</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Context: source</strong></td>
-<td>One user emits one action: create post, like, follow, reply, or upload media<br />Example post payload: <code>{ author_id, text, media_ids, created_at }</code></td>
-<td>Estimate one post first: IDs/timestamp are ~24 B, 280 chars of English UTF-8 is ~280 B, worst-case UTF-8 can be ~1.1 KB, and media pointers/counters add tens to hundreds of bytes.</td>
-</tr>
-<tr>
-<td><strong>Container: data type</strong></td>
-<td>Mixed event stream across millions of users<br />Post, like, follow, reply, and media events have related but different schemas<br />Text fields need UTF-8 sizing; hashtags/mentions become indexed fields</td>
-<td>Type scales the event family: a post metadata row is roughly ~0.5-2 KB. At 10M posts/day and ~1 KB average, post metadata is ~10 GB/day before indexes.</td>
-</tr>
-<tr>
-<td><strong>Container: storage</strong></td>
-<td>OLTP DB (Postgres/CockroachDB) for metadata<br />Object store (S3) for media<br />ElasticSearch for search/index</td>
-<td>Storage separates workloads: if 10% of 10M posts include 1 MB media, media adds ~1 TB/day, which dominates metadata storage.</td>
-</tr>
-<tr>
-<td><strong>Container/Component: transformation</strong></td>
-<td>Fanout service builds timelines<br />Kafka for async event distribution</td>
-<td>Logic can multiply writes: 10M posts/day × 200 followers average ≈ 2B timeline write events/day, so fanout should be async.</td>
-</tr>
-<tr>
-<td><strong>Container: access pattern</strong></td>
-<td>REST (post, follow)<br />WebSocket/GraphQL (feed updates)</td>
-<td>REST reliable for writes; streaming API for low-latency feeds</td>
-</tr>
-<tr>
-<td><strong>Context/Container: delivery</strong></td>
-<td>Web + mobile apps<br />Infinite scroll timeline, notifications</td>
-<td>Optimized UX for engagement</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: security</strong></td>
-<td>OAuth2 login<br />Rate limiting (API Gateway)<br />WAF for spam</td>
-<td>Standard identity + abuse protection</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: scalability</strong></td>
-<td>Sharded user/tweet DB<br />CDN for media<br />Async fanout to caches</td>
-<td>Ensures horizontal scale to millions of users</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: reliability</strong></td>
-<td>Durable Kafka log<br />Retry for writes<br />Timeline cache fallback</td>
-<td>Feed always eventually consistent</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: observability</strong></td>
-<td>Metrics: post latency, fanout lag<br />Logs: auth, API, feed delivery</td>
-<td>Critical for SLO monitoring</td>
-</tr>
-<tr>
-<td><strong>Deployment view</strong></td>
-<td>AWS: API Gateway + Lambda/ECS, DynamoDB/Postgres, S3, ElasticSearch</td>
-<td>Mix of serverless + managed DB for scale</td>
-</tr>
-</tbody>
-</table>
-
-<hr />
-
-<h3 id="scenario-3-ecommerce-platform">Scenario 3: eCommerce Platform</h3>
-
-<p><strong>Goal</strong>: Design a modern eCommerce system.</p>
-<ul>
-  <li><strong>Product catalog, cart, checkout</strong></li>
-  <li><strong>User accounts, payments</strong></li>
-  <li><strong>Scalable search + inventory</strong></li>
-</ul>
-
-<p><strong>Data A → Data B</strong></p>
-
-<ul>
-  <li><strong>Data A:</strong> product updates, browsing events, cart changes, checkout requests, inventory changes, and payment callbacks.</li>
-  <li><strong>Data B:</strong> searchable catalog pages, available inventory, cart state, confirmed orders, receipts, and fulfillment events.</li>
-</ul>
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Design Concern</th>
-<th>Design Choice</th>
-<th>Justification</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Context: source</strong></td>
-<td>One producer emits one event: product update, product view, add-to-cart, checkout request, inventory update, or payment callback</td>
-<td>Estimate one product record first: IDs and numeric fields are small, title is ~100 B, description can be ~1-4 KB, attributes JSON ~0.5-3 KB, and media URLs ~300 B-1 KB.</td>
-</tr>
-<tr>
-<td><strong>Container: data type</strong></td>
-<td>Structured event families: product/catalog records, cart events, order commands, inventory mutations, payment callbacks<br />Catalog is read-heavy; checkout/payment is correctness-heavy</td>
-<td>Type separates scale profiles: catalog rows are often ~2-10 KB, cart events are small and ephemeral, while checkout/payment events need strict validation.</td>
-</tr>
-<tr>
-<td><strong>Container: storage</strong></td>
-<td>RDBMS (Aurora/MySQL) for orders/payments<br />DynamoDB for cart sessions<br />S3 for product media</td>
-<td>Storage follows object type: 1M products × ~5 KB average ≈ 5 GB catalog metadata, while 1M × 3 images × 500 KB ≈ 1.5 TB media.</td>
-</tr>
-<tr>
-<td><strong>Container/Component: transformation</strong></td>
-<td>Inventory service decrements stock<br />Async order events via SNS/SQS</td>
-<td>Checkout math drives correctness: 10K checkout/min ≈ 167 checkout/sec, but browsing/search reads may be 100x higher.</td>
-</tr>
-<tr>
-<td><strong>Container: access pattern</strong></td>
-<td>REST (catalog, cart, order)<br />GraphQL (flexible queries for product search)</td>
-<td>REST for critical workflows; GraphQL for frontend flexibility</td>
-</tr>
-<tr>
-<td><strong>Context/Container: delivery</strong></td>
-<td>Web + mobile storefront<br />Search, cart, checkout flows</td>
-<td>Responsive UX, optimized conversions</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: security</strong></td>
-<td>OAuth2 login, MFA for admin<br />PCI-DSS compliant payment handling<br />WAF + Shield</td>
-<td>Protects sensitive user/payment data</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: scalability</strong></td>
-<td>Autoscaling ALB/NLB<br />ElasticSearch for catalog search<br />CDN for static assets</td>
-<td>Handles traffic spikes during sales</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: reliability</strong></td>
-<td>Multi-AZ RDS<br />Order queue with DLQ<br />Event replay for payments</td>
-<td>Ensures orders are never lost</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: observability</strong></td>
-<td>Metrics: checkout latency, error rate<br />Logs: API + payment gateway</td>
-<td>Monitors user impact and failures</td>
-</tr>
-<tr>
-<td><strong>Deployment view</strong></td>
-<td>AWS: ALB + ECS, Aurora, DynamoDB, S3, ElasticSearch, CloudFront</td>
-<td>Mix of managed + serverless services for resilience</td>
-</tr>
-</tbody>
-</table>
-
-<hr />
-
-<h3 id="scenario-a-short-url">Scenario 4: Short URL Service (URL Shortener)</h3>
-
-<p><strong>Goal</strong>: Map long URLs to short codes with <strong>low latency</strong>, <strong>high write QPS</strong>, and <strong>massive read QPS</strong>.</p>
-<ul>
-  <li><strong>Create</strong> short code, <strong>redirect</strong> instantly</li>
-  <li><strong>Unique codes</strong>, collision-resistant</li>
-  <li><strong>Analytics</strong> (clicks, geo, referrer)</li>
-</ul>
-
-<p><strong>Data A → Data B</strong></p>
-
-<ul>
-  <li><strong>Data A:</strong> long URL, owner, optional alias/TTL, redirect request, and click metadata such as timestamp, referrer, device, and geo.</li>
-  <li><strong>Data B:</strong> short code mapping, low-latency redirect response, QR/shareable link, and aggregated click analytics.</li>
-</ul>
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Design Concern</th>
-<th>Design Choice</th>
-<th>Justification</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Context: source</strong></td>
-<td>One client request creates a mapping or resolves a code<br />Create payload: <code>{ long_url, owner_id, ttl }</code><br />Redirect request: <code>GET /{code}</code></td>
-<td>Estimate one mapping first: short code is 7 ASCII chars (~7 B), owner ID is ~8 B, timestamps/TTL ~16 B, and long URL is often ~100-2,000 chars.</td>
-</tr>
-<tr>
-<td><strong>Container: data type</strong></td>
-<td>Two main data shapes: mapping records and click events<br />Mapping records are small but durable; click events are append-only and much higher volume</td>
-<td>Type separates durable mappings from click logs: mapping rows are often ~200 B-2 KB, while click events with IP/referrer/user-agent/geo are often ~300 B-1 KB.</td>
-</tr>
-<tr>
-<td><strong>Container: storage</strong></td>
-<td>DynamoDB (PK=code) for mapping; S3 for logs</td>
-<td>Storage separates hot lookups and analytics: 100M URLs × ~500 B ≈ 50 GB mapping metadata; 1B click logs/day × ~500 B ≈ 500 GB/day in logs.</td>
-</tr>
-<tr>
-<td><strong>Container/Component: transformation</strong></td>
-<td>Code gen via base62/ULID; optional custom alias; async analytics (Kinesis)</td>
-<td>Code-space math guides collision strategy: 62^7 ≈ 3.5T possible codes, enough for 100M URLs with a large safety margin.</td>
-</tr>
-<tr>
-<td><strong>Container: access pattern</strong></td>
-<td>REST + 301/302 redirect; rate-limits per owner</td>
-<td>Browser-native redirect semantics; abuse protection</td>
-</tr>
-<tr>
-<td><strong>Context/Container: delivery</strong></td>
-<td>Simple web console + CLI; QR export</td>
-<td>Low-friction creation and sharing</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: security</strong></td>
-<td>Auth (API keys/OAuth); domain allowlist; malware scanning</td>
-<td>Prevents phishing/abuse; protects brand domains</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: scalability</strong></td>
-<td>CloudFront → Lambda@Edge redirect cache; hot keys sharded</td>
-<td>Edge-cached redirects minimize origin load/latency</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: reliability</strong></td>
-<td>Multi-Region table (global tables); DLQ for failed writes</td>
-<td>Regional failover; durable retry</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: observability</strong></td>
-<td>Metrics: p50/p99 redirect latency, 4xx/5xx; click streams</td>
-<td>Track UX and abuse; support analytics</td>
-</tr>
-<tr>
-<td><strong>Deployment view</strong></td>
-<td>API Gateway + Lambda, DynamoDB, Kinesis, S3, CloudFront, WAF</td>
-<td>Serverless, cost-efficient at any scale</td>
-</tr>
-</tbody>
-</table>
-
-<hr />
-
-<h3 id="scenario-b-search-engine">Scenario 5: Search Engine (Vertical Site/Search Service)</h3>
-
-<p><strong>Goal</strong>: Index documents/webpages and provide <strong>full-text search</strong> with <strong>filters</strong>, <strong>ranking</strong>, and <strong>autosuggest</strong>.</p>
-<ul>
-  <li><strong>Ingest &amp; crawl</strong> sources</li>
-  <li><strong>Index</strong> fields + vectors</li>
-  <li><strong>Query</strong>: keyword + semantic, filters, facets</li>
-</ul>
-
-<p><strong>Data A → Data B</strong></p>
-
-<ul>
-  <li><strong>Data A:</strong> raw documents, webpages, titles, body text, metadata, facets, links, and uploaded files.</li>
-  <li><strong>Data B:</strong> searchable index entries, ranked result sets, highlighted snippets, facets, autosuggest terms, and vector-search candidates.</li>
-</ul>
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Design Concern</th>
-<th>Design Choice</th>
-<th>Justification</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Context: source</strong></td>
-<td>One crawler fetch, webhook event, or batch upload produces one raw document or document update</td>
-<td>Estimate one document first: document ID ~8-16 B, title ~100 B, body text often ~10 KB, facets/tags ~100-500 B, URL ~100-2,000 chars, metadata JSON ~0.5-2 KB.</td>
-</tr>
-<tr>
-<td><strong>Container: data type</strong></td>
-<td>Document corpus across many sources<br />Fields include title, body, URL, facets, metadata, language, and optional embedding</td>
-<td>Type scales one document into a corpus: use ~10-20 KB per raw document for rough sizing; fields support keyword, filter, ranking, and vector search.</td>
-</tr>
-<tr>
-<td><strong>Container: storage</strong></td>
-<td>OpenSearch/Elastic (inverted index) + vector index; S3 cold store</td>
-<td>Storage can rival raw content: 100M docs × 10 KB ≈ 1 TB raw; search index may add ~300 GB-1 TB; 768-dim float vectors add ~307 GB before index overhead.</td>
-</tr>
-<tr>
-<td><strong>Container/Component: transformation</strong></td>
-<td>ETL: clean, dedupe, tokenize, embed; incremental indexing</td>
-<td>Higher relevance; fast refresh with partial updates</td>
-</tr>
-<tr>
-<td><strong>Container: access pattern</strong></td>
-<td>Search REST: q, filters, sort; autosuggest endpoint</td>
-<td>Standard search UX; low-latency responses</td>
-</tr>
-<tr>
-<td><strong>Context/Container: delivery</strong></td>
-<td>Web UI: search box, facets, highlighting; pagination</td>
-<td>Discoverability and relevance feedback</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: security</strong></td>
-<td>Signed requests; per-tenant filter; index-level RBAC</td>
-<td>Isolation and least privilege</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: scalability</strong></td>
-<td>Sharded indexes; warm replicas; query cache/CDN for hot queries</td>
-<td>Throughput and low tail latency</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: reliability</strong></td>
-<td>Multi-AZ cluster; snapshot to S3; blue/green index swaps</td>
-<td>Safe reindex; fast recovery</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: observability</strong></td>
-<td>Metrics: QPS, p99, recall@k/CTR; slow logs; relevancy dashboards</td>
-<td>Quality and performance tuning</td>
-</tr>
-<tr>
-<td><strong>Deployment view</strong></td>
-<td>ECS/EKS crawlers, Lambda ETL, OpenSearch, S3, API Gateway, CloudFront</td>
-<td>Managed search + serverless ETL</td>
-</tr>
-</tbody>
-</table>
-
-<hr />
-
-<h3 id="scenario-c-ride-sharing">Scenario 6: Ride-Sharing (Dispatch &amp; Matching)</h3>
-
-<p><strong>Goal</strong>: Match <strong>riders ↔ drivers</strong> in real time with <strong>ETA estimates</strong>, <strong>pricing</strong>, and <strong>tracking</strong>.</p>
-<ul>
-  <li><strong>High write</strong> (location updates) + <strong>low-latency reads</strong> (nearby drivers)</li>
-  <li><strong>Geo-index</strong> + <strong>surge pricing</strong></li>
-  <li><strong>Trip lifecycle</strong> events</li>
-</ul>
-
-<p><strong>Data A → Data B</strong></p>
-
-<ul>
-  <li><strong>Data A:</strong> driver locations, rider pickup/dropoff requests, driver availability, trip events, traffic signals, and payment events.</li>
-  <li><strong>Data B:</strong> nearby driver candidates, match decisions, ETA, price quote, live trip state, route updates, and notifications.</li>
-</ul>
-
-<table class="study-table">
-<thead>
-<tr>
-<th>Design Concern</th>
-<th>Design Choice</th>
-<th>Justification</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Context: source</strong></td>
-<td>One mobile app emits one event: driver location update, rider request, driver accept, trip status update, or payment event</td>
-<td>Estimate one location event first: driver ID ~8 B, lat/lon ~8-16 B, timestamp ~8 B, speed/heading/status ~10-30 B, request metadata ~20-100 B.</td>
-</tr>
-<tr>
-<td><strong>Container: data type</strong></td>
-<td>Regional event stream across active riders and drivers<br />Location events are high-frequency; trip/payment events are lower-frequency but more correctness-sensitive</td>
-<td>Type separates high-volume telemetry from durable lifecycle events: compact location events are ~60-150 B, while JSON events are often ~150-300 B.</td>
-</tr>
-<tr>
-<td><strong>Container: storage</strong></td>
-<td>Redis/KeyDB (geo sets) for live locations; Postgres for trips/payments; S3 for telemetry</td>
-<td>Storage follows frequency: 100K active drivers / 5s = 20K location writes/sec; at ~150 B each ≈ 3 MB/sec, ~259 GB/day before replicas/log overhead.</td>
-</tr>
-<tr>
-<td><strong>Container/Component: transformation</strong></td>
-<td>Stream (Kafka): location smoothing, ETA calc, surge pricing; ML for ETA/dispatch</td>
-<td>Logic should stay regional: dispatch queries nearby drivers by city/zone rather than scanning the global location set.</td>
-</tr>
-<tr>
-<td><strong>Container: access pattern</strong></td>
-<td>REST: request/cancel trip, quote; WebSocket: live driver ETA/track</td>
-<td>Seamless UX for requests + realtime updates</td>
-</tr>
-<tr>
-<td><strong>Context/Container: delivery</strong></td>
-<td>Mobile map with live driver markers; push notifications</td>
-<td>High-frequency updates with low battery impact</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: security</strong></td>
-<td>JWT auth; signed location updates; fraud detection rules</td>
-<td>Protects users and platform integrity</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: scalability</strong></td>
-<td>Region-sharded dispatch; partition by city/zone; edge caches for maps/tiles</td>
-<td>Reduces cross-region chatter; scales horizontally</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: reliability</strong></td>
-<td>Leader election per region; idempotent trip ops; DLQs for events</td>
-<td>Failover and consistent trip lifecycle</td>
-</tr>
-<tr>
-<td><strong>Cross-cutting: observability</strong></td>
-<td>Metrics: match time, cancel rate, ETA error; traces for dispatch path</td>
-<td>Operational and model quality monitoring</td>
-</tr>
-<tr>
-<td><strong>Deployment view</strong></td>
-<td>API Gateway + ECS/EKS, Redis Geo, Kafka, Postgres/Aurora, S3, CloudFront, Pinpoint/SNS</td>
-<td>Mix of in-memory geo + durable stores</td>
-</tr>
-</tbody>
-</table>
 
     </article>
   </main>

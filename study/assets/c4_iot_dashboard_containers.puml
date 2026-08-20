@@ -1,0 +1,27 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+System_Ext(sensors, "Sensor Fleet", "Publishes temperature readings")
+Person(operator, "Operations User", "Views current and historical conditions")
+System_Boundary(monitoring, "IoT Monitoring System") {
+    Container(gateway, "Device Gateway", "MQTT Ingress", "Authenticates devices and accepts readings")
+    ContainerQueue(stream, "Telemetry Stream", "Durable Stream", "Buffers partitioned readings and supports replay")
+    Container(processor, "Stream Processor", "Stream Application", "Validates, deduplicates, and projects readings")
+    ContainerDb(latest, "Latest-State Store", "Key-Value Store", "Stores the latest reading per device or map cell")
+    ContainerDb(raw, "Raw Telemetry Store", "Object Storage", "Retains immutable readings for replay and audit")
+    Container(aggregator, "Aggregation Worker", "Background Worker", "Builds time-bucketed historical summaries")
+    ContainerDb(history, "Historical Store", "Time-Series Database", "Stores queryable aggregates")
+    Container(api, "Dashboard API", "Application Service", "Serves current and historical views")
+    Container(web, "Dashboard", "Web Application", "Displays heatmaps and trends")
+}
+Rel(sensors, gateway, "Publishes readings", "MQTT")
+Rel(gateway, stream, "Appends accepted readings")
+Rel(stream, processor, "Delivers partitioned readings")
+Rel(processor, latest, "Updates current state idempotently")
+Rel(processor, raw, "Persists immutable readings")
+Rel(processor, aggregator, "Emits validated readings")
+Rel(aggregator, history, "Writes time-bucket aggregates")
+Rel(operator, web, "Uses")
+Rel(web, api, "Requests dashboard data", "HTTPS")
+Rel(api, latest, "Reads current state")
+Rel(api, history, "Queries historical aggregates")
+@enduml

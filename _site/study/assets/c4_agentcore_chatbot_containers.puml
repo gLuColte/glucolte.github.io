@@ -1,0 +1,30 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+Person(user, "Support User", "Asks questions and requests Case actions")
+Person(agent, "Support Agent", "Approves sensitive actions")
+System_Ext(idp, "Company Identity Provider", "Authenticates users")
+System_Ext(knowledge, "Knowledge Repositories", "Approved policies and documentation")
+System_Ext(cases, "Case Management System", "Authoritative Case state and transactions")
+System_Ext(bedrock, "Amazon Bedrock", "Foundation-model inference")
+System_Boundary(assistant, "Enterprise Support Assistant") {
+    Container(chat, "Chat Application", "Web Application", "Collects questions, shows citations, and requests approvals")
+    Container(api, "Support API", "Application Service", "Authenticates sessions and carries user identity")
+    Container(runtime, "Agent Runtime", "Amazon Bedrock AgentCore Runtime", "Hosts the bounded support-agent loop")
+    Container(retrieval, "Knowledge Retrieval", "RAG Service", "Retrieves authorized policy evidence")
+    Container(memory, "Conversation Memory", "AgentCore Memory", "Stores user-scoped short- and long-term context")
+    Container(gateway, "Tool Gateway", "AgentCore Gateway", "Exposes narrow Case tools and exchanges credentials")
+    Container(policy, "Tool Policy", "AgentCore Policy", "Applies deterministic rules before tool execution")
+}
+Rel(user, chat, "Uses")
+Rel(agent, chat, "Reviews escalations and approvals")
+Rel(chat, api, "Sends messages and approvals", "HTTPS")
+Rel(api, idp, "Validates identity")
+Rel(api, runtime, "Invokes agent with user identity")
+Rel(runtime, retrieval, "Requests relevant evidence")
+Rel(retrieval, knowledge, "Searches authorized content")
+Rel(runtime, memory, "Reads and writes scoped conversation context")
+Rel(runtime, bedrock, "Requests reasoning and generation")
+Rel(runtime, gateway, "Requests bounded tools", "MCP")
+Rel(gateway, policy, "Authorizes proposed tool call")
+Rel(gateway, cases, "Invokes approved Case API")
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+Container_Boundary(inventoryService, "Seat Inventory Service") {
+    Component(inventoryController, "Inventory API / Command Handler", "Application Component", "Receives seat availability, hold, confirm, and release requests")
+    Component(availabilityQuery, "Availability Query Component", "Application Component", "Reads current seat availability")
+    Component(holdManager, "Seat Hold Manager", "Domain Component", "Creates short-lived seat holds and prevents conflicting reservations")
+    Component(reservationManager, "Reservation Manager", "Domain Component", "Confirms held seats after successful payment")
+    Component(expiryWorker, "Hold Expiry Worker", "Background Component", "Releases expired seat holds")
+    Component(inventoryRepository, "Inventory Repository", "Data Access Component", "Reads and writes seat state using transactional operations")
+    Component(eventPublisher, "Inventory Event Publisher", "Application Component", "Publishes seat-held, seat-released, and seat-confirmed events")
+}
+ContainerDb(inventoryDb, "Inventory Database", "Relational Database", "Stores seat state, hold owner, hold expiry, and reservation status")
+ContainerQueue(eventQueue, "Event Queue", "Queue", "Carries inventory state-change events")
+Container(orderService, "Order Service", "Application Service", "Coordinates the booking lifecycle")
+Rel(orderService, inventoryController, "Requests hold, confirm, or release")
+Rel(inventoryController, availabilityQuery, "Queries availability")
+Rel(inventoryController, holdManager, "Requests seat hold")
+Rel(inventoryController, reservationManager, "Confirms reservation")
+Rel(availabilityQuery, inventoryRepository, "Reads seat state")
+Rel(holdManager, inventoryRepository, "Creates hold atomically")
+Rel(reservationManager, inventoryRepository, "Transitions held seat to reserved")
+Rel(expiryWorker, inventoryRepository, "Finds and releases expired holds")
+Rel(holdManager, eventPublisher, "Publishes hold events")
+Rel(reservationManager, eventPublisher, "Publishes reservation events")
+Rel(expiryWorker, eventPublisher, "Publishes release events")
+Rel(inventoryRepository, inventoryDb, "Reads/writes")
+Rel(eventPublisher, eventQueue, "Publishes events")
+@enduml

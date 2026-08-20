@@ -1,0 +1,12 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+Person(customer, "Customer", "Browses events and purchases tickets")
+Person(organizer, "Event Organizer", "Creates and manages events")
+System(ticketBookingSystem, "Ticket Booking System", "Allows customers to discover events, reserve seats, purchase tickets, and receive booking confirmation")
+System_Ext(paymentProvider, "Payment Provider", "Processes payment authorization and capture")
+System_Ext(emailProvider, "Email Provider", "Delivers booking confirmation emails")
+Rel(customer, ticketBookingSystem, "Browses events, selects seats, purchases tickets")
+Rel(organizer, ticketBookingSystem, "Creates and manages events, views bookings and sales")
+Rel(ticketBookingSystem, paymentProvider, "Authorizes and captures payments")
+Rel(ticketBookingSystem, emailProvider, "Sends booking confirmation emails")
+@enduml

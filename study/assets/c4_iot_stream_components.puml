@@ -1,0 +1,24 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+ContainerQueue(stream, "Telemetry Stream", "Durable Stream", "Carries partitioned sensor readings")
+Container_Boundary(processor, "Stream Processor") {
+    Component(consumer, "Partition Consumer", "Stream Component", "Reads ordered records and manages checkpoints")
+    Component(validator, "Reading Validator", "Domain Component", "Rejects malformed, unauthorized, or implausible readings")
+    Component(deduplicator, "Deduplicator", "Domain Component", "Recognizes retried readings by device sequence")
+    Component(projector, "Latest-State Projector", "Application Component", "Updates the current device and map-cell views")
+    Component(rawWriter, "Raw Writer", "Application Component", "Persists immutable accepted readings")
+    Component(aggregatePublisher, "Aggregate Publisher", "Application Component", "Emits validated readings for aggregation")
+}
+ContainerDb(latest, "Latest-State Store", "Key-Value Store", "Current device and map-cell state")
+ContainerDb(raw, "Raw Telemetry Store", "Object Storage", "Replayable raw readings")
+Container(aggregator, "Aggregation Worker", "Background Worker", "Builds time-bucket summaries")
+Rel(stream, consumer, "Delivers records")
+Rel(consumer, validator, "Validates")
+Rel(validator, deduplicator, "Checks accepted reading")
+Rel(deduplicator, projector, "Projects unique reading")
+Rel(deduplicator, rawWriter, "Persists unique reading")
+Rel(deduplicator, aggregatePublisher, "Forwards unique reading")
+Rel(projector, latest, "Updates idempotently")
+Rel(rawWriter, raw, "Appends")
+Rel(aggregatePublisher, aggregator, "Emits validated reading")
+@enduml

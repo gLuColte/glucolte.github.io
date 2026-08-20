@@ -1,0 +1,24 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+Container(order, "Order Service", "Application Service", "Coordinates checkout")
+Container_Boundary(inventory, "Inventory Service") {
+    Component(handler, "Inventory Command Handler", "Application Component", "Receives availability, reserve, confirm, and release commands")
+    Component(query, "Availability Query", "Application Component", "Reads current sellable quantity")
+    Component(reservation, "Stock Reservation Manager", "Domain Component", "Reserves quantity using atomic conditional transitions")
+    Component(release, "Expiry and Reconciliation Worker", "Background Component", "Releases expired reservations and repairs drift")
+    Component(repository, "Inventory Repository", "Data Access Component", "Reads and writes authoritative stock state")
+    Component(publisher, "Inventory Event Publisher", "Application Component", "Publishes reserved, released, and confirmed events")
+}
+ContainerDb(database, "Inventory Database", "Relational Database", "Stores available, reserved, and committed quantities")
+ContainerQueue(events, "Order Event Stream", "Durable Stream", "Carries inventory changes")
+Rel(order, handler, "Requests reserve, confirm, or release")
+Rel(handler, query, "Queries availability")
+Rel(handler, reservation, "Requests stock transition")
+Rel(query, repository, "Reads quantity")
+Rel(reservation, repository, "Updates quantity atomically")
+Rel(release, repository, "Releases or reconciles quantity")
+Rel(reservation, publisher, "Publishes transition")
+Rel(release, publisher, "Publishes correction")
+Rel(repository, database, "Reads/writes")
+Rel(publisher, events, "Publishes events")
+@enduml
