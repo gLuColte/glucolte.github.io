@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="500" viewBox="0 0 900 500" role="img" aria-labelledby="title description">
   <title id="title">Renormalized Top-p sampling distribution</title>
-  <desc id="description">After Top-p excludes Google, Oracle, and IBM, AWS and Azure are normalized to approximately 80 and 20 percent before sampling.</desc>
+  <desc id="description">After Top-p excludes Marseille, Berlin, and Rome, Paris and Lyon are normalized to approximately 80 and 20 percent before sampling.</desc>
 
   <rect width="900" height="500" rx="18" fill="#f8fafc"/>
   <text x="450" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a">Sampling uses only the remaining candidates</text>
   <text x="450" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">The retained 91.7% is rescaled to become a new 100% distribution.</text>
 
   <rect x="110" y="92" width="680" height="60" rx="9" fill="#e0f2fe"/>
-  <text x="450" y="117" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#075985">AWS: 73.4 ÷ 91.7 ≈ 80%</text>
-  <text x="450" y="139" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#075985">Azure: 18.3 ÷ 91.7 ≈ 20%</text>
+  <text x="450" y="117" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#075985">Paris: 73.4 ÷ 91.7 ≈ 80%</text>
+  <text x="450" y="139" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#075985">Lyon: 18.3 ÷ 91.7 ≈ 20%</text>
 
   <g stroke="#cbd5e1" stroke-width="1">
     <line x1="150" y1="410" x2="750" y2="410"/>
@@ -30,8 +30,8 @@
   <g font-family="Arial, sans-serif" text-anchor="middle">
     <text x="320" y="198" font-size="17" font-weight="700" fill="#047857">≈ 80%</text>
     <text x="580" y="348" font-size="17" font-weight="700" fill="#0369a1">≈ 20%</text>
-    <text x="320" y="440" font-size="16" font-weight="700" fill="#334155">AWS</text>
-    <text x="580" y="440" font-size="16" font-weight="700" fill="#334155">Azure</text>
+    <text x="320" y="440" font-size="16" font-weight="700" fill="#334155">Paris</text>
+    <text x="580" y="440" font-size="16" font-weight="700" fill="#334155">Lyon</text>
   </g>
 
   <text x="450" y="476" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#475569">One token is sampled using these weights; the two choices are not equally likely.</text>

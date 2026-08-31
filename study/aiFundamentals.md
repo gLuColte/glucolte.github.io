@@ -5,34 +5,79 @@ permalink: /study/aiFundamentals
 
 # AI Fundamentals
 
-This page follows one request from text on the screen to generated text. The running example is:
+This page follows **one LLM request** from text on the screen to generated, streamed text. Its running example is:
 
 ```text
-"Hello, this is Gary"
+"The capital of France is"
 ```
 
-## 1. The request at a glance {#section-1-request}
+An LLM generates a response one token at a time. First use the map below to see the entire journey; the rest of the page then walks through each box in order.
 
-- An LLM is a learned function that predicts the **next token** from the tokens already in its context.
-- It does not generate an entire sentence in one step.
-- The complete path is:
+## 1. Big picture: complete request flow {#section-1-request}
+
+The prompt is processed once, then the generated token loops through the model until a stop condition is reached:
 
 ```text
-text
-  → tokenizer
-  → token IDs
-  → internal token-embedding lookup
-  → transformer and attention
-  → next-token logits
-  → softmax probabilities
-  → decoding selects one token ID
-  → append and repeat
-  → detokenize / stream text
+"The capital of France is"
+        ↓ tokenizer
+tokens → token IDs
+        ↓ internal embedding lookup
+vectors
+        ↓ transformer / attention
+contextual representation
+        ↓ output projection
+logits
+        ↓ temperature → softmax
+probabilities
+        ↓ top-p / sampling
+next token ID → " Paris"
+        ↓ append to context and repeat
+detokenize / stream text
 ```
 
-- The surrounding application builds the request and owns memory, retrieval, tools, permissions, and validation.
+- The values, IDs, and token boundaries on this page are illustrative; every model has its own compatible tokenizer and vocabulary.
+- The surrounding application submits text and receives text. Its broader concerns—such as conversation history, permissions, tools, and validation—are supporting concepts later in the page, not steps performed inside this single inference loop.
 
-## 2. Text becomes tokens and token IDs {#section-2-tokenization}
+<div class="image-wrapper">
+  <img src="./assets/llm_single_request_sequence.png" alt="Single LLM request from the prompt The capital of France is through tokenization, prefill, decoding, and streamed output" class="modal-trigger" data-caption="Single LLM request: text → token IDs → embeddings → prefill → autoregressive decode → streamed text">
+  <div class="diagram-caption" data-snippet-id="llm-single-request-snippet">
+    🧠 Complete single-request sequence — the map for this page
+  </div>
+  <script type="text/plain" id="llm-single-request-snippet">
+@startuml
+title Single LLM request: text to generated text
+actor User
+participant Application as App
+participant Tokenizer
+participant "Internal Embedding Layer" as Embed
+participant "Transformer" as Model
+participant "Logits / Softmax" as Scores
+participant Decoder
+User -> App: "The capital of France is"
+App -> App: Build ordered context and reserve output space
+App -> Tokenizer: Serialize and tokenize context
+Tokenizer --> Embed: Input token IDs
+Embed --> Model: Token vectors + positional information
+Model -> Model: Prefill prompt and build KV cache
+loop One output token at a time
+  Model -> Scores: Next-token logits
+  Scores -> Scores: Temperature scaling + softmax
+  Scores -> Decoder: Probability distribution
+  Decoder -> Decoder: Apply top-p / decoding strategy
+  Decoder --> Tokenizer: Selected output token ID (for example, " Paris")
+  Tokenizer --> App: Detokenized text piece
+  App --> User: Stream text piece
+  Decoder --> Embed: Append selected token ID
+  Embed --> Model: New token vector
+  Model -> Model: Decode using existing KV cache
+end
+Model --> App: Stop token / output limit / stop sequence
+App --> User: Completed response
+@enduml
+  </script>
+</div>
+
+## 2. Stage 1 — text becomes tokens and token IDs {#section-2-tokenization}
 
 - A **tokenizer** splits text using a vocabulary designed for that model.
 - A token may be:
@@ -46,34 +91,35 @@ text
 Illustrative tokenization:
 
 ```text
-"Hello, this is Gary"
+"The capital of France is"
           ↓ tokenizer
-["Hello", ",", " this", " is", " Gary"]
+["The", " capital", " of", " France", " is"]
           ↓ vocabulary lookup
-[882, 11, 341, 291, 9281]
+[464, 3139, 286, 4881, 318]
 ```
 
 - The numbers are illustrative; every tokenizer/model can assign different boundaries and IDs.
 - A **token ID** is an integer index into the model vocabulary.
-- `882` does not itself contain the meaning of “Hello”; it identifies the relevant vocabulary entry.
+- `464` does not itself contain the meaning of “The”; it identifies the relevant vocabulary entry.
 - Tokenization affects:
   - context usage and input cost;
   - truncation;
   - latency;
   - handling of code, URLs, identifiers, tables, and different languages.
 
-## 3. Token IDs become internal vectors {#section-3-embedding-lookup}
+## 3. Stage 2 — token IDs become internal vectors {#section-3-embedding-lookup}
 
-- The transformer does not meaningfully reason over raw integers such as `882`.
+- The transformer does not meaningfully reason over raw integers such as `464`.
 - The model contains a learned **token-embedding table**.
 - The token ID selects one row from that table:
 
 ```text
-token ID 882
+token ID 464
       ↓ embedding lookup
 [0.83, 0.17, -0.31, ...]
 ```
 
+- For our running request, each of `[464, 3139, 286, 4881, 318]` selects a learned vector.
 - Each input token becomes a vector with the model's internal hidden dimension.
 - These vectors were learned with the rest of the model during training.
 - The vectors begin as token representations; transformer layers then make them contextual.
@@ -104,22 +150,22 @@ Important boundary:
                   matching detokenizer
 ```
 
-- Token ID `882` only means something relative to its tokenizer vocabulary.
+- Token ID `464` only means something relative to its tokenizer vocabulary.
 - Arbitrary token IDs from Model A cannot normally be supplied to Model B.
 - The internal embedding table and transformer are trained together; GPT's internal vectors cannot normally be substituted into Llama's transformer, for example.
 - Output logits correspond to the same model vocabulary, so generated IDs need the matching detokenizer.
 - The concepts of softmax, greedy decoding, temperature, and top-p are general; providers decide which controls and implementations their serving APIs expose.
 - Through an API, this coupled machinery is normally packaged behind a text/messages-in → text/tokens-out interface.
 
-## 4. Prefill processes the prompt {#section-4-prefill}
+## 4. Stage 3 — prefill processes the prompt {#section-4-prefill}
 
 - The model first processes the supplied input tokens in the **prefill phase**.
 - Prompt tokens can generally be processed together across each transformer layer, subject to causal attention.
 
 ```text
-"Hello, this is Gary"
+"The capital of France is"
           ↓
-[882, 11, 341, 291, 9281]
+[464, 3139, 286, 4881, 318]
           ↓ embedding lookup
 [vector, vector, vector, vector, vector]
           ↓
@@ -136,12 +182,12 @@ transformer prefill
   - generation of the first output token.
 - Larger prompts require more prefill work and memory, so they commonly increase TTFT before output appears.
 
-## 5. The transformer makes tokens contextual {#section-5-transformer}
+## 5. Stage 4 — the transformer makes tokens contextual {#section-5-transformer}
 
 - **Positional information** tells the model where tokens occur in the sequence.
   - Exact implementations vary; many modern models apply relative or rotary positional information in attention.
 - **Self-attention** lets each token position weigh relevant earlier positions.
-  - When predicting after `"Hello, this is Gary"`, the final representation can use `"Gary"`, `"Hello"`, and the surrounding words.
+  - When predicting after `"The capital of France is"`, the final representation can use `"France"`, `"capital"`, and the surrounding words.
 - **Multiple attention heads** can focus on different relationships, such as:
   - local syntax;
   - names and references;
@@ -170,91 +216,99 @@ contextual representation used for next-token prediction
 
 - Attention learns useful contextual patterns; it does not guarantee logical reasoning or factual verification.
 
-## 6. Contextual representation becomes the next token {#section-6-logits-decoding}
+## 6. Stage 5 — output projection produces logits {#section-6-logits-decoding}
 
 - The transformer projects the final position's representation into one score for every token in its output vocabulary.
 - These raw scores are **logits**.
 - Logits are not yet probabilities and do not need to sum to anything.
 
-Illustrative first assistant-token candidates:
+For the final position in `"The capital of France is"`, the output projection produces one logit for every vocabulary token. The values are illustrative, not output from a particular model.
+- We are now at the **logits** box on the map. The next four stages convert these scores into one selected token ID.
 
-| Token | Logit | Probability after decoding controls |
-|---|---:|---:|
-| `"Hello"` | 8.4 | 47% |
-| `"Hi"` | 7.9 | 28% |
-| `"Nice"` | 7.2 | 14% |
-| other tokens | … | 11% |
+## 7. Stage 6 — temperature {#section-6-1-temperature-top-p}
 
-- The values are illustrative, not output from a particular model.
-- Decoding occurs at this exact boundary:
-  - **temperature** scales logits before softmax;
-  - **softmax** converts the logits into a probability distribution;
-  - **top-p** can restrict sampling to a high-probability cumulative set;
-  - greedy decoding or sampling selects the next token ID.
+Temperature is applied at every generated-token step. It changes the shape of the logits before they become probabilities:
+
 - Lower temperature concentrates probability on likely tokens; it does not make them factual.
-- Maximum output tokens, stop sequences, or an end-of-sequence token stop generation.
+- Temperature does not remove tokens or choose the next token by itself.
 
-### 6.1 Temperature and top-p work together {#section-6-1-temperature-top-p}
+Continue the France request with these illustrative **relative logits**. Conceptually, temperature divides each logit by `T`. At `T = 0.5`, their separation doubles:
 
-Both controls can apply when selecting **each generated token**:
-
-- **Temperature changes the shape** of the probability distribution.
-- **Top-p uses that changed distribution** to decide which tokens remain eligible.
-
-Follow one complete example. Suppose the model initially assigns:
-
-| Token | Initial probability (`temperature = 1`) |
-|---|---:|
-| `AWS` | 50% |
-| `Azure` | 25% |
-| `Google` | 15% |
-| `Oracle` | 7% |
-| `IBM` | 3% |
-
-**Step 1 — apply `temperature = 0.5`.** The lower temperature sharpens the distribution; it does not remove tokens. The table shows rounded probabilities for readability—in implementation, temperature scales the logits before softmax:
-
-The **Cumulative** column is not another probability assigned to the token. It is the current token's probability **plus every probability above it**. Because the tokens are ordered from most likely to least likely, the running total eventually reaches 100%.
-
-| Token | After temperature | Cumulative (running total) |
+| Token | Raw logit | After `logit ÷ 0.5` |
 |---|---:|---:|
-| `AWS` | 73.4% | 73.4% |
-| `Azure` | 18.3% | 91.7% |
-| `Google` | 6.6% | 98.3% |
-| `Oracle` | 1.4% | 99.7% |
-| `IBM` | 0.3% | 100.0% |
+| `" Paris"` | -0.693 | -1.386 |
+| `" Lyon"` | -1.386 | -2.772 |
+| `" Marseille"` | -1.897 | -3.794 |
+| `" Berlin"` | -2.659 | -5.318 |
+| `" Rome"` | -3.507 | -7.014 |
+
+These are still **logits**, not probabilities. The diagram shows only the Stage 6 rescaling; Stage 7 applies softmax next.
 
 <div class="image-wrapper">
-  <img src="./assets/temperature_probability_distribution.svg" alt="Grouped bar chart showing that lowering temperature from 1.0 to 0.5 makes the token probability distribution sharper" class="modal-trigger" data-caption="Temperature reshapes the next-token probability distribution">
-  <div class="diagram-caption">📊 Lower temperature concentrates probability on the most likely tokens</div>
+  <img src="./assets/temperature_logit_scaling.svg" alt="Diagram showing temperature 0.5 dividing raw logits and making their relative separation larger before softmax" class="modal-trigger" data-caption="Temperature rescales logits before softmax">
+  <div class="diagram-caption">📐 Stage 6: temperature rescales logits only — no probabilities yet</div>
 </div>
 
-**Step 2 — apply `top-p = 0.8`.** Starting from the most likely token, keep tokens until their cumulative probability reaches at least 80%:
+## 8. Stage 7 — softmax produces probabilities
+
+**Softmax** converts the temperature-adjusted logits from Stage 6 into a probability distribution: every probability is non-negative and the full vocabulary sums to 100%. For the France example, it produces:
+
+| Token | `temperature = 1` baseline | After Stage 6: `temperature = 0.5`, then softmax |
+|---|---:|---:|
+| `" Paris"` | 50% | 73.4% |
+| `" Lyon"` | 25% | 18.3% |
+| `" Marseille"` | 15% | 6.6% |
+| `" Berlin"` | 7% | 1.4% |
+| `" Rome"` | 3% | 0.3% |
+
+Only now do we have probabilities that top-p can use.
+
+<div class="image-wrapper">
+  <img src="./assets/temperature_probability_distribution.svg" alt="Grouped bar chart showing that softmax turns temperature-adjusted logits into a sharper probability distribution" class="modal-trigger" data-caption="Softmax converts the temperature-adjusted logits into probabilities">
+  <div class="diagram-caption">📊 Stage 7: softmax makes the temperature effect visible as probabilities</div>
+</div>
+
+## 9. Stage 8 — top-p filters the sampling candidates
+
+**Apply `top-p = 0.8`** to the Stage 7 probabilities. Starting from the most likely token, keep tokens until their cumulative probability reaches at least 80%:
 
 **Cumulative probability** means a running total after sorting tokens from most likely to least likely:
 
+The **Cumulative** column is not another probability assigned to a token. It is that token's probability **plus every probability above it**. Because the tokens are ordered from most likely to least likely, the running total eventually reaches 100%.
+
+| Token | Probability from Stage 7 | Cumulative (running total) |
+|---|---:|---:|
+| `" Paris"` | 73.4% | 73.4% |
+| `" Lyon"` | 18.3% | 91.7% |
+| `" Marseille"` | 6.6% | 98.3% |
+| `" Berlin"` | 1.4% | 99.7% |
+| `" Rome"` | 0.3% | 100.0% |
+
 ```text
-AWS                         = 73.4%
-AWS + Azure                 = 73.4% + 18.3% = 91.7%
-AWS + Azure + Google        = 91.7% + 6.6%  = 98.3%
+" Paris"                         = 73.4%
+" Paris" + " Lyon"              = 73.4% + 18.3% = 91.7%
++ " Marseille"                    = 91.7% + 6.6%  = 98.3%
 ```
 
 Top-p compares its threshold with this running total. It does **not** require an individual token to have an 80% probability.
 
 ```text
-AWS       73.4%  → below 80%, keep going
-Azure    +18.3%  → cumulative 91.7%, keep it and stop
-Google, Oracle, IBM → excluded from this sampling step
+" Paris"       73.4%  → below 80%, keep going
+" Lyon"       +18.3%  → cumulative 91.7%, keep it and stop
+" Marseille", " Berlin", " Rome" → excluded from this sampling step
 ```
 
 <div class="image-wrapper">
-  <img src="./assets/top_p_candidate_filter.svg" alt="Top-p 0.8 keeps AWS and Azure, then crosses out Google, Oracle, and IBM after cumulative probability passes 80 percent" class="modal-trigger" data-caption="Top-p keeps tokens until cumulative probability reaches its threshold">
-  <div class="diagram-caption">✂️ Top-p keeps AWS and Azure; the remaining tokens cannot be sampled</div>
+  <img src="./assets/top_p_candidate_filter.svg" alt="Top-p 0.8 keeps Paris and Lyon, then crosses out Marseille, Berlin, and Rome after cumulative probability passes 80 percent" class="modal-trigger" data-caption="Top-p keeps tokens until cumulative probability reaches its threshold">
+  <div class="diagram-caption">✂️ Top-p keeps Paris and Lyon; the remaining tokens cannot be sampled</div>
 </div>
 
-**Step 3 — sample.** Only `AWS` and `Azure` are eligible. Their probabilities are normalized within that candidate set—roughly 80% versus 20%—and one is sampled. They are not equally likely.
+## 10. Stage 9 — sample the next token {#section-6-4-next-token}
+
+Only `" Paris"` and `" Lyon"` are eligible. Their probabilities are normalized within that candidate set—roughly 80% versus 20%—and one is sampled. They are not equally likely. In this walkthrough, sampling selects `" Paris"`.
 
 <div class="image-wrapper">
-  <img src="./assets/top_p_renormalized_sampling.svg" alt="After Top-p filtering, AWS and Azure are renormalized to approximately 80 and 20 percent for sampling" class="modal-trigger" data-caption="The retained Top-p candidates are renormalized before sampling">
+  <img src="./assets/top_p_renormalized_sampling.svg" alt="After Top-p filtering, Paris and Lyon are renormalized to approximately 80 and 20 percent for sampling" class="modal-trigger" data-caption="The retained Top-p candidates are renormalized before sampling">
   <div class="diagram-caption">🎲 The retained probabilities are rescaled to 100%, then one token is sampled</div>
 </div>
 
@@ -270,12 +324,12 @@ top-p keeps the cumulative candidate set
 sample one token → append it → repeat
 ```
 
-- With the original `temperature = 1` distribution, the same `top-p = 0.8` would keep `AWS`, `Azure`, and `Google`. Lowering the temperature caused the 80% threshold to be reached with fewer tokens.
+- With the original `temperature = 1` distribution, the same `top-p = 0.8` would keep `" Paris"`, `" Lyon"`, and `" Marseille"`. Lowering the temperature caused the 80% threshold to be reached with fewer tokens.
 - **Temperature does not choose the candidate set directly; top-p does. Top-p does not reshape probabilities; temperature does.**
 - Exact controls and processing order can vary by model/API; some providers recommend changing temperature or top-p rather than both.
 - This **generation top-p** is separate from retrieval **top-k**: retrieval chooses documents/chunks before the LLM runs; top-p chooses output-token candidates during decoding.
 
-## 7. Output generation is autoregressive {#section-7-autoregressive}
+## 11. Stage 10 — append the token and repeat autoregressively {#section-7-autoregressive}
 
 The input/output distinction is fundamental:
 
@@ -283,13 +337,13 @@ The input/output distinction is fundamental:
 - **Output/decode**: token `N + 1` depends on token `N`, so generation is sequential.
 
 ```text
-prompt context
+"The capital of France is"
       ↓
-predict token ID for "Hello"
+predict token ID for " Paris"
       ↓ append to context
-predict token ID for " Gary"
-      ↓ append to context
-predict token ID for "!"
+"The capital of France is Paris"
+      ↓
+predict token ID for "."
       ↓ append to context
 predict end-of-sequence
 ```
@@ -301,17 +355,16 @@ predict end-of-sequence
 - TPOT is influenced by model size, serving hardware, batch/load, KV-cache size, and provider implementation.
 - Because tokens are produced one at a time, the server can stream each completed text piece to the client instead of waiting for the full response.
 
-## 8. Token IDs become text again {#section-8-detokenization}
+## 12. Stage 11 — token IDs become text again and stream {#section-8-detokenization}
 
 - The decoder produces token IDs.
 - The tokenizer maps each selected ID back to its token text/bytes and joins the pieces.
 
 ```text
-3912 → "Hello"
-9281 → " Gary"
-   0 → "!"
+7123 → " Paris"
+  13 → "."
         ↓ detokenize
-"Hello Gary!"
+"The capital of France is Paris."
 ```
 
 - IDs are illustrative and model-specific.
@@ -319,7 +372,11 @@ predict end-of-sequence
 - With streaming enabled, the application may receive and display decoded text pieces incrementally.
 - A client may buffer incomplete byte/Unicode sequences so only valid text is displayed.
 
-## 9. Conversation, context, and context window {#section-9-context-window}
+## 13. Supporting concepts beyond the single-request loop {#section-9-context-window}
+
+The core journey ends when decoded text is streamed. The following material explains the surrounding constraints and related concepts without changing the inference path above.
+
+### 13.1 Conversation, context, and context window
 
 - **Conversation**: the logical history stored by the application or agent.
 - **Context**: the tokens actually constructed and supplied to this particular model call.
@@ -439,7 +496,7 @@ def llm_call(input_tokens, max_output_tokens):
   - **assistant**: earlier or generated model output;
   - **tool**: observation returned by external execution.
 
-### 9.1 A 1,000-token calculation {#section-9-1-calculation}
+### 13.2 A 1,000-token calculation {#section-9-1-calculation}
 
 The diagram used `128K` to show the boundary. Shrink it to `1,000` tokens to make the same capacity calculation easier to follow:
 
@@ -529,7 +586,7 @@ end
   - a larger advertised window does not guarantee reliable attention to every detail.
 - A provider may offer managed conversation state, but that remains an application/platform feature around independent inference calls.
 
-## 10. Training, fine-tuning, and inference {#section-10-training}
+## 14. Training, fine-tuning, and inference {#section-10-training}
 
 - **Pretraining**:
   - adjusts model parameters to reduce next-token prediction error over large datasets;
@@ -566,7 +623,7 @@ answer: Apple is a technology company ...
 - Fine-tuning can change learned associations, but it remains a poor database for products, prices, executives, policies, or inventory that change frequently.
 - Use RAG for current document knowledge and APIs/tools for authoritative live state.
 
-### 10.1 Apply it: an Apple support assistant {#section-10-1-mechanism}
+### 14.1 Apply it: an Apple support assistant {#section-10-1-mechanism}
 
 Apple now builds a support assistant for Gary's device repair. **Apple wants the assistant** to behave consistently, but the surrounding application—not the model—must enforce security and transactions.
 
@@ -593,7 +650,7 @@ Gary confirms → application creates one replacement order transactionally
 
 For deeper treatment, see [AI Knowledge Bases](/study/aiKnowledgebases), [AI Agents](/study/aiAgents), and [AI Infrastructure and Evaluation](/study/aiInfrastructure).
 
-## 11. Hallucination, grounding, and structured output {#section-11-hallucination}
+## 15. Hallucination, grounding, and structured output {#section-11-hallucination}
 
 - The model selects plausible next tokens from learned patterns and supplied context; it does not automatically verify claims.
 - A **hallucination** is a claim, citation, entity, calculation, or tool argument unsupported by available evidence.
@@ -653,7 +710,7 @@ with RAG:    weights + question + authoritative evidence → better-grounded ans
   - valid JSON can contain a nonexistent customer;
   - schema-valid tool arguments can still be unauthorized or unsafe.
 
-## 12. What remains outside the model {#section-12-boundaries}
+## 16. What remains outside the model {#section-12-boundaries}
 
 - The model can propose text, structured data, or a tool call.
 - The surrounding application must own:
@@ -677,70 +734,3 @@ user request → model proposes tool + arguments
 - Retrieval internals: [AI Knowledge Bases](/study/aiKnowledgebases)
 - Tool loops and agents: [AI Agents](/study/aiAgents)
 - Production controls: [AI Infrastructure and Evaluation](/study/aiInfrastructure)
-
-## 13. Complete request flow {#section-13-complete-flow}
-
-```text
-Application builds context
-        ↓
-Tokenizer
-        ↓
-Token IDs
-        ↓
-Internal embedding lookup
-        ↓
-Transformer / attention
-        ↓
-Next-token logits
-        ↓
-Temperature → softmax → top-p / decoding strategy
-        ↓
-Next token ID
-        ↓
-Append to context ───────────────┐
-        ↑                        │
-        └── repeat transformer ──┘
-        ↓ stop condition
-Detokenize / stream
-        ↓
-User sees text
-```
-
-<div class="image-wrapper">
-  <img src="./assets/llm_single_request_sequence.png" alt="Single LLM request from text through tokenization, prefill, decoding, and streamed output" class="modal-trigger" data-caption="Single LLM request: text → token IDs → embeddings → prefill → autoregressive decode → streamed text">
-  <div class="diagram-caption" data-snippet-id="llm-single-request-snippet">
-    🧠 Complete single-request sequence
-  </div>
-  <script type="text/plain" id="llm-single-request-snippet">
-@startuml
-title Single LLM request: text to generated text
-actor User
-participant Application as App
-participant Tokenizer
-participant "Internal Embedding Layer" as Embed
-participant "Transformer" as Model
-participant "Logits / Softmax" as Scores
-participant Decoder
-User -> App: "Hello, this is Gary"
-App -> App: Build ordered context and reserve output space
-App -> Tokenizer: Serialize and tokenize context
-Tokenizer --> Embed: Input token IDs
-Embed --> Model: Token vectors + positional information
-Model -> Model: Prefill prompt and build KV cache
-loop One output token at a time
-  Model -> Scores: Next-token logits
-  Scores -> Scores: Temperature scaling + softmax
-  Scores -> Decoder: Probability distribution
-  Decoder -> Decoder: Apply top-p / decoding strategy
-  Decoder --> Tokenizer: Selected output token ID
-  Tokenizer --> App: Detokenized text piece
-  App --> User: Stream text piece
-  Decoder --> Embed: Append selected token ID
-  Embed --> Model: New token vector
-  Model -> Model: Decode using existing KV cache
-end
-Model --> App: Stop token / output limit / stop sequence
-App --> User: Completed response
-@enduml
-  </script>
-</div>
