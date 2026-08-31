@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/infrastructureAWSAiServices" />
-<meta property="og:url" content="https://glucolte.github.io/study/infrastructureAWSAiServices" />
+<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSAiServices" />
+<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSAiServices" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AWS AI Services" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS AI Services","url":"https://glucolte.github.io/study/infrastructureAWSAiServices"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS AI Services","url":"http://localhost:4000/study/infrastructureAWSAiServices"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -875,6 +875,12 @@ Edge --> User: Display result
       <li>redact sensitive prompts/responses and correlate with model/retrieval/tool IDs.</li>
     </ul>
   </li>
+  <li><strong>AWS Artifact</strong>: download AWS compliance reports and agreements, such as SOC and PCI documents.</li>
+  <li><strong>AWS Audit Manager</strong>: continuously collect and organize evidence for audits and compliance assessments.</li>
+  <li><strong>AWS Config</strong>: record resource configurations and evaluate them against compliance rules.</li>
+  <li><strong>AWS Security Hub</strong>: aggregate and prioritize security findings for a unified security-posture view.</li>
+  <li><strong>Amazon Inspector</strong>: scan supported workloads for software vulnerabilities and unintended network exposure.</li>
+  <li><strong>AWS Trusted Advisor</strong>: recommendations across cost, performance, security, fault tolerance, and service quotas; it does not provide detailed billing reports.</li>
 </ul>
 
 <h2 id="section-10-decision-flow">10. Reference AWS decision flow</h2>
@@ -954,9 +960,256 @@ Need known durable states, compensation, or human approval?
 
 <p>For how retrieval works internally, see <a href="/study/aiKnowledgebases">AI knowledge bases</a>. For vendor-neutral security, reliability, cost, and evaluation, see <a href="/study/aiInfrastructure">AI infrastructure and evaluation</a>.</p>
 
+<h2 id="section-12-service-map">12. AWS service lookup list</h2>
+
+<p>This is a quick map of AWS products whose primary role is AI/ML, plus search and industry services commonly used with them. “Features” means the major capabilities worth distinguishing—not every API operation. Services marked <strong>legacy</strong> may have restricted availability or an announced end of support, so verify them before designing a new workload.</p>
+
+<h3 id="section-12-1-platforms">12.1 Generative AI and ML platforms</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Service</th>
+      <th>Major feature → purpose</th>
+      <th>Service purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Amazon Bedrock</strong></td>
+      <td><strong>Model inference</strong> → invoke managed FMs<br /><strong>Knowledge Bases</strong> → managed RAG<br /><strong>Guardrails</strong> → filter content, topics and sensitive data<br /><strong>Flows</strong> → visual GenAI workflows<br /><strong>Prompt management</strong> → version prompt templates<br /><strong>Evaluation/customization</strong> → compare or adapt supported models</td>
+      <td>Build managed generative-AI applications.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Bedrock AgentCore</strong></td>
+      <td><strong>Runtime/Harness</strong> → run agent loops<br /><strong>Gateway</strong> → expose APIs/Lambda/MCP tools<br /><strong>Identity/Policy</strong> → authorize bounded actions<br /><strong>Memory</strong> → retain scoped context<br /><strong>Browser/Code Interpreter</strong> → isolated tools<br /><strong>Observability/Evaluations</strong> → trace and assess agents</td>
+      <td>Deploy and operate production agents.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Nova</strong></td>
+      <td><strong>Understanding models</strong> → reason over text, images, video and documents<br /><strong>Creative models</strong> → generate images/video<br /><strong>Speech models</strong> → real-time voice interaction<br /><strong>Multimodal embeddings</strong> → similarity search across modalities</td>
+      <td>Amazon foundation-model family accessed through Bedrock.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon SageMaker AI</strong></td>
+      <td><strong>Studio</strong> → ML development environment<br /><strong>Canvas/Data Wrangler</strong> → visual or low-code data preparation and ML<br /><strong>Processing</strong> → managed transformation/evaluation jobs<br /><strong>Ground Truth</strong> → label training data<br /><strong>A2I</strong> → human review of predictions<br /><strong>Feature Store</strong> → reusable online/offline features<br /><strong>Clarify</strong> → bias detection and explainability<br /><strong>Autopilot</strong> → AutoML<br /><strong>JumpStart</strong> → pretrained models and solution templates<br /><strong>Experiments/Debugger</strong> → track and diagnose training<br /><strong>Automatic Model Tuning</strong> → optimize hyperparameters<br /><strong>Pipelines</strong> → automate ML workflows<br /><strong>Registry/Model Cards</strong> → version and govern models<br /><strong>Endpoints/Batch Transform</strong> → online or bulk inference</td>
+      <td>Build, train, tune, deploy, and govern custom ML models.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Q Business</strong></td>
+      <td><strong>Connectors</strong> → ingest enterprise sources<br /><strong>RAG/search</strong> → grounded organizational answers<br /><strong>Permission awareness</strong> → respect source access<br /><strong>Guardrails</strong> → control topics and responses<br /><strong>Plugins</strong> → take actions in Jira, Salesforce, and other applications</td>
+      <td>Build a permissions-aware enterprise assistant.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Q Developer</strong></td>
+      <td><strong>Code chat/completion</strong> → assist development<br /><strong>Agentic tasks</strong> → implement, test, review, or transform code<br /><strong>AWS assistance</strong> → explain and operate supported AWS resources</td>
+      <td>Assist software development and AWS work.</td>
+    </tr>
+    <tr>
+      <td><strong>Kiro</strong></td>
+      <td><strong>Specs</strong> → turn requirements into structured designs/tasks<br /><strong>Agent hooks</strong> → automate development events<br /><strong>Agentic IDE/CLI</strong> → implement and review code</td>
+      <td>Provide spec-driven, agentic software development.</td>
+    </tr>
+    <tr>
+      <td><strong>AWS Transform</strong></td>
+      <td><strong>Discovery/planning</strong> → assess and sequence migrations<br /><strong>Server/network migration</strong> → move environments to EC2/VPC<br /><strong>Code modernization</strong> → transform supported .NET, Java, mainframe, and other workloads<br /><strong>Containerization</strong> → create and deploy containers with review gates</td>
+      <td>Use agents to modernize infrastructure, applications, and code.</td>
+    </tr>
+    <tr>
+      <td><strong>PartyRock</strong></td>
+      <td><strong>Playground</strong> → build and share prompt-based GenAI apps without coding</td>
+      <td>Learn and prototype with Amazon Bedrock.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="section-12-2-language">12.2 Language, speech, and documents</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Service</th>
+      <th>Major feature → purpose</th>
+      <th>Service purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Amazon Comprehend</strong></td>
+      <td><strong>Sentiment</strong> → positive/negative/neutral/mixed tone<br /><strong>Entities/key phrases</strong> → important concepts<br /><strong>Language/syntax</strong> → language and grammar<br /><strong>PII detection</strong> → locate sensitive data<br /><strong>Topics</strong> → themes across documents<br /><strong>Custom classification/entities</strong> → business-specific NLP</td>
+      <td>Extract insights from unstructured text.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Comprehend Medical</strong></td>
+      <td><strong>Medical entities/relationships</strong> → conditions, medications and treatments<br /><strong>PHI detection</strong> → identify protected health information<br /><strong>Ontology linking</strong> → map text to ICD-10-CM, RxNorm or SNOMED CT</td>
+      <td>Extract structured clinical information from medical text.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Lex</strong></td>
+      <td><strong>ASR</strong> → speech to text<br /><strong>Intents/utterances</strong> → understand user goals<br /><strong>Slots</strong> → collect required values<br /><strong>Dialog management</strong> → manage a conversation flow</td>
+      <td>Build voice and text conversational bots.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Polly</strong></td>
+      <td><strong>Standard/neural/generative voices</strong> → synthesize speech<br /><strong>SSML/lexicons</strong> → control pauses, rate, pronunciation and supported voice properties<br /><strong>Speech marks</strong> → synchronize text or animation with audio</td>
+      <td>Convert text to lifelike speech.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Textract</strong></td>
+      <td><strong>DetectDocumentText</strong> → OCR text/handwriting<br /><strong>AnalyzeDocument</strong> → forms, key-value pairs, tables, queries and signatures<br /><strong>AnalyzeExpense</strong> → invoices and receipts<br /><strong>AnalyzeID</strong> → identity documents<br /><strong>AnalyzeLending</strong> → lending-document packets</td>
+      <td>Extract text and structured data from scanned documents.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Transcribe</strong></td>
+      <td><strong>Batch/streaming transcription</strong> → speech to text<br /><strong>Speaker/channel identification</strong> → separate participants<br /><strong>Custom vocabulary/models</strong> → improve domain terms<br /><strong>PII redaction/toxicity detection</strong> → protect or moderate transcripts<br /><strong>Call Analytics</strong> → contact-centre insights<br /><strong>Transcribe Medical</strong> → clinical speech recognition</td>
+      <td>Convert audio to searchable, structured text.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Translate</strong></td>
+      <td><strong>Real-time/batch translation</strong> → translate text<br /><strong>Language detection integration</strong> → handle unknown source language<br /><strong>Custom terminology/parallel data</strong> → preserve preferred domain wording</td>
+      <td>Translate text between languages.</td>
+    </tr>
+    <tr>
+      <td><strong>AWS HealthScribe</strong></td>
+      <td><strong>Clinical transcription</strong> → capture conversations<br /><strong>Speaker roles/medical terms</strong> → structure dialogue<br /><strong>Clinical-note generation</strong> → create preliminary notes for review</td>
+      <td>Document patient–clinician conversations.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="section-12-3-purpose-built">12.3 Vision, search, recommendations, and industry AI</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Service</th>
+      <th>Major feature → purpose</th>
+      <th>Service purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Amazon Rekognition</strong></td>
+      <td><strong>Label detection</strong> → objects/scenes and supported bounding boxes<br /><strong>Custom Labels</strong> → domain-specific object/class detection<br /><strong>Face collections/indexing</strong> → face search and comparison<br /><strong>Text detection</strong> → text in images/video<br /><strong>Content moderation</strong> → unsafe visual content<br /><strong>Celebrity/PPE/video analysis</strong> → specialized visual analysis</td>
+      <td>Analyze images and video.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Personalize</strong></td>
+      <td><strong>Datasets/imports</strong> → historical user, item and interaction data<br /><strong>Real-time events</strong> → adapt to recent behaviour<br /><strong>Recommenders/campaigns</strong> → serve recommendations<br /><strong>Personalized ranking</strong> → reorder item lists<br /><strong>Exploration</strong> → surface new or less-seen items<br /><strong>Batch inference/metrics</strong> → bulk output and impact measurement</td>
+      <td>Create personalized recommendations and rankings.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Kendra</strong></td>
+      <td><strong>Connectors/indexing</strong> → ingest enterprise documents<br /><strong>Semantic search/FAQs</strong> → intent-aware answers<br /><strong>User context/ACLs</strong> → permission-aware results<br /><strong>Metadata/relevance tuning</strong> → filter and adjust ranking</td>
+      <td>Search organizational knowledge.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon OpenSearch Service</strong></td>
+      <td><strong>BM25/full-text</strong> → lexical search<br /><strong>Vector search</strong> → semantic similarity<br /><strong>Hybrid search/pipelines</strong> → combine and rerank signals<br /><strong>Filters/facets/aggregations</strong> → structured search and analytics</td>
+      <td>Build controlled search, observability, and RAG retrieval.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Forecast</strong> <strong>(legacy)</strong></td>
+      <td><strong>Datasets/predictors</strong> → train from time-series and related data<br /><strong>Forecasts/explainability</strong> → predict values and understand drivers</td>
+      <td>Produce managed time-series forecasts.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Fraud Detector</strong> <strong>(legacy)</strong></td>
+      <td><strong>Events/entities/labels</strong> → define fraud data<br /><strong>Models</strong> → learn from labelled historical events<br /><strong>Rules/outcomes/detectors</strong> → combine scores with business logic</td>
+      <td>Detect potentially fraudulent online activity.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Lookout for Vision</strong> <strong>(discontinued)</strong></td>
+      <td><strong>Custom visual anomaly model</strong> → identify product defects from images</td>
+      <td>Formerly automated industrial visual inspection.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Lookout for Equipment</strong> <strong>(legacy)</strong></td>
+      <td><strong>Sensor-data models</strong> → detect abnormal equipment behaviour and early failure signals</td>
+      <td>Perform predictive maintenance from industrial telemetry.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Lookout for Metrics</strong> <strong>(discontinued)</strong></td>
+      <td><strong>Anomaly detection/root-cause grouping</strong> → find and explain unusual business metrics</td>
+      <td>Formerly detected anomalies in business and operational data.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Monitron</strong> <strong>(legacy)</strong></td>
+      <td><strong>Sensors/gateway/ML/mobile app</strong> → collect vibration/temperature and alert on abnormal machinery</td>
+      <td>End-to-end predictive-maintenance system for existing customers.</td>
+    </tr>
+    <tr>
+      <td><strong>AWS Panorama</strong> <strong>(discontinued)</strong></td>
+      <td><strong>Edge appliance/SDK</strong> → run computer-vision models against local camera streams</td>
+      <td>Formerly performed low-latency computer vision at the edge.</td>
+    </tr>
+    <tr>
+      <td><strong>AWS HealthLake</strong></td>
+      <td><strong>FHIR data store</strong> → store health records<br /><strong>Medical NLP/search</strong> → structure and query clinical text</td>
+      <td>Store, transform, and analyze health data.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon Connect</strong></td>
+      <td><strong>Contact Lens</strong> → conversation analytics<br /><strong>Amazon Q in Connect</strong> → agent assistance and self-service<br /><strong>Forecasting/scheduling</strong> → workforce optimization</td>
+      <td>Operate an AI-assisted cloud contact centre.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="section-12-4-operations-learning">12.4 AI-assisted operations and learning</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Service</th>
+      <th>Major feature → purpose</th>
+      <th>Service purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Amazon CodeGuru</strong></td>
+      <td><strong>Reviewer/Security</strong> → find code-quality and security issues<br /><strong>Profiler</strong> → identify expensive or inefficient runtime code</td>
+      <td>Improve application code and performance with ML-assisted analysis.</td>
+    </tr>
+    <tr>
+      <td><strong>Amazon DevOps Guru</strong></td>
+      <td><strong>Anomaly detection/insights</strong> → correlate operational signals and suggest likely causes or remediation</td>
+      <td>Detect and diagnose application operational problems.</td>
+    </tr>
+    <tr>
+      <td><strong>AWS DeepRacer</strong></td>
+      <td><strong>Simulator/model training/racing</strong> → learn reinforcement learning through autonomous driving</td>
+      <td>Hands-on reinforcement-learning education.</td>
+    </tr>
+    <tr>
+      <td><strong>AWS DeepComposer</strong> <strong>(legacy)</strong></td>
+      <td><strong>Generative music models/keyboard experience</strong> → learn generative AI concepts</td>
+      <td>Hands-on generative-AI education.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="section-13-practice-traps">13. Practice-exam traps</h2>
+
+<ul>
+  <li><strong>Textract</strong>: Form Analysis returns key-value pairs; invoices and receipts have the specialized <code class="language-plaintext highlighter-rouge">AnalyzeExpense</code> API. Treating these as competing answers is misleading.</li>
+  <li><strong>Comprehend Medical</strong> extracts clinical entities and PHI; standard <strong>Comprehend</strong> supplies sentiment and topic analysis.</li>
+  <li><strong>Rekognition</strong> <code class="language-plaintext highlighter-rouge">DetectLabels</code> can return labels and bounding boxes. Custom shelf-state detection normally uses <strong>Custom Labels</strong>; “Object Detection” is not a separate standard Rekognition feature name.</li>
+  <li>A neural network’s practical purpose is to <strong>learn complex mappings and patterns</strong>. It is loosely brain-inspired, not a literal brain simulation.</li>
+  <li>To reduce generative-output variability, lower <strong>temperature/top-p</strong> or use deterministic controls where supported. Multiple runs measure variability; they do not make one run deterministic.</li>
+  <li>Encryption primarily provides confidentiality. Integrity requires an authenticated-encryption mode, MAC, hash/signature, or another integrity control.</li>
+</ul>
+
 <h2 id="official-references">Official references</h2>
 
 <ul>
+  <li><a href="https://docs.aws.amazon.com/whitepapers/latest/aws-overview/machine-learning.html">AWS machine learning and AI service overview</a></li>
+  <li><a href="https://docs.aws.amazon.com/nova/">Amazon Nova documentation</a></li>
+  <li><a href="https://docs.aws.amazon.com/transform/">AWS Transform documentation</a></li>
+  <li><a href="https://docs.aws.amazon.com/sagemaker/latest/dg/whatis-features.html">Amazon SageMaker AI features</a></li>
+  <li><a href="https://docs.aws.amazon.com/textract/latest/dg/how-it-works-analyzing.html">Amazon Textract document analysis</a></li>
+  <li><a href="https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/built-in-plugin.html">Amazon Q Business built-in plugins</a></li>
   <li><a href="https://docs.aws.amazon.com/bedrock/">Amazon Bedrock documentation</a></li>
   <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html">Amazon Bedrock AgentCore overview</a></li>
   <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html">AgentCore Memory types</a></li>

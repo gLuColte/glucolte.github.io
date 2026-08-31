@@ -194,6 +194,87 @@ Illustrative first assistant-token candidates:
 - Lower temperature concentrates probability on likely tokens; it does not make them factual.
 - Maximum output tokens, stop sequences, or an end-of-sequence token stop generation.
 
+### 6.1 Temperature and top-p work together {#section-6-1-temperature-top-p}
+
+Both controls can apply when selecting **each generated token**:
+
+- **Temperature changes the shape** of the probability distribution.
+- **Top-p uses that changed distribution** to decide which tokens remain eligible.
+
+Follow one complete example. Suppose the model initially assigns:
+
+| Token | Initial probability (`temperature = 1`) |
+|---|---:|
+| `AWS` | 50% |
+| `Azure` | 25% |
+| `Google` | 15% |
+| `Oracle` | 7% |
+| `IBM` | 3% |
+
+**Step 1 — apply `temperature = 0.5`.** The lower temperature sharpens the distribution; it does not remove tokens. The table shows rounded probabilities for readability—in implementation, temperature scales the logits before softmax:
+
+The **Cumulative** column is not another probability assigned to the token. It is the current token's probability **plus every probability above it**. Because the tokens are ordered from most likely to least likely, the running total eventually reaches 100%.
+
+| Token | After temperature | Cumulative (running total) |
+|---|---:|---:|
+| `AWS` | 73.4% | 73.4% |
+| `Azure` | 18.3% | 91.7% |
+| `Google` | 6.6% | 98.3% |
+| `Oracle` | 1.4% | 99.7% |
+| `IBM` | 0.3% | 100.0% |
+
+<div class="image-wrapper">
+  <img src="./assets/temperature_probability_distribution.svg" alt="Grouped bar chart showing that lowering temperature from 1.0 to 0.5 makes the token probability distribution sharper" class="modal-trigger" data-caption="Temperature reshapes the next-token probability distribution">
+  <div class="diagram-caption">📊 Lower temperature concentrates probability on the most likely tokens</div>
+</div>
+
+**Step 2 — apply `top-p = 0.8`.** Starting from the most likely token, keep tokens until their cumulative probability reaches at least 80%:
+
+**Cumulative probability** means a running total after sorting tokens from most likely to least likely:
+
+```text
+AWS                         = 73.4%
+AWS + Azure                 = 73.4% + 18.3% = 91.7%
+AWS + Azure + Google        = 91.7% + 6.6%  = 98.3%
+```
+
+Top-p compares its threshold with this running total. It does **not** require an individual token to have an 80% probability.
+
+```text
+AWS       73.4%  → below 80%, keep going
+Azure    +18.3%  → cumulative 91.7%, keep it and stop
+Google, Oracle, IBM → excluded from this sampling step
+```
+
+<div class="image-wrapper">
+  <img src="./assets/top_p_candidate_filter.svg" alt="Top-p 0.8 keeps AWS and Azure, then crosses out Google, Oracle, and IBM after cumulative probability passes 80 percent" class="modal-trigger" data-caption="Top-p keeps tokens until cumulative probability reaches its threshold">
+  <div class="diagram-caption">✂️ Top-p keeps AWS and Azure; the remaining tokens cannot be sampled</div>
+</div>
+
+**Step 3 — sample.** Only `AWS` and `Azure` are eligible. Their probabilities are normalized within that candidate set—roughly 80% versus 20%—and one is sampled. They are not equally likely.
+
+<div class="image-wrapper">
+  <img src="./assets/top_p_renormalized_sampling.svg" alt="After Top-p filtering, AWS and Azure are renormalized to approximately 80 and 20 percent for sampling" class="modal-trigger" data-caption="The retained Top-p candidates are renormalized before sampling">
+  <div class="diagram-caption">🎲 The retained probabilities are rescaled to 100%, then one token is sampled</div>
+</div>
+
+```text
+next-token logits
+       ↓
+temperature scales the logits
+       ↓
+softmax produces probabilities
+       ↓
+top-p keeps the cumulative candidate set
+       ↓
+sample one token → append it → repeat
+```
+
+- With the original `temperature = 1` distribution, the same `top-p = 0.8` would keep `AWS`, `Azure`, and `Google`. Lowering the temperature caused the 80% threshold to be reached with fewer tokens.
+- **Temperature does not choose the candidate set directly; top-p does. Top-p does not reshape probabilities; temperature does.**
+- Exact controls and processing order can vary by model/API; some providers recommend changing temperature or top-p rather than both.
+- This **generation top-p** is separate from retrieval **top-k**: retrieval chooses documents/chunks before the LLM runs; top-p chooses output-token candidates during decoding.
+
 ## 7. Output generation is autoregressive {#section-7-autoregressive}
 
 The input/output distinction is fundamental:

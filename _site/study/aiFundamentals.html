@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/aiFundamentals" />
-<meta property="og:url" content="https://glucolte.github.io/study/aiFundamentals" />
+<link rel="canonical" href="http://localhost:4000/study/aiFundamentals" />
+<meta property="og:url" content="http://localhost:4000/study/aiFundamentals" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Fundamentals" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Fundamentals","url":"https://glucolte.github.io/study/aiFundamentals"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Fundamentals","url":"http://localhost:4000/study/aiFundamentals"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -320,6 +320,140 @@ contextual representation used for next-token prediction
   </li>
   <li>Lower temperature concentrates probability on likely tokens; it does not make them factual.</li>
   <li>Maximum output tokens, stop sequences, or an end-of-sequence token stop generation.</li>
+</ul>
+
+<h3 id="section-6-1-temperature-top-p">6.1 Temperature and top-p work together</h3>
+
+<p>Both controls can apply when selecting <strong>each generated token</strong>:</p>
+
+<ul>
+  <li><strong>Temperature changes the shape</strong> of the probability distribution.</li>
+  <li><strong>Top-p uses that changed distribution</strong> to decide which tokens remain eligible.</li>
+</ul>
+
+<p>Follow one complete example. Suppose the model initially assigns:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Token</th>
+      <th style="text-align: right">Initial probability (<code class="language-plaintext highlighter-rouge">temperature = 1</code>)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">AWS</code></td>
+      <td style="text-align: right">50%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Azure</code></td>
+      <td style="text-align: right">25%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Google</code></td>
+      <td style="text-align: right">15%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Oracle</code></td>
+      <td style="text-align: right">7%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">IBM</code></td>
+      <td style="text-align: right">3%</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Step 1 — apply <code class="language-plaintext highlighter-rouge">temperature = 0.5</code>.</strong> The lower temperature sharpens the distribution; it does not remove tokens. The table shows rounded probabilities for readability—in implementation, temperature scales the logits before softmax:</p>
+
+<p>The <strong>Cumulative</strong> column is not another probability assigned to the token. It is the current token’s probability <strong>plus every probability above it</strong>. Because the tokens are ordered from most likely to least likely, the running total eventually reaches 100%.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Token</th>
+      <th style="text-align: right">After temperature</th>
+      <th style="text-align: right">Cumulative (running total)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">AWS</code></td>
+      <td style="text-align: right">73.4%</td>
+      <td style="text-align: right">73.4%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Azure</code></td>
+      <td style="text-align: right">18.3%</td>
+      <td style="text-align: right">91.7%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Google</code></td>
+      <td style="text-align: right">6.6%</td>
+      <td style="text-align: right">98.3%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Oracle</code></td>
+      <td style="text-align: right">1.4%</td>
+      <td style="text-align: right">99.7%</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">IBM</code></td>
+      <td style="text-align: right">0.3%</td>
+      <td style="text-align: right">100.0%</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="image-wrapper">
+  <img src="./assets/temperature_probability_distribution.svg" alt="Grouped bar chart showing that lowering temperature from 1.0 to 0.5 makes the token probability distribution sharper" class="modal-trigger" data-caption="Temperature reshapes the next-token probability distribution" />
+  <div class="diagram-caption">📊 Lower temperature concentrates probability on the most likely tokens</div>
+</div>
+
+<p><strong>Step 2 — apply <code class="language-plaintext highlighter-rouge">top-p = 0.8</code>.</strong> Starting from the most likely token, keep tokens until their cumulative probability reaches at least 80%:</p>
+
+<p><strong>Cumulative probability</strong> means a running total after sorting tokens from most likely to least likely:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>AWS                         = 73.4%
+AWS + Azure                 = 73.4% + 18.3% = 91.7%
+AWS + Azure + Google        = 91.7% + 6.6%  = 98.3%
+</code></pre></div></div>
+
+<p>Top-p compares its threshold with this running total. It does <strong>not</strong> require an individual token to have an 80% probability.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>AWS       73.4%  → below 80%, keep going
+Azure    +18.3%  → cumulative 91.7%, keep it and stop
+Google, Oracle, IBM → excluded from this sampling step
+</code></pre></div></div>
+
+<div class="image-wrapper">
+  <img src="./assets/top_p_candidate_filter.svg" alt="Top-p 0.8 keeps AWS and Azure, then crosses out Google, Oracle, and IBM after cumulative probability passes 80 percent" class="modal-trigger" data-caption="Top-p keeps tokens until cumulative probability reaches its threshold" />
+  <div class="diagram-caption">✂️ Top-p keeps AWS and Azure; the remaining tokens cannot be sampled</div>
+</div>
+
+<p><strong>Step 3 — sample.</strong> Only <code class="language-plaintext highlighter-rouge">AWS</code> and <code class="language-plaintext highlighter-rouge">Azure</code> are eligible. Their probabilities are normalized within that candidate set—roughly 80% versus 20%—and one is sampled. They are not equally likely.</p>
+
+<div class="image-wrapper">
+  <img src="./assets/top_p_renormalized_sampling.svg" alt="After Top-p filtering, AWS and Azure are renormalized to approximately 80 and 20 percent for sampling" class="modal-trigger" data-caption="The retained Top-p candidates are renormalized before sampling" />
+  <div class="diagram-caption">🎲 The retained probabilities are rescaled to 100%, then one token is sampled</div>
+</div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>next-token logits
+       ↓
+temperature scales the logits
+       ↓
+softmax produces probabilities
+       ↓
+top-p keeps the cumulative candidate set
+       ↓
+sample one token → append it → repeat
+</code></pre></div></div>
+
+<ul>
+  <li>With the original <code class="language-plaintext highlighter-rouge">temperature = 1</code> distribution, the same <code class="language-plaintext highlighter-rouge">top-p = 0.8</code> would keep <code class="language-plaintext highlighter-rouge">AWS</code>, <code class="language-plaintext highlighter-rouge">Azure</code>, and <code class="language-plaintext highlighter-rouge">Google</code>. Lowering the temperature caused the 80% threshold to be reached with fewer tokens.</li>
+  <li><strong>Temperature does not choose the candidate set directly; top-p does. Top-p does not reshape probabilities; temperature does.</strong></li>
+  <li>Exact controls and processing order can vary by model/API; some providers recommend changing temperature or top-p rather than both.</li>
+  <li>This <strong>generation top-p</strong> is separate from retrieval <strong>top-k</strong>: retrieval chooses documents/chunks before the LLM runs; top-p chooses output-token candidates during decoding.</li>
 </ul>
 
 <h2 id="section-7-autoregressive">7. Output generation is autoregressive</h2>

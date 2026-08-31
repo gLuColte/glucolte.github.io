@@ -583,6 +583,12 @@ Edge --> User: Display result
 - **Amazon CloudWatch**:
   - logs, metrics, alarms, dashboards, and traces for latency, throttling, errors, queues, and application outcomes;
   - redact sensitive prompts/responses and correlate with model/retrieval/tool IDs.
+- **AWS Artifact**: download AWS compliance reports and agreements, such as SOC and PCI documents.
+- **AWS Audit Manager**: continuously collect and organize evidence for audits and compliance assessments.
+- **AWS Config**: record resource configurations and evaluate them against compliance rules.
+- **AWS Security Hub**: aggregate and prioritize security findings for a unified security-posture view.
+- **Amazon Inspector**: scan supported workloads for software vulnerabilities and unintended network exposure.
+- **AWS Trusted Advisor**: recommendations across cost, performance, security, fault tolerance, and service quotas; it does not provide detailed billing reports.
 
 ## 10. Reference AWS decision flow {#section-10-decision-flow}
 
@@ -633,8 +639,81 @@ Need known durable states, compensation, or human approval?
 
 For how retrieval works internally, see [AI knowledge bases](/study/aiKnowledgebases). For vendor-neutral security, reliability, cost, and evaluation, see [AI infrastructure and evaluation](/study/aiInfrastructure).
 
+## 12. AWS service lookup list {#section-12-service-map}
+
+This is a quick map of AWS products whose primary role is AI/ML, plus search and industry services commonly used with them. “Features” means the major capabilities worth distinguishing—not every API operation. Services marked **legacy** may have restricted availability or an announced end of support, so verify them before designing a new workload.
+
+### 12.1 Generative AI and ML platforms {#section-12-1-platforms}
+
+| Service | Major feature → purpose | Service purpose |
+|---|---|---|
+| **Amazon Bedrock** | **Model inference** → invoke managed FMs<br>**Knowledge Bases** → managed RAG<br>**Guardrails** → filter content, topics and sensitive data<br>**Flows** → visual GenAI workflows<br>**Prompt management** → version prompt templates<br>**Evaluation/customization** → compare or adapt supported models | Build managed generative-AI applications. |
+| **Amazon Bedrock AgentCore** | **Runtime/Harness** → run agent loops<br>**Gateway** → expose APIs/Lambda/MCP tools<br>**Identity/Policy** → authorize bounded actions<br>**Memory** → retain scoped context<br>**Browser/Code Interpreter** → isolated tools<br>**Observability/Evaluations** → trace and assess agents | Deploy and operate production agents. |
+| **Amazon Nova** | **Understanding models** → reason over text, images, video and documents<br>**Creative models** → generate images/video<br>**Speech models** → real-time voice interaction<br>**Multimodal embeddings** → similarity search across modalities | Amazon foundation-model family accessed through Bedrock. |
+| **Amazon SageMaker AI** | **Studio** → ML development environment<br>**Canvas/Data Wrangler** → visual or low-code data preparation and ML<br>**Processing** → managed transformation/evaluation jobs<br>**Ground Truth** → label training data<br>**A2I** → human review of predictions<br>**Feature Store** → reusable online/offline features<br>**Clarify** → bias detection and explainability<br>**Autopilot** → AutoML<br>**JumpStart** → pretrained models and solution templates<br>**Experiments/Debugger** → track and diagnose training<br>**Automatic Model Tuning** → optimize hyperparameters<br>**Pipelines** → automate ML workflows<br>**Registry/Model Cards** → version and govern models<br>**Endpoints/Batch Transform** → online or bulk inference | Build, train, tune, deploy, and govern custom ML models. |
+| **Amazon Q Business** | **Connectors** → ingest enterprise sources<br>**RAG/search** → grounded organizational answers<br>**Permission awareness** → respect source access<br>**Guardrails** → control topics and responses<br>**Plugins** → take actions in Jira, Salesforce, and other applications | Build a permissions-aware enterprise assistant. |
+| **Amazon Q Developer** | **Code chat/completion** → assist development<br>**Agentic tasks** → implement, test, review, or transform code<br>**AWS assistance** → explain and operate supported AWS resources | Assist software development and AWS work. |
+| **Kiro** | **Specs** → turn requirements into structured designs/tasks<br>**Agent hooks** → automate development events<br>**Agentic IDE/CLI** → implement and review code | Provide spec-driven, agentic software development. |
+| **AWS Transform** | **Discovery/planning** → assess and sequence migrations<br>**Server/network migration** → move environments to EC2/VPC<br>**Code modernization** → transform supported .NET, Java, mainframe, and other workloads<br>**Containerization** → create and deploy containers with review gates | Use agents to modernize infrastructure, applications, and code. |
+| **PartyRock** | **Playground** → build and share prompt-based GenAI apps without coding | Learn and prototype with Amazon Bedrock. |
+
+### 12.2 Language, speech, and documents {#section-12-2-language}
+
+| Service | Major feature → purpose | Service purpose |
+|---|---|---|
+| **Amazon Comprehend** | **Sentiment** → positive/negative/neutral/mixed tone<br>**Entities/key phrases** → important concepts<br>**Language/syntax** → language and grammar<br>**PII detection** → locate sensitive data<br>**Topics** → themes across documents<br>**Custom classification/entities** → business-specific NLP | Extract insights from unstructured text. |
+| **Amazon Comprehend Medical** | **Medical entities/relationships** → conditions, medications and treatments<br>**PHI detection** → identify protected health information<br>**Ontology linking** → map text to ICD-10-CM, RxNorm or SNOMED CT | Extract structured clinical information from medical text. |
+| **Amazon Lex** | **ASR** → speech to text<br>**Intents/utterances** → understand user goals<br>**Slots** → collect required values<br>**Dialog management** → manage a conversation flow | Build voice and text conversational bots. |
+| **Amazon Polly** | **Standard/neural/generative voices** → synthesize speech<br>**SSML/lexicons** → control pauses, rate, pronunciation and supported voice properties<br>**Speech marks** → synchronize text or animation with audio | Convert text to lifelike speech. |
+| **Amazon Textract** | **DetectDocumentText** → OCR text/handwriting<br>**AnalyzeDocument** → forms, key-value pairs, tables, queries and signatures<br>**AnalyzeExpense** → invoices and receipts<br>**AnalyzeID** → identity documents<br>**AnalyzeLending** → lending-document packets | Extract text and structured data from scanned documents. |
+| **Amazon Transcribe** | **Batch/streaming transcription** → speech to text<br>**Speaker/channel identification** → separate participants<br>**Custom vocabulary/models** → improve domain terms<br>**PII redaction/toxicity detection** → protect or moderate transcripts<br>**Call Analytics** → contact-centre insights<br>**Transcribe Medical** → clinical speech recognition | Convert audio to searchable, structured text. |
+| **Amazon Translate** | **Real-time/batch translation** → translate text<br>**Language detection integration** → handle unknown source language<br>**Custom terminology/parallel data** → preserve preferred domain wording | Translate text between languages. |
+| **AWS HealthScribe** | **Clinical transcription** → capture conversations<br>**Speaker roles/medical terms** → structure dialogue<br>**Clinical-note generation** → create preliminary notes for review | Document patient–clinician conversations. |
+
+### 12.3 Vision, search, recommendations, and industry AI {#section-12-3-purpose-built}
+
+| Service | Major feature → purpose | Service purpose |
+|---|---|---|
+| **Amazon Rekognition** | **Label detection** → objects/scenes and supported bounding boxes<br>**Custom Labels** → domain-specific object/class detection<br>**Face collections/indexing** → face search and comparison<br>**Text detection** → text in images/video<br>**Content moderation** → unsafe visual content<br>**Celebrity/PPE/video analysis** → specialized visual analysis | Analyze images and video. |
+| **Amazon Personalize** | **Datasets/imports** → historical user, item and interaction data<br>**Real-time events** → adapt to recent behaviour<br>**Recommenders/campaigns** → serve recommendations<br>**Personalized ranking** → reorder item lists<br>**Exploration** → surface new or less-seen items<br>**Batch inference/metrics** → bulk output and impact measurement | Create personalized recommendations and rankings. |
+| **Amazon Kendra** | **Connectors/indexing** → ingest enterprise documents<br>**Semantic search/FAQs** → intent-aware answers<br>**User context/ACLs** → permission-aware results<br>**Metadata/relevance tuning** → filter and adjust ranking | Search organizational knowledge. |
+| **Amazon OpenSearch Service** | **BM25/full-text** → lexical search<br>**Vector search** → semantic similarity<br>**Hybrid search/pipelines** → combine and rerank signals<br>**Filters/facets/aggregations** → structured search and analytics | Build controlled search, observability, and RAG retrieval. |
+| **Amazon Forecast** **(legacy)** | **Datasets/predictors** → train from time-series and related data<br>**Forecasts/explainability** → predict values and understand drivers | Produce managed time-series forecasts. |
+| **Amazon Fraud Detector** **(legacy)** | **Events/entities/labels** → define fraud data<br>**Models** → learn from labelled historical events<br>**Rules/outcomes/detectors** → combine scores with business logic | Detect potentially fraudulent online activity. |
+| **Amazon Lookout for Vision** **(discontinued)** | **Custom visual anomaly model** → identify product defects from images | Formerly automated industrial visual inspection. |
+| **Amazon Lookout for Equipment** **(legacy)** | **Sensor-data models** → detect abnormal equipment behaviour and early failure signals | Perform predictive maintenance from industrial telemetry. |
+| **Amazon Lookout for Metrics** **(discontinued)** | **Anomaly detection/root-cause grouping** → find and explain unusual business metrics | Formerly detected anomalies in business and operational data. |
+| **Amazon Monitron** **(legacy)** | **Sensors/gateway/ML/mobile app** → collect vibration/temperature and alert on abnormal machinery | End-to-end predictive-maintenance system for existing customers. |
+| **AWS Panorama** **(discontinued)** | **Edge appliance/SDK** → run computer-vision models against local camera streams | Formerly performed low-latency computer vision at the edge. |
+| **AWS HealthLake** | **FHIR data store** → store health records<br>**Medical NLP/search** → structure and query clinical text | Store, transform, and analyze health data. |
+| **Amazon Connect** | **Contact Lens** → conversation analytics<br>**Amazon Q in Connect** → agent assistance and self-service<br>**Forecasting/scheduling** → workforce optimization | Operate an AI-assisted cloud contact centre. |
+
+### 12.4 AI-assisted operations and learning {#section-12-4-operations-learning}
+
+| Service | Major feature → purpose | Service purpose |
+|---|---|---|
+| **Amazon CodeGuru** | **Reviewer/Security** → find code-quality and security issues<br>**Profiler** → identify expensive or inefficient runtime code | Improve application code and performance with ML-assisted analysis. |
+| **Amazon DevOps Guru** | **Anomaly detection/insights** → correlate operational signals and suggest likely causes or remediation | Detect and diagnose application operational problems. |
+| **AWS DeepRacer** | **Simulator/model training/racing** → learn reinforcement learning through autonomous driving | Hands-on reinforcement-learning education. |
+| **AWS DeepComposer** **(legacy)** | **Generative music models/keyboard experience** → learn generative AI concepts | Hands-on generative-AI education. |
+
+## 13. Practice-exam traps {#section-13-practice-traps}
+
+- **Textract**: Form Analysis returns key-value pairs; invoices and receipts have the specialized `AnalyzeExpense` API. Treating these as competing answers is misleading.
+- **Comprehend Medical** extracts clinical entities and PHI; standard **Comprehend** supplies sentiment and topic analysis.
+- **Rekognition** `DetectLabels` can return labels and bounding boxes. Custom shelf-state detection normally uses **Custom Labels**; “Object Detection” is not a separate standard Rekognition feature name.
+- A neural network's practical purpose is to **learn complex mappings and patterns**. It is loosely brain-inspired, not a literal brain simulation.
+- To reduce generative-output variability, lower **temperature/top-p** or use deterministic controls where supported. Multiple runs measure variability; they do not make one run deterministic.
+- Encryption primarily provides confidentiality. Integrity requires an authenticated-encryption mode, MAC, hash/signature, or another integrity control.
+
 ## Official references {#official-references}
 
+- [AWS machine learning and AI service overview](https://docs.aws.amazon.com/whitepapers/latest/aws-overview/machine-learning.html)
+- [Amazon Nova documentation](https://docs.aws.amazon.com/nova/)
+- [AWS Transform documentation](https://docs.aws.amazon.com/transform/)
+- [Amazon SageMaker AI features](https://docs.aws.amazon.com/sagemaker/latest/dg/whatis-features.html)
+- [Amazon Textract document analysis](https://docs.aws.amazon.com/textract/latest/dg/how-it-works-analyzing.html)
+- [Amazon Q Business built-in plugins](https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/built-in-plugin.html)
 - [Amazon Bedrock documentation](https://docs.aws.amazon.com/bedrock/)
 - [Amazon Bedrock AgentCore overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html)
 - [AgentCore Memory types](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html)
