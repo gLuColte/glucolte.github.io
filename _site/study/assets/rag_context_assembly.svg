@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" role="img" aria-labelledby="title desc">
+  <title id="title">RAG context assembly for the EC2 CPU runbook</title>
+  <desc id="desc">Retrieved chunks include two useful EC2 chunks and one irrelevant RDS chunk. Filtering, reranking and deduplication produce a concise cited context that is sent with system instructions and the user question to the LLM.</desc>
+  <style>.t{font:700 21px system-ui,sans-serif;fill:#0f172a}.h{font:700 15px system-ui,sans-serif;fill:#0f172a}.x{font:13px system-ui,sans-serif;fill:#334155}.s{font:12px system-ui,sans-serif;fill:#475569}.m{font:700 13px system-ui,sans-serif;fill:#0f172a}</style>
+  <rect width="1000" height="620" rx="14" fill="#fff"/><rect x="18" y="18" width="964" height="584" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="42" y="54" class="t">Context assembly: the application chooses what the LLM actually sees</text>
+  <rect x="42" y="84" width="342" height="405" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="62" y="113" class="h">Retrieved chunks</text>
+  <rect x="62" y="134" width="302" height="82" rx="6" fill="#ecfdf5" stroke="#86efac"/><text x="76" y="158" class="m">Chunk A · RUN-EC2-CPU-2026</text><text x="76" y="181" class="s">Inspect CloudWatch metrics and identify the process.</text>
+  <rect x="62" y="232" width="302" height="82" rx="6" fill="#ecfdf5" stroke="#86efac"/><text x="76" y="256" class="m">Chunk B · RUN-EC2-CPU-2026</text><text x="76" y="279" class="s">Do not restart before service-owner approval.</text>
+  <rect x="62" y="330" width="302" height="82" rx="6" fill="#fef2f2" stroke="#fecaca"/><text x="76" y="354" class="m">Chunk C · RDS-CPU-2026</text><text x="76" y="377" class="s">Restarting the database...</text><line x1="67" y1="338" x2="355" y2="404" stroke="#dc2626" stroke-width="2"/>
+  <text x="412" y="270" class="m">filter + rerank</text><text x="507" y="310" class="m">→</text>
+  <rect x="560" y="84" width="398" height="405" rx="9" fill="#eff6ff" stroke="#93c5fd"/><text x="582" y="113" class="h">Context sent to the LLM</text><text x="582" y="145" class="m">SOURCE: RUN-EC2-CPU-2026</text><text x="582" y="168" class="m">SECTION: Production CPU triage</text><text x="582" y="206" class="x">1. If CPU exceeds 90% for 15 minutes,</text><text x="602" y="226" class="x">inspect CloudWatch metrics.</text><text x="582" y="258" class="x">2. Identify the responsible process.</text><text x="582" y="290" class="x">3. Do not restart production before</text><text x="602" y="310" class="x">service-owner approval.</text>
+  <text x="42" y="538" class="x">System instruction + user question + this selected context</text><text x="450" y="538" class="m">→ LLM → grounded answer + citation</text>
+  <text x="42" y="568" class="s">In normal RAG, the surrounding application performs retrieval and context assembly; the LLM receives the prepared evidence.</text>
+</svg>

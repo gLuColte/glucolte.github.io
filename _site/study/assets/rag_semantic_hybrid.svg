@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600" role="img" aria-labelledby="title desc">
+  <title id="title">Semantic, lexical, and hybrid retrieval for an EC2 CPU runbook</title>
+  <desc id="desc">A conceptual vector-space view places the differently worded EC2 query near the EC2 triage document, while identifier lookup needs lexical matching. Three candidate lists compare lexical, semantic, and hybrid retrieval.</desc>
+  <style>.t{font:700 21px system-ui,sans-serif;fill:#0f172a}.h{font:700 15px system-ui,sans-serif;fill:#0f172a}.x{font:13px system-ui,sans-serif;fill:#334155}.s{font:12px system-ui,sans-serif;fill:#475569}.ok{font:700 13px system-ui,sans-serif;fill:#15803d}.bad{font:700 13px system-ui,sans-serif;fill:#b91c1c}</style>
+  <rect width="1000" height="600" rx="14" fill="#fff"/><rect x="18" y="18" width="964" height="564" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="42" y="54" class="t">Different retrieval signals see the same runbook differently</text>
+  <rect x="42" y="80" width="360" height="230" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="62" y="108" class="h">Conceptual vector space</text><text x="62" y="129" class="s">High-dimensional in reality; drawn in 2D only as a mental model.</text>
+  <line x1="82" y1="275" x2="365" y2="275" stroke="#cbd5e1"/><line x1="82" y1="160" x2="82" y2="275" stroke="#cbd5e1"/>
+  <circle cx="168" cy="225" r="8" fill="#2563eb"/><text x="182" y="229" class="x">“live instance is pegged”</text>
+  <circle cx="205" cy="198" r="8" fill="#16a34a"/><text x="219" y="202" class="x">EC2 CPU triage</text>
+  <circle cx="315" cy="162" r="8" fill="#f59e0b"/><text x="230" y="157" class="x">RDS backup</text>
+  <circle cx="332" cy="250" r="8" fill="#94a3b8"/><text x="223" y="258" class="x">IAM key rotation</text>
+  <text x="62" y="298" class="s">Near = embedding similarity, not actual system understanding.</text>
+
+  <rect x="424" y="80" width="534" height="230" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="446" y="108" class="h">Exact identifier needs a lexical signal</text>
+  <text x="446" y="140" class="x">Query: <tspan font-weight="700">RUN-EC2-CPU-2026</tspan></text>
+  <text x="446" y="170" class="s">Semantic search → may not treat this ID as special</text>
+  <text x="446" y="198" class="s">Lexical search → exact identifier match</text>
+  <text x="446" y="238" class="x">Hybrid retrieval keeps both the meaning signal and exact-match signal.</text>
+
+  <text x="42" y="352" class="h">Query: “RUN-EC2-CPU-2026 production CPU threshold”</text>
+  <rect x="42" y="375" width="286" height="170" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="62" y="403" class="h">Lexical / BM25</text><text x="62" y="431" class="x">1. RUN-EC2-CPU-2026</text><text x="292" y="431" class="ok">✓</text><text x="62" y="456" class="x">2. EC2 CPU terminology</text><text x="292" y="456" class="ok">✓</text><text x="62" y="481" class="x">3. RDS CPU threshold</text><text x="292" y="481" class="s">?</text>
+  <rect x="357" y="375" width="286" height="170" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="377" y="403" class="h">Semantic / vector</text><text x="377" y="431" class="x">1. Production EC2 CPU triage</text><text x="607" y="431" class="ok">✓</text><text x="377" y="456" class="x">2. EC2 saturation guide</text><text x="607" y="456" class="ok">✓</text><text x="377" y="481" class="x">3. RDS CPU troubleshooting</text><text x="607" y="481" class="bad">✗</text>
+  <rect x="672" y="375" width="286" height="170" rx="9" fill="#ecfdf5" stroke="#86efac"/><text x="692" y="403" class="h">Hybrid → fusion</text><text x="692" y="431" class="x">BM25 candidates</text><text x="692" y="453" class="x">vector candidates</text><text x="810" y="442" class="x">→ stronger</text><text x="810" y="463" class="x">candidate set</text><text x="692" y="510" class="s">Tune weights by query type; evaluate both.</text>
+</svg>

@@ -5,428 +5,539 @@ permalink: /study/aiKnowledgebases
 
 # AI Knowledge Bases and Retrieval
 
-Use this page to understand retrieval-augmented generation (RAG): how external knowledge is ingested, found, authorized, ranked, supplied to a model, and evaluated.
-
-## 1. Why RAG exists {#section-1-why-rag}
-
-- Model weights are difficult to update, cannot provide reliable source provenance, and should not contain every tenant's private data.
-- RAG keeps changing or private facts in external stores and retrieves evidence at request time.
-- The split is deliberate:
-  - **retrieval** decides which evidence is available;
-  - **generation** uses that evidence to form an answer;
-  - **authorization** decides which evidence the caller may access.
-- RAG improves freshness and traceability, but does not guarantee correctness:
-  - the right evidence may not be retrieved;
-  - unauthorized evidence may be exposed by a broken filter;
-  - the model may ignore or misinterpret correct evidence.
-
-### 1.1 Running example: fictional Apple battery policy {#section-1-1-example}
-
-- Assume the base model does not reliably know Apple's current private support policy.
-- The fictional source document is:
-
-~~~text
-Document: POL-BAT-AU-2026
-Section:  Battery service eligibility
-Text:     An iPhone battery qualifies for service when tested capacity is
-          below 80%, subject to diagnostic and coverage checks.
-Metadata: product=iPhone, region=AU, status=current
-~~~
-
-- The user asks:
-
-~~~text
-"When does an iPhone battery qualify for service
-under today's Australian support policy?"
-~~~
-
-- RAG should retrieve that permitted policy section and supply it to the model; it does not retrain or modify the model's weights.
-- All Apple policy details and identifiers on this page are fictional and exist only to explain retrieval.
-- Keep two lifecycles separate:
-  - **ingestion** runs asynchronously when documents are added or changed;
-  - **query/answering** runs for each user request.
-- A reranker is an optional per-request query step:
-  - first-stage search cheaply retrieves a small candidate set from the index;
-  - the reranker compares the current question with those candidates and reorders them;
-  - it does not normally process the whole corpus or run during ingestion.
+This page follows **one RAG request** from a Markdown file in a repository to a cited on-call answer. Its running question is:
 
 ```text
-INGESTION: documents → parse → chunk → enrich → embed/index → searchable corpus
-QUERY:     question → process → retrieve → authorize → fuse → rerank
-                                                       ↓
-             cited answer ← LLM ← context assembly ← permitted evidence
+What should I do when a production EC2 instance stays above 90% CPU?
+```
+
+Start with the map. The first question has no evidence; after the runbook is ingested, the second question follows every arrow in order. Every stage names its **input**, the component that acts (**who**), its **rule/configuration**, and its **output**.
+
+## 1. Big picture: complete RAG flow {#section-1-rag-flow}
+
+```text
+runbooks/ec2-cpu.md
+        ↓ parse → chunk → embed → index
+vector database: chunks + vectors + source metadata
+
+user question
+        ↓ preserve original → embed → hybrid retrieve
+candidates
+        ↓ metadata filter → authorization → rerank
+permitted, ordered evidence
+        ↓ context builder
+exact LLM context
+        ↓ LLM
+grounded answer + citation
 ```
 
 <div class="image-wrapper">
-  <img src="./assets/rag_architecture.png" alt="Separate asynchronous ingestion and per-user-request RAG phases for a fictional Apple support assistant" class="modal-trigger" data-caption="Offline ingestion versus per-request retrieval, optional reranking, and generation">
-  <div class="diagram-caption" data-snippet-id="rag-architecture-snippet">
-    🍎 Two RAG lifecycles: ingest documents, then answer each client request
+  <img src="./assets/rag_architecture.png" alt="Sequence diagram showing the exact EC2 Markdown runbook ingestion and causal query flow from hybrid retrieval through metadata filtering, authorization, reranking, context assembly, and a cited answer" class="modal-trigger" data-caption="One causal RAG run: every arrow names the component, configuration, and concrete data it passes">
+  <div class="diagram-caption" data-snippet-id="rag-causal-architecture-snippet">
+    🧭 Complete request map — follow this once, then inspect every stage below
   </div>
-  <script type="text/plain" id="rag-architecture-snippet">
+  <script type="text/plain" id="rag-causal-architecture-snippet">
 @startuml
-title Fictional Apple policy RAG: ingestion versus one user request
-actor "Customer / Support User\n(client)" as User
-participant "AI Support Application" as App
-participant "Policy Repository" as Docs
-participant "Ingestion Pipeline" as Ingest
-database "Hybrid Search Index\nBM25 + vectors" as Index
-participant "Reranker\noptional per request" as Reranker
-participant LLM
+title One causal RAG run: Markdown file to cited EC2 answer
+actor "On-call engineer" as User
+participant "Application" as App
+participant "Ingestion service" as Ingest
+participant "ops-embed-demo-v1" as Embed
+database "runbooks-v1\nvector database" as Index
+participant "Authorization layer" as Auth
+participant "ops-reranker-v1" as Reranker
+participant "operations-answer-llm-v1" as LLM
 
-== Phase 1 — asynchronous ingestion when policy changes ==
-Docs -> Ingest: POL-BAT-AU-2026 PDF
-Ingest -> Ingest: Parse → section-aware chunks\nmetadata → embeddings
-Ingest -> Index: Terms + vectors + source ID + ACL metadata
+== Ingest runbooks/ec2-cpu.md ==
+App -> Ingest: Raw Markdown file
+Ingest -> Ingest: markdown-parser-v2\nfrontmatter schema + headings
+Ingest -> Ingest: Structured document\nsections + copied metadata
+Ingest -> Ingest: section-chunker-v1\nmax 60 tokens, overlap 0
+Ingest -> Embed: Three chunk text fields
+Embed --> Ingest: Three six-number vectors
+Ingest -> Index: index-writer-v1\nchunk + vector + metadata
 
-== Phase 2 — query-time work for this user request ==
-User -> App: Ask battery-policy question + login token
-App -> App: Authenticate; derive document entitlements\nbuild standalone search query
-App -> Index: BM25 + vector search\nproduct=iPhone, region=AU, status=current\n+ permitted-document filters
-Index --> App: Top K permitted candidates
-
-opt Reranking enabled
-  App -> Reranker: Current question + Top K candidates
-  Reranker --> App: Candidates reordered for this question
-end
-
-App -> App: Take Top N; build runtime context\nwith evidence + source IDs
-App -> LLM: Instructions + evidence + question
-LLM --> App: Grounded answer draft
-App --> User: "Below 80%, subject to checks" + citation
+== Answer one question ==
+User -> App: "Production EC2 stays above 90% CPU"
+App -> App: query-processor-v1\npreserve original; rewrite=false
+App -> Embed: Retrieval text
+Embed --> App: Query vector
+App -> Index: Hybrid search: BM25 + cosine\nRRF; Top-K = 4
+Index --> App: EC2 when, RDS triage,\nEC2 procedure, EC2 safety
+App -> App: Metadata rule: EC2 + prod +\nap-southeast-2 + current\nRemove RDS (service=RDS)
+App -> Auth: Caller groups + 3 EC2 ACLs
+Auth --> App: Permit all 3: platform-oncall matches
+App -> Reranker: Question + permitted chunks
+Reranker --> App: When → Procedure → Safety
+App -> LLM: 3 cited evidence blocks + question
+LLM --> App: Inspect metrics/process;\nowner approval before restart
+App --> User: Grounded answer + RUN-EC2-CPU-2026
 @enduml
   </script>
 </div>
 
-## 2. Parsing: preserve meaning before retrieval {#section-2-parsing}
+## 2. Before Stage 1 — empty means no evidence {#section-1-why-rag}
 
-- Parsing converts source formats into a canonical document representation.
-- Preserve:
-  - title, headings, paragraphs, lists, and reading order;
-  - page/slide/sheet numbers and source URI;
-  - table rows, columns, headers, units, and footnotes;
-  - image captions and OCR coordinates where useful;
-  - document version, timestamp, language, owner, tenant, and ACL metadata.
-- Format-specific risks:
-  - **PDF**: visual order may differ from extracted order; headers and footers can repeat in every chunk.
-  - **HTML**: navigation, cookie banners, and hidden text can dominate useful content.
-  - **Markdown/code**: heading hierarchy, code fences, symbols, and file paths carry meaning.
-  - **Tables**: flattening cells can detach values from their row and column headers.
-  - **Scans/images**: OCR can corrupt identifiers, decimals, and punctuation.
-- Practical controls:
-  - keep the original document and parser version;
-  - test representative difficult files, not only clean prose;
-  - reject or quarantine low-confidence extraction;
-  - render and compare parsed output during ingestion QA.
-- Apple example: if a PDF table separates **iPhone**, **AU**, **below 80%**, and its effective date into different columns, flattening it incorrectly can detach the threshold from its product, Region, or policy version.
-- Failure principle: embeddings cannot recover structure or text discarded by the parser.
-
-## 3. Chunking: choose the retrieval unit {#section-3-chunking}
-
-- **Fixed-size chunks**:
-  - simple and predictable;
-  - can split headings, procedures, code, and tables.
-- **Overlap**:
-  - preserves concepts crossing a boundary;
-  - increases index size, duplicate retrieval, and prompt cost.
-- **Paragraph/sentence chunks**:
-  - preserve natural prose boundaries;
-  - vary widely in length and can separate a heading from its content.
-- **Section-aware chunks**:
-  - retain heading path and document structure;
-  - depend on reliable parsing and fallback logic.
-- **Semantic chunks**:
-  - detect topic changes dynamically;
-  - add compute and can create unstable boundaries across parser/model changes.
-- **Parent-child retrieval**:
-  - retrieve a small child for precision;
-  - expand to a larger parent for context;
-  - requires stable IDs, deduplication, and careful token budgets.
-- **Hierarchical retrieval**:
-  - first select document/section, then passage;
-  - useful for large corpora but can lose recall at either stage.
-
-Tune together:
-
-- chunk size and overlap;
-- headings and surrounding context included in embeddings;
-- child retrieval `K` and parent expansion;
-- duplicate rate;
-- Recall@K and NDCG;
-- answer quality and prompt tokens.
-
-There is no universal chunk size. A useful size is the smallest unit that is independently retrievable while still containing enough evidence to answer.
-
-Apple example:
+The on-call engineer asks:
 
 ~~~text
-Poor fixed split:
-  chunk A: "An iPhone battery qualifies when tested capacity is below"
-  chunk B: "80%, subject to diagnostic and coverage checks."
-
-Better section-aware chunk:
-  heading: "Battery service eligibility"
-  text:    "An iPhone battery qualifies when tested capacity is below 80%,
-            subject to diagnostic and coverage checks."
+What should I do when a production EC2 instance stays above 90% CPU?
 ~~~
 
-## 4. Embeddings and semantic search {#section-4-embeddings}
-
-- An embedding model maps text into a fixed-length vector where task-related meanings are expected to be near one another.
-- In retrieval:
-  - documents are embedded during ingestion;
-  - the query is embedded at request time;
-  - the vector index finds nearby document vectors.
-- Similarity functions:
-  - **cosine similarity** compares vector direction;
-  - **dot product** compares alignment and magnitude;
-  - **Euclidean distance** measures geometric distance.
-- Use the metric, normalization, dimensions, and query/document prefixes expected by the embedding model.
-- Query and document vectors must be compatible; changing the embedding model normally requires re-embedding and rebuilding the index.
-
-Semantic search is strong when vocabulary differs:
+At this moment, the vector database has no runbook records.
 
 ~~~text
-query:    "When will Apple service a worn-out phone battery?"
-document: "An iPhone battery qualifies when tested capacity is below 80%."
+INPUT:     user question
+WHO:       retrieval engine
+RULE:      search only indexed records
+OUTPUT:    []
+
+INPUT:     []
+WHO:       LLM
+RULE:      answer only from supplied evidence
+OUTPUT:    "Insufficient evidence to give an operational instruction."
 ~~~
 
-Semantic search can fail on:
+Nothing failed: there is simply no evidence to retrieve. The platform team now commits a Markdown runbook.
 
-- exact identifiers: **POL-BAT-AU-2026**;
-- error strings: `InvalidInstanceID.NotFound`;
-- short ambiguous queries;
-- acronyms and uncommon product names;
-- numbers, dates, negation, and small wording differences with large operational meaning;
-- domains not represented by the embedding model;
-- chunks containing several unrelated topics.
+## 3. Stage 1 — ingest one file into index records {#section-2-parsing}
 
-## 5. Lexical and hybrid search {#section-5-hybrid}
+### The actual source file
 
-- Lexical search uses an inverted index from terms to documents.
-- **TF-IDF** mental model: a term matters when it is frequent in one document but rare across the corpus.
-- **BM25** improves this with:
-  - diminishing returns for repeated terms;
-  - document-length normalization;
-  - tunable term-frequency and length effects.
-- Lexical search is strong for identifiers, acronyms, names, quoted phrases, and exact error text.
-- It is weaker when query and document use different vocabulary.
+**Physical input:** the repository contains this exact UTF-8 file at `runbooks/ec2-cpu.md`.
 
-Using the same Apple corpus:
+~~~markdown
+---
+document_id: RUN-EC2-CPU-2026
+service: EC2
+environment: prod
+region: ap-southeast-2
+status: current
+allowed_groups:
+  - platform-oncall
+---
+
+# Production EC2 CPU triage
+
+## When to act
+
+If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
+
+## Procedure
+
+1. Inspect CloudWatch metrics.
+2. Identify the process using the CPU.
+
+## Safety
+
+Do not restart a production instance before service-owner approval.
+~~~
+
+For this walkthrough, all metadata comes from this file's frontmatter. It is not inferred from the prose, and it is not supplied by the user at query time.
+
+<div class="rag-flow" role="img" aria-label="The literal Markdown file is parsed into a structured document, section-aware chunked, embedded, and written as records to the vector database.">
+  <div class="rag-node rag-node--data"><strong>Raw Markdown file</strong><code>runbooks/ec2-cpu.md</code></div>
+  <div class="rag-arrow">↓</div>
+  <div class="rag-node"><strong>Markdown parser</strong>frontmatter schema + heading/list rules</div>
+  <div class="rag-arrow">↓</div>
+  <div class="rag-node"><strong>Structured document</strong>sections + frontmatter metadata</div>
+  <div class="rag-arrow">↓</div>
+  <div class="rag-node"><strong>Section-aware chunker</strong>max 60 tokens; overlap 0</div>
+  <div class="rag-arrow">↓</div>
+  <div class="rag-node"><strong>Embedding model</strong>chunk text → vector</div>
+  <div class="rag-arrow">↓</div>
+  <div class="rag-node rag-node--success"><strong>Index writer</strong>records in the vector database</div>
+</div>
+
+### 3.1 Parse: Markdown bytes → structured document
+
+**INPUT:** the literal `runbooks/ec2-cpu.md` file above.
+
+**WHO:** `markdown-parser-v2` in the ingestion service.
+
+**RULE / CONFIG:**
+
+- read YAML frontmatter only from the opening `---` block;
+- accept the schema fields `document_id`, `service`, `environment`, `region`, `status`, and `allowed_groups`;
+- turn `#` and `##` lines into headings; preserve paragraph and ordered-list order;
+- reject the file if a required field is absent or `allowed_groups` is empty.
+
+**OUTPUT:** one structured document. The `metadata` values below came directly from frontmatter; the `sections` came directly from Markdown headings and their following text.
 
 ~~~text
-semantic: "When will Apple service a worn-out battery?"
-          → finds the eligibility wording despite different vocabulary
-
-lexical:  "POL-BAT-AU-2026"
-          → finds the exact policy identifier
-
-hybrid:   "POL-BAT-AU-2026 iPhone battery threshold"
-          → combines the exact identifier with semantic meaning
+source_path: runbooks/ec2-cpu.md
+metadata:
+  document_id: RUN-EC2-CPU-2026
+  service: EC2
+  environment: prod
+  region: ap-southeast-2
+  status: current
+  allowed_groups: [platform-oncall]
+sections:
+  1. heading_path: Production EC2 CPU triage > When to act
+     text: If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
+  2. heading_path: Production EC2 CPU triage > Procedure
+     text: 1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
+  3. heading_path: Production EC2 CPU triage > Safety
+     text: Do not restart a production instance before service-owner approval.
 ~~~
 
-Hybrid retrieval combines complementary signals:
+The parser did not create “CPU threshold” or “safety rule” labels. It only produced headings, text, and frontmatter fields that physically exist in the source.
 
-```text
-BM25 candidates ──────────┐
-                          ├─ normalize/fuse ranks → candidate set → rerank
-vector/ANN candidates ────┘
-```
+<aside class="technique-callout">
+  <strong>Technique used: Markdown parsing</strong>
+  <span><strong>Why this output looks this way:</strong> the parser follows Markdown syntax and the declared frontmatter schema; it does not guess structure from meaning.</span>
+</aside>
 
-- **Weighted score fusion**:
-  - normalizes lexical and vector scores, then applies weights;
-  - offers direct control but is sensitive to score distributions.
-- **Reciprocal Rank Fusion (RRF)**:
-  - combines result positions instead of raw scores;
-  - is robust when score scales are incompatible;
-  - still needs its constant and candidate depth evaluated.
-- Hybrid search usually helps mixed enterprise corpora, but can hurt if noisy semantic results displace exact matches.
-- Evaluate by query class; identifiers may need a lexical boost while natural-language questions may benefit from vector weight.
+### 3.2 Chunk: structured document → three retrieval units {#section-3-chunking}
 
-## 6. Vector indexes: recall, latency, and memory {#section-6-ann}
+**INPUT:** the three parsed sections above.
 
-- Exact nearest-neighbour search compares the query with every vector and becomes expensive at scale.
-- Approximate nearest-neighbour (ANN) indexes trade some recall for speed.
-- **HNSW**:
-  - builds a navigable multi-layer graph;
-  - higher construction/search effort generally improves recall at memory, ingestion, and latency cost;
-  - filter selectivity and deletions can affect behaviour.
-- **IVF**:
-  - clusters vectors into partitions;
-  - searches selected partitions only;
-  - more probes improve recall while increasing work.
-- **Quantization**:
-  - compresses vectors to reduce memory and improve throughput;
-  - introduces approximation error.
-- Tune:
-  - candidate `K`;
-  - search effort/probes;
-  - index construction parameters;
-  - replicas and memory;
-  - pre-filter versus post-filter behaviour;
-  - refresh, deletion, and compaction.
-- Measure ANN recall against exact search or a high-quality reference set; low latency alone says nothing about relevance.
+**WHO:** `section-chunker-v1` in the ingestion service.
 
-## 7. Query processing {#section-7-query-processing}
+**RULE / CONFIG:** `strategy=section-aware`, `max_tokens=60`, `overlap_tokens=0`. Start a new chunk at each `##` heading. Keep its full heading path. Do not merge sections when each section is under 60 tokens.
 
-- **Conversation rewriting**: converts “what about Australia?” into “What is the current iPhone battery-service threshold in Australia?”
-- **Expansion**: adds useful variants such as **battery service**, **battery replacement**, and **capacity threshold**.
-- **Decomposition**: splits “Am I eligible and what is Repair #123's status?” into a policy retrieval query and a live repair-status API call.
-- **Multi-query retrieval**: searches several reformulations, increasing recall and cost.
-- **HyDE**: generates a hypothetical answer/document and embeds it:
-  - can bridge vocabulary mismatch;
-  - can also anchor retrieval on invented assumptions.
-- **Routing**: sends queries to the correct corpus, index, SQL source, graph, API, or search method.
-- Controls:
-  - preserve the original query for exact matching and audit;
-  - cap expansions and subqueries;
-  - trace every rewritten query;
-  - evaluate rewriting separately from retrieval.
-
-## 8. Metadata filtering and authorization {#section-8-authorization}
-
-- Useful metadata includes:
-  - tenant and organisation;
-  - user/group ACLs;
-  - region and jurisdiction;
-  - document type and owner;
-  - security classification;
-  - effective date, expiry, and version;
-  - language and product.
-- **Relevance filtering** narrows results to improve quality or speed.
-- **Authorization** enforces whether the caller may access a document.
-- They are different concerns even when both use metadata.
-- Apple example:
-  - **product=iPhone**, **region=AU**, and **status=current** improve relevance;
-  - the caller's trusted policy/document entitlement determines authorization;
-  - matching the right Region does not prove that the caller may read the document.
-- Security requirements:
-  - derive identity and entitlements from trusted systems, not prompt text;
-  - enforce access before evidence reaches the model;
-  - fail closed when ACL metadata is absent or stale;
-  - re-evaluate access when documents or group memberships change;
-  - test tenant leakage and ACL revocation explicitly;
-  - authorize source-document and tool access, not only the final answer.
-
-## 9. Reranking and context assembly {#section-9-reranking}
-
-```text
-query → retrieve 100 cheaply → rerank permitted candidates → take 5–10
-      → deduplicate/assemble context → LLM → cited answer
-```
-
-- **Bi-encoder retrieval**:
-  - encodes query and documents separately;
-  - supports fast broad retrieval;
-  - loses fine-grained query/document interaction.
-- **Cross-encoder reranking**:
-  - reads the query and each candidate together;
-  - often improves top-result precision;
-  - adds latency proportional to candidate count.
-- **LLM reranking**:
-  - supports complex relevance rubrics;
-  - costs more and may be less stable;
-  - should return traceable scores/reasons, not rewrite evidence.
-- Reranking cannot recover a document absent from first-stage retrieval.
-- Apple example:
+**OUTPUT:** exactly three chunks:
 
 ~~~text
-Before reranking:
-1. Mac battery calibration guide
-2. Expired iPhone battery policy for another Region
-3. Current AU iPhone battery eligibility policy
+chunk_id: RUN-EC2-CPU-2026#when-to-act
+heading_path: Production EC2 CPU triage > When to act
+text: If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
+metadata copied from frontmatter: service=EC2, environment=prod,
+  region=ap-southeast-2, status=current, allowed_groups=[platform-oncall]
 
-After reranking for the complete question:
-1. Current AU iPhone battery eligibility policy
+chunk_id: RUN-EC2-CPU-2026#procedure
+heading_path: Production EC2 CPU triage > Procedure
+text: 1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
+metadata copied from frontmatter: service=EC2, environment=prod,
+  region=ap-southeast-2, status=current, allowed_groups=[platform-oncall]
+
+chunk_id: RUN-EC2-CPU-2026#safety
+heading_path: Production EC2 CPU triage > Safety
+text: Do not restart a production instance before service-owner approval.
+metadata copied from frontmatter: service=EC2, environment=prod,
+  region=ap-southeast-2, status=current, allowed_groups=[platform-oncall]
 ~~~
 
-- Context assembly should:
-  - remove duplicate/overlapping chunks;
-  - retain source boundaries, version, and citation IDs;
-  - group child chunks with needed parent context;
-  - order evidence deliberately;
-  - resolve or expose conflicting sources;
-  - cap tokens and prefer high-value evidence;
-  - instruct the model to report insufficient evidence.
+Each boundary exists because the next `##` heading begins a new section—not because the chunker discovered a topic change. `overlap_tokens=0` means no sentence is copied into a neighbouring chunk. The copied metadata is how every chunk later carries the document's region, status, and ACL.
 
-## 10. Diagnose retrieval and generation separately {#section-10-diagnosis}
+<aside class="technique-callout">
+  <strong>Technique used: Section-aware chunking</strong>
+  <span><strong>Why this output looks this way:</strong> every source section is shorter than 60 tokens, so the configured chunker emits one chunk per <code>##</code> section.</span>
+</aside>
 
-- **Retrieval failure**:
-  - relevant content was parsed incorrectly;
-  - wrong chunks were indexed;
-  - query rewrite lost meaning;
-  - filters removed the correct document;
-  - ANN or fusion ranked it below `K`;
-  - reranking promoted the wrong candidate.
-- **Generation failure**:
-  - correct evidence was in context;
-  - the model ignored, contradicted, overgeneralized, or mis-cited it.
-- Apple diagnosis:
-  - retrieving a Mac policy or an expired non-AU policy is a **retrieval failure**;
-  - supplying the correct fictional **below 80%** evidence but answering **below 70%** is a **generation failure**.
-- Debug order:
-  - inspect parsed source and chunk;
-  - inspect original and rewritten queries;
-  - inspect candidates, scores, filters, and authorization decisions;
-  - inspect reranked context sent to the model;
-  - only then change the prompt or generation model.
+The diagram makes the configured boundary decision visible. The green row is the default used in this walkthrough; the blue row is an alternative, not another hidden pipeline step.
 
-## 11. Retrieval evaluation {#section-11-evaluation}
+<div class="image-wrapper">
+  <img src="./assets/rag_chunk_boundaries.svg" alt="Diagram showing that the configured section-aware chunker creates chunks at the three literal Markdown headings, while a fixed-size alternative splits the Procedure text at a length boundary" class="modal-trigger" data-caption="Chunk boundaries come from the configured rule: headings in the default, token length in the fixed-size alternative">
+  <div class="diagram-caption">✂️ Same source file, different chunking rule, different boundaries</div>
+</div>
 
-- Build a golden set with:
-  - realistic query;
-  - caller/tenant identity;
-  - relevant and permitted documents;
-  - graded relevance labels;
-  - expected citations;
-  - exact-match, stale, ambiguous, and no-answer cases.
-- Apple golden example:
-  - query: the Australian iPhone battery-eligibility question;
-  - expected source: **POL-BAT-AU-2026**, eligibility section;
-  - expected retrieval: current AU policy ranked in the first K;
-  - expected answer evidence: **below 80%**, including its conditions and citation.
-- Metrics:
-  - **Recall@K**: fraction of relevant items found in the first `K` results;
-  - **Precision@K**: fraction of first `K` results that are relevant;
-  - **MRR**: reciprocal rank of the first relevant result, averaged across queries;
-  - **NDCG**: ranking quality when relevance has grades and order matters.
+### 3.3 Embed: chunk text → vectors {#section-4-embeddings}
 
-```text
-Question
-   ↓
-Retriever → retrieved chunks
-             ├─ Precision@K: are returned chunks relevant?
-             ├─ Recall@K: did we find the relevant chunks?
-             ├─ MRR: did the first relevant chunk appear early?
-             └─ NDCG: are the best chunks ranked highest?
-   ↓
-LLM → answer
-       ├─ Groundedness / faithfulness: supported by retrieved evidence?
-       ├─ Relevance: answers the question?
-       └─ Correctness: factually and operationally right?
-```
+**INPUT:** each chunk's `text` field. The headings and metadata remain stored alongside it; this configuration embeds only the text field.
 
-### Read Precision@K and Recall@K with one small example
+**WHO:** configured embedding model `ops-embed-demo-v1`.
 
-Assume the corpus contains **four** relevant policy chunks for a question. At `K = 5`, the retriever returns five chunks; three are relevant.
+**RULE / CONFIG:** use the same model for documents and future queries. This fictional teaching model emits a six-number vector and uses cosine similarity. Real embedding vectors are usually much longer.
 
-```text
-Precision@5 = relevant returned / all returned = 3 / 5 = 60%
-Recall@5    = relevant returned / all relevant = 3 / 4 = 75%
-```
+**OUTPUT:** the model returns one vector per input text:
 
-- Low **precision**: too much noise reaches the LLM. Improve query understanding, metadata filters, hybrid search, or reranking.
-- Low **recall**: important evidence exists but is absent from the candidate set. Check parsing/chunking, embedding fit, query rewriting, filters, candidate depth, and ANN settings.
-- Low **MRR**: a relevant result exists but appears too late. Improve ranking/reranking.
-- Low **NDCG**: relevance is graded and the most useful evidence is not consistently near the top.
+~~~text
+RUN-EC2-CPU-2026#when-to-act
+text:   If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
+vector: [0.82, 0.11, -0.06, 0.41, 0.27, 0.09]
 
-Retrieval evaluation asks whether the right evidence was available. Generation evaluation asks whether the model used that available evidence correctly. Do not use a fluent final answer to hide weak retrieval.
-- Also measure:
-  - authorization leakage and revocation;
-  - freshness and indexing delay;
-  - duplicate context rate;
-  - no-result correctness;
-  - p50/p95 latency;
-  - cost per successful answer.
-- Evaluate by query class and corpus segment; one average can hide poor exact-ID or tenant-specific performance.
+RUN-EC2-CPU-2026#procedure
+text:   1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
+vector: [0.63, 0.38, 0.04, 0.55, 0.14, 0.22]
+
+RUN-EC2-CPU-2026#safety
+text:   Do not restart a production instance before service-owner approval.
+vector: [0.34, 0.05, -0.31, 0.20, 0.76, 0.48]
+~~~
+
+The numbers are the model's output, not labels extracted from the runbook. They look unrelated to the prose because vector dimensions are learned numeric features, not human-readable fields.
+
+### 3.4 Index: chunk + vector + metadata → database record
+
+**INPUT:** each chunk, its vector, and the metadata copied by the chunker.
+
+**WHO:** `index-writer-v1`.
+
+**RULE / CONFIG:** write one record per `chunk_id` into collection `runbooks-v1`; use `vector` for nearest-neighbour search; retain `text`, `heading_path`, `source_path`, and metadata for filtering, authorization, and citations.
+
+**OUTPUT:** the vector database now contains these three EC2 records. One record looks like this:
+
+~~~text
+collection: runbooks-v1
+id: RUN-EC2-CPU-2026#procedure
+vector: [0.63, 0.38, 0.04, 0.55, 0.14, 0.22]
+text: 1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
+heading_path: Production EC2 CPU triage > Procedure
+source_path: runbooks/ec2-cpu.md
+metadata: service=EC2, environment=prod, region=ap-southeast-2,
+  status=current, allowed_groups=[platform-oncall]
+~~~
+
+The knowledge base can now retrieve evidence. Ingestion is complete; no LLM was used to write or authorize this record.
+
+For one later filtering decision, this reduced teaching database also already contains one unrelated record from an earlier ingestion. It did **not** come from `runbooks/ec2-cpu.md`:
+
+~~~text
+id: RUN-RDS-CPU-2026#triage
+source_path: runbooks/rds-cpu.md
+text: If production RDS CPU is high, inspect database load and active sessions.
+metadata: service=RDS, environment=prod, region=ap-southeast-2,
+  status=current, allowed_groups=[platform-oncall]
+~~~
+
+This is the complete corpus for the query below: the three EC2 records created above plus this one RDS record.
+
+## 4. Stage 2 — use those records to answer the question {#section-7-query-processing}
+
+The same engineer asks again:
+
+~~~text
+What should I do when a production EC2 instance stays above 90% CPU?
+~~~
+
+### 4.1 Process the question: user text → retrieval query
+
+**INPUT:** the exact user question above.
+
+**WHO:** `query-processor-v1`.
+
+**RULE / CONFIG:** `preserve_original=true`, `rewrite=false` for this walkthrough. The question is already specific; the processor must not silently replace a safety-critical request.
+
+**OUTPUT:** a retrieval request containing the unchanged text:
+
+~~~text
+original_question: What should I do when a production EC2 instance stays above 90% CPU?
+retrieval_text:    What should I do when a production EC2 instance stays above 90% CPU?
+~~~
+
+No rewrite appears because the configured rule disabled it. A rewrite is an optional alternative introduced after the default flow.
+
+### 4.2 Embed the retrieval query: text → query vector
+
+**INPUT:** `retrieval_text` from the query processor.
+
+**WHO:** the same `ops-embed-demo-v1` embedding model used during ingestion.
+
+**RULE / CONFIG:** six dimensions; cosine similarity; use the document/query-compatible model version `ops-embed-demo-v1`.
+
+**OUTPUT:**
+
+~~~text
+query_vector: [0.79, 0.17, -0.02, 0.47, 0.22, 0.13]
+~~~
+
+Using the same model is what makes this vector comparable with the three stored chunk vectors.
+
+### 4.3 Retrieve: query → initial candidate list {#section-5-hybrid}
+
+**INPUT:** the original query text, its query vector, and indexed records.
+
+**WHO:** `retrieval-engine-v1`.
+
+**RULE / CONFIG:** `hybrid`; BM25 searches `text`, vector search uses cosine similarity over `vector`, reciprocal-rank fusion (`rrf_k=60`) combines their ranks, then `top_k=4` is returned.
+
+**OUTPUT:** four candidates. The RDS record is the explicit pre-existing record shown at the end of ingestion; it is included because `CPU` and `production` match the query, not because it came from the EC2 Markdown file.
+
+~~~text
+1. RUN-EC2-CPU-2026#when-to-act   source: runbooks/ec2-cpu.md
+   fused_rank: 1  reason: BM25 and vector search both match EC2 + CPU + 90%
+
+2. RUN-RDS-CPU-2026#triage        source: runbooks/rds-cpu.md
+   fused_rank: 2  reason: CPU and production match, but metadata service=RDS
+
+3. RUN-EC2-CPU-2026#procedure     source: runbooks/ec2-cpu.md
+   fused_rank: 3  reason: vector search matches the requested response actions
+
+4. RUN-EC2-CPU-2026#safety        source: runbooks/ec2-cpu.md
+   fused_rank: 4  reason: lexical and vector search match production + restart
+~~~
+
+These are retrieval candidates, not yet approved evidence. The RDS item is not derived from the EC2 source file; its displayed `source` and `service=RDS` explain where it came from and why it is still present at this stage.
+
+<aside class="technique-callout">
+  <strong>Technique used: Hybrid retrieval, Top-K = 4</strong>
+  <span><strong>Why this output looks this way:</strong> BM25 contributes exact terms; vector search contributes similar meaning; rank fusion selects four possible records before later policy checks.</span>
+</aside>
+
+### 4.4 Filter by metadata: candidates → relevant candidates {#section-8-authorization}
+
+**INPUT:** the four candidates above, including their stored metadata.
+
+**WHO:** `metadata-filter-v1`.
+
+**RULE / CONFIG:** retain only `service=EC2 AND environment=prod AND region=ap-southeast-2 AND status=current`.
+
+**OUTPUT:** three candidates. The filter removes exactly one record:
+
+~~~text
+REMOVE  RUN-RDS-CPU-2026#triage
+RULE    service=RDS does not equal required service=EC2
+
+KEEP    RUN-EC2-CPU-2026#when-to-act
+KEEP    RUN-EC2-CPU-2026#procedure
+KEEP    RUN-EC2-CPU-2026#safety
+~~~
+
+`service`, `environment`, `region`, and `status` exist because the Markdown frontmatter supplied them and the chunker copied them to every index record. They were not inferred from the question.
+
+### 4.5 Authorize: relevant candidates → permitted candidates
+
+**INPUT:** the three filtered EC2 candidates and the caller identity from the trusted identity service:
+
+~~~text
+caller_id: alex@example.internal
+groups: [platform-oncall]
+~~~
+
+**WHO:** `authorization-layer-v1`.
+
+**RULE / CONFIG:** keep a candidate only when the caller has at least one group in the candidate's stored `allowed_groups`. Missing ACL metadata means deny.
+
+**OUTPUT:** all three candidates are permitted:
+
+~~~text
+PERMIT  RUN-EC2-CPU-2026#when-to-act   [platform-oncall] ∩ [platform-oncall] ≠ ∅
+PERMIT  RUN-EC2-CPU-2026#procedure     [platform-oncall] ∩ [platform-oncall] ≠ ∅
+PERMIT  RUN-EC2-CPU-2026#safety        [platform-oncall] ∩ [platform-oncall] ≠ ∅
+~~~
+
+No candidate disappears at this step in this run. That is visible in the output: all three have the ACL value copied from source frontmatter, and the caller has the matching trusted group. Authorization happens before the LLM sees the text.
+
+### 4.6 Rerank: permitted candidates → answer order {#section-9-reranking}
+
+**INPUT:** the question plus the three permitted candidate texts.
+
+**WHO:** `ops-reranker-v1`, a cross-encoder reranker.
+
+**RULE / CONFIG:** score each question-and-chunk pair for direct usefulness in answering the question; sort descending; do not add new candidates.
+
+**OUTPUT:**
+
+~~~text
+1. RUN-EC2-CPU-2026#when-to-act  score=0.97  threshold and duration answer “when”
+2. RUN-EC2-CPU-2026#procedure    score=0.94  inspection actions answer “what to do”
+3. RUN-EC2-CPU-2026#safety       score=0.91  restart restriction is required safety context
+~~~
+
+The reranker changes only the order. It cannot recover the RDS item after filtering or any chunk that was missed before `top_k=4`.
+
+<div class="image-wrapper">
+  <img src="./assets/rag_causal_candidates.svg" alt="Candidate flow for the EC2 CPU question: hybrid retrieval returns four candidates, the metadata filter removes the RDS candidate, authorization permits the three EC2 chunks, and reranking orders the exact context inputs" class="modal-trigger" data-caption="The RDS candidate is removed by its stored service metadata; the three EC2 chunks pass because platform-oncall matches their copied ACL">
+  <div class="diagram-caption">📊 Candidate flow — see exactly why one record is removed and three reach context</div>
+</div>
+
+### 4.7 Build context: ordered candidates → exact LLM input
+
+**INPUT:** the three ordered, permitted candidates, their source paths, and the original question.
+
+**WHO:** `context-builder-v1`.
+
+**RULE / CONFIG:** deduplicate by `document_id + chunk_id`; maximum evidence budget `180` tokens; preserve the reranker order; attach each chunk's `source_path`, `heading_path`, and `document_id` as its citation. All three chunks fit, so none is dropped.
+
+**OUTPUT:** exactly this LLM context:
+
+~~~text
+SYSTEM
+Answer only from EVIDENCE. If EVIDENCE is insufficient, say so.
+Cite the document ID that supports each instruction.
+
+EVIDENCE 1
+document_id: RUN-EC2-CPU-2026
+source: runbooks/ec2-cpu.md
+section: Production EC2 CPU triage > When to act
+If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
+
+EVIDENCE 2
+document_id: RUN-EC2-CPU-2026
+source: runbooks/ec2-cpu.md
+section: Production EC2 CPU triage > Procedure
+1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
+
+EVIDENCE 3
+document_id: RUN-EC2-CPU-2026
+source: runbooks/ec2-cpu.md
+section: Production EC2 CPU triage > Safety
+Do not restart a production instance before service-owner approval.
+
+QUESTION
+What should I do when a production EC2 instance stays above 90% CPU?
+~~~
+
+The RDS record does not appear because the metadata filter removed it. Nothing was removed for authorization, deduplication, or the token budget in this run; their rules are stated so that result is explainable.
+
+### 4.8 Generate: LLM context → grounded answer
+
+**INPUT:** the exact context above.
+
+**WHO:** `operations-answer-llm-v1`.
+
+**RULE / CONFIG:** follow the system instruction; make no operational claim that is absent from `EVIDENCE`; include the supporting document ID.
+
+**OUTPUT:**
+
+~~~text
+If production EC2 CPU exceeds 90% for 15 minutes, inspect CloudWatch metrics
+and identify the process using the CPU. Do not restart the production instance
+before service-owner approval. [RUN-EC2-CPU-2026]
+~~~
+
+The answer has its threshold, actions, restriction, and citation because each was present in the context builder's output—not because the model knew an unstated runbook.
+
+## 5. Only now: change one component at a time {#section-11-evaluation}
+
+The default flow above used section-aware chunks, hybrid retrieval, `Top-K = 4`, and one ANN-capable vector search. Alternatives change a named component and therefore a specific output.
+
+| Change | Component and new rule | What changes in this story | Trade-off to evaluate |
+|---|---|---|---|
+| Fixed-size instead of section-aware chunking | Chunker: split every 40 tokens | A boundary can land inside the Procedure or between Procedure and Safety, because length—not headings—decides it. | More uniform size; related instructions can separate. |
+| Semantic chunking instead of section-aware | Chunker: split at detected topic changes | Boundaries come from a model's topic decision instead of the literal `##` headings. | May improve topical focus; boundaries can change when the model/configuration changes. |
+| Lexical-only instead of hybrid | Retrieval engine: BM25 only | Exact words such as `EC2`, `CPU`, and `90%` dominate; differently worded queries may lose EC2 candidates. | Strong exact match; weaker vocabulary mismatch. |
+| Semantic-only instead of hybrid | Retrieval engine: vector similarity only | Similar meaning dominates; exact identifiers such as `RUN-EC2-CPU-2026` get less special treatment. | Handles paraphrase; can weaken exact-ID retrieval. |
+| `Top-K: 4 → 10` | Retrieval engine: return ten fused candidates | More records enter metadata filtering and reranking. | Recall may improve; noise, reranking latency, and context pressure increase. |
+| More ANN search effort | Vector search: explore more HNSW neighbours or IVF partitions | The vector half of hybrid search considers more approximate neighbours before fusion. | Recall may improve; latency increases. |
+| Enable query rewrite | Query processor: preserve original and generate a second retrieval text | The engine may also search “EC2 high-CPU triage procedure.” | Can bridge vocabulary; a bad rewrite can change intent, so trace both texts. |
+
+**HNSW vs IVF:** both are ANN index choices inside the retrieval engine. HNSW follows a graph of vector neighbours; IVF searches selected vector clusters. Neither changes the original Markdown, parsed document, metadata, ACL, or LLM rules—only which vector candidates are likely to reach rank fusion.
+
+Evaluate changes against traces like this one. `Recall@K` asks whether required permitted chunks appeared in the candidate list; `Precision@K` asks how much of that list was useful; latency and authorization leakage check the cost and safety of the same request. A fluent final answer cannot compensate for missing or forbidden evidence.
+
+## 6. The causal chain
+
+~~~text
+runbooks/ec2-cpu.md
+  → Markdown parser / frontmatter + heading rules
+  → structured sections + metadata from frontmatter
+  → section chunker / max 60, overlap 0
+  → three named chunks + copied metadata
+  → embedding model / ops-embed-demo-v1
+  → vectors
+  → index writer / one record per chunk
+  → vector database
+
+user question
+  → query processor / preserve original, no rewrite
+  → retrieval text
+  → embedding model / same model
+  → query vector
+  → retrieval engine / hybrid, RRF, Top-K 4
+  → four candidates
+  → metadata filter / EC2 + prod + ap-southeast-2 + current
+  → three EC2 candidates
+  → authorization / platform-oncall versus allowed_groups
+  → three permitted candidates
+  → reranker / question relevance
+  → ordered candidates
+  → context builder / dedupe, 180 tokens, citations
+  → exact LLM context
+  → LLM / evidence-only answer rule
+  → grounded answer + RUN-EC2-CPU-2026 citation
+~~~
 
 For production controls see [AI infrastructure and evaluation](/study/aiInfrastructure). For AWS implementations see [AWS AI services](/study/infrastructureAWSAiServices).

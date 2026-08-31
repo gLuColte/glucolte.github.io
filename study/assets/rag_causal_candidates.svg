@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="650" viewBox="0 0 1080 650" role="img" aria-labelledby="title desc">
+  <title id="title">One EC2 question: retrieval candidates become cited evidence</title>
+  <desc id="desc">The retrieval engine returns four candidates. A metadata rule removes the RDS candidate because its service is RDS, authorization permits the three EC2 candidates because the caller is platform-oncall, and a reranker orders them before context assembly.</desc>
+  <style>
+    .title{font:700 23px system-ui,sans-serif;fill:#0f172a}.sub{font:14px system-ui,sans-serif;fill:#475569}.head{font:700 15px system-ui,sans-serif;fill:#0f172a}.txt{font:13px system-ui,sans-serif;fill:#334155}.small{font:12px system-ui,sans-serif;fill:#475569}.good{font:700 12px system-ui,sans-serif;fill:#166534}.bad{font:700 12px system-ui,sans-serif;fill:#b91c1c}
+  </style>
+  <rect width="1080" height="650" rx="14" fill="#fff"/>
+  <rect x="18" y="18" width="1044" height="614" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="44" y="54" class="title">One question: candidate list → permitted evidence → LLM order</text>
+  <text x="44" y="79" class="sub">“What should I do when a production EC2 instance stays above 90% CPU?”</text>
+
+  <rect x="42" y="108" width="280" height="424" rx="10" fill="#fff" stroke="#cbd5e1"/>
+  <text x="62" y="139" class="head">1. Retrieval engine</text>
+  <text x="62" y="160" class="small">hybrid: BM25 + cosine → RRF</text>
+  <text x="62" y="179" class="small">Top-K = 4</text>
+  <rect x="62" y="202" width="240" height="60" rx="7" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="75" y="227" class="txt">1  EC2 / When to act</text><text x="75" y="248" class="good">both signals match</text>
+  <rect x="62" y="274" width="240" height="60" rx="7" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="75" y="299" class="txt">2  RDS / Triage</text><text x="75" y="320" class="bad">CPU + production match</text>
+  <rect x="62" y="346" width="240" height="60" rx="7" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="75" y="371" class="txt">3  EC2 / Procedure</text><text x="75" y="392" class="good">response actions match</text>
+  <rect x="62" y="418" width="240" height="60" rx="7" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="75" y="443" class="txt">4  EC2 / Safety</text><text x="75" y="464" class="good">restart restriction matches</text>
+
+  <path d="M340 317 L386 317" stroke="#64748b" stroke-width="2"/><path d="M377 310 L390 317 L377 324" fill="none" stroke="#64748b" stroke-width="2"/>
+  <text x="338" y="289" class="head">metadata filter</text><text x="338" y="308" class="small">service=EC2, prod, region, current</text>
+
+  <rect x="404" y="108" width="280" height="424" rx="10" fill="#fff" stroke="#cbd5e1"/>
+  <text x="424" y="139" class="head">2. Relevant + permitted</text>
+  <text x="424" y="160" class="small">authorization: caller group ∩ ACL</text>
+  <rect x="424" y="202" width="240" height="60" rx="7" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="437" y="227" class="txt">KEEP  EC2 / When to act</text><text x="437" y="248" class="good">platform-oncall allowed</text>
+  <rect x="424" y="274" width="240" height="60" rx="7" fill="#fef2f2" stroke="#fecaca"/>
+  <text x="437" y="299" class="txt">REMOVE  RDS / Triage</text><text x="437" y="320" class="bad">service=RDS ≠ EC2</text>
+  <rect x="424" y="346" width="240" height="60" rx="7" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="437" y="371" class="txt">KEEP  EC2 / Procedure</text><text x="437" y="392" class="good">platform-oncall allowed</text>
+  <rect x="424" y="418" width="240" height="60" rx="7" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="437" y="443" class="txt">KEEP  EC2 / Safety</text><text x="437" y="464" class="good">platform-oncall allowed</text>
+
+  <path d="M702 317 L748 317" stroke="#64748b" stroke-width="2"/><path d="M739 310 L752 317 L739 324" fill="none" stroke="#64748b" stroke-width="2"/>
+  <text x="692" y="289" class="head">reranker</text><text x="692" y="308" class="small">question + each permitted chunk</text>
+
+  <rect x="766" y="108" width="272" height="424" rx="10" fill="#fff" stroke="#cbd5e1"/>
+  <text x="786" y="139" class="head">3. Context builder input</text>
+  <text x="786" y="160" class="small">relevance order; 180-token budget</text>
+  <rect x="786" y="202" width="232" height="72" rx="7" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="799" y="227" class="txt">1  When to act</text><text x="799" y="248" class="small">score 0.97 · threshold + duration</text>
+  <rect x="786" y="287" width="232" height="72" rx="7" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="799" y="312" class="txt">2  Procedure</text><text x="799" y="333" class="small">score 0.94 · inspect + identify</text>
+  <rect x="786" y="372" width="232" height="72" rx="7" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="799" y="397" class="txt">3  Safety</text><text x="799" y="418" class="small">score 0.91 · approval restriction</text>
+  <text x="786" y="485" class="good">All three fit and get citations.</text>
+
+  <rect x="42" y="560" width="996" height="48" rx="8" fill="#eef2ff" stroke="#c7d2fe"/>
+  <text x="64" y="590" class="txt">The LLM receives only the three green EC2 records, with their source path, heading path, document ID, and original text.</text>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="570" viewBox="0 0 1000 570" role="img" aria-labelledby="title desc">
+  <title id="title">Metadata relevance filtering and authorization are separate checks</title>
+  <desc id="desc">Four candidate runbook chunks undergo relevance filtering for EC2 production Australia and then authorization for the platform-oncall group. Candidate one remains; candidate four is useful but unauthorized.</desc>
+  <style>.t{font:700 21px system-ui,sans-serif;fill:#0f172a}.h{font:700 15px system-ui,sans-serif;fill:#0f172a}.x{font:13px system-ui,sans-serif;fill:#334155}.s{font:12px system-ui,sans-serif;fill:#475569}.m{font:700 13px system-ui,sans-serif;fill:#0f172a}</style>
+  <rect width="1000" height="570" rx="14" fill="#fff"/><rect x="18" y="18" width="964" height="534" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="42" y="54" class="t">Metadata filtering narrows relevance; authorization protects access</text>
+  <text x="42" y="79" class="s">Question scope: EC2 · prod · ap-southeast-2 · caller: platform-oncall</text>
+  <rect x="42" y="106" width="282" height="365" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="62" y="135" class="h">Initial candidates</text>
+  <text x="62" y="171" class="m">1. EC2 / prod / ap-southeast-2</text><text x="62" y="191" class="s">group=platform-oncall</text>
+  <text x="62" y="237" class="m">2. EC2 / dev / ap-southeast-2</text><text x="62" y="257" class="s">group=all-engineers</text>
+  <text x="62" y="303" class="m">3. EC2 / prod / us-east-1</text><text x="62" y="323" class="s">group=platform-oncall</text>
+  <text x="62" y="369" class="m">4. EC2 / prod / ap-southeast-2</text><text x="62" y="389" class="s">group=database-admin</text>
+  <text x="62" y="438" class="s">Missing ACL metadata → fail closed</text>
+  <text x="344" y="260" class="m">relevance filter</text><text x="344" y="281" class="s">EC2 · prod · apse2</text><text x="416" y="321" class="m">→</text>
+  <rect x="504" y="164" width="186" height="170" rx="9" fill="#fffbeb" stroke="#fde68a"/><text x="524" y="194" class="h">Useful candidates</text><text x="524" y="235" class="x">1. platform-oncall</text><text x="524" y="280" class="x">4. database-admin</text>
+  <text x="710" y="241" class="m">authorization</text><text x="710" y="262" class="s">platform-oncall</text><text x="776" y="302" class="m">→</text>
+  <rect x="850" y="194" width="108" height="102" rx="9" fill="#ecfdf5" stroke="#86efac"/><text x="870" y="224" class="h">Context</text><text x="870" y="258" class="x">1 only</text>
+  <text x="504" y="390" class="m">Relevance:</text><text x="590" y="390" class="x">“Is this useful for the question?”</text><text x="504" y="424" class="m">Authorization:</text><text x="617" y="424" class="x">“May this caller see it?”</text>
+</svg>

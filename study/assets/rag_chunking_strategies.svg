@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650" role="img" aria-labelledby="title desc">
+  <title id="title">Chunking strategies for the EC2 production CPU triage procedure</title>
+  <desc id="desc">The same runbook procedure is divided through fixed size chunks, overlapping chunks, one section-aware chunk, and parent child chunks. Each diagram shows a different retrieval unit and its consequence.</desc>
+  <style>.t{font:700 21px system-ui,sans-serif;fill:#0f172a}.h{font:700 15px system-ui,sans-serif;fill:#0f172a}.x{font:13px system-ui,sans-serif;fill:#334155}.s{font:12px system-ui,sans-serif;fill:#475569}.m{font:700 13px system-ui,sans-serif;fill:#0f172a}</style>
+  <rect width="1000" height="650" rx="14" fill="#fff"/><rect x="18" y="18" width="964" height="614" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="42" y="54" class="t">One runbook section, four retrieval-unit designs</text>
+  <rect x="42" y="76" width="916" height="115" rx="9" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="62" y="105" class="h">Production CPU triage</text><text x="62" y="131" class="x">If an EC2 instance exceeds 90% CPU for 15 minutes, inspect CloudWatch metrics and identify the process.</text><text x="62" y="158" class="x">Do not restart the production instance before service-owner approval.</text>
+
+  <rect x="42" y="224" width="214" height="345" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="62" y="254" class="h">Fixed-size</text>
+  <rect x="62" y="277" width="174" height="88" rx="6" fill="#eff6ff" stroke="#93c5fd"/><text x="75" y="301" class="m">Chunk 1</text><text x="75" y="324" class="s">90% CPU → inspect</text><text x="75" y="342" class="s">CloudWatch...</text>
+  <rect x="62" y="382" width="174" height="88" rx="6" fill="#eff6ff" stroke="#93c5fd"/><text x="75" y="406" class="m">Chunk 2</text><text x="75" y="429" class="s">...identify process →</text><text x="75" y="447" class="s">approval before restart</text>
+  <text x="62" y="510" class="s">Boundary can separate</text><text x="62" y="528" class="s">threshold from safety rule.</text>
+
+  <rect x="278" y="224" width="214" height="345" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="298" y="254" class="h">Overlap</text>
+  <rect x="298" y="277" width="174" height="88" rx="6" fill="#fefce8" stroke="#fde68a"/><text x="311" y="301" class="m">Chunk 1</text><text x="311" y="324" class="s">90% CPU → inspect →</text><text x="311" y="342" class="s">identify process</text>
+  <rect x="298" y="345" width="174" height="88" rx="6" fill="#fefce8" stroke="#fde68a"/><text x="311" y="369" class="m">Chunk 2</text><text x="311" y="392" class="s">identify process → do not</text><text x="311" y="410" class="s">restart → owner approval</text>
+  <text x="298" y="472" class="s">Shared boundary preserves</text><text x="298" y="490" class="s">context, duplicates tokens.</text>
+
+  <rect x="514" y="224" width="214" height="345" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="534" y="254" class="h">Section-aware</text>
+  <rect x="534" y="277" width="174" height="168" rx="6" fill="#ecfdf5" stroke="#86efac"/><text x="547" y="302" class="m">[Production CPU triage]</text><text x="547" y="330" class="s">90% CPU</text><text x="547" y="350" class="s">→ inspect CloudWatch</text><text x="547" y="370" class="s">→ identify process</text><text x="547" y="390" class="s">→ approval before restart</text>
+  <text x="534" y="486" class="s">One independently useful,</text><text x="534" y="504" class="s">procedurally complete result.</text>
+
+  <rect x="750" y="224" width="208" height="345" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="770" y="254" class="h">Parent-child</text>
+  <rect x="770" y="277" width="168" height="43" rx="6" fill="#ede9fe" stroke="#c4b5fd"/><text x="783" y="303" class="m">Parent: CPU triage</text>
+  <line x1="854" y1="320" x2="804" y2="348" stroke="#7c3aed"/><line x1="854" y1="320" x2="905" y2="348" stroke="#7c3aed"/>
+  <rect x="770" y="348" width="68" height="72" rx="6" fill="#f5f3ff" stroke="#c4b5fd"/><text x="779" y="374" class="s">Child A</text><text x="779" y="393" class="s">threshold +</text><text x="779" y="411" class="s">inspection</text>
+  <rect x="870" y="348" width="68" height="72" rx="6" fill="#f5f3ff" stroke="#c4b5fd"/><text x="879" y="374" class="s">Child B</text><text x="879" y="393" class="s">restart +</text><text x="879" y="411" class="s">approval</text>
+  <text x="770" y="469" class="s">Retrieve a precise child</text><text x="770" y="487" class="s">→ expand to parent before LLM.</text>
+</svg>

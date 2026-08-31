@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" role="img" aria-labelledby="title desc">
+  <title id="title">RAG tuning changes move multiple metrics</title>
+  <desc id="desc">Four concise before and after tuning examples show K increase, reranking, ANN search effort, and metadata filtering can affect precision, recall, latency, and cost. Effects are examples to evaluate rather than guarantees.</desc>
+  <style>.t{font:700 21px system-ui,sans-serif;fill:#0f172a}.h{font:700 15px system-ui,sans-serif;fill:#0f172a}.x{font:13px system-ui,sans-serif;fill:#334155}.s{font:12px system-ui,sans-serif;fill:#475569}.m{font:700 13px system-ui,sans-serif;fill:#0f172a}</style>
+  <rect width="1000" height="560" rx="14" fill="#fff"/><rect x="18" y="18" width="964" height="524" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="42" y="54" class="t">One retrieval change can improve one metric and worsen another</text>
+  <text x="42" y="79" class="s">Illustrative outcomes only—measure on your golden set and production slices.</text>
+  <rect x="42" y="105" width="438" height="170" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="62" y="134" class="h">Increase K: 3 → 10</text><text x="62" y="167" class="x">Before: Precision@3 67% · Recall@3 50%</text><text x="62" y="195" class="x">After: Precision@10 40% · Recall@10 90%</text><text x="62" y="232" class="m">More relevant material found, much more noise returned.</text>
+  <rect x="520" y="105" width="438" height="170" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="540" y="134" class="h">Add a reranker</text><text x="540" y="167" class="x">Final-context precision ↑</text><text x="540" y="195" class="x">Initial candidate Recall@K unchanged</text><text x="540" y="232" class="m">Reorders candidates; cannot recover chunks below Top-K.</text>
+  <rect x="42" y="302" width="438" height="170" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="62" y="331" class="h">Increase ANN search effort</text><text x="62" y="364" class="x">Recall@K potentially ↑</text><text x="62" y="392" class="x">Latency and compute ↑</text><text x="62" y="429" class="m">Compare recall improvement with p95 latency and cost.</text>
+  <rect x="520" y="302" width="438" height="170" rx="9" fill="#fff" stroke="#cbd5e1"/><text x="540" y="331" class="h">Tighten metadata filter</text><text x="540" y="364" class="x">Precision potentially ↑</text><text x="540" y="392" class="x">Recall can ↓ if the filter excludes valid evidence</text><text x="540" y="429" class="m">Review filter coverage, document metadata quality, and ACL effects.</text>
+  <text x="42" y="510" class="s">Tune one component at a time where possible; capture configuration, metrics, latency, cost, and error cases in the trace.</text>
+</svg>

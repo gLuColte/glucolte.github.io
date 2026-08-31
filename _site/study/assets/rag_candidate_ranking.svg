@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640" role="img" aria-labelledby="title desc">
+  <title id="title">Top-K retrieval, metadata filtering, reranking, precision, and recall</title>
+  <desc id="desc">A ranked list for the EC2 high CPU query. Top three retrieval includes two relevant EC2 chunks and one irrelevant RDS chunk. Two further relevant EC2 chunks are below K. Filtering removes the RDS chunk and reranking orders the remaining chunks.</desc>
+  <style>
+    .title{font:700 21px system-ui,sans-serif;fill:#0f172a}.sub{font:14px system-ui,sans-serif;fill:#475569}.label{font:600 14px system-ui,sans-serif;fill:#0f172a}.small{font:13px system-ui,sans-serif;fill:#475569}.tiny{font:12px system-ui,sans-serif;fill:#475569}.white{font:600 12px system-ui,sans-serif;fill:white}.metric{font:700 16px system-ui,sans-serif;fill:#0f172a}
+  </style>
+  <rect width="960" height="640" rx="14" fill="#fff"/>
+  <rect x="20" y="20" width="920" height="600" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="44" y="55" class="title">Same EC2 high-CPU query: Top-K → filter → rerank</text>
+  <text x="44" y="80" class="sub">“Production EC2 stays above 90% CPU” · vector similarity is only the first-stage candidate signal</text>
+  <line x1="44" y1="103" x2="916" y2="103" stroke="#cbd5e1"/>
+  <text x="44" y="130" class="label">Vector-store candidates, sorted by similarity</text>
+  <text x="700" y="130" class="small">What happens next</text>
+
+  <text x="44" y="170" class="label">1</text><text x="74" y="170" class="label">EC2 CPU triage</text><rect x="260" y="153" width="384" height="24" rx="4" fill="#16a34a"/><text x="652" y="171" class="small">0.91</text><text x="720" y="170" class="small">permitted → final #1</text>
+  <text x="44" y="218" class="label">2</text><text x="74" y="218" class="label">RDS CPU guide</text><rect x="260" y="201" width="376" height="24" rx="4" fill="#f59e0b"/><text x="644" y="219" class="small">0.89</text><text x="720" y="218" class="small">filtered out: service ≠ EC2</text><line x1="712" y1="198" x2="914" y2="226" stroke="#dc2626" stroke-width="2"/>
+  <text x="44" y="266" class="label">3</text><text x="74" y="266" class="label">EC2 owner approval</text><rect x="260" y="249" width="355" height="24" rx="4" fill="#16a34a"/><text x="623" y="267" class="small">0.84</text><text x="720" y="266" class="small">permitted → final #2</text>
+
+  <line x1="44" y1="292" x2="916" y2="292" stroke="#94a3b8" stroke-dasharray="5 5"/>
+  <text x="44" y="320" class="tiny">Top-K = 3 ends here. These relevant chunks never reach reranking:</text>
+  <text x="44" y="356" class="label">4</text><text x="74" y="356" class="label">EC2 escalation path</text><rect x="260" y="339" width="342" height="24" rx="4" fill="#94a3b8"/><text x="610" y="357" class="small">0.81</text><text x="720" y="356" class="small">relevant but missed</text>
+  <text x="44" y="404" class="label">5</text><text x="74" y="404" class="label">EC2 process check</text><rect x="260" y="387" width="334" height="24" rx="4" fill="#94a3b8"/><text x="602" y="405" class="small">0.79</text><text x="720" y="404" class="small">relevant but missed</text>
+
+  <rect x="44" y="446" width="404" height="132" rx="9" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="66" y="478" class="metric">Precision@3 = 2 / 3 = 67%</text>
+  <text x="66" y="504" class="small">Of the three retrieved chunks, two are useful.</text>
+  <rect x="66" y="526" width="72" height="18" rx="3" fill="#16a34a"/><rect x="144" y="526" width="72" height="18" rx="3" fill="#f59e0b"/><rect x="222" y="526" width="72" height="18" rx="3" fill="#16a34a"/>
+
+  <rect x="470" y="446" width="446" height="132" rx="9" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="492" y="478" class="metric">Recall@3 = 2 / 4 = 50%</text>
+  <text x="492" y="504" class="small">Of four useful chunks in the corpus, only two were found.</text>
+  <rect x="492" y="526" width="72" height="18" rx="3" fill="#16a34a"/><rect x="570" y="526" width="72" height="18" rx="3" fill="#16a34a"/><rect x="648" y="526" width="72" height="18" rx="3" fill="#cbd5e1"/><rect x="726" y="526" width="72" height="18" rx="3" fill="#cbd5e1"/>
+  <text x="810" y="539" class="tiny">not found</text>
+</svg>

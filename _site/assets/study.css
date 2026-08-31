@@ -486,6 +486,149 @@
 }
 
 /* Native HTML diagrams used by the AI study guides. */
+.rag-flow,
+.rag-choices,
+.rag-cause,
+.rag-lifecycle {
+  max-width: 760px;
+  margin: 20px auto;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  scroll-margin-top: calc(var(--header-h) + 12px);
+}
+
+.rag-flow,
+.rag-cause {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.rag-node {
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.rag-node strong,
+.rag-cause div strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.rag-node--question { border-color: #bfdbfe; background: #eff6ff; }
+.rag-node--data { border-color: #fde68a; background: #fffbeb; }
+.rag-node--warning { border-color: #fecaca; background: #fef2f2; }
+.rag-node--success { border-color: #bbf7d0; background: #f0fdf4; }
+
+.rag-arrow {
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.rag-arrow span {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.rag-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rag-choices > div,
+.rag-cause div {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+  line-height: 1.45;
+}
+
+.rag-choices strong { display: block; margin-bottom: 4px; }
+.rag-choices em { color: var(--muted); }
+
+.rag-lifecycle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 14px;
+  font-size: 0.86rem;
+}
+
+.rag-lifecycle span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.rag-lifecycle b { color: var(--muted); }
+.rag-cause { gap: 6px; }
+.rag-cause div { text-align: center; }
+.rag-cause > b { color: var(--muted); line-height: 1; text-align: center; }
+
+.technique-callout {
+  display: grid;
+  gap: 3px;
+  max-width: 760px;
+  margin: 16px auto 24px;
+  padding: 11px 14px;
+  border-left: 4px solid #2563eb;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.technique-callout > strong {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+[data-theme="dark"] .rag-node,
+[data-theme="dark"] .rag-choices > div,
+[data-theme="dark"] .rag-cause div { background: #262626; }
+[data-theme="dark"] .rag-node--question,
+[data-theme="dark"] .rag-lifecycle span,
+[data-theme="dark"] .technique-callout { border-color: #1d4ed8; background: #172554; }
+[data-theme="dark"] .rag-node--data { border-color: #92400e; background: #451a03; }
+[data-theme="dark"] .rag-node--warning { border-color: #991b1b; background: #450a0a; }
+[data-theme="dark"] .rag-node--success { border-color: #166534; background: #052e16; }
+
+@media (max-width: 620px) {
+  .rag-flow,
+  .rag-choices,
+  .rag-cause,
+  .rag-lifecycle { padding: 12px; }
+
+  .rag-choices { grid-template-columns: 1fr; }
+}
+
 .prompt-diagram {
   max-width: 760px;
   margin: 20px auto;

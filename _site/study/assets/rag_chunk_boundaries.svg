@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="570" viewBox="0 0 1040 570" role="img" aria-labelledby="title desc">
+  <title id="title">How chunking rules create boundaries in the EC2 Markdown file</title>
+  <desc id="desc">The Markdown file contains three second-level sections. The configured section-aware chunker creates one chunk at each heading. A fixed-size alternative can split the Procedure section only because its length boundary is reached.</desc>
+  <style>.title{font:700 22px system-ui,sans-serif;fill:#0f172a}.sub{font:14px system-ui,sans-serif;fill:#475569}.head{font:700 15px system-ui,sans-serif;fill:#0f172a}.txt{font:13px system-ui,sans-serif;fill:#334155}.small{font:12px system-ui,sans-serif;fill:#475569}.mono{font:12px ui-monospace,SFMono-Regular,monospace;fill:#334155}</style>
+  <rect width="1040" height="570" rx="14" fill="#fff"/><rect x="18" y="18" width="1004" height="534" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="44" y="54" class="title">The chunk boundary comes from the rule, not from magic</text>
+  <text x="44" y="79" class="sub">Literal source headings: When to act · Procedure · Safety</text>
+
+  <rect x="44" y="108" width="952" height="78" rx="8" fill="#fff" stroke="#cbd5e1"/>
+  <text x="62" y="136" class="head">Raw Markdown structure</text>
+  <rect x="255" y="120" width="202" height="48" rx="6" fill="#fef3c7" stroke="#fbbf24"/><text x="270" y="143" class="mono">## When to act</text><text x="270" y="158" class="small">90% for 15 minutes</text>
+  <rect x="470" y="120" width="245" height="48" rx="6" fill="#fef3c7" stroke="#fbbf24"/><text x="485" y="143" class="mono">## Procedure</text><text x="485" y="158" class="small">inspect; identify process</text>
+  <rect x="728" y="120" width="244" height="48" rx="6" fill="#fef3c7" stroke="#fbbf24"/><text x="743" y="143" class="mono">## Safety</text><text x="743" y="158" class="small">do not restart before approval</text>
+
+  <rect x="44" y="218" width="952" height="120" rx="8" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="62" y="247" class="head">Configured default: section-aware, max 60 tokens, overlap 0</text>
+  <text x="62" y="267" class="small">Rule: start a new chunk at every <tspan font-family="ui-monospace,monospace">##</tspan>; each source section is under 60 tokens.</text>
+  <rect x="62" y="284" width="278" height="34" rx="5" fill="#fff" stroke="#86efac"/><text x="76" y="306" class="mono">#when-to-act</text>
+  <rect x="357" y="284" width="304" height="34" rx="5" fill="#fff" stroke="#86efac"/><text x="371" y="306" class="mono">#procedure</text>
+  <rect x="678" y="284" width="298" height="34" rx="5" fill="#fff" stroke="#86efac"/><text x="692" y="306" class="mono">#safety</text>
+
+  <rect x="44" y="370" width="952" height="136" rx="8" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="62" y="399" class="head">Alternative: fixed-size, max 20 tokens</text>
+  <text x="62" y="419" class="small">Rule: start a new chunk when the token count reaches 20, even when a heading has not changed.</text>
+  <rect x="62" y="440" width="220" height="40" rx="5" fill="#fff" stroke="#93c5fd"/><text x="76" y="465" class="mono">When to act</text>
+  <rect x="296" y="440" width="170" height="40" rx="5" fill="#fff" stroke="#93c5fd"/><text x="310" y="465" class="mono">Procedure: inspect</text>
+  <rect x="480" y="440" width="192" height="40" rx="5" fill="#fff" stroke="#93c5fd"/><text x="494" y="465" class="mono">Procedure: identify</text>
+  <rect x="686" y="440" width="290" height="40" rx="5" fill="#fff" stroke="#93c5fd"/><text x="700" y="465" class="mono">Safety</text>
+  <text x="62" y="498" class="small">Here the Procedure text splits because the length rule fires; the default did not split it because the heading rule fired first.</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="480" viewBox="0 0 1000 480" role="img" aria-labelledby="title desc">
+  <title id="title">Top K candidate tuning comparison</title>
+  <desc id="desc">Top K two keeps EC2 triage and approval for low cost but may miss other evidence. Top K eight includes more useful and irrelevant chunks, raising reranking and context cost.</desc>
+  <style>.t{font:700 21px system-ui,sans-serif;fill:#0f172a}.h{font:700 15px system-ui,sans-serif;fill:#0f172a}.x{font:13px system-ui,sans-serif;fill:#334155}.s{font:12px system-ui,sans-serif;fill:#475569}.ok{font:700 13px system-ui,sans-serif;fill:#15803d}.bad{font:700 13px system-ui,sans-serif;fill:#b91c1c}</style>
+  <rect width="1000" height="480" rx="14" fill="#fff"/><rect x="18" y="18" width="964" height="444" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="42" y="54" class="t">Top-K controls the candidate budget before reranking and context assembly</text>
+  <rect x="42" y="86" width="430" height="272" rx="9" fill="#ecfdf5" stroke="#86efac"/><text x="62" y="116" class="h">K = 2</text><text x="62" y="150" class="ok">✓ EC2 triage</text><text x="62" y="177" class="ok">✓ EC2 approval</text><text x="62" y="220" class="x">Low candidate/context cost</text><text x="62" y="244" class="x">Low noise</text><text x="62" y="279" class="s">But escalation/process evidence may be missed.</text>
+  <text x="490" y="226" class="h">K ↑</text><text x="490" y="250" class="s">more candidates</text><text x="490" y="274" class="s">→ more work</text>
+  <rect x="558" y="86" width="400" height="272" rx="9" fill="#eff6ff" stroke="#93c5fd"/><text x="578" y="116" class="h">K = 8</text><text x="578" y="150" class="ok">✓ EC2 triage · ✓ EC2 approval · ✓ escalation</text><text x="578" y="177" class="bad">✗ RDS CPU · ✗ EC2 dev guide · ✗ old runbook ...</text><text x="578" y="220" class="x">More opportunity for candidate Recall@K</text><text x="578" y="244" class="x">More filtering, reranking, and context cost</text><text x="578" y="279" class="s">If all candidates reach the LLM, more noise can hurt answers.</text>
+  <text x="42" y="410" class="x">Increasing K is not automatically better: it usually gives recall more opportunity to improve, while increasing downstream work and possible noise.</text>
+</svg>

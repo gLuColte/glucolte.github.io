@@ -1,31 +1,36 @@
 @startuml
-title Fictional Apple policy RAG: ingestion versus one user request
-actor "Customer / Support User\n(client)" as User
-participant "AI Support Application" as App
-participant "Policy Repository" as Docs
-participant "Ingestion Pipeline" as Ingest
-database "Hybrid Search Index\nBM25 + vectors" as Index
-participant "Reranker\noptional per request" as Reranker
-participant LLM
+title One causal RAG run: Markdown file to cited EC2 answer
+actor "On-call engineer" as User
+participant "Application" as App
+participant "Ingestion service" as Ingest
+participant "ops-embed-demo-v1" as Embed
+database "runbooks-v1\nvector database" as Index
+participant "Authorization layer" as Auth
+participant "ops-reranker-v1" as Reranker
+participant "operations-answer-llm-v1" as LLM
 
-== Phase 1 — asynchronous ingestion when policy changes ==
-Docs -> Ingest: POL-BAT-AU-2026 PDF
-Ingest -> Ingest: Parse → section-aware chunks\nmetadata → embeddings
-Ingest -> Index: Terms + vectors + source ID + ACL metadata
+== Ingest runbooks/ec2-cpu.md ==
+App -> Ingest: Raw Markdown file
+Ingest -> Ingest: markdown-parser-v2\nfrontmatter schema + headings
+Ingest -> Ingest: Structured document\nsections + copied metadata
+Ingest -> Ingest: section-chunker-v1\nmax 60 tokens, overlap 0
+Ingest -> Embed: Three chunk text fields
+Embed --> Ingest: Three six-number vectors
+Ingest -> Index: index-writer-v1\nchunk + vector + metadata
 
-== Phase 2 — query-time work for this user request ==
-User -> App: Ask battery-policy question + login token
-App -> App: Authenticate; derive document entitlements\nbuild standalone search query
-App -> Index: BM25 + vector search\nproduct=iPhone, region=AU, status=current\n+ permitted-document filters
-Index --> App: Top K permitted candidates
-
-opt Reranking enabled
-  App -> Reranker: Current question + Top K candidates
-  Reranker --> App: Candidates reordered for this question
-end
-
-App -> App: Take Top N; build runtime context\nwith evidence + source IDs
-App -> LLM: Instructions + evidence + question
-LLM --> App: Grounded answer draft
-App --> User: "Below 80%, subject to checks" + citation
+== Answer one question ==
+User -> App: "Production EC2 stays above 90% CPU"
+App -> App: query-processor-v1\npreserve original; rewrite=false
+App -> Embed: Retrieval text
+Embed --> App: Query vector
+App -> Index: Hybrid search: BM25 + cosine\nRRF; Top-K = 4
+Index --> App: EC2 when, RDS triage,\nEC2 procedure, EC2 safety
+App -> App: Metadata rule: EC2 + prod +\nap-southeast-2 + current\nRemove RDS (service=RDS)
+App -> Auth: Caller groups + 3 EC2 ACLs
+Auth --> App: Permit all 3: platform-oncall matches
+App -> Reranker: Question + permitted chunks
+Reranker --> App: When → Procedure → Safety
+App -> LLM: 3 cited evidence blocks + question
+LLM --> App: Inspect metrics/process;\nowner approval before restart
+App --> User: Grounded answer + RUN-EC2-CPU-2026
 @enduml
