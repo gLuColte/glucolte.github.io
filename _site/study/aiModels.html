@@ -287,6 +287,119 @@ App --> User: Result
 
 <p>Primary examples: <a href="https://openai.com/index/learning-to-reason-with-llms/">OpenAI reasoning training and test-time compute</a>, the <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1 paper</a>, and <a href="https://ai.google.dev/gemini-api/docs/thinking">Gemini thinking controls</a>.</p>
 
+<h2 id="31-adapt-the-model-only-when-the-problem-calls-for-it">3.1 Adapt the model only when the problem calls for it</h2>
+
+<p>Four approaches are often confused because each can improve an answer. They change different things:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Need a clearer one-request instruction?          → prompt engineering
+Need current/private/citeable facts?             → RAG
+Need consistent task behaviour, format, or tone? → fine-tuning
+Need broad domain language in model weights?     → continued pre-training
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Approach</th>
+      <th>What changes?</th>
+      <th>Choose it when</th>
+      <th>Do not choose it when</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Prompt engineering</strong></td>
+      <td>Current request only</td>
+      <td>A clear instruction, examples, or output schema can solve the task</td>
+      <td>Facts must stay current or behaviour is still inconsistent after evaluation</td>
+    </tr>
+    <tr>
+      <td><strong>RAG</strong></td>
+      <td>Current runtime context</td>
+      <td>Knowledge changes often, is private, needs citations, or must respect document ACLs</td>
+      <td>The real problem is stable style or repeated input→output behaviour</td>
+    </tr>
+    <tr>
+      <td><strong>Supervised fine-tuning (SFT)</strong></td>
+      <td>Selected model weights</td>
+      <td>Many labelled examples should make a narrow task, terminology, tone, or structure more consistent</td>
+      <td>You need a searchable, frequently changing knowledge base</td>
+    </tr>
+    <tr>
+      <td><strong>Continued pre-training</strong></td>
+      <td>Model weights, using a large domain corpus</td>
+      <td>The model needs broad domain-language adaptation before downstream tasks</td>
+      <td>A small set of instructions or current documents is sufficient</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Instruction tuning</strong> is a form of post-training that teaches a model to follow instructions and preferred response patterns. In practice, SFT often uses instruction/input → desired-output examples. It is not a document lookup mechanism.</p>
+
+<p><strong>PEFT / LoRA</strong> are parameter-efficient fine-tuning ideas: instead of updating every base-model weight, training learns a small set of added or low-rank parameters. They reduce customization compute/storage and can make serving several task adaptations practical. They still change model behaviour and need the same evaluation, versioning, and rollback discipline as any other customization.</p>
+
+<p><strong>Catastrophic forgetting</strong> is a customization risk: aggressive or narrow training can degrade capabilities the base model previously had. Keep holdout tests for both the target task and important general/safety behaviours.</p>
+
+<p>For AWS-specific customization capabilities and lifecycle decisions, see <a href="/study/infrastructureAWSAiServices#section-4-bedrock-sagemaker">AWS AI Services</a>.</p>
+
+<h3 id="training-data-evaluation-data-and-training-controls">Training data, evaluation data, and training controls</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Purpose</th>
+      <th>Exam recognition rule</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Training set</strong></td>
+      <td>Updates model parameters</td>
+      <td>The examples the model learns from</td>
+    </tr>
+    <tr>
+      <td><strong>Validation set</strong></td>
+      <td>Tunes choices and detects overfitting during development</td>
+      <td>Never use it to update weights</td>
+    </tr>
+    <tr>
+      <td><strong>Test set</strong></td>
+      <td>Final unbiased measurement</td>
+      <td>Keep it held out until final comparison</td>
+    </tr>
+    <tr>
+      <td><strong>Epoch</strong></td>
+      <td>One full pass through the training set</td>
+      <td>More epochs increase learning <em>and</em> overfitting/cost risk</td>
+    </tr>
+    <tr>
+      <td><strong>Batch size</strong></td>
+      <td>Examples processed before one parameter update</td>
+      <td>A training-efficiency/stability control, not an inference setting</td>
+    </tr>
+    <tr>
+      <td><strong>Learning rate</strong></td>
+      <td>Step size of each parameter update</td>
+      <td>Too high can destabilize training; too low learns slowly</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Use a representative, deduplicated, permissioned dataset. Check label quality, class/edge-case coverage, PII/licensing, and train/validation/test leakage before interpreting a good score.</p>
+
+<h3 id="make-a-customized-model-smaller-only-after-measuring-quality">Make a customized model smaller only after measuring quality</h3>
+
+<ul>
+  <li><strong>Distillation</strong> trains a smaller <em>student</em> to approximate a stronger <em>teacher</em>. Choose it when the target is lower serving cost/latency while retaining enough task quality.</li>
+  <li><strong>Quantization</strong> stores or computes weights with lower precision. It usually reduces memory and can improve throughput, but can reduce quality or hardware compatibility.</li>
+  <li>Neither fixes stale knowledge. Re-evaluate quality, safety, latency, and cost on the same workload after either change.</li>
+</ul>
+
+<blockquote>
+  <p><strong>Decision rule:</strong> start with prompt engineering; add RAG for changing evidence; fine-tune for repeated behaviour; use continued pre-training only when a large, stable domain corpus genuinely must alter the model’s broad internal language knowledge.</p>
+</blockquote>
+
 <h2 id="section-4-deployment">4. Open weights versus managed models</h2>
 
 <ul>

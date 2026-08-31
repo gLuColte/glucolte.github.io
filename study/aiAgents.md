@@ -135,6 +135,24 @@ Agent --> User: Result, partial result, or escalation
 - Do not save model inferences as user facts without validation or clear labelling.
 - Persist state before and after side effects so retries can determine what occurred.
 
+| Memory/state type | Lifetime | Typical contents | Control to remember |
+|---|---|---|---|
+| **Short-term/session context** | One conversation or task | recent messages, current plan, recent tool observations | keep bounded and expire it |
+| **Persistent memory** | Across sessions | validated preferences, durable summaries, approved facts | provenance, ownership, retention, correction, and access control |
+| **Business system of record** | Durable operational record | orders, balances, entitlements, asset state | model memory never replaces it |
+
+```text
+Model proposes an action
+          ↓
+Application/tool authorizes principal + resource + action
+          ↓
+Tool executes with least privilege
+          ↓
+Durable state records result / idempotency key
+```
+
+The model choosing `create_work_order` does **not** authorize it. This boundary applies equally to tools, memory writes, and retrieval.
+
 ## 6. MCP {#section-6-mcp}
 
 - The Model Context Protocol standardizes how clients discover and use tools, resources, and prompts from servers.

@@ -227,6 +227,48 @@ Agent --> User: Result, partial result, or escalation
   <li>Persist state before and after side effects so retries can determine what occurred.</li>
 </ul>
 
+<table>
+  <thead>
+    <tr>
+      <th>Memory/state type</th>
+      <th>Lifetime</th>
+      <th>Typical contents</th>
+      <th>Control to remember</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Short-term/session context</strong></td>
+      <td>One conversation or task</td>
+      <td>recent messages, current plan, recent tool observations</td>
+      <td>keep bounded and expire it</td>
+    </tr>
+    <tr>
+      <td><strong>Persistent memory</strong></td>
+      <td>Across sessions</td>
+      <td>validated preferences, durable summaries, approved facts</td>
+      <td>provenance, ownership, retention, correction, and access control</td>
+    </tr>
+    <tr>
+      <td><strong>Business system of record</strong></td>
+      <td>Durable operational record</td>
+      <td>orders, balances, entitlements, asset state</td>
+      <td>model memory never replaces it</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Model proposes an action
+          ↓
+Application/tool authorizes principal + resource + action
+          ↓
+Tool executes with least privilege
+          ↓
+Durable state records result / idempotency key
+</code></pre></div></div>
+
+<p>The model choosing <code class="language-plaintext highlighter-rouge">create_work_order</code> does <strong>not</strong> authorize it. This boundary applies equally to tools, memory writes, and retrieval.</p>
+
 <h2 id="section-6-mcp">6. MCP</h2>
 
 <ul>

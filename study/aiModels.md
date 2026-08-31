@@ -166,6 +166,53 @@ App --> User: Result
 
 Primary examples: [OpenAI reasoning training and test-time compute](https://openai.com/index/learning-to-reason-with-llms/), the [DeepSeek-R1 paper](https://arxiv.org/abs/2501.12948), and [Gemini thinking controls](https://ai.google.dev/gemini-api/docs/thinking).
 
+## 3.1 Adapt the model only when the problem calls for it
+
+Four approaches are often confused because each can improve an answer. They change different things:
+
+```text
+Need a clearer one-request instruction?          → prompt engineering
+Need current/private/citeable facts?             → RAG
+Need consistent task behaviour, format, or tone? → fine-tuning
+Need broad domain language in model weights?     → continued pre-training
+```
+
+| Approach | What changes? | Choose it when | Do not choose it when |
+|---|---|---|---|
+| **Prompt engineering** | Current request only | A clear instruction, examples, or output schema can solve the task | Facts must stay current or behaviour is still inconsistent after evaluation |
+| **RAG** | Current runtime context | Knowledge changes often, is private, needs citations, or must respect document ACLs | The real problem is stable style or repeated input→output behaviour |
+| **Supervised fine-tuning (SFT)** | Selected model weights | Many labelled examples should make a narrow task, terminology, tone, or structure more consistent | You need a searchable, frequently changing knowledge base |
+| **Continued pre-training** | Model weights, using a large domain corpus | The model needs broad domain-language adaptation before downstream tasks | A small set of instructions or current documents is sufficient |
+
+**Instruction tuning** is a form of post-training that teaches a model to follow instructions and preferred response patterns. In practice, SFT often uses instruction/input → desired-output examples. It is not a document lookup mechanism.
+
+**PEFT / LoRA** are parameter-efficient fine-tuning ideas: instead of updating every base-model weight, training learns a small set of added or low-rank parameters. They reduce customization compute/storage and can make serving several task adaptations practical. They still change model behaviour and need the same evaluation, versioning, and rollback discipline as any other customization.
+
+**Catastrophic forgetting** is a customization risk: aggressive or narrow training can degrade capabilities the base model previously had. Keep holdout tests for both the target task and important general/safety behaviours.
+
+For AWS-specific customization capabilities and lifecycle decisions, see [AWS AI Services](/study/infrastructureAWSAiServices#section-4-bedrock-sagemaker).
+
+### Training data, evaluation data, and training controls
+
+| Item | Purpose | Exam recognition rule |
+|---|---|---|
+| **Training set** | Updates model parameters | The examples the model learns from |
+| **Validation set** | Tunes choices and detects overfitting during development | Never use it to update weights |
+| **Test set** | Final unbiased measurement | Keep it held out until final comparison |
+| **Epoch** | One full pass through the training set | More epochs increase learning *and* overfitting/cost risk |
+| **Batch size** | Examples processed before one parameter update | A training-efficiency/stability control, not an inference setting |
+| **Learning rate** | Step size of each parameter update | Too high can destabilize training; too low learns slowly |
+
+Use a representative, deduplicated, permissioned dataset. Check label quality, class/edge-case coverage, PII/licensing, and train/validation/test leakage before interpreting a good score.
+
+### Make a customized model smaller only after measuring quality
+
+- **Distillation** trains a smaller *student* to approximate a stronger *teacher*. Choose it when the target is lower serving cost/latency while retaining enough task quality.
+- **Quantization** stores or computes weights with lower precision. It usually reduces memory and can improve throughput, but can reduce quality or hardware compatibility.
+- Neither fixes stale knowledge. Re-evaluate quality, safety, latency, and cost on the same workload after either change.
+
+> **Decision rule:** start with prompt engineering; add RAG for changing evidence; fine-tune for repeated behaviour; use continued pre-training only when a large, stable domain corpus genuinely must alter the model's broad internal language knowledge.
+
 ## 4. Open weights versus managed models {#section-4-deployment}
 
 - **Managed hosted API**:

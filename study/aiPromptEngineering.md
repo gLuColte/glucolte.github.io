@@ -145,6 +145,15 @@ A useful prompt usually includes only the components the model needs:
 
 Not every prompt needs every box. A short, clear zero-shot instruction is often best; add components only when the result needs them.
 
+### 3.1 Roles and context management
+
+- **System/developer instructions**: application-owned behaviour, policy, task framing, and output contract.
+- **User message**: the caller's request and supplied data.
+- **Retrieved documents, history, and tool results**: useful context, but still potentially untrusted content—not higher-priority instructions.
+- Select only context that changes the answer. Keep the newest, most relevant, permitted evidence; summarize or remove stale history; reserve room for the output.
+
+> A useful prompt is a **controlled context budget**, not a dump of every conversation message and document. Context-window mechanics are covered in [AI Fundamentals](/study/aiFundamentals#section-9-context-window).
+
 ## 4. Add examples only when clear instructions are not enough {#shots}
 
 A **shot** is an input → desired-output example inside the prompt. Examples demonstrate a pattern; they do not retrain the model or update its weights.

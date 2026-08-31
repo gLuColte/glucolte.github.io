@@ -389,6 +389,37 @@ After reranking for the complete question:
   - **Precision@K**: fraction of first `K` results that are relevant;
   - **MRR**: reciprocal rank of the first relevant result, averaged across queries;
   - **NDCG**: ranking quality when relevance has grades and order matters.
+
+```text
+Question
+   ↓
+Retriever → retrieved chunks
+             ├─ Precision@K: are returned chunks relevant?
+             ├─ Recall@K: did we find the relevant chunks?
+             ├─ MRR: did the first relevant chunk appear early?
+             └─ NDCG: are the best chunks ranked highest?
+   ↓
+LLM → answer
+       ├─ Groundedness / faithfulness: supported by retrieved evidence?
+       ├─ Relevance: answers the question?
+       └─ Correctness: factually and operationally right?
+```
+
+### Read Precision@K and Recall@K with one small example
+
+Assume the corpus contains **four** relevant policy chunks for a question. At `K = 5`, the retriever returns five chunks; three are relevant.
+
+```text
+Precision@5 = relevant returned / all returned = 3 / 5 = 60%
+Recall@5    = relevant returned / all relevant = 3 / 4 = 75%
+```
+
+- Low **precision**: too much noise reaches the LLM. Improve query understanding, metadata filters, hybrid search, or reranking.
+- Low **recall**: important evidence exists but is absent from the candidate set. Check parsing/chunking, embedding fit, query rewriting, filters, candidate depth, and ANN settings.
+- Low **MRR**: a relevant result exists but appears too late. Improve ranking/reranking.
+- Low **NDCG**: relevance is graded and the most useful evidence is not consistently near the top.
+
+Retrieval evaluation asks whether the right evidence was available. Generation evaluation asks whether the model used that available evidence correctly. Do not use a fluent final answer to hide weak retrieval.
 - Also measure:
   - authorization leakage and revocation;
   - freshness and indexing delay;

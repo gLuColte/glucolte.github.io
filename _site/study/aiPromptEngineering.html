@@ -200,6 +200,19 @@ Return valid JSON only:
 
 <p>Not every prompt needs every box. A short, clear zero-shot instruction is often best; add components only when the result needs them.</p>
 
+<h3 id="31-roles-and-context-management">3.1 Roles and context management</h3>
+
+<ul>
+  <li><strong>System/developer instructions</strong>: application-owned behaviour, policy, task framing, and output contract.</li>
+  <li><strong>User message</strong>: the caller’s request and supplied data.</li>
+  <li><strong>Retrieved documents, history, and tool results</strong>: useful context, but still potentially untrusted content—not higher-priority instructions.</li>
+  <li>Select only context that changes the answer. Keep the newest, most relevant, permitted evidence; summarize or remove stale history; reserve room for the output.</li>
+</ul>
+
+<blockquote>
+  <p>A useful prompt is a <strong>controlled context budget</strong>, not a dump of every conversation message and document. Context-window mechanics are covered in <a href="/study/aiFundamentals#section-9-context-window">AI Fundamentals</a>.</p>
+</blockquote>
+
 <h2 id="shots">4. Add examples only when clear instructions are not enough</h2>
 
 <p>A <strong>shot</strong> is an input → desired-output example inside the prompt. Examples demonstrate a pattern; they do not retrain the model or update its weights.</p>

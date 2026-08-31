@@ -355,6 +355,21 @@ total latency = network + identity + retrieval + reranking + context build
 - Measure **cost per successful task**, not only cost per request or token.
 - Segment by tenant and task so a small expensive cohort is visible.
 
+### 10.1 Serving and caching decision rules
+
+| Need | Prefer | Why |
+|---|---|---|
+| User waits for a short answer | **Synchronous inference**, often streaming | Immediate request/response path; streaming improves perceived responsiveness |
+| Long-running, bursty, or non-interactive work | **Asynchronous job + queue** | Decouples callers from duration and absorbs load; needs durable status/idempotency |
+| Large known dataset | **Batch inference** | Throughput/cost optimization where per-item immediate response is unnecessary |
+| Identical safe request repeats | **Result cache** | Avoids an unnecessary model invocation |
+| Semantically equivalent safe question repeats | **Semantic cache** | Matches meaning, not only identical bytes; evaluate false matches carefully |
+| Stable common prompt prefix | **Prompt/prefix cache** where the provider supports it | Reuses repeated input processing; sensitive/tenant context must not cross boundaries |
+
+- **Context pruning** removes stale, duplicate, or low-value history/evidence before the model call. It reduces token cost and prefill latency, but can remove needed context—evaluate it against a golden set.
+- Cache keys and scopes must include the factors that change correctness: tenant/identity, authorization, document version/freshness, prompt/model version, and relevant inference configuration.
+- Never serve cached output across users or permissions merely because the text is similar.
+
 ## 11. Observability {#section-11-observability}
 
 - Give each request one trace ID across:
@@ -479,10 +494,13 @@ These measure different things. A system can be efficient but unpopular, or sati
   - latency and cost per successful task.
 - Segment by task, tenant, language, document type, risk, model route, and difficulty.
 - Release process:
+  - keep prompts, model routes, retrieval configuration, tool schemas, evaluation suites, and deployment manifests versioned;
+  - use CI/CD to run validation, security checks, and regression gates before promotion;
+  - use Infrastructure as Code for repeatable runtime, network, identity, quota/alarm, and data-policy configuration;
   - run offline regression suite;
   - reject security regressions regardless of average quality;
   - compare quality, latency, and cost against baseline;
-  - canary or shadow on representative traffic;
+  - canary, shadow, or blue/green deployment on representative traffic;
   - monitor slices and rollback criteria;
   - promote only after evidence supports the change.
 - Every production incident should create:
@@ -492,3 +510,26 @@ These measure different things. A system can be efficient but unpopular, or sati
   - an observable alert where possible.
 
 Continue with [AI knowledge bases](/study/aiKnowledgebases) for retrieval tuning, [AI agents](/study/aiAgents) for autonomous tool use, or [AWS AI services](/study/infrastructureAWSAiServices) for AWS mappings.
+
+## 16. Troubleshoot the layer that failed
+
+```text
+Bad result / failed task
+        ↓
+Was the needed evidence retrieved and authorized?
+  No → parsing / chunking / query / filter / ranking problem
+  Yes
+        ↓
+Did the prompt and selected model use the evidence correctly?
+  No → context construction / prompt / model / decoding problem
+  Yes
+        ↓
+Did an agent or tool choose/execute the correct action?
+  No → schema / permission / workflow / tool-result problem
+  Yes
+        ↓
+Did the platform meet the request contract?
+  No → timeout / throttling / quota / retry / cache / deployment problem
+```
+
+Inspect the trace before changing a model. Record the prompt/model version, retrieved candidates and ACL decision, tool proposal/result, timeout/retries, token use, and deployment version. This turns a vague “the AI was wrong” report into a testable fault class.

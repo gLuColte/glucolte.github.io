@@ -250,6 +250,21 @@ App --> User: Response + citations
   - Bedrock supports selected customization and import paths;
   - verify model, Region, deployment, and lifecycle constraints rather than assuming parity with SageMaker AI.
 
+### 2.1.1 Choose the Bedrock API and capacity mode
+
+| Need | Choose | Why | AIP-C01-style recognition |
+|---|---|---|---|
+| Unified multi-turn request shape across supported Bedrock models | **Converse** | Standardizes messages and inference configuration across compatible models | “The team wants a model-agnostic chat integration.” |
+| Stream those conversational tokens | **ConverseStream** | Same unified approach with incremental output | “Show text as it is generated.” |
+| Direct model-specific request/response control, including non-chat payloads | **InvokeModel** | Exposes direct model invocation format; model compatibility still matters | “The application needs direct access to a model's request format.” |
+| Stream a direct invocation | **InvokeModelWithResponseStream** | Direct API with incremental response events | “Direct model call and streaming output.” |
+| Long-running non-interactive Bedrock work | **AsyncInvoke / batch capability where supported** | Caller does not hold an interactive connection; output handling is asynchronous | “Process a backlog and write results for later consumption.” |
+| Variable, early, or uncertain traffic | **On-demand inference** | Pay/use capacity without reserving a fixed throughput commitment | “New workload with spiky demand.” |
+| Predictable sustained token demand or a customized model that requires it | **Provisioned Throughput** | Reserve model capacity; pay/commitment and utilization must justify it | “Stable production traffic needs known capacity.” |
+| Capacity across supported Regions or usage/cost tracking by workload | **Inference profile** | Can route eligible requests across Regions or associate usage with an application profile | “Model capacity is limited in one Region; policy permits listed Regions.” |
+
+**Decision rule:** streaming changes *delivery*, not total model work. Provisioned Throughput changes *capacity economics*, not answer quality. Cross-Region inference changes *where eligible processing can occur*, so confirm residency policy, Region support, IAM, and quotas.
+
 ### 2.2 Bedrock application capabilities {#section-2-2-capabilities}
 
 - **Model customization / fine-tuning**:
@@ -419,6 +434,21 @@ Edge --> User: Display result
   - utilization and total cost;
   - model artifact portability.
 
+### 4.1 SageMaker AI lifecycle patterns
+
+| Requirement | SageMaker AI pattern | Why |
+|---|---|---|
+| Train or customize with your own code/data | **Training job** | Full training container, compute, and artifact control |
+| Serve low-latency online predictions | **Real-time endpoint** | Persistent endpoint for request/response inference |
+| Payload or processing may take longer | **Asynchronous inference** | Queue/request handling with output delivered later |
+| Score a large finite dataset | **Batch Transform** | Offline bulk inference without a persistent endpoint |
+| Search hyperparameters | **Automatic Model Tuning** | Runs trials to find values such as learning rate or batch size |
+| Repeat a governed ML lifecycle | **Pipelines + Model Registry** | Automate stages; version/approve model artifacts before deployment |
+| Detect bias / explain predictions | **Clarify** | Responsible-ML analysis; not a replacement for application authorization |
+| Label sensitive or specialized training data | **Ground Truth** | Managed labeling workflows, including private workforces |
+
+> **Bedrock vs SageMaker scenario rule:** choose Bedrock to consume supported FMs and managed GenAI building blocks quickly. Choose SageMaker AI when the requirement is custom training code, model artifacts/containers, controlled endpoint deployment, or a full ML lifecycle.
+
 ## 5. Knowledge Bases for Amazon Bedrock {#section-5-bedrock-kb}
 
 - A managed Knowledge Base can coordinate supported parts of:
@@ -554,6 +584,9 @@ Edge --> User: Display result
 - **Amazon SQS**:
   - buffers ingestion or inference jobs, smooths bursts/quotas, and isolates retries;
   - configure visibility timeout, dead-letter handling, deduplication/idempotency, and queue-age alarms.
+- **Amazon SNS**:
+  - delivers a notification to multiple subscribed endpoints such as queues, Lambda functions, HTTP endpoints, or email;
+  - use it for fan-out, not as the durable work queue that owns one job's retry lifecycle.
 
 ### 9.3 Data and state {#section-9-3-data}
 
@@ -619,6 +652,21 @@ Need dynamic tool choice?
 Need known durable states, compensation, or human approval?
   └─ Step Functions, optionally invoking an AgentCore agent
 ```
+
+### 10.1 High-value AIP-C01 comparison rules
+
+| Compare | Difference and decision rule | Short scenario |
+|---|---|---|
+| **Bedrock Knowledge Bases vs custom retrieval** | KB is managed standard RAG. Custom retrieval owns parsers, hybrid scoring, authorization integration, query rewrite, and context assembly. | “PDF tables and complex ACL logic need custom processing and lexical + vector tuning.” → custom retrieval/OpenSearch around Bedrock. |
+| **Guardrails vs IAM vs application authorization** | Guardrails guide/filter model input/output. IAM authorizes AWS principals/actions. Application/domain authorization decides whether a user may read *this* record or perform *this* business action. Use all as needed. | “The assistant must not let a support agent view another customer's order.” → application/data authorization, not a Guardrail. |
+| **Lambda vs ECS/EKS** | Lambda fits short, event-driven adapters/validation. ECS fits long-running container services/workers with simpler operations; EKS fits Kubernetes-specific control/maturity. | “A heavy document parser needs long-lived workers and custom libraries.” → ECS/EKS, not forced Lambda. |
+| **SQS vs SNS vs EventBridge** | SQS buffers work for durable pull-based consumers. SNS fans out a notification to subscribers. EventBridge routes events by rules to many targets and supports event buses. | “Ingestion must absorb bursts and retry each job.” → SQS. “Notify several systems of a completed job.” → SNS/EventBridge based on routing needs. |
+| **Step Functions vs AgentCore/agent** | Step Functions owns known states, retries, compensation, and approvals. An agent chooses bounded tools/next steps from observations. Combine: deterministic outer workflow + bounded agent step. | “Payment approval path is predefined.” → Step Functions, not an autonomous agent. |
+| **CloudWatch vs CloudTrail** | CloudWatch is operational telemetry: logs, metrics, alarms, traces. CloudTrail is AWS API activity/audit evidence. | “Alert when model latency or throttling rises.” → CloudWatch. “Who changed a Bedrock configuration?” → CloudTrail. |
+| **RAG vs fine-tuning** | RAG supplies current/private/citeable documents at runtime; fine-tuning changes a supported model's learned behaviour from training examples. | “Policies change weekly and require sources.” → RAG. “Extract the same custom fields in one consistent format.” → fine-tuning after prompt evaluation. |
+| **Agentic vs deterministic workflow** | An agent is justified when useful tool choice/path depends on runtime observations. Prefer deterministic workflow for known, high-impact, auditable steps. | “The system must execute a known three-step refund process.” → workflow with a bounded model step if needed. |
+| **On-demand vs Provisioned Throughput** | On-demand suits variable use and carries quotas. Provisioned Throughput reserves supported capacity at a commitment/utilization trade-off. | “Sustained business-hours traffic needs stable token capacity.” → evaluate Provisioned Throughput. |
+| **Synchronous vs asynchronous vs batch inference** | Synchronous is interactive request/response; asynchronous decouples a long job; batch processes a finite large dataset. | “Summarize one live chat.” → synchronous/stream. “Summarize 10 million archived tickets.” → batch/asynchronous. |
 
 ## 11. AWS architecture review checklist {#section-11-checklist}
 
@@ -728,6 +776,9 @@ This is a quick map of AWS products whose primary role is AI/ML, plus search and
 - [Amazon Textract document analysis](https://docs.aws.amazon.com/textract/latest/dg/how-it-works-analyzing.html)
 - [Amazon Q Business built-in plugins](https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/built-in-plugin.html)
 - [Amazon Bedrock documentation](https://docs.aws.amazon.com/bedrock/)
+- [Amazon Bedrock API compatibility and inference APIs](https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html)
+- [Amazon Bedrock Provisioned Throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html)
+- [Amazon Bedrock inference profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-use.html)
 - [Amazon Bedrock model customization](https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html)
 - [Amazon Bedrock inference parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html)
 - [Amazon Bedrock AgentCore overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html)

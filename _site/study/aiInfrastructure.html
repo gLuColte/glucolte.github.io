@@ -504,6 +504,56 @@ Product --> User: Result
   <li>Segment by tenant and task so a small expensive cohort is visible.</li>
 </ul>
 
+<h3 id="101-serving-and-caching-decision-rules">10.1 Serving and caching decision rules</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Need</th>
+      <th>Prefer</th>
+      <th>Why</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>User waits for a short answer</td>
+      <td><strong>Synchronous inference</strong>, often streaming</td>
+      <td>Immediate request/response path; streaming improves perceived responsiveness</td>
+    </tr>
+    <tr>
+      <td>Long-running, bursty, or non-interactive work</td>
+      <td><strong>Asynchronous job + queue</strong></td>
+      <td>Decouples callers from duration and absorbs load; needs durable status/idempotency</td>
+    </tr>
+    <tr>
+      <td>Large known dataset</td>
+      <td><strong>Batch inference</strong></td>
+      <td>Throughput/cost optimization where per-item immediate response is unnecessary</td>
+    </tr>
+    <tr>
+      <td>Identical safe request repeats</td>
+      <td><strong>Result cache</strong></td>
+      <td>Avoids an unnecessary model invocation</td>
+    </tr>
+    <tr>
+      <td>Semantically equivalent safe question repeats</td>
+      <td><strong>Semantic cache</strong></td>
+      <td>Matches meaning, not only identical bytes; evaluate false matches carefully</td>
+    </tr>
+    <tr>
+      <td>Stable common prompt prefix</td>
+      <td><strong>Prompt/prefix cache</strong> where the provider supports it</td>
+      <td>Reuses repeated input processing; sensitive/tenant context must not cross boundaries</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li><strong>Context pruning</strong> removes stale, duplicate, or low-value history/evidence before the model call. It reduces token cost and prefill latency, but can remove needed context—evaluate it against a golden set.</li>
+  <li>Cache keys and scopes must include the factors that change correctness: tenant/identity, authorization, document version/freshness, prompt/model version, and relevant inference configuration.</li>
+  <li>Never serve cached output across users or permissions merely because the text is similar.</li>
+</ul>
+
 <h2 id="section-11-observability">11. Observability</h2>
 
 <ul>
@@ -696,10 +746,13 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
   <li>Segment by task, tenant, language, document type, risk, model route, and difficulty.</li>
   <li>Release process:
     <ul>
+      <li>keep prompts, model routes, retrieval configuration, tool schemas, evaluation suites, and deployment manifests versioned;</li>
+      <li>use CI/CD to run validation, security checks, and regression gates before promotion;</li>
+      <li>use Infrastructure as Code for repeatable runtime, network, identity, quota/alarm, and data-policy configuration;</li>
       <li>run offline regression suite;</li>
       <li>reject security regressions regardless of average quality;</li>
       <li>compare quality, latency, and cost against baseline;</li>
-      <li>canary or shadow on representative traffic;</li>
+      <li>canary, shadow, or blue/green deployment on representative traffic;</li>
       <li>monitor slices and rollback criteria;</li>
       <li>promote only after evidence supports the change.</li>
     </ul>
@@ -715,6 +768,28 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
 </ul>
 
 <p>Continue with <a href="/study/aiKnowledgebases">AI knowledge bases</a> for retrieval tuning, <a href="/study/aiAgents">AI agents</a> for autonomous tool use, or <a href="/study/infrastructureAWSAiServices">AWS AI services</a> for AWS mappings.</p>
+
+<h2 id="16-troubleshoot-the-layer-that-failed">16. Troubleshoot the layer that failed</h2>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Bad result / failed task
+        ↓
+Was the needed evidence retrieved and authorized?
+  No → parsing / chunking / query / filter / ranking problem
+  Yes
+        ↓
+Did the prompt and selected model use the evidence correctly?
+  No → context construction / prompt / model / decoding problem
+  Yes
+        ↓
+Did an agent or tool choose/execute the correct action?
+  No → schema / permission / workflow / tool-result problem
+  Yes
+        ↓
+Did the platform meet the request contract?
+  No → timeout / throttling / quota / retry / cache / deployment problem
+</code></pre></div></div>
+
+<p>Inspect the trace before changing a model. Record the prompt/model version, retrieved candidates and ACL decision, tool proposal/result, timeout/retries, token use, and deployment version. This turns a vague “the AI was wrong” report into a testable fault class.</p>
 
     </article>
   </main>

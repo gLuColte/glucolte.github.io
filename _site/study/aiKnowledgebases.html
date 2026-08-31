@@ -591,6 +591,39 @@ After reranking for the complete question:
       <li><strong>NDCG</strong>: ranking quality when relevance has grades and order matters.</li>
     </ul>
   </li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Question
+   ↓
+Retriever → retrieved chunks
+             ├─ Precision@K: are returned chunks relevant?
+             ├─ Recall@K: did we find the relevant chunks?
+             ├─ MRR: did the first relevant chunk appear early?
+             └─ NDCG: are the best chunks ranked highest?
+   ↓
+LLM → answer
+       ├─ Groundedness / faithfulness: supported by retrieved evidence?
+       ├─ Relevance: answers the question?
+       └─ Correctness: factually and operationally right?
+</code></pre></div></div>
+
+<h3 id="read-precisionk-and-recallk-with-one-small-example">Read Precision@K and Recall@K with one small example</h3>
+
+<p>Assume the corpus contains <strong>four</strong> relevant policy chunks for a question. At <code class="language-plaintext highlighter-rouge">K = 5</code>, the retriever returns five chunks; three are relevant.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Precision@5 = relevant returned / all returned = 3 / 5 = 60%
+Recall@5    = relevant returned / all relevant = 3 / 4 = 75%
+</code></pre></div></div>
+
+<ul>
+  <li>Low <strong>precision</strong>: too much noise reaches the LLM. Improve query understanding, metadata filters, hybrid search, or reranking.</li>
+  <li>Low <strong>recall</strong>: important evidence exists but is absent from the candidate set. Check parsing/chunking, embedding fit, query rewriting, filters, candidate depth, and ANN settings.</li>
+  <li>Low <strong>MRR</strong>: a relevant result exists but appears too late. Improve ranking/reranking.</li>
+  <li>Low <strong>NDCG</strong>: relevance is graded and the most useful evidence is not consistently near the top.</li>
+</ul>
+
+<p>Retrieval evaluation asks whether the right evidence was available. Generation evaluation asks whether the model used that available evidence correctly. Do not use a fluent final answer to hide weak retrieval.</p>
+<ul>
   <li>Also measure:
     <ul>
       <li>authorization leakage and revocation;</li>
