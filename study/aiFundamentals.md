@@ -231,21 +231,23 @@ Temperature is applied at every generated-token step. It changes the shape of th
 
 - Lower temperature concentrates probability on likely tokens; it does not make them factual.
 - Temperature does not remove tokens or choose the next token by itself.
+- **Tip:** higher temperature makes outputs more varied and less predictable; lower temperature makes them more conservative and repeatable.
+- `T = 1` is the baseline: it leaves the logits unchanged. Values below `1` sharpen the distribution; values above `1`, if an API allows them, flatten it. If your API only offers `0–1`, then `1` is simply its least-conservative setting. This walkthrough compares `1.2`, `0.9`, `0.5`, and `0.1`.
 
-Continue the France request with these illustrative **relative logits**. Conceptually, temperature divides each logit by `T`. At `T = 0.5`, their separation doubles:
+Continue the France request with these illustrative **relative logits**. Conceptually, temperature divides each logit by `T`: a lower `T` increases the separation between scores.
 
-| Token | Raw logit | After `logit ÷ 0.5` |
-|---|---:|---:|
-| `" Paris"` | -0.693 | -1.386 |
-| `" Lyon"` | -1.386 | -2.772 |
-| `" Marseille"` | -1.897 | -3.794 |
-| `" Berlin"` | -2.659 | -5.318 |
-| `" Rome"` | -3.507 | -7.014 |
+| Token | Raw logit | `÷ 1.2` | `÷ 0.9` | `÷ 0.5` | `÷ 0.1` |
+|---|---:|---:|---:|---:|---:|
+| `" Paris"` | -0.693 | -0.578 | -0.770 | -1.386 | -6.930 |
+| `" Lyon"` | -1.386 | -1.155 | -1.540 | -2.772 | -13.860 |
+| `" Marseille"` | -1.897 | -1.581 | -2.108 | -3.794 | -18.970 |
+| `" Berlin"` | -2.659 | -2.216 | -2.954 | -5.318 | -26.590 |
+| `" Rome"` | -3.507 | -2.923 | -3.897 | -7.014 | -35.070 |
 
 These are still **logits**, not probabilities. The diagram shows only the Stage 6 rescaling; Stage 7 applies softmax next.
 
 <div class="image-wrapper">
-  <img src="./assets/temperature_logit_scaling.svg" alt="Diagram showing temperature 0.5 dividing raw logits and making their relative separation larger before softmax" class="modal-trigger" data-caption="Temperature rescales logits before softmax">
+  <img src="./assets/temperature_logit_scaling.svg" alt="Diagram comparing the same raw logits after division by temperatures 1.2, 0.9, 0.5, and 0.1 before softmax" class="modal-trigger" data-caption="Temperature rescales logits before softmax">
   <div class="diagram-caption">📐 Stage 6: temperature rescales logits only — no probabilities yet</div>
 </div>
 
@@ -253,15 +255,15 @@ These are still **logits**, not probabilities. The diagram shows only the Stage 
 
 **Softmax** converts the temperature-adjusted logits from Stage 6 into a probability distribution: every probability is non-negative and the full vocabulary sums to 100%. For the France example, it produces:
 
-| Token | `temperature = 1` baseline | After Stage 6: `temperature = 0.5`, then softmax |
-|---|---:|---:|
-| `" Paris"` | 50% | 73.4% |
-| `" Lyon"` | 25% | 18.3% |
-| `" Marseille"` | 15% | 6.6% |
-| `" Berlin"` | 7% | 1.4% |
-| `" Rome"` | 3% | 0.3% |
+| Token | `temperature = 1.2` | `temperature = 0.9` | `temperature = 0.5` | `temperature = 0.1` |
+|---|---:|---:|---:|---:|
+| `" Paris"` | 45.1% | 53.2% | 73.4% | 99.9% |
+| `" Lyon"` | 25.3% | 24.6% | 18.3% | 0.1% |
+| `" Marseille"` | 16.5% | 13.9% | 6.6% | <0.1% |
+| `" Berlin"` | 8.8% | 6.0% | 1.4% | <0.1% |
+| `" Rome"` | 4.3% | 2.3% | 0.3% | <0.1% |
 
-Only now do we have probabilities that top-p can use.
+Only now do we have probabilities that top-p can use. To keep one concrete path through the later stages, use the orange `temperature = 0.5` column below; the next diagram also shows how the top-p candidates change at `1.2`, `0.9`, and `0.1`.
 
 <div class="image-wrapper">
   <img src="./assets/temperature_probability_distribution.svg" alt="Grouped bar chart showing that softmax turns temperature-adjusted logits into a sharper probability distribution" class="modal-trigger" data-caption="Softmax converts the temperature-adjusted logits into probabilities">
@@ -271,6 +273,8 @@ Only now do we have probabilities that top-p can use.
 ## 9. Stage 8 — top-p filters the sampling candidates
 
 **Apply `top-p = 0.8`** to the Stage 7 probabilities. Starting from the most likely token, keep tokens until their cumulative probability reaches at least 80%:
+
+**Tip:** higher top-p keeps a larger probability mass and more candidate tokens; lower top-p keeps fewer, more likely candidates.
 
 **Cumulative probability** means a running total after sorting tokens from most likely to least likely:
 
@@ -299,13 +303,13 @@ Top-p compares its threshold with this running total. It does **not** require an
 ```
 
 <div class="image-wrapper">
-  <img src="./assets/top_p_candidate_filter.svg" alt="Top-p 0.8 keeps Paris and Lyon, then crosses out Marseille, Berlin, and Rome after cumulative probability passes 80 percent" class="modal-trigger" data-caption="Top-p keeps tokens until cumulative probability reaches its threshold">
-  <div class="diagram-caption">✂️ Top-p keeps Paris and Lyon; the remaining tokens cannot be sampled</div>
+  <img src="./assets/top_p_candidate_filter.svg" alt="Colour-coded comparison showing that Top-p 0.8 keeps three candidates at temperatures 1.2 and 0.9, two at 0.5, and one at 0.1" class="modal-trigger" data-caption="Temperature changes the distribution; Top-p then filters it">
+  <div class="diagram-caption">✂️ With the same Top-p = 0.8, lower temperature reaches the threshold with fewer candidates</div>
 </div>
 
 ## 10. Stage 9 — sample the next token {#section-6-4-next-token}
 
-Only `" Paris"` and `" Lyon"` are eligible. Their probabilities are normalized within that candidate set—roughly 80% versus 20%—and one is sampled. They are not equally likely. In this walkthrough, sampling selects `" Paris"`.
+Continue the orange `temperature = 0.5` path: only `" Paris"` and `" Lyon"` are eligible. Their probabilities are normalized within that candidate set—roughly 80% versus 20%—and one is sampled. They are not equally likely. In this walkthrough, sampling selects `" Paris"`.
 
 <div class="image-wrapper">
   <img src="./assets/top_p_renormalized_sampling.svg" alt="After Top-p filtering, Paris and Lyon are renormalized to approximately 80 and 20 percent for sampling" class="modal-trigger" data-caption="The retained Top-p candidates are renormalized before sampling">

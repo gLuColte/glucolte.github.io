@@ -330,43 +330,63 @@ contextual representation used for next-token prediction
 <ul>
   <li>Lower temperature concentrates probability on likely tokens; it does not make them factual.</li>
   <li>Temperature does not remove tokens or choose the next token by itself.</li>
+  <li><strong>Tip:</strong> higher temperature makes outputs more varied and less predictable; lower temperature makes them more conservative and repeatable.</li>
+  <li><code class="language-plaintext highlighter-rouge">T = 1</code> is the baseline: it leaves the logits unchanged. Values below <code class="language-plaintext highlighter-rouge">1</code> sharpen the distribution; values above <code class="language-plaintext highlighter-rouge">1</code>, if an API allows them, flatten it. If your API only offers <code class="language-plaintext highlighter-rouge">0–1</code>, then <code class="language-plaintext highlighter-rouge">1</code> is simply its least-conservative setting. This walkthrough compares <code class="language-plaintext highlighter-rouge">1.2</code>, <code class="language-plaintext highlighter-rouge">0.9</code>, <code class="language-plaintext highlighter-rouge">0.5</code>, and <code class="language-plaintext highlighter-rouge">0.1</code>.</li>
 </ul>
 
-<p>Continue the France request with these illustrative <strong>relative logits</strong>. Conceptually, temperature divides each logit by <code class="language-plaintext highlighter-rouge">T</code>. At <code class="language-plaintext highlighter-rouge">T = 0.5</code>, their separation doubles:</p>
+<p>Continue the France request with these illustrative <strong>relative logits</strong>. Conceptually, temperature divides each logit by <code class="language-plaintext highlighter-rouge">T</code>: a lower <code class="language-plaintext highlighter-rouge">T</code> increases the separation between scores.</p>
 
 <table>
   <thead>
     <tr>
       <th>Token</th>
       <th style="text-align: right">Raw logit</th>
-      <th style="text-align: right">After <code class="language-plaintext highlighter-rouge">logit ÷ 0.5</code></th>
+      <th style="text-align: right"><code class="language-plaintext highlighter-rouge">÷ 1.2</code></th>
+      <th style="text-align: right"><code class="language-plaintext highlighter-rouge">÷ 0.9</code></th>
+      <th style="text-align: right"><code class="language-plaintext highlighter-rouge">÷ 0.5</code></th>
+      <th style="text-align: right"><code class="language-plaintext highlighter-rouge">÷ 0.1</code></th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Paris"</code></td>
       <td style="text-align: right">-0.693</td>
+      <td style="text-align: right">-0.578</td>
+      <td style="text-align: right">-0.770</td>
       <td style="text-align: right">-1.386</td>
+      <td style="text-align: right">-6.930</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Lyon"</code></td>
       <td style="text-align: right">-1.386</td>
+      <td style="text-align: right">-1.155</td>
+      <td style="text-align: right">-1.540</td>
       <td style="text-align: right">-2.772</td>
+      <td style="text-align: right">-13.860</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Marseille"</code></td>
       <td style="text-align: right">-1.897</td>
+      <td style="text-align: right">-1.581</td>
+      <td style="text-align: right">-2.108</td>
       <td style="text-align: right">-3.794</td>
+      <td style="text-align: right">-18.970</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Berlin"</code></td>
       <td style="text-align: right">-2.659</td>
+      <td style="text-align: right">-2.216</td>
+      <td style="text-align: right">-2.954</td>
       <td style="text-align: right">-5.318</td>
+      <td style="text-align: right">-26.590</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Rome"</code></td>
       <td style="text-align: right">-3.507</td>
+      <td style="text-align: right">-2.923</td>
+      <td style="text-align: right">-3.897</td>
       <td style="text-align: right">-7.014</td>
+      <td style="text-align: right">-35.070</td>
     </tr>
   </tbody>
 </table>
@@ -374,7 +394,7 @@ contextual representation used for next-token prediction
 <p>These are still <strong>logits</strong>, not probabilities. The diagram shows only the Stage 6 rescaling; Stage 7 applies softmax next.</p>
 
 <div class="image-wrapper">
-  <img src="./assets/temperature_logit_scaling.svg" alt="Diagram showing temperature 0.5 dividing raw logits and making their relative separation larger before softmax" class="modal-trigger" data-caption="Temperature rescales logits before softmax" />
+  <img src="./assets/temperature_logit_scaling.svg" alt="Diagram comparing the same raw logits after division by temperatures 1.2, 0.9, 0.5, and 0.1 before softmax" class="modal-trigger" data-caption="Temperature rescales logits before softmax" />
   <div class="diagram-caption">📐 Stage 6: temperature rescales logits only — no probabilities yet</div>
 </div>
 
@@ -386,40 +406,52 @@ contextual representation used for next-token prediction
   <thead>
     <tr>
       <th>Token</th>
-      <th style="text-align: right"><code class="language-plaintext highlighter-rouge">temperature = 1</code> baseline</th>
-      <th style="text-align: right">After Stage 6: <code class="language-plaintext highlighter-rouge">temperature = 0.5</code>, then softmax</th>
+      <th style="text-align: right"><code class="language-plaintext highlighter-rouge">temperature = 1.2</code></th>
+      <th style="text-align: right"><code class="language-plaintext highlighter-rouge">temperature = 0.9</code></th>
+      <th style="text-align: right"><code class="language-plaintext highlighter-rouge">temperature = 0.5</code></th>
+      <th style="text-align: right"><code class="language-plaintext highlighter-rouge">temperature = 0.1</code></th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Paris"</code></td>
-      <td style="text-align: right">50%</td>
+      <td style="text-align: right">45.1%</td>
+      <td style="text-align: right">53.2%</td>
       <td style="text-align: right">73.4%</td>
+      <td style="text-align: right">99.9%</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Lyon"</code></td>
-      <td style="text-align: right">25%</td>
+      <td style="text-align: right">25.3%</td>
+      <td style="text-align: right">24.6%</td>
       <td style="text-align: right">18.3%</td>
+      <td style="text-align: right">0.1%</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Marseille"</code></td>
-      <td style="text-align: right">15%</td>
+      <td style="text-align: right">16.5%</td>
+      <td style="text-align: right">13.9%</td>
       <td style="text-align: right">6.6%</td>
+      <td style="text-align: right">&lt;0.1%</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Berlin"</code></td>
-      <td style="text-align: right">7%</td>
+      <td style="text-align: right">8.8%</td>
+      <td style="text-align: right">6.0%</td>
       <td style="text-align: right">1.4%</td>
+      <td style="text-align: right">&lt;0.1%</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Rome"</code></td>
-      <td style="text-align: right">3%</td>
+      <td style="text-align: right">4.3%</td>
+      <td style="text-align: right">2.3%</td>
       <td style="text-align: right">0.3%</td>
+      <td style="text-align: right">&lt;0.1%</td>
     </tr>
   </tbody>
 </table>
 
-<p>Only now do we have probabilities that top-p can use.</p>
+<p>Only now do we have probabilities that top-p can use. To keep one concrete path through the later stages, use the orange <code class="language-plaintext highlighter-rouge">temperature = 0.5</code> column below; the next diagram also shows how the top-p candidates change at <code class="language-plaintext highlighter-rouge">1.2</code>, <code class="language-plaintext highlighter-rouge">0.9</code>, and <code class="language-plaintext highlighter-rouge">0.1</code>.</p>
 
 <div class="image-wrapper">
   <img src="./assets/temperature_probability_distribution.svg" alt="Grouped bar chart showing that softmax turns temperature-adjusted logits into a sharper probability distribution" class="modal-trigger" data-caption="Softmax converts the temperature-adjusted logits into probabilities" />
@@ -429,6 +461,8 @@ contextual representation used for next-token prediction
 <h2 id="9-stage-8--top-p-filters-the-sampling-candidates">9. Stage 8 — top-p filters the sampling candidates</h2>
 
 <p><strong>Apply <code class="language-plaintext highlighter-rouge">top-p = 0.8</code></strong> to the Stage 7 probabilities. Starting from the most likely token, keep tokens until their cumulative probability reaches at least 80%:</p>
+
+<p><strong>Tip:</strong> higher top-p keeps a larger probability mass and more candidate tokens; lower top-p keeps fewer, more likely candidates.</p>
 
 <p><strong>Cumulative probability</strong> means a running total after sorting tokens from most likely to least likely:</p>
 
@@ -484,13 +518,13 @@ contextual representation used for next-token prediction
 </code></pre></div></div>
 
 <div class="image-wrapper">
-  <img src="./assets/top_p_candidate_filter.svg" alt="Top-p 0.8 keeps Paris and Lyon, then crosses out Marseille, Berlin, and Rome after cumulative probability passes 80 percent" class="modal-trigger" data-caption="Top-p keeps tokens until cumulative probability reaches its threshold" />
-  <div class="diagram-caption">✂️ Top-p keeps Paris and Lyon; the remaining tokens cannot be sampled</div>
+  <img src="./assets/top_p_candidate_filter.svg" alt="Colour-coded comparison showing that Top-p 0.8 keeps three candidates at temperatures 1.2 and 0.9, two at 0.5, and one at 0.1" class="modal-trigger" data-caption="Temperature changes the distribution; Top-p then filters it" />
+  <div class="diagram-caption">✂️ With the same Top-p = 0.8, lower temperature reaches the threshold with fewer candidates</div>
 </div>
 
 <h2 id="section-6-4-next-token">10. Stage 9 — sample the next token</h2>
 
-<p>Only <code class="language-plaintext highlighter-rouge">" Paris"</code> and <code class="language-plaintext highlighter-rouge">" Lyon"</code> are eligible. Their probabilities are normalized within that candidate set—roughly 80% versus 20%—and one is sampled. They are not equally likely. In this walkthrough, sampling selects <code class="language-plaintext highlighter-rouge">" Paris"</code>.</p>
+<p>Continue the orange <code class="language-plaintext highlighter-rouge">temperature = 0.5</code> path: only <code class="language-plaintext highlighter-rouge">" Paris"</code> and <code class="language-plaintext highlighter-rouge">" Lyon"</code> are eligible. Their probabilities are normalized within that candidate set—roughly 80% versus 20%—and one is sampled. They are not equally likely. In this walkthrough, sampling selects <code class="language-plaintext highlighter-rouge">" Paris"</code>.</p>
 
 <div class="image-wrapper">
   <img src="./assets/top_p_renormalized_sampling.svg" alt="After Top-p filtering, Paris and Lyon are renormalized to approximately 80 and 20 percent for sampling" class="modal-trigger" data-caption="The retained Top-p candidates are renormalized before sampling" />
