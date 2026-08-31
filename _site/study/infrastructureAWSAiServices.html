@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSAiServices" />
-<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSAiServices" />
+<link rel="canonical" href="https://glucolte.github.io/study/infrastructureAWSAiServices" />
+<meta property="og:url" content="https://glucolte.github.io/study/infrastructureAWSAiServices" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AWS AI Services" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS AI Services","url":"http://localhost:4000/study/infrastructureAWSAiServices"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS AI Services","url":"https://glucolte.github.io/study/infrastructureAWSAiServices"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -361,9 +361,16 @@ App --> User: Response + citations
 <h3 id="section-2-2-capabilities">2.2 Bedrock application capabilities</h3>
 
 <ul>
+  <li><strong>Model customization / fine-tuning</strong>:
+    <ul>
+      <li>uses a labelled training dataset to adjust parameters of a supported base model for a narrow task or consistent behaviour;</li>
+      <li>is separate from retrieval; it is not a way to attach a document library at inference time.</li>
+    </ul>
+  </li>
   <li><strong>Knowledge Bases</strong>:
     <ul>
       <li>managed ingestion and RAG retrieval/generation integration;</li>
+      <li>retrieves relevant documents into a request without changing the foundation model’s weights;</li>
       <li>covered in the retrieval comparison below.</li>
     </ul>
   </li>
@@ -1190,11 +1197,33 @@ Need known durable states, compensation, or human approval?
   </tbody>
 </table>
 
+<h3 id="section-12-5-security">12.5 ML-assisted security and data protection</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Service</th>
+      <th>Major feature → purpose</th>
+      <th>Service purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Amazon Macie</strong></td>
+      <td><strong>Automated sensitive data discovery</strong> → continually sample and inspect eligible S3 objects<br /><strong>Sensitive data discovery jobs</strong> → target selected S3 buckets or objects<br /><strong>Managed/custom data identifiers</strong> → detect PII, financial data, credentials, or organization-specific patterns<br /><strong>Findings/S3 posture monitoring</strong> → report sensitive-data and policy risks</td>
+      <td>Discover, monitor, and help protect sensitive data in Amazon S3 using machine learning and pattern matching.</td>
+    </tr>
+  </tbody>
+</table>
+
 <h2 id="section-13-practice-traps">13. Practice-exam traps</h2>
 
 <ul>
   <li><strong>Textract</strong>: Form Analysis returns key-value pairs; invoices and receipts have the specialized <code class="language-plaintext highlighter-rouge">AnalyzeExpense</code> API. Treating these as competing answers is misleading.</li>
   <li><strong>Comprehend Medical</strong> extracts clinical entities and PHI; standard <strong>Comprehend</strong> supplies sentiment and topic analysis.</li>
+  <li><strong>Comprehend custom classification</strong> categorizes whole documents into business labels, such as routing emails to Sales, Support, or Billing. Entities and key phrases extract details; they do not perform the routing classification by themselves.</li>
+  <li><strong>Bedrock Knowledge Bases</strong> provide RAG at inference time; <strong>Bedrock fine-tuning</strong> uses labelled training data to modify a supported model. They solve different problems.</li>
+  <li><strong>CloudTrail</strong> answers “who called which AWS API and when?”; <strong>AWS Config</strong> answers “which resource configuration was present, and does it comply with a rule?” Use both when a question asks for API auditing plus configuration compliance.</li>
   <li><strong>Rekognition</strong> <code class="language-plaintext highlighter-rouge">DetectLabels</code> can return labels and bounding boxes. Custom shelf-state detection normally uses <strong>Custom Labels</strong>; “Object Detection” is not a separate standard Rekognition feature name.</li>
   <li>A neural network’s practical purpose is to <strong>learn complex mappings and patterns</strong>. It is loosely brain-inspired, not a literal brain simulation.</li>
   <li>To reduce generative-output variability, lower <strong>temperature/top-p</strong> or use deterministic controls where supported. Multiple runs measure variability; they do not make one run deterministic.</li>
@@ -1211,6 +1240,8 @@ Need known durable states, compensation, or human approval?
   <li><a href="https://docs.aws.amazon.com/textract/latest/dg/how-it-works-analyzing.html">Amazon Textract document analysis</a></li>
   <li><a href="https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/built-in-plugin.html">Amazon Q Business built-in plugins</a></li>
   <li><a href="https://docs.aws.amazon.com/bedrock/">Amazon Bedrock documentation</a></li>
+  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html">Amazon Bedrock model customization</a></li>
+  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html">Amazon Bedrock inference parameters</a></li>
   <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html">Amazon Bedrock AgentCore overview</a></li>
   <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html">AgentCore Memory types</a></li>
   <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html">AgentCore Gateway</a></li>
@@ -1221,6 +1252,7 @@ Need known durable states, compensation, or human approval?
   <li><a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-configure-neural-search.html">Amazon OpenSearch Service neural and hybrid search</a></li>
   <li><a href="https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html">Amazon Kendra user-context filtering</a></li>
   <li><a href="https://docs.aws.amazon.com/kendra/latest/dg/tuning.html">Amazon Kendra relevance tuning</a></li>
+  <li><a href="https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html">Amazon Macie overview</a></li>
 </ul>
 
     </article>

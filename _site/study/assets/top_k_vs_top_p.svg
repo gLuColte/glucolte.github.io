@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="750" viewBox="0 0 1000 750" role="img" aria-labelledby="title description">
+  <title id="title">Generation top-k and top-p</title>
+  <desc id="description">Two examples compare generation top-k and top-p after softmax. Top-k always retains a fixed number of next-token candidates, whereas top-p retains as many candidates as necessary to reach its cumulative probability threshold. Supported inference APIs can apply both filters together.</desc>
+  <rect width="1000" height="750" rx="18" fill="#f8fafc"/>
+  <g font-family="Arial, sans-serif">
+    <text x="500" y="42" text-anchor="middle" font-size="25" font-weight="700" fill="#0f172a">Generation Top-k and Top-p</text>
+    <text x="500" y="69" text-anchor="middle" font-size="15" fill="#475569">Both act after softmax and before sampling; supported APIs can apply both filters.</text>
+
+    <rect x="60" y="93" width="420" height="76" rx="12" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+    <text x="86" y="126" font-size="20" font-weight="700" fill="#2563eb">Top-k = 2</text>
+    <text x="86" y="151" font-size="14" fill="#334155">Keep exactly the two highest-probability tokens.</text>
+    <rect x="520" y="93" width="420" height="76" rx="12" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+    <text x="546" y="126" font-size="20" font-weight="700" fill="#c2410c">Top-p = 0.8</text>
+    <text x="546" y="151" font-size="14" fill="#334155">Keep tokens until their running total reaches 80%.</text>
+
+    <text x="60" y="208" font-size="18" font-weight="700" fill="#0f172a">Example A — the France request at temperature = 0.5</text>
+    <text x="60" y="232" font-size="14" fill="#475569">Probability distribution: Paris 73.4%, Lyon 18.3%, Marseille 6.6%, Berlin 1.4%, Rome 0.3%</text>
+
+    <text x="60" y="268" font-size="14" font-weight="700" fill="#2563eb">Top-k: fixed count</text>
+    <rect x="60" y="281" width="308" height="40" rx="7" fill="#f97316"/><text x="214" y="307" text-anchor="middle" font-size="15" font-weight="700" fill="white">Paris 73.4% — KEEP</text>
+    <rect x="373" y="281" width="77" height="40" rx="7" fill="#fb923c"/><text x="411" y="307" text-anchor="middle" font-size="13" font-weight="700" fill="white">Lyon 18.3%</text>
+    <rect x="455" y="281" width="25" height="40" rx="7" fill="#cbd5e1"/>
+    <text x="60" y="345" font-size="14" fill="#2563eb">Exactly 2 candidates retained → combined mass 91.7%</text>
+
+    <text x="520" y="268" font-size="14" font-weight="700" fill="#c2410c">Top-p: threshold</text>
+    <rect x="520" y="281" width="308" height="40" rx="7" fill="#f97316"/><text x="674" y="307" text-anchor="middle" font-size="15" font-weight="700" fill="white">Paris 73.4% — KEEP</text>
+    <rect x="833" y="281" width="77" height="40" rx="7" fill="#fb923c"/><text x="871" y="307" text-anchor="middle" font-size="13" font-weight="700" fill="white">Lyon 18.3%</text>
+    <rect x="915" y="281" width="25" height="40" rx="7" fill="#cbd5e1"/>
+    <text x="520" y="345" font-size="14" fill="#c2410c">73.4% then 91.7% → threshold crossed after 2 candidates</text>
+
+    <rect x="60" y="370" width="880" height="42" rx="9" fill="#f1f5f9"/>
+    <text x="500" y="397" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">Here they happen to keep the same two candidates. The next, flatter distribution exposes the difference.</text>
+
+    <text x="60" y="462" font-size="18" font-weight="700" fill="#0f172a">Example B — a more uncertain next token</text>
+    <text x="60" y="486" font-size="14" fill="#475569">Illustrative distribution: Paris 40%, Lyon 25%, Marseille 20%, Nice 10%, Bordeaux 5%</text>
+
+    <text x="60" y="522" font-size="14" font-weight="700" fill="#2563eb">Top-k: fixed count</text>
+    <rect x="60" y="535" width="168" height="40" rx="7" fill="#3b82f6"/><text x="144" y="561" text-anchor="middle" font-size="14" font-weight="700" fill="white">Paris 40%</text>
+    <rect x="233" y="535" width="105" height="40" rx="7" fill="#60a5fa"/><text x="285" y="561" text-anchor="middle" font-size="14" font-weight="700" fill="white">Lyon 25%</text>
+    <rect x="343" y="535" width="84" height="40" rx="7" fill="#cbd5e1"/><text x="385" y="561" text-anchor="middle" font-size="13" fill="#64748b">M 20%</text>
+    <rect x="432" y="535" width="42" height="40" rx="7" fill="#cbd5e1"/><text x="453" y="561" text-anchor="middle" font-size="12" fill="#64748b">N</text>
+    <text x="60" y="599" font-size="14" fill="#2563eb">Still exactly 2 candidates → combined mass 65%</text>
+
+    <text x="520" y="522" font-size="14" font-weight="700" fill="#c2410c">Top-p: threshold</text>
+    <rect x="520" y="535" width="168" height="40" rx="7" fill="#f97316"/><text x="604" y="561" text-anchor="middle" font-size="14" font-weight="700" fill="white">Paris 40%</text>
+    <rect x="693" y="535" width="105" height="40" rx="7" fill="#fb923c"/><text x="745" y="561" text-anchor="middle" font-size="14" font-weight="700" fill="white">Lyon 25%</text>
+    <rect x="803" y="535" width="84" height="40" rx="7" fill="#fdba74"/><text x="845" y="561" text-anchor="middle" font-size="13" font-weight="700" fill="#7c2d12">M 20%</text>
+    <rect x="892" y="535" width="42" height="40" rx="7" fill="#cbd5e1"/><text x="913" y="561" text-anchor="middle" font-size="12" fill="#64748b">N</text>
+    <text x="520" y="599" font-size="14" fill="#c2410c">40% + 25% + 20% = 85% → 3 candidates retained</text>
+
+    <rect x="60" y="641" width="880" height="70" rx="10" fill="#e0f2fe" stroke="#7dd3fc"/>
+    <text x="84" y="670" font-size="15" font-weight="700" fill="#075985">Same name, different stage: retrieval top-k is separate.</text>
+    <text x="84" y="695" font-size="14" fill="#0c4a6e">Generation top-k filters next-token candidates here. Retrieval top-k selects the first K document chunks before the LLM receives its prompt.</text>
+  </g>
+</svg>

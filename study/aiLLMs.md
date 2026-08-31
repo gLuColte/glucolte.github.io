@@ -8,6 +8,7 @@ permalink: /study/aiLLMs
 The former LLM page mixed fundamentals, model vendors, retrieval, and agents. Read:
 
 - [AI fundamentals](/study/aiFundamentals) — tokens, transformers, inference, prompting, and decoding.
+- [AI Prompt Engineering](/study/aiPromptEngineering) — zero-shot, few-shot, chain-of-thought, negative prompting, and templates.
 - [AI models and providers](/study/aiModels) — model capabilities, workload selection, provider access, hosting, and portability.
 - [Knowledge bases](/study/aiKnowledgebases) — retrieval-augmented generation.
 - [Agents](/study/aiAgents) — tools, orchestration, state, and autonomy.

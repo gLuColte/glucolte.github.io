@@ -386,7 +386,7 @@ The following are system design fundamentals study pages:
 
 ## AI {#ai}
 
-- Recommended order: fundamentals → models/providers → retrieval → agents → infrastructure/evaluation → AWS services.
+- Recommended order: fundamentals → prompt engineering → models/providers → retrieval → agents → infrastructure/evaluation → AWS services.
 - The tiles below are the only AI index. Merged and legacy URLs remain available for old bookmarks but are hidden here.
 
 <div class="study-tiles">
@@ -396,33 +396,39 @@ The following are system design fundamentals study pages:
       AI Fundamentals
     </div>
   </a>
-  <a href="{{ '/study/aiModels' | relative_url }}" class="study-tile system-design">
+  <a href="{{ '/study/aiPromptEngineering' | relative_url }}" class="study-tile system-design">
     <div class="study-tile-title">
       <span class="study-tile-icon">2️⃣</span>
+      AI Prompt Engineering
+    </div>
+  </a>
+  <a href="{{ '/study/aiModels' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">3️⃣</span>
       AI Models and Providers
     </div>
   </a>
   <a href="{{ '/study/aiKnowledgebases' | relative_url }}" class="study-tile system-design">
     <div class="study-tile-title">
-      <span class="study-tile-icon">3️⃣</span>
+      <span class="study-tile-icon">4️⃣</span>
       AI Knowledge Bases and Retrieval
     </div>
   </a>
   <a href="{{ '/study/aiAgents' | relative_url }}" class="study-tile system-design">
     <div class="study-tile-title">
-      <span class="study-tile-icon">4️⃣</span>
+      <span class="study-tile-icon">5️⃣</span>
       AI Agents
     </div>
   </a>
   <a href="{{ '/study/aiInfrastructure' | relative_url }}" class="study-tile system-design">
     <div class="study-tile-title">
-      <span class="study-tile-icon">5️⃣</span>
+      <span class="study-tile-icon">6️⃣</span>
       AI Infrastructure and Evaluation
     </div>
   </a>
   <a href="{{ '/study/infrastructureAWSAiServices' | relative_url }}" class="study-tile system-design">
     <div class="study-tile-title">
-      <span class="study-tile-icon">6️⃣</span>
+      <span class="study-tile-icon">7️⃣</span>
       AWS AI Services
     </div>
   </a>

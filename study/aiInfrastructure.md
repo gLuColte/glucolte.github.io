@@ -431,6 +431,17 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
   - high Recall@K can still produce an ungrounded answer;
   - schema validity can hide wrong values.
 
+### 13.1 Business and adaptability metrics
+
+| Metric | What it answers |
+|---|---|
+| **Efficiency** | Are compute, storage, energy, time, and human-review resources producing enough successful work for their cost? |
+| **Conversion rate** | What percentage of users complete the desired action, such as a purchase or sign-up? |
+| **User satisfaction** | Do users report that the experience and output are useful? |
+| **Cross-domain performance** | Does quality remain acceptable across distinct contexts such as healthcare, finance, and entertainment? |
+
+These measure different things. A system can be efficient but unpopular, or satisfy users while consuming too many resources.
+
 ## 14. LLM-as-judge and human evaluation {#section-14-judging}
 
 - LLM judges are useful for scalable rubric-based scoring and pairwise comparison.

@@ -77,6 +77,10 @@ App --> User: Completed response
   </script>
 </div>
 
+### Before Stage 1 — construct the prompt
+
+Before this text reaches the tokenizer, the application combines the user's request with the task instructions, relevant context, optional examples, and desired output format. Learn how to design that input in [AI Prompt Engineering](/study/aiPromptEngineering).
+
 ## 2. Stage 1 — text becomes tokens and token IDs {#section-2-tokenization}
 
 - A **tokenizer** splits text using a vocabulary designed for that model.
@@ -275,6 +279,24 @@ Only now do we have probabilities that top-p can use. To keep one concrete path 
 **Apply `top-p = 0.8`** to the Stage 7 probabilities. Starting from the most likely token, keep tokens until their cumulative probability reaches at least 80%:
 
 **Tip:** higher top-p keeps a larger probability mass and more candidate tokens; lower top-p keeps fewer, more likely candidates.
+
+### How top-k and top-p differ — and can combine
+
+**Top-k** keeps exactly the `k` most likely next-token candidates. **Top-p** keeps a variable number of candidates until their combined probability reaches `p`. They are not inherently an either/or choice: when a model API supports both, both can constrain the candidate pool before sampling. The exact filtering order is implementation-specific.
+
+| Setting | With the `temperature = 0.5` probabilities below | What is fixed? |
+|---|---|---|
+| `top-k = 2` | keeps `" Paris"` and `" Lyon"` | The number of candidates: 2. |
+| `top-k = 3` | keeps `" Paris"`, `" Lyon"`, and `" Marseille"` | The number of candidates: 3. |
+| `top-p = 0.8` | keeps `" Paris"` and `" Lyon"` because their cumulative probability reaches 91.7% | The probability mass: at least 80%. |
+| `top-k = 2` **and** `top-p = 0.8` | both filters apply; the final pool cannot be wider than Top-k's two candidates in this example | Both constraints. |
+
+Think of both together as a double boundary: Top-k prevents a pool from growing beyond a fixed count; Top-p prevents sampling from candidates outside its probability-mass cutoff. Top-k and top-p are decoding controls, not context length or retrieval `top-k`. Whether an API exposes either control, or allows both together, is model-specific.
+
+<div class="image-wrapper">
+  <img src="./assets/top_k_vs_top_p.svg" alt="Side-by-side examples comparing fixed-count generation Top-k with cumulative-probability generation Top-p" class="modal-trigger" data-caption="Generation Top-k keeps a fixed count; Top-p keeps enough candidates to reach a probability threshold; supported APIs can apply both">
+  <div class="diagram-caption">🔢 Top-k fixes the number of candidates; ✂️ Top-p fixes the probability mass; supported APIs can apply both</div>
+</div>
 
 **Cumulative probability** means a running total after sorting tokens from most likely to least likely:
 
@@ -627,7 +649,18 @@ answer: Apple is a technology company ...
 - Fine-tuning can change learned associations, but it remains a poor database for products, prices, executives, policies, or inventory that change frequently.
 - Use RAG for current document knowledge and APIs/tools for authoritative live state.
 
-### 14.1 Apply it: an Apple support assistant {#section-10-1-mechanism}
+### 14.1 Exam distinction: RAG/knowledge bases versus fine-tuning
+
+Do not merge these ideas:
+
+| Mechanism | What you supply | Do model weights change? | Best for |
+|---|---|---:|---|
+| **RAG / knowledge base** | Relevant documents are retrieved into the current prompt | No | Current, private, or citeable facts. |
+| **Fine-tuning** | A labelled training dataset of input/output examples | Yes | Repeated behaviour, terminology, format, or a narrow task. |
+
+For Amazon Bedrock specifically, a Knowledge Base is managed RAG. Fine-tuning is a model-customization job that uses training data and adjusts the supported base model's parameters. A knowledge base is **not** the fine-tuning dataset.
+
+### 14.2 Apply it: an Apple support assistant {#section-10-1-mechanism}
 
 Apple now builds a support assistant for Gary's device repair. **Apple wants the assistant** to behave consistently, but the surrounding application—not the model—must enforce security and transactions.
 
@@ -651,6 +684,15 @@ Gary confirms → application creates one replacement order transactionally
 - Prompting/fine-tuning changes how the assistant **tends to behave**. Start with prompts, examples, and schemas; fine-tune only when complex repeated behaviour remains inconsistent.
 - RAG can also retrieve behavioural instructions, but supplying “how to behave” on each request differs from making that behaviour a consistent model default.
 - Model output is only a proposal. Authentication, authorization, validation, idempotency, and database guarantees remain deterministic application controls.
+
+### 14.3 Compact ML concepts for exam questions
+
+| Concept | Recognition rule |
+|---|---|
+| **Overfitting** | Very high training performance but weak performance on unseen validation/test data; excessive complexity for the amount of training data increases the risk. |
+| **Underfitting** | Poor performance on both training and unseen data; often too simple or insufficiently trained. |
+| **GAN** | A **generator** creates synthetic samples; a **discriminator** learns to distinguish real from generated samples. Their adversarial feedback improves the generator. |
+| **Reinforcement learning** | An agent learns by acting in an environment to maximize cumulative reward. The reward function must reward desired outcomes and penalize unsafe or unproductive behaviour; refine it from observed failures. |
 
 For deeper treatment, see [AI Knowledge Bases](/study/aiKnowledgebases), [AI Agents](/study/aiAgents), and [AI Infrastructure and Evaluation](/study/aiInfrastructure).
 

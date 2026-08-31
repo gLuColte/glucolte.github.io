@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>AWS Application Services · glucolte</title>
+  <title>AI Prompt Engineering · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,20 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>AWS Application Services | glucolte</title>
+<title>AI Prompt Engineering | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="AWS Application Services" />
+<meta property="og:title" content="AI Prompt Engineering" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/infrastructureAWSAppServices" />
-<meta property="og:url" content="https://glucolte.github.io/study/infrastructureAWSAppServices" />
+<link rel="canonical" href="https://glucolte.github.io/study/aiPromptEngineering" />
+<meta property="og:url" content="https://glucolte.github.io/study/aiPromptEngineering" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="AWS Application Services" />
+<meta property="twitter:title" content="AI Prompt Engineering" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS Application Services","url":"https://glucolte.github.io/study/infrastructureAWSAppServices"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Prompt Engineering","url":"https://glucolte.github.io/study/aiPromptEngineering"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,342 +62,207 @@
 
   <main class="container">
     <article class="content">
-      <h2 id="section-1-amazon-ecs">1. Amazon ECS</h2>
+      <h1 id="ai-prompt-engineering">AI Prompt Engineering</h1>
 
-<p>Elastic Container Service orchestrates Docker containers using task definitions and services while taking care of placement and health checks. Know which construct holds IAM roles, CPU, or restart logic—exam questions love mapping requirements to ECS components.</p>
+<p>Prompt engineering is how an application turns a user need into clear model input. It happens <strong>before</strong> the LLM request is tokenized. For what happens after text enters the model, see <a href="/study/aiFundamentals">AI Fundamentals</a>.</p>
 
-<h3 id="section-1-1-ecs-core">1.1 Core Concepts</h3>
+<h2 id="1-a-prompt-is-an-input-contract">1. A prompt is an input contract</h2>
+
+<p>A useful prompt usually includes only what the model needs:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>role or task
++ relevant context or source text
++ clear instructions and limits
++ optional examples
++ current input
++ required output format
+</code></pre></div></div>
 
 <ul>
-  <li><strong>Task definition</strong> – describes one or more containers, CPU/memory, networking mode, IAM task role, port mappings, command/entrypoint, and environment variables.</li>
-  <li><strong>Service</strong> – runs a desired count of tasks, handles restarts, load balancer registration, and placement strategies.</li>
-  <li><strong>Task role</strong> – IAM permissions inherited by every container in the task.</li>
+  <li>Put the task and success criteria in plain language.</li>
+  <li>Separate instructions, reference material, and user data with headings or delimiters.</li>
+  <li>State the output shape: for example, a one-sentence answer, a table, or a schema.</li>
+  <li>Treat user input and retrieved text as data, not trusted instructions.</li>
 </ul>
 
-<h3 id="section-1-2-ecs-launch">1.2 Launch Types</h3>
+<h2 id="shots">2. Zero-shot, one-shot, and few-shot prompting</h2>
 
-<table class="study-table">
-<thead>
-<tr>
-<th>Launch Type</th>
-<th>When to Use</th>
-<th>Operational Model</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>EC2</strong></td>
-<td>Need control over servers, spot/reserved pricing, or local instance storage.</td>
-<td>Provision and patch the EC2 instances; ECS schedules tasks onto them.</td>
-</tr>
-<tr>
-<td><strong>Fargate</strong></td>
-<td>Serverless containers, per-second billing, small/bursty workloads, fast scale.</td>
-<td>AWS manages the infrastructure; each task receives an ENI inside your VPC.</td>
-</tr>
-<tr>
-<td><strong>ECS Anywhere</strong></td>
-<td>Hybrid/on-premises clusters while reusing ECS control plane.</td>
-<td>Install the ECS Anywhere agent on customer-managed hardware.</td>
-</tr>
-</tbody>
+<p>A <strong>shot</strong> is an input → desired-output example inside the prompt.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Technique</th>
+      <th>What the prompt contains</th>
+      <th>Best use</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Zero-shot</strong></td>
+      <td>Instructions only; no examples</td>
+      <td>A clear, familiar task where the format is simple.</td>
+    </tr>
+    <tr>
+      <td><strong>One-shot</strong></td>
+      <td>One example</td>
+      <td>A small formatting or classification cue.</td>
+    </tr>
+    <tr>
+      <td><strong>Few-shot</strong></td>
+      <td>Several representative examples</td>
+      <td>A task with a specific label set, tone, structure, or edge cases.</td>
+    </tr>
+  </tbody>
 </table>
 
-<hr />
+<p>Use the same task to see the difference:</p>
 
-<h2 id="section-2-amazon-eks">2. Amazon EKS</h2>
+<p><strong>Zero-shot</strong></p>
 
-<p>Managed Kubernetes service with multi-AZ control plane and integration into AWS networking and storage.</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Classify this support ticket as Urgent, General Inquiry, or Feedback.
 
-<ul>
-  <li>Control plane nodes run in an AWS-managed VPC across multiple AZs with etcd replication. AWS patches/monitors the API servers and etcd so you only worry about worker nodes.</li>
-  <li>Worker nodes (self-managed, managed node groups, or Fargate pods) live in your VPC; ENIs are injected into your subnets so SGs/NACLs behave like standard EC2 instances.</li>
-  <li>Storage add-ons (EBS/EFS/FSx CSI drivers) provide persistent volumes; load balancers map to ALB/NLB via controllers. IAM roles for service accounts (IRSA) integrate pods with IAM.</li>
-  <li>EKS Anywhere/EKS Distro extend clusters on-premises for hybrid edge deployments.</li>
-</ul>
+Ticket: "My account was charged twice and I cannot log in."
+Answer:
+</code></pre></div></div>
 
-<hr />
+<p><strong>Few-shot</strong></p>
 
-<h2 id="section-3-amazon-sns">3. Amazon SNS</h2>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Classify each ticket as Urgent, General Inquiry, or Feedback.
 
-<p>Pub/sub messaging service for fan-out scenarios.</p>
+Ticket: "The checkout page is unavailable." → Urgent
+Ticket: "How do I change my email address?" → General Inquiry
+Ticket: "The new dashboard is much easier to use." → Feedback
 
-<ul>
-  <li>Topics receive up to 256 KB payloads and replicate messages to subscribers (HTTP/S, email, SMS, Lambda, SQS, mobile push, Kinesis, Firehose, etc.).</li>
-  <li>Delivery is push-based with retries/backoff; CloudWatch metrics capture success/failure per protocol. Enable message filtering to reduce downstream noise.</li>
-  <li>Encrypt topics with SSE and control access through topic policies so other accounts or services can publish/subscribe.</li>
-  <li>Typical pattern: one publish triggers multiple downstream workflows—order events can update CRMs, notify warehouses, and text customers simultaneously.</li>
-</ul>
-
-<hr />
-
-<h2 id="section-4-amazon-sqs">4. Amazon SQS</h2>
-
-<p>Fully managed queueing service for decoupling producers/consumers.</p>
-
-<h3 id="section-4-1-queue-behavior">4.1 Queue Behavior</h3>
+Ticket: "My account was charged twice and I cannot log in." →
+</code></pre></div></div>
 
 <ul>
-  <li>Producers send messages up to 256 KB; consumers poll for messages (optionally long-poll to cut empty responses).</li>
-  <li><strong>Visibility timeout</strong> prevents other consumers from seeing a message while it is being processed. If the consumer fails to delete the message before timeout, the message becomes visible again—set the timeout slightly longer than normal processing to avoid duplicates.</li>
-  <li><strong>Dead-letter queues (DLQ)</strong> capture poison messages after <code class="language-plaintext highlighter-rouge">maxReceiveCount</code> attempts so bad payloads do not clog the primary queue.</li>
-  <li>Supports server-side encryption, VPC endpoints, and scaling ASGs based on queue depth (watch <code class="language-plaintext highlighter-rouge">ApproximateNumberOfMessagesVisible</code>).</li>
+  <li>Start zero-shot; add examples only when the output is inconsistent.</li>
+  <li>Use examples that cover meaningful differences, not near-duplicates.</li>
+  <li>Few-shot examples consume context tokens, add cost, and can anchor the model to a poor pattern.</li>
+  <li>Few-shot learning uses the labelled examples <strong>in this request</strong> to guide the output; it does not retrain the model or update its weights. Fine-tuning is the separate process that changes weights using a training dataset.</li>
+  <li>For an obscure or changing technical framework, a few official code examples can ground format and syntax. Use retrieved/current official documentation and validation when factual freshness matters; examples alone do not make a model current.</li>
 </ul>
 
-<h3 id="section-4-2-queue-types">4.2 Queue Types</h3>
+<h2 id="chain-of-thought">3. Chain-of-thought (CoT) prompting</h2>
 
-<table class="study-table">
-<thead>
-<tr>
-<th>Type</th>
-<th>Ordering</th>
-<th>Throughput</th>
-<th>Use Case</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Standard</strong></td>
-<td>Best-effort ordering; at-least-once delivery.</td>
-<td>Unlimited TPS.</td>
-<td>General messaging, fan-out from SNS.</td>
-</tr>
-<tr>
-<td><strong>FIFO</strong></td>
-<td>Exactly-once processing, strict ordering (queue name ends with `.fifo`).</td>
-<td>Up to 3,000 msgs/sec with batching (300 without).</td>
-<td>Workflows requiring ordered events or financial transactions.</td>
-</tr>
-</tbody>
+<p><strong>Chain-of-thought prompting</strong> asks a model to break a multi-step problem into intermediate reasoning steps before answering. It is most useful for maths, constraint checking, and multi-step logic—not simple extraction or classification.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Work through the calculation step by step. Check the result.
+Then return only:
+Answer: &lt;number&gt;
+
+Question: A customer has $100, spends $20 and $40, then receives a $35 refund.
+How much remains?
+</code></pre></div></div>
+
+<p>Two related forms:</p>
+
+<ul>
+  <li><strong>Zero-shot CoT</strong>: add a reasoning instruction such as “work step by step,” with no examples.</li>
+  <li><strong>Few-shot CoT</strong>: provide examples that show both the intermediate approach and the final answer format.</li>
+</ul>
+
+<p>CoT can improve difficult reasoning, but it increases latency and output-token cost. Do not treat a plausible written rationale as proof: validate calculations, policy decisions, and high-impact outputs with deterministic checks or authoritative tools. Some reasoning models use internal reasoning that is not fully returned to the user.</p>
+
+<h2 id="negative-prompting">4. Negative prompting and explicit boundaries</h2>
+
+<p><strong>Negative prompting</strong> says what the model must avoid. Pair it with a safe fallback, so the model knows what to do instead.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Use only the supplied product documentation.
+Do not invent product features, prices, or citations.
+If the documentation does not answer the question, say: "I don't have enough information."
+</code></pre></div></div>
+
+<p>Negative prompting is helpful for style and behaviour, but it is not a security control. It cannot enforce authorization, stop all jailbreak attempts, or guarantee truth. Use guardrails, access control, input validation, and output/tool validation where those properties matter.</p>
+
+<h2 id="templates">5. Prompt templates and output constraints</h2>
+
+<p>A <strong>prompt template</strong> keeps a repeatable structure while replacing variables at runtime:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Task:
+Summarize the customer message in one sentence.
+
+Rules:
+- Preserve product names and error codes.
+- Do not infer facts that are not present.
+
+Customer message:
+&lt;message&gt;
+
+&lt;/message&gt;
+
+Output:
+Summary:
+</code></pre></div></div>
+
+<ul>
+  <li>Keep templates versioned and test them against representative examples.</li>
+  <li>Delimit supplied data clearly; do not let it silently merge with instructions.</li>
+  <li>When an application needs machine-readable output, request a schema or use a provider’s structured-output feature. Valid syntax does not guarantee factual, safe, or authorized content.</li>
+</ul>
+
+<h2 id="6-choose-the-simplest-technique-that-fits">6. Choose the simplest technique that fits</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Need</th>
+      <th>Start with</th>
+      <th>Escalate when needed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Clear task and simple format</td>
+      <td>Zero-shot</td>
+      <td>Add an output example.</td>
+    </tr>
+    <tr>
+      <td>Exact labels, tone, or layout</td>
+      <td>One-shot or few-shot</td>
+      <td>Improve representative examples.</td>
+    </tr>
+    <tr>
+      <td>Multi-step calculation or logic</td>
+      <td>Zero-shot CoT</td>
+      <td>Few-shot CoT or deterministic verification.</td>
+    </tr>
+    <tr>
+      <td>Avoid a type of claim or content</td>
+      <td>Negative prompting plus a fallback</td>
+      <td>Guardrails and application validation.</td>
+    </tr>
+    <tr>
+      <td>Repeated production use</td>
+      <td>Versioned template and evaluation set</td>
+      <td>Prompt management and controlled rollout.</td>
+    </tr>
+  </tbody>
 </table>
 
-<h3 id="section-4-3-queue-extras">4.3 Extras</h3>
+<h2 id="7-practical-checklist">7. Practical checklist</h2>
 
 <ul>
-  <li><strong>Extended Client Library</strong> – stores payloads &gt;256 KB in S3, leaving a pointer in the queue. Use for image/document pipelines without rolling custom chunking.</li>
-  <li><strong>Delay queues</strong> – postpone delivery (0–15 minutes). Not supported on FIFO queues. Handy for reminders, scheduled notifications, or staggering retries.</li>
-  <li><strong>Pricing</strong> – billed per request (1 request = up to 10 messages/64 KB) plus optional long polling. Long polling lowers cost by reducing empty responses.</li>
+  <li>Is the task specific, complete, and unambiguous?</li>
+  <li>Is relevant context clearly delimited and kept separate from instructions?</li>
+  <li>Is the desired output shape explicit?</li>
+  <li>Are few-shot examples representative and worth their token cost?</li>
+  <li>Is reasoning really needed, and are important results independently verified?</li>
+  <li>Does a negative instruction have a useful fallback?</li>
+  <li>Are the prompt version, model, inference parameters, and evaluation set recorded?</li>
 </ul>
 
-<hr />
-
-<h2 id="section-5-amazon-mq">5. Amazon MQ</h2>
-
-<p>Managed Apache ActiveMQ broker for legacy protocols (AMQP, MQTT, OpenWire, JMS, STOMP).</p>
+<h2 id="references">References</h2>
 
 <ul>
-  <li>Deploys inside a VPC (single instance or HA pair). You manage network access via security groups.</li>
-  <li>Ideal for lift-and-shift from on-premises brokers when SNS/SQS APIs are not compatible.</li>
+  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-prompt-engineering.html">Amazon Bedrock: What is prompt engineering?</a></li>
+  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-engineering-guidelines.html">Amazon Bedrock: Prompt engineering concepts</a></li>
+  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/design-a-prompt.html">Amazon Bedrock: Design a prompt</a></li>
+  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-templates-and-examples.html">Amazon Bedrock: Prompt templates and examples</a></li>
+  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-reasoning.html">Amazon Bedrock: Enhance model responses with model reasoning</a></li>
 </ul>
-
-<hr />
-
-<h2 id="section-6-aws-lambda">6. AWS Lambda</h2>
-
-<h3 id="section-6-1-execution-model">6.1 Execution Model</h3>
-
-<ul>
-  <li>Package up to 50 MB (zipped) / 250 MB (unzipped) with code + dependencies. Upload via console/CLI/CI or container images.</li>
-  <li>Configure runtime (Node.js, Python, Java, .NET, custom Runtime API), handler, memory (128 MB–10,240 MB), environment variables, execution role, and optional layers.</li>
-  <li><code class="language-plaintext highlighter-rouge">/tmp</code> scratch space (512 MB) or mount EFS for larger persistent storage across invocations.</li>
-  <li>Billed per request + ms of execution (memory size influences cost); max 900 seconds per invoke.</li>
-  <li>CloudWatch Logs, metrics, and AWS X-Ray capture invocation counts, durations, cold starts, and downstream traces.</li>
-</ul>
-
-<h3 id="section-6-2-networking">6.2 Networking</h3>
-
-<ul>
-  <li><strong>Public networking</strong> – Lambda runs on AWS shared infrastructure with internet egress to public services (perfect for hitting AWS public APIs/SaaS endpoints).</li>
-  <li><strong>VPC networking</strong> – attach Lambda to private subnets; AWS creates ENIs for each subnet/security group combo (initial cold attach can take ~90s). Use NAT Gateway or VPC endpoints for outbound access. Required for RDS, Redshift, or on-prem targets.</li>
-</ul>
-
-<h3 id="section-6-3-invocation">6.3 Invocation Patterns</h3>
-
-<ul>
-  <li><strong>Synchronous</strong> – caller waits for response (API Gateway, CLI invoke). Caller handles retries/timeouts; errors bubble back immediately.</li>
-  <li><strong>Asynchronous</strong> – Lambda queues the event and retries up to two times before sending to DLQ/SNS/EventBridge; write idempotent code because events may re-run.</li>
-  <li><strong>Event source mappings</strong> – poll streams/queues (Kinesis, DynamoDB Streams, SQS) and push batches to Lambda; configure batch size, parallelism, and bisect retry, all using the function’s execution role.</li>
-</ul>
-
-<h3 id="section-6-4-versions-aliases">6.4 Versions &amp; Aliases</h3>
-
-<ul>
-  <li>Publishing creates immutable versions with unique ARNs; <code class="language-plaintext highlighter-rouge">$LATEST</code> is mutable.</li>
-  <li>Aliases (e.g., <code class="language-plaintext highlighter-rouge">Dev</code>, <code class="language-plaintext highlighter-rouge">Prod</code>) point to versions and can route percent-based traffic between two versions (canary). <code class="language-plaintext highlighter-rouge">$LATEST</code> cannot be used for alias routing.</li>
-</ul>
-
-<h3 id="section-6-5-env-context">6.5 Environment, Context, and Layers</h3>
-
-<ul>
-  <li><strong>Environment variables</strong> – key/value pairs per version; optionally encrypted with KMS.</li>
-  <li><strong>Execution context</strong> – runtime + extensions + function code kept warm for reuse; cold starts load code from S3. Provisioned Concurrency pre-warms contexts.</li>
-  <li><strong>Layers</strong> – shared <code class="language-plaintext highlighter-rouge">/opt</code> bundles for libraries or runtimes, shrinking deployment packages.</li>
-  <li><strong>Container images</strong> – package runtimes via ECR images with Lambda Runtime API for consistent environments.</li>
-</ul>
-
-<h3 id="section-6-6-handler">6.6 Function Handler Lifecycle</h3>
-
-<div class="image-wrapper">
-  <img src="./assets/lambda_lifecycle.png" alt="lambda_lifecycle" class="modal-trigger" data-caption="🧩 Lambda Lifecycle" />
-  <div class="diagram-caption" data-snippet-id="lambda_lifecycle">
-    🧩 Lambda Lifecycle
-  </div>
-  <script type="text/plain" id="lambda_lifecycle">
-@startuml
-title How applications interact with storage types
-
-actor Application
-
-participant "File System\n(NFS/SMB/Lustre)" as FILE
-participant "Block Device\n(EBS)" as BLOCK
-participant "Object Store\n(S3 API)" as OBJECT
-participant "Physical Disk Blocks" as DISK
-
-Application -> BLOCK: Read/write blocks\n(LBA addresses, sectors)
-BLOCK -> DISK: Map to disk blocks
-
-Application -> FILE: Read/write files\n(open/read/write/close)
-FILE -> DISK: Convert to block operations
-
-Application -> OBJECT: PUT/GET object\n(Key + Metadata)
-OBJECT -> DISK: Store data as objects
-
-@enduml
-  </script>
-</div>
-<hr />
-
-<h2 id="section-7-api-gateway">7. API Gateway</h2>
-
-<p>Managed front door for REST, HTTP, and WebSocket APIs. Think of it as a programmable HTTPS fabric that centralizes auth, throttling, caching, and protocol translation.</p>
-
-<h3 id="section-7-1-structure">7.1 Structure</h3>
-
-<ul>
-  <li>Handles authorization (IAM, Cognito, Lambda authorizers), throttling, caching, CORS, request/response transformation.</li>
-  <li>Endpoint types: <strong>Edge-Optimized</strong> (CloudFront PoPs), <strong>Regional</strong>, <strong>Private</strong> (via interface endpoints).</li>
-  <li>Deploy APIs to <strong>stages</strong> (e.g., dev/test/prod). Each stage has its own URL, config, cache, and canary release settings. Changes go live only after deployment to a stage.</li>
-  <li>Resource path: <code class="language-plaintext highlighter-rouge">https://{restapi-id}.execute-api.{region}.amazonaws.com/{stage}/{resource}</code>.</li>
-</ul>
-
-<h3 id="section-7-2-integrations">7.2 Integrations</h3>
-
-<ul>
-  <li>Method request → integration request → integration response → method response. Knowing where mapping templates apply is key to debugging transformations.</li>
-  <li>Integration types:
-    <ul>
-      <li><strong>MOCK</strong> – testing without backends.</li>
-      <li><strong>HTTP / HTTP Proxy</strong> – invoke HTTP endpoints; proxy passes through unmodified payloads.</li>
-      <li><strong>AWS / AWS_PROXY</strong> – call AWS services; Lambda proxy sends entire request context to Lambda.</li>
-    </ul>
-  </li>
-  <li>Use mapping templates (Velocity Template Language) to reshape payloads (e.g., REST-to-SOAP translation, header mapping).</li>
-</ul>
-
-<h3 id="section-7-3-operations">7.3 Operations</h3>
-
-<ul>
-  <li>Errors: <code class="language-plaintext highlighter-rouge">400</code> (bad request), <code class="language-plaintext highlighter-rouge">403</code> (access denied), <code class="language-plaintext highlighter-rouge">429</code> (throttled), <code class="language-plaintext highlighter-rouge">502/503/504</code> (integration failures/timeouts). Map these to upstream or client issues quickly.</li>
-  <li>Caching per stage (500 MB–237 GB, TTL 0–3600 seconds). Cache invalidation is manual—consider <code class="language-plaintext highlighter-rouge">InvalidateCache</code> or redeploy when data changes.</li>
-</ul>
-
-<hr />
-
-<h2 id="section-8-event-driven">8. Event-Driven Services</h2>
-
-<h3 id="section-8-1-eventbridge">8.1 EventBridge (CloudWatch Events)</h3>
-
-<ul>
-  <li>Event bus + rules service: “If X happens or at time Y, do Z.” EventBridge consumes events from AWS services, SaaS partners, or custom apps and routes them to targets (Lambda, Step Functions, Kinesis, API destinations, etc.).</li>
-  <li>Supports default, partner, and custom event buses; CloudWatch Events only exposed the default bus. Multi-bus design keeps noisy teams isolated.</li>
-  <li>Two rule types: <strong>Event pattern</strong> (match JSON fields) and <strong>Schedule</strong> (cron/<code class="language-plaintext highlighter-rouge">rate()</code> expressions). Rules can send the same event to multiple targets with JSON input transformations.</li>
-  <li>Use resource policies to share buses across accounts/organizations and archive/replay events for troubleshooting.</li>
-</ul>
-
-<h3 id="section-8-2-step-functions">8.2 AWS Step Functions</h3>
-
-<ul>
-  <li>Orchestrates long-running serverless workflows using Amazon States Language (JSON). Ideal when Lambda chaining becomes messy, or when processes exceed Lambda’s 15-minute limit.</li>
-  <li>State machine primitives: <code class="language-plaintext highlighter-rouge">Task</code>, <code class="language-plaintext highlighter-rouge">Choice</code>, <code class="language-plaintext highlighter-rouge">Wait</code>, <code class="language-plaintext highlighter-rouge">Parallel</code>, <code class="language-plaintext highlighter-rouge">Map</code>, <code class="language-plaintext highlighter-rouge">Succeed</code>, <code class="language-plaintext highlighter-rouge">Fail</code>. Each state can define retry/catch blocks for resiliency.</li>
-  <li>Standard workflows keep state up to 1 year and provide exactly-once semantics; Express workflows favor millions of short executions per second at lower cost but best-effort ordering.</li>
-  <li>Integrates with Lambda, ECS/Fargate, Batch, DynamoDB, SNS/SQS, Glue, EMR, SageMaker, API Gateway, Step Functions callbacks, and more. IAM roles govern which services each state can call.</li>
-  <li>Visual workflow designer + CloudWatch execution history make debugging easier than manual Lambda pipelines.</li>
-</ul>
-
-<h3 id="section-8-3-swf">8.3 AWS SWF</h3>
-
-<ul>
-  <li>Predecessor to Step Functions; still used when workflows require custom deciders, worker heartbeats, external signals, child workflows, or deep Mechanical Turk integration.</li>
-  <li>Provides activity task/worker model with Amazon Flow Framework support. You own the worker code and can pause/resume human workflows mid-flight.</li>
-  <li>Exam tip: choose SWF when you need centralized state tracking with human intervention or when migrating legacy Flow Framework workloads.</li>
-</ul>
-
-<hr />
-
-<h2 id="section-9-content-media">9. Content &amp; Media Services</h2>
-
-<h3 id="section-9-1-mechanical-turk">9.1 Amazon Mechanical Turk</h3>
-
-<ul>
-  <li>Crowdsourcing marketplace for Human Intelligence Tasks (HITs).</li>
-  <li>Requesters post tasks with qualifications; workers complete tasks for pay per HIT. APIs manage HIT lifecycle programmatically.</li>
-  <li>Useful for labeling, moderation, surveys, sentiment analysis, or any workflow requiring human judgment before automation.</li>
-  <li>Often paired with S3 + Lambda pipelines where MTurk handles edge cases (e.g., ambiguous images) before data re-enters automated steps.</li>
-</ul>
-
-<h3 id="section-9-2-mediaconvert">9.2 AWS Elemental MediaConvert (vs. Elastic Transcoder)</h3>
-
-<ul>
-  <li>File-based video transcoding: pull from S3, process jobs, push outputs back to S3.</li>
-  <li>MediaConvert is the modern service (more codecs, parallelism, EventBridge notifications, reserved pricing). Elastic Transcoder is legacy but supports WebM/Animated GIF/MP3/FLAC/Vorbis/WAV.</li>
-</ul>
-
-<hr />
-
-<h2 id="section-10-iot-edge">10. IoT &amp; Edge</h2>
-
-<h3 id="section-10-1-iot-core">10.1 AWS IoT Core</h3>
-
-<ul>
-  <li>Connect millions of IoT devices using MQTT/HTTP, manage device shadows (cloud-side JSON twins), and trigger rules to Lambda/Kinesis/etc.</li>
-  <li>Device shadows buffer desired/reported state so applications interact reliably even with intermittent connectivity.</li>
-</ul>
-
-<h3 id="section-10-2-greengrass">10.2 AWS IoT Greengrass</h3>
-
-<ul>
-  <li>Extends AWS compute/messaging/ML to edge devices; run Lambda functions, containers, data streams locally, and sync to the cloud when connectivity returns.</li>
-  <li>Deploy Greengrass cores on gateways; devices keep operating locally during network loss.</li>
-</ul>
-
-<hr />
-
-<h2 id="section-11-developer-tooling">11. Developer Tooling</h2>
-
-<h3 id="section-11-1-sam">11.1 AWS Serverless Application Model (SAM)</h3>
-
-<ul>
-  <li>Open-source framework that extends CloudFormation with serverless-specific resources and transforms.</li>
-  <li>SAM template = infrastructure-as-code for S3/CloudFront (frontend assets), API Gateway, Lambda, DynamoDB, etc.</li>
-  <li>SAM CLI – build/test locally, package artifacts, and deploy stacks.</li>
-  <li>Full serverless app flow: host static assets on S3/CloudFront, expose APIs via API Gateway, run compute on Lambda, state on DynamoDB.</li>
-</ul>
-
-<hr />
-
-<h2 id="section-12-exam-reminders">12. Exam Reminders</h2>
-
-<ul>
-  <li><strong>API Gateway caching</strong> – enabled per stage/method; TTL 0–3600 seconds; incurs hourly charge but dramatically reduces backend load. Invalidate caches after major data changes.</li>
-  <li><strong>ElastiCache refresher</strong> – Redis offers persistence, pub/sub, clustering, and transactions; Memcached is a simple multi-threaded sharded cache with no replication. Choose accordingly.</li>
-  <li><strong>Forward proxy vs NAT Gateway</strong> – forward proxies enforce egress policies (DLP/IDS/IPS/caching) for specific clients; NAT Gateway simply translates private → public IP for egress and cannot inspect payloads.</li>
-  <li><strong>Traffic Mirroring</strong> – replicate ENI traffic to monitoring appliances for deep packet analysis without affecting production flows.</li>
-  <li><strong>IoT Core</strong> – device gateway + rules engine; integrates with Lambda/Kinesis and handles offline device state via shadows.</li>
-  <li><strong>AppSync</strong> – serverless GraphQL with real-time subscriptions, offline sync, and resolvers into DynamoDB, Lambda, RDS, OpenSearch, or HTTP endpoints.</li>
-  <li><strong>Contact-center AI stack</strong> – Amazon Lex (IVR bots), Polly (text-to-speech), Transcribe (call recording), and Comprehend (NLP sentiment) combine for contact center analytics.</li>
-</ul>
-
-<hr />
 
     </article>
   </main>

@@ -252,8 +252,12 @@ App --> User: Response + citations
 
 ### 2.2 Bedrock application capabilities {#section-2-2-capabilities}
 
+- **Model customization / fine-tuning**:
+  - uses a labelled training dataset to adjust parameters of a supported base model for a narrow task or consistent behaviour;
+  - is separate from retrieval; it is not a way to attach a document library at inference time.
 - **Knowledge Bases**:
   - managed ingestion and RAG retrieval/generation integration;
+  - retrieves relevant documents into a request without changing the foundation model's weights;
   - covered in the retrieval comparison below.
 - **Bedrock Agents Classic**:
   - orchestrate model decisions across action groups and knowledge bases;
@@ -697,10 +701,19 @@ This is a quick map of AWS products whose primary role is AI/ML, plus search and
 | **AWS DeepRacer** | **Simulator/model training/racing** → learn reinforcement learning through autonomous driving | Hands-on reinforcement-learning education. |
 | **AWS DeepComposer** **(legacy)** | **Generative music models/keyboard experience** → learn generative AI concepts | Hands-on generative-AI education. |
 
+### 12.5 ML-assisted security and data protection {#section-12-5-security}
+
+| Service | Major feature → purpose | Service purpose |
+|---|---|---|
+| **Amazon Macie** | **Automated sensitive data discovery** → continually sample and inspect eligible S3 objects<br>**Sensitive data discovery jobs** → target selected S3 buckets or objects<br>**Managed/custom data identifiers** → detect PII, financial data, credentials, or organization-specific patterns<br>**Findings/S3 posture monitoring** → report sensitive-data and policy risks | Discover, monitor, and help protect sensitive data in Amazon S3 using machine learning and pattern matching. |
+
 ## 13. Practice-exam traps {#section-13-practice-traps}
 
 - **Textract**: Form Analysis returns key-value pairs; invoices and receipts have the specialized `AnalyzeExpense` API. Treating these as competing answers is misleading.
 - **Comprehend Medical** extracts clinical entities and PHI; standard **Comprehend** supplies sentiment and topic analysis.
+- **Comprehend custom classification** categorizes whole documents into business labels, such as routing emails to Sales, Support, or Billing. Entities and key phrases extract details; they do not perform the routing classification by themselves.
+- **Bedrock Knowledge Bases** provide RAG at inference time; **Bedrock fine-tuning** uses labelled training data to modify a supported model. They solve different problems.
+- **CloudTrail** answers “who called which AWS API and when?”; **AWS Config** answers “which resource configuration was present, and does it comply with a rule?” Use both when a question asks for API auditing plus configuration compliance.
 - **Rekognition** `DetectLabels` can return labels and bounding boxes. Custom shelf-state detection normally uses **Custom Labels**; “Object Detection” is not a separate standard Rekognition feature name.
 - A neural network's practical purpose is to **learn complex mappings and patterns**. It is loosely brain-inspired, not a literal brain simulation.
 - To reduce generative-output variability, lower **temperature/top-p** or use deterministic controls where supported. Multiple runs measure variability; they do not make one run deterministic.
@@ -715,6 +728,8 @@ This is a quick map of AWS products whose primary role is AI/ML, plus search and
 - [Amazon Textract document analysis](https://docs.aws.amazon.com/textract/latest/dg/how-it-works-analyzing.html)
 - [Amazon Q Business built-in plugins](https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/built-in-plugin.html)
 - [Amazon Bedrock documentation](https://docs.aws.amazon.com/bedrock/)
+- [Amazon Bedrock model customization](https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html)
+- [Amazon Bedrock inference parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html)
 - [Amazon Bedrock AgentCore overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html)
 - [AgentCore Memory types](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html)
 - [AgentCore Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html)
@@ -725,3 +740,4 @@ This is a quick map of AWS products whose primary role is AI/ML, plus search and
 - [Amazon OpenSearch Service neural and hybrid search](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-configure-neural-search.html)
 - [Amazon Kendra user-context filtering](https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html)
 - [Amazon Kendra relevance tuning](https://docs.aws.amazon.com/kendra/latest/dg/tuning.html)
+- [Amazon Macie overview](https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html)
