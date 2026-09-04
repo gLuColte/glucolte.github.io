@@ -614,76 +614,40 @@ end
 
 ## 14. Training, fine-tuning, and inference {#section-10-training}
 
-- **Pretraining**:
-  - adjusts model parameters to reduce next-token prediction error over large datasets;
-  - learns language and broad patterns without creating a traceable facts database.
-- **Instruction/preference tuning**:
-  - shapes task following, response style, refusals, and preferred behaviour.
-- **Fine-tuning**:
-  - adapts behaviour, terminology, format, or a narrow task using examples;
-  - is not the default solution for frequently changing facts, citations, or authorization.
-- **Inference**:
-  - runs the trained parameters for the current request;
-  - consists of prefill followed by autoregressive decoding.
+- **Pretraining** changes the model's parameters on broad data. It gives **capability**: in this example, the ability to understand and speak Korean.
+- **Fine-tuning** changes parameters again with representative examples. It gives consistent **behaviour/specialization**: fashion terminology, style classification patterns, and a Korean-fashion tone.
+- **RAG** retrieves **knowledge** into this request without changing weights: recent Korean fashion trends, current collections, policies, or documents.
+- **Prompt engineering** supplies the **instruction** for this request: “Answer in Korean,” “summarize this trend,” “return JSON,” or “recommend a red outfit.”
+- **API / tools** connect to **live state or actions** outside the model: current inventory, current price, customer/account state, or placing an order.
+- **Inference** runs the trained model for the assembled request (prefill, then autoregressive decoding). One production application can use every layer below at the same time.
 
-Fictional thought experiment: assume the base model was trained before Apple Inc. existed, so its weights strongly associate `Apple → fruit`.
+The nesting below shows conceptual scope, not literal data containment: each inner layer narrows what is used for the current task.
 
-| Approach | What changes? | Result |
+<div class="image-wrapper">
+  <img src="./assets/training_rag_prompt_basics.png" alt="Nested Korean-fashion AI diagram. An All Knowledge frame contains Pretraining for Korean-language capability, Fine-tuning for fashion-domain behaviour, RAG for recent fashion knowledge, and a request-specific Prompt. A separate API and Tools box outside the model provides live inventory, price, account state, and order actions." class="modal-trigger" data-caption="Korean fashion AI: capability, behaviour, knowledge, instruction, and external live state">
+  <div class="diagram-caption">🧩 Model + context narrows toward this request; API / Tools remain outside the model</div>
+</div>
+
+| Layer | Main Question | Example |
 |---|---|---|
-| **Prompt** | Add “Apple means the technology company” to this request. | The model can follow that meaning for this request; weights do not change. |
-| **RAG** | Retrieve current Apple documents into this request's context. | The model can answer from supplied evidence; weights do not change. |
-| **Fine-tuning** | Train further on many representative Apple examples. | Weights change, making terminology and behavioural associations more consistent. |
-| **New pretraining** | Train a new base model on newer broad data containing Apple Inc. | Apple-company associations become part of base training. |
+| Pretraining | What can the model fundamentally do? | Understand Korean |
+| Fine-tuning | How should it consistently behave? | Behave like a Korean fashion specialist |
+| RAG | What external knowledge does it need? | Retrieve recent Korean fashion trends |
+| API / Tools | What is true right now / what action is required? | Check current inventory |
+| Prompt | What should it do for this request? | Answer in Korean and recommend red clothing |
 
-```text
-old model weights: Apple → mostly fruit
-                         +
-request context: Apple Inc. is a technology company ...
-                         ↓
-transformer processes question + current context
-                         ↓
-answer: Apple is a technology company ...
-```
-
-- Without that prompt/RAG context on a later independent call, the unchanged model may return to the fruit interpretation.
-- Fine-tuning can change learned associations, but it remains a poor database for products, prices, executives, policies, or inventory that change frequently.
-- Use RAG for current document knowledge and APIs/tools for authoritative live state.
+> Prompting can often reproduce behaviour that could otherwise be fine-tuned. Start with prompting. Fine-tuning becomes useful when the behaviour is stable, repeated, and prompting alone is too inconsistent, expensive, or cumbersome.
 
 ### 14.1 Exam distinction: RAG/knowledge bases versus fine-tuning
 
-Do not merge these ideas:
+Do not merge these ideas: RAG adds current evidence to the request; fine-tuning changes the model's learned behaviour. For Amazon Bedrock specifically, a Knowledge Base is managed RAG, not a fine-tuning dataset.
 
-| Mechanism | What you supply | Do model weights change? | Best for |
-|---|---|---:|---|
-| **RAG / knowledge base** | Relevant documents are retrieved into the current prompt | No | Current, private, or citeable facts. |
-| **Fine-tuning** | A labelled training dataset of input/output examples | Yes | Repeated behaviour, terminology, format, or a narrow task. |
+### 14.2 Apply it: a Korean fashion assistant {#section-10-1-mechanism}
 
-For Amazon Bedrock specifically, a Knowledge Base is managed RAG. Fine-tuning is a model-customization job that uses training data and adjusts the supported base model's parameters. A knowledge base is **not** the fine-tuning dataset.
+For “한국어로 최근 트렌드를 요약하고 빨간 옷을 추천해 주세요,” the application can retrieve trend documents with RAG, look up a live price and stock through an API, then instruct the model to answer in Korean. These techniques complement one another; they are not alternatives.
 
-### 14.2 Apply it: an Apple support assistant {#section-10-1-mechanism}
-
-Apple now builds a support assistant for Gary's device repair. **Apple wants the assistant** to behave consistently, but the surrounding application—not the model—must enforce security and transactions.
-
-| Need | Example | Use |
-|---|---|---|
-| **Behaviour** | Apple wants the assistant to call service requests **Repairs**, use its support tone, and follow its classification conventions. | Prompt first → fine-tuning if stronger consistency is needed |
-| **Knowledge** | Gary asks, “Does my battery qualify for service under today's support policy?” | RAG retrieves the current policy |
-| **Live state** | Gary asks, “What is the current status of Repair #123?” | API/tool reads the repair system |
-| **Identity** | The application must verify that the signed-in caller is Gary. | Authentication |
-| **Authorization** | The application must decide whether Gary may view or approve Repair #123. | Authorization / IAM |
-| **Transaction integrity** | After Gary confirms, create one replacement order—even if the request is retried. | Deterministic application/database logic |
-
-```text
-Gary signs in → authenticate → authorize Repair #123
-              → retrieve current policy with RAG
-              → read live repair status through an API
-              → assistant explains the result
-Gary confirms → application creates one replacement order transactionally
-```
-
-- Prompting/fine-tuning changes how the assistant **tends to behave**. Start with prompts, examples, and schemas; fine-tune only when complex repeated behaviour remains inconsistent.
-- RAG can also retrieve behavioural instructions, but supplying “how to behave” on each request differs from making that behaviour a consistent model default.
-- Model output is only a proposal. Authentication, authorization, validation, idempotency, and database guarantees remain deterministic application controls.
+- Fine-tuning is a poor database for prices, inventory, policies, or other facts that change frequently.
+- Model output is a proposal. Authentication, authorization, validation, and order transactions remain deterministic application controls.
 
 ### 14.3 Compact ML concepts for exam questions
 

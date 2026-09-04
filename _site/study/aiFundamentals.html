@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/aiFundamentals" />
-<meta property="og:url" content="https://glucolte.github.io/study/aiFundamentals" />
+<link rel="canonical" href="http://localhost:4000/study/aiFundamentals" />
+<meta property="og:url" content="http://localhost:4000/study/aiFundamentals" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Fundamentals" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Fundamentals","url":"https://glucolte.github.io/study/aiFundamentals"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Fundamentals","url":"http://localhost:4000/study/aiFundamentals"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -882,168 +882,73 @@ end
 <h2 id="section-10-training">14. Training, fine-tuning, and inference</h2>
 
 <ul>
-  <li><strong>Pretraining</strong>:
-    <ul>
-      <li>adjusts model parameters to reduce next-token prediction error over large datasets;</li>
-      <li>learns language and broad patterns without creating a traceable facts database.</li>
-    </ul>
-  </li>
-  <li><strong>Instruction/preference tuning</strong>:
-    <ul>
-      <li>shapes task following, response style, refusals, and preferred behaviour.</li>
-    </ul>
-  </li>
-  <li><strong>Fine-tuning</strong>:
-    <ul>
-      <li>adapts behaviour, terminology, format, or a narrow task using examples;</li>
-      <li>is not the default solution for frequently changing facts, citations, or authorization.</li>
-    </ul>
-  </li>
-  <li><strong>Inference</strong>:
-    <ul>
-      <li>runs the trained parameters for the current request;</li>
-      <li>consists of prefill followed by autoregressive decoding.</li>
-    </ul>
-  </li>
+  <li><strong>Pretraining</strong> changes the model’s parameters on broad data. It gives <strong>capability</strong>: in this example, the ability to understand and speak Korean.</li>
+  <li><strong>Fine-tuning</strong> changes parameters again with representative examples. It gives consistent <strong>behaviour/specialization</strong>: fashion terminology, style classification patterns, and a Korean-fashion tone.</li>
+  <li><strong>RAG</strong> retrieves <strong>knowledge</strong> into this request without changing weights: recent Korean fashion trends, current collections, policies, or documents.</li>
+  <li><strong>Prompt engineering</strong> supplies the <strong>instruction</strong> for this request: “Answer in Korean,” “summarize this trend,” “return JSON,” or “recommend a red outfit.”</li>
+  <li><strong>API / tools</strong> connect to <strong>live state or actions</strong> outside the model: current inventory, current price, customer/account state, or placing an order.</li>
+  <li><strong>Inference</strong> runs the trained model for the assembled request (prefill, then autoregressive decoding). One production application can use every layer below at the same time.</li>
 </ul>
 
-<p>Fictional thought experiment: assume the base model was trained before Apple Inc. existed, so its weights strongly associate <code class="language-plaintext highlighter-rouge">Apple → fruit</code>.</p>
+<p>The nesting below shows conceptual scope, not literal data containment: each inner layer narrows what is used for the current task.</p>
+
+<div class="image-wrapper">
+  <img src="./assets/training_rag_prompt_basics.png" alt="Nested Korean-fashion AI diagram. An All Knowledge frame contains Pretraining for Korean-language capability, Fine-tuning for fashion-domain behaviour, RAG for recent fashion knowledge, and a request-specific Prompt. A separate API and Tools box outside the model provides live inventory, price, account state, and order actions." class="modal-trigger" data-caption="Korean fashion AI: capability, behaviour, knowledge, instruction, and external live state" />
+  <div class="diagram-caption">🧩 Model + context narrows toward this request; API / Tools remain outside the model</div>
+</div>
 
 <table>
   <thead>
     <tr>
-      <th>Approach</th>
-      <th>What changes?</th>
-      <th>Result</th>
+      <th>Layer</th>
+      <th>Main Question</th>
+      <th>Example</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>Prompt</strong></td>
-      <td>Add “Apple means the technology company” to this request.</td>
-      <td>The model can follow that meaning for this request; weights do not change.</td>
+      <td>Pretraining</td>
+      <td>What can the model fundamentally do?</td>
+      <td>Understand Korean</td>
     </tr>
     <tr>
-      <td><strong>RAG</strong></td>
-      <td>Retrieve current Apple documents into this request’s context.</td>
-      <td>The model can answer from supplied evidence; weights do not change.</td>
+      <td>Fine-tuning</td>
+      <td>How should it consistently behave?</td>
+      <td>Behave like a Korean fashion specialist</td>
     </tr>
     <tr>
-      <td><strong>Fine-tuning</strong></td>
-      <td>Train further on many representative Apple examples.</td>
-      <td>Weights change, making terminology and behavioural associations more consistent.</td>
+      <td>RAG</td>
+      <td>What external knowledge does it need?</td>
+      <td>Retrieve recent Korean fashion trends</td>
     </tr>
     <tr>
-      <td><strong>New pretraining</strong></td>
-      <td>Train a new base model on newer broad data containing Apple Inc.</td>
-      <td>Apple-company associations become part of base training.</td>
+      <td>API / Tools</td>
+      <td>What is true right now / what action is required?</td>
+      <td>Check current inventory</td>
+    </tr>
+    <tr>
+      <td>Prompt</td>
+      <td>What should it do for this request?</td>
+      <td>Answer in Korean and recommend red clothing</td>
     </tr>
   </tbody>
 </table>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>old model weights: Apple → mostly fruit
-                         +
-request context: Apple Inc. is a technology company ...
-                         ↓
-transformer processes question + current context
-                         ↓
-answer: Apple is a technology company ...
-</code></pre></div></div>
-
-<ul>
-  <li>Without that prompt/RAG context on a later independent call, the unchanged model may return to the fruit interpretation.</li>
-  <li>Fine-tuning can change learned associations, but it remains a poor database for products, prices, executives, policies, or inventory that change frequently.</li>
-  <li>Use RAG for current document knowledge and APIs/tools for authoritative live state.</li>
-</ul>
+<blockquote>
+  <p>Prompting can often reproduce behaviour that could otherwise be fine-tuned. Start with prompting. Fine-tuning becomes useful when the behaviour is stable, repeated, and prompting alone is too inconsistent, expensive, or cumbersome.</p>
+</blockquote>
 
 <h3 id="141-exam-distinction-ragknowledge-bases-versus-fine-tuning">14.1 Exam distinction: RAG/knowledge bases versus fine-tuning</h3>
 
-<p>Do not merge these ideas:</p>
+<p>Do not merge these ideas: RAG adds current evidence to the request; fine-tuning changes the model’s learned behaviour. For Amazon Bedrock specifically, a Knowledge Base is managed RAG, not a fine-tuning dataset.</p>
 
-<table>
-  <thead>
-    <tr>
-      <th>Mechanism</th>
-      <th>What you supply</th>
-      <th style="text-align: right">Do model weights change?</th>
-      <th>Best for</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>RAG / knowledge base</strong></td>
-      <td>Relevant documents are retrieved into the current prompt</td>
-      <td style="text-align: right">No</td>
-      <td>Current, private, or citeable facts.</td>
-    </tr>
-    <tr>
-      <td><strong>Fine-tuning</strong></td>
-      <td>A labelled training dataset of input/output examples</td>
-      <td style="text-align: right">Yes</td>
-      <td>Repeated behaviour, terminology, format, or a narrow task.</td>
-    </tr>
-  </tbody>
-</table>
+<h3 id="section-10-1-mechanism">14.2 Apply it: a Korean fashion assistant</h3>
 
-<p>For Amazon Bedrock specifically, a Knowledge Base is managed RAG. Fine-tuning is a model-customization job that uses training data and adjusts the supported base model’s parameters. A knowledge base is <strong>not</strong> the fine-tuning dataset.</p>
-
-<h3 id="section-10-1-mechanism">14.2 Apply it: an Apple support assistant</h3>
-
-<p>Apple now builds a support assistant for Gary’s device repair. <strong>Apple wants the assistant</strong> to behave consistently, but the surrounding application—not the model—must enforce security and transactions.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Need</th>
-      <th>Example</th>
-      <th>Use</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Behaviour</strong></td>
-      <td>Apple wants the assistant to call service requests <strong>Repairs</strong>, use its support tone, and follow its classification conventions.</td>
-      <td>Prompt first → fine-tuning if stronger consistency is needed</td>
-    </tr>
-    <tr>
-      <td><strong>Knowledge</strong></td>
-      <td>Gary asks, “Does my battery qualify for service under today’s support policy?”</td>
-      <td>RAG retrieves the current policy</td>
-    </tr>
-    <tr>
-      <td><strong>Live state</strong></td>
-      <td>Gary asks, “What is the current status of Repair #123?”</td>
-      <td>API/tool reads the repair system</td>
-    </tr>
-    <tr>
-      <td><strong>Identity</strong></td>
-      <td>The application must verify that the signed-in caller is Gary.</td>
-      <td>Authentication</td>
-    </tr>
-    <tr>
-      <td><strong>Authorization</strong></td>
-      <td>The application must decide whether Gary may view or approve Repair #123.</td>
-      <td>Authorization / IAM</td>
-    </tr>
-    <tr>
-      <td><strong>Transaction integrity</strong></td>
-      <td>After Gary confirms, create one replacement order—even if the request is retried.</td>
-      <td>Deterministic application/database logic</td>
-    </tr>
-  </tbody>
-</table>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Gary signs in → authenticate → authorize Repair #123
-              → retrieve current policy with RAG
-              → read live repair status through an API
-              → assistant explains the result
-Gary confirms → application creates one replacement order transactionally
-</code></pre></div></div>
+<p>For “한국어로 최근 트렌드를 요약하고 빨간 옷을 추천해 주세요,” the application can retrieve trend documents with RAG, look up a live price and stock through an API, then instruct the model to answer in Korean. These techniques complement one another; they are not alternatives.</p>
 
 <ul>
-  <li>Prompting/fine-tuning changes how the assistant <strong>tends to behave</strong>. Start with prompts, examples, and schemas; fine-tune only when complex repeated behaviour remains inconsistent.</li>
-  <li>RAG can also retrieve behavioural instructions, but supplying “how to behave” on each request differs from making that behaviour a consistent model default.</li>
-  <li>Model output is only a proposal. Authentication, authorization, validation, idempotency, and database guarantees remain deterministic application controls.</li>
+  <li>Fine-tuning is a poor database for prices, inventory, policies, or other facts that change frequently.</li>
+  <li>Model output is a proposal. Authentication, authorization, validation, and order transactions remain deterministic application controls.</li>
 </ul>
 
 <h3 id="143-compact-ml-concepts-for-exam-questions">14.3 Compact ML concepts for exam questions</h3>

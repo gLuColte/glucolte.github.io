@@ -5,539 +5,345 @@ permalink: /study/aiKnowledgebases
 
 # AI Knowledge Bases and Retrieval
 
-This page follows **one RAG request** from a Markdown file in a repository to a cited on-call answer. Its running question is:
-
-```text
-What should I do when a production EC2 instance stays above 90% CPU?
-```
-
-Start with the map. The first question has no evidence; after the runbook is ingested, the second question follows every arrow in order. Every stage names its **input**, the component that acts (**who**), its **rule/configuration**, and its **output**.
-
-## 1. Big picture: complete RAG flow {#section-1-rag-flow}
-
-```text
-runbooks/ec2-cpu.md
-        ↓ parse → chunk → embed → index
-vector database: chunks + vectors + source metadata
-
-user question
-        ↓ preserve original → embed → hybrid retrieve
-candidates
-        ↓ metadata filter → authorization → rerank
-permitted, ordered evidence
-        ↓ context builder
-exact LLM context
-        ↓ LLM
-grounded answer + citation
-```
-
-<div class="image-wrapper">
-  <img src="./assets/rag_architecture.png" alt="Sequence diagram showing the exact EC2 Markdown runbook ingestion and causal query flow from hybrid retrieval through metadata filtering, authorization, reranking, context assembly, and a cited answer" class="modal-trigger" data-caption="One causal RAG run: every arrow names the component, configuration, and concrete data it passes">
-  <div class="diagram-caption" data-snippet-id="rag-causal-architecture-snippet">
-    🧭 Complete request map — follow this once, then inspect every stage below
-  </div>
-  <script type="text/plain" id="rag-causal-architecture-snippet">
-@startuml
-title One causal RAG run: Markdown file to cited EC2 answer
-actor "On-call engineer" as User
-participant "Application" as App
-participant "Ingestion service" as Ingest
-participant "ops-embed-demo-v1" as Embed
-database "runbooks-v1\nvector database" as Index
-participant "Authorization layer" as Auth
-participant "ops-reranker-v1" as Reranker
-participant "operations-answer-llm-v1" as LLM
-
-== Ingest runbooks/ec2-cpu.md ==
-App -> Ingest: Raw Markdown file
-Ingest -> Ingest: markdown-parser-v2\nfrontmatter schema + headings
-Ingest -> Ingest: Structured document\nsections + copied metadata
-Ingest -> Ingest: section-chunker-v1\nmax 60 tokens, overlap 0
-Ingest -> Embed: Three chunk text fields
-Embed --> Ingest: Three six-number vectors
-Ingest -> Index: index-writer-v1\nchunk + vector + metadata
-
-== Answer one question ==
-User -> App: "Production EC2 stays above 90% CPU"
-App -> App: query-processor-v1\npreserve original; rewrite=false
-App -> Embed: Retrieval text
-Embed --> App: Query vector
-App -> Index: Hybrid search: BM25 + cosine\nRRF; Top-K = 4
-Index --> App: EC2 when, RDS triage,\nEC2 procedure, EC2 safety
-App -> App: Metadata rule: EC2 + prod +\nap-southeast-2 + current\nRemove RDS (service=RDS)
-App -> Auth: Caller groups + 3 EC2 ACLs
-Auth --> App: Permit all 3: platform-oncall matches
-App -> Reranker: Question + permitted chunks
-Reranker --> App: When → Procedure → Safety
-App -> LLM: 3 cited evidence blocks + question
-LLM --> App: Inspect metrics/process;\nowner approval before restart
-App --> User: Grounded answer + RUN-EC2-CPU-2026
-@enduml
-  </script>
-</div>
-
-## 2. Before Stage 1 — empty means no evidence {#section-1-why-rag}
-
-The on-call engineer asks:
-
-~~~text
-What should I do when a production EC2 instance stays above 90% CPU?
-~~~
-
-At this moment, the vector database has no runbook records.
-
-~~~text
-INPUT:     user question
-WHO:       retrieval engine
-RULE:      search only indexed records
-OUTPUT:    []
-
-INPUT:     []
-WHO:       LLM
-RULE:      answer only from supplied evidence
-OUTPUT:    "Insufficient evidence to give an operational instruction."
-~~~
-
-Nothing failed: there is simply no evidence to retrieve. The platform team now commits a Markdown runbook.
-
-## 3. Stage 1 — ingest one file into index records {#section-2-parsing}
-
-### The actual source file
-
-**Physical input:** the repository contains this exact UTF-8 file at `runbooks/ec2-cpu.md`.
-
-~~~markdown
----
-document_id: RUN-EC2-CPU-2026
-service: EC2
-environment: prod
-region: ap-southeast-2
-status: current
-allowed_groups:
-  - platform-oncall
----
-
-# Production EC2 CPU triage
-
-## When to act
-
-If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
-
-## Procedure
-
-1. Inspect CloudWatch metrics.
-2. Identify the process using the CPU.
-
-## Safety
-
-Do not restart a production instance before service-owner approval.
-~~~
-
-For this walkthrough, all metadata comes from this file's frontmatter. It is not inferred from the prose, and it is not supplied by the user at query time.
-
-<div class="rag-flow" role="img" aria-label="The literal Markdown file is parsed into a structured document, section-aware chunked, embedded, and written as records to the vector database.">
-  <div class="rag-node rag-node--data"><strong>Raw Markdown file</strong><code>runbooks/ec2-cpu.md</code></div>
-  <div class="rag-arrow">↓</div>
-  <div class="rag-node"><strong>Markdown parser</strong>frontmatter schema + heading/list rules</div>
-  <div class="rag-arrow">↓</div>
-  <div class="rag-node"><strong>Structured document</strong>sections + frontmatter metadata</div>
-  <div class="rag-arrow">↓</div>
-  <div class="rag-node"><strong>Section-aware chunker</strong>max 60 tokens; overlap 0</div>
-  <div class="rag-arrow">↓</div>
-  <div class="rag-node"><strong>Embedding model</strong>chunk text → vector</div>
-  <div class="rag-arrow">↓</div>
-  <div class="rag-node rag-node--success"><strong>Index writer</strong>records in the vector database</div>
-</div>
-
-### 3.1 Parse: Markdown bytes → structured document
-
-**INPUT:** the literal `runbooks/ec2-cpu.md` file above.
-
-**WHO:** `markdown-parser-v2` in the ingestion service.
-
-**RULE / CONFIG:**
-
-- read YAML frontmatter only from the opening `---` block;
-- accept the schema fields `document_id`, `service`, `environment`, `region`, `status`, and `allowed_groups`;
-- turn `#` and `##` lines into headings; preserve paragraph and ordered-list order;
-- reject the file if a required field is absent or `allowed_groups` is empty.
-
-**OUTPUT:** one structured document. The `metadata` values below came directly from frontmatter; the `sections` came directly from Markdown headings and their following text.
-
-~~~text
-source_path: runbooks/ec2-cpu.md
-metadata:
-  document_id: RUN-EC2-CPU-2026
-  service: EC2
-  environment: prod
-  region: ap-southeast-2
-  status: current
-  allowed_groups: [platform-oncall]
-sections:
-  1. heading_path: Production EC2 CPU triage > When to act
-     text: If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
-  2. heading_path: Production EC2 CPU triage > Procedure
-     text: 1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
-  3. heading_path: Production EC2 CPU triage > Safety
-     text: Do not restart a production instance before service-owner approval.
-~~~
-
-The parser did not create “CPU threshold” or “safety rule” labels. It only produced headings, text, and frontmatter fields that physically exist in the source.
+**RAG** means **Retrieve relevant information → Augment the model context → Generate an answer**. It gives an LLM current, specific evidence to work from.
 
 <aside class="technique-callout">
-  <strong>Technique used: Markdown parsing</strong>
-  <span><strong>Why this output looks this way:</strong> the parser follows Markdown syntax and the declared frontmatter schema; it does not guess structure from meaning.</span>
+  <strong>Keep this distinction</strong>
+  <span><strong>RAG ≠ Vector Database.</strong> A vector database is one component that may support semantic retrieval. RAG is the larger architecture: retrieve external evidence, place it in the model context, then generate an answer.</span>
 </aside>
 
-### 3.2 Chunk: structured document → three retrieval units {#section-3-chunking}
+Imagine Apple has published a battery-service policy. Ingestion prepares that policy when it changes. The query path runs each time someone asks, “Can I replace my worn-out iPhone battery in Australia?” The application—not the LLM—finds permitted evidence and supplies it to the LLM.
 
-**INPUT:** the three parsed sections above.
-
-**WHO:** `section-chunker-v1` in the ingestion service.
-
-**RULE / CONFIG:** `strategy=section-aware`, `max_tokens=60`, `overlap_tokens=0`. Start a new chunk at each `##` heading. Keep its full heading path. Do not merge sections when each section is under 60 tokens.
-
-**OUTPUT:** exactly three chunks:
-
-~~~text
-chunk_id: RUN-EC2-CPU-2026#when-to-act
-heading_path: Production EC2 CPU triage > When to act
-text: If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
-metadata copied from frontmatter: service=EC2, environment=prod,
-  region=ap-southeast-2, status=current, allowed_groups=[platform-oncall]
-
-chunk_id: RUN-EC2-CPU-2026#procedure
-heading_path: Production EC2 CPU triage > Procedure
-text: 1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
-metadata copied from frontmatter: service=EC2, environment=prod,
-  region=ap-southeast-2, status=current, allowed_groups=[platform-oncall]
-
-chunk_id: RUN-EC2-CPU-2026#safety
-heading_path: Production EC2 CPU triage > Safety
-text: Do not restart a production instance before service-owner approval.
-metadata copied from frontmatter: service=EC2, environment=prod,
-  region=ap-southeast-2, status=current, allowed_groups=[platform-oncall]
-~~~
-
-Each boundary exists because the next `##` heading begins a new section—not because the chunker discovered a topic change. `overlap_tokens=0` means no sentence is copied into a neighbouring chunk. The copied metadata is how every chunk later carries the document's region, status, and ACL.
-
-<aside class="technique-callout">
-  <strong>Technique used: Section-aware chunking</strong>
-  <span><strong>Why this output looks this way:</strong> every source section is shorter than 60 tokens, so the configured chunker emits one chunk per <code>##</code> section.</span>
-</aside>
-
-The diagram makes the configured boundary decision visible. The green row is the default used in this walkthrough; the blue row is an alternative, not another hidden pipeline step.
-
-<div class="image-wrapper">
-  <img src="./assets/rag_chunk_boundaries.svg" alt="Diagram showing that the configured section-aware chunker creates chunks at the three literal Markdown headings, while a fixed-size alternative splits the Procedure text at a length boundary" class="modal-trigger" data-caption="Chunk boundaries come from the configured rule: headings in the default, token length in the fixed-size alternative">
-  <div class="diagram-caption">✂️ Same source file, different chunking rule, different boundaries</div>
+<div class="rag-diagram" role="img" aria-label="RAG has two separate lifecycles: asynchronous ingestion and per-request query processing.">
+<svg viewBox="0 0 1120 555" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rag-lifecycle-title rag-lifecycle-desc">
+  <title id="rag-lifecycle-title">RAG ingestion and query lifecycles</title>
+  <desc id="rag-lifecycle-desc">A separated ingestion pipeline turns an Apple policy PDF into indexed vectors and metadata when documents change. A per-request query pipeline retrieves authorized evidence, reranks it, and gives it to an LLM for a cited answer.</desc>
+  <defs><marker id="life-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
+  <rect class="panel" x="20" y="20" width="525" height="515" rx="12"/><rect class="panel" x="575" y="20" width="525" height="515" rx="12"/>
+  <text class="accent-text" x="45" y="53">INGESTION / INDEXING — ASYNCHRONOUS</text><text class="small" x="45" y="74">When documents are added or updated; not for every question.</text>
+  <text class="accent-text" x="600" y="53">QUERY / RUNTIME — PER REQUEST</text><text class="small" x="600" y="74">The application retrieves evidence before the LLM answers.</text>
+  <g>
+    <rect class="node data" x="45" y="91" width="205" height="38" rx="8"/><text class="label" x="147" y="116" text-anchor="middle">1. Raw sources</text>
+    <rect class="node process" x="45" y="145" width="205" height="38" rx="8"/><text class="label" x="147" y="170" text-anchor="middle">2. Parse / extract</text>
+    <rect class="node process" x="45" y="199" width="205" height="38" rx="8"/><text class="label" x="147" y="224" text-anchor="middle">3. Structured document</text>
+    <rect class="node process" x="45" y="253" width="205" height="38" rx="8"/><text class="label" x="147" y="278" text-anchor="middle">4. Section-aware chunking</text>
+    <rect class="node data" x="45" y="307" width="205" height="38" rx="8"/><text class="label" x="147" y="332" text-anchor="middle">5. Chunks + metadata</text>
+    <rect class="node process" x="45" y="361" width="205" height="38" rx="8"/><text class="label" x="147" y="386" text-anchor="middle">6. Embedding model</text>
+    <rect class="node store" x="45" y="415" width="205" height="38" rx="8"/><text class="label" x="147" y="440" text-anchor="middle">7. Vectors</text>
+    <rect class="node store" x="45" y="469" width="205" height="48" rx="8"/><text class="label" x="147" y="491" text-anchor="middle">8. Searchable index</text><text class="small" x="147" y="508" text-anchor="middle">/ vector store</text>
+    <path class="line" d="M147 131V143 M147 185V197 M147 239V251 M147 293V305 M147 347V359 M147 401V413 M147 455V467" marker-end="url(#life-arrow)"/>
+  </g>
+  <g>
+    <rect class="node data" x="292" y="96" width="225" height="73" rx="8"/><text class="label" x="404" y="119" text-anchor="middle">Apple policy PDF</text><text class="small" x="404" y="138" text-anchor="middle">Battery Service → Australia</text><text class="small" x="404" y="155" text-anchor="middle">→ Eligibility</text>
+    <path class="soft-line" d="M250 122H290" marker-end="url(#life-arrow)"/>
+    <rect class="node" x="292" y="192" width="225" height="101" rx="8"/><text class="mono" x="307" y="216">chunk: “qualifies below 80%…”</text><text class="small" x="307" y="241">product=iPhone · region=AU</text><text class="small" x="307" y="260">status=current</text><text class="small" x="307" y="279">section=Eligibility</text>
+    <path class="soft-line" d="M404 170V190" marker-end="url(#life-arrow)"/>
+    <rect class="node store" x="292" y="319" width="225" height="74" rx="8"/><text class="mono" x="307" y="344">[0.12, -0.47, 0.81, …]</text><text class="small" x="307" y="370">stored with its metadata</text>
+    <path class="soft-line" d="M404 294V317" marker-end="url(#life-arrow)"/>
+  </g>
+  <g>
+    <rect class="node data" x="600" y="96" width="205" height="46" rx="8"/><text class="label" x="702" y="124" text-anchor="middle">1. User question</text>
+    <rect class="node process" x="600" y="165" width="205" height="46" rx="8"/><text class="label" x="702" y="193" text-anchor="middle">2. Query processing</text>
+    <rect class="node process" x="600" y="234" width="205" height="46" rx="8"/><text class="label" x="702" y="262" text-anchor="middle">3. Retrieval</text>
+    <rect class="node guard" x="600" y="303" width="205" height="46" rx="8"/><text class="label" x="702" y="331" text-anchor="middle">4. Authorization</text>
+    <rect class="node rank" x="600" y="372" width="205" height="46" rx="8"/><text class="label" x="702" y="400" text-anchor="middle">5. Reranking (optional)</text>
+    <rect class="node process" x="600" y="441" width="205" height="46" rx="8"/><text class="label" x="702" y="469" text-anchor="middle">6. Context assembly</text>
+    <path class="line" d="M702 142V163 M702 211V232 M702 280V301 M702 349V370 M702 418V439" marker-end="url(#life-arrow)"/>
+    <rect class="node" x="853" y="215" width="210" height="60" rx="8"/><text class="label" x="958" y="240" text-anchor="middle">Searchable index</text><text class="small" x="958" y="259" text-anchor="middle">retrieval layer searches it</text><path class="line" d="M807 257H850" marker-end="url(#life-arrow)"/>
+    <rect class="node rank" x="853" y="408" width="210" height="60" rx="8"/><text class="label" x="958" y="433" text-anchor="middle">LLM</text><text class="small" x="958" y="452" text-anchor="middle">receives assembled evidence</text><path class="line" d="M807 464H850" marker-end="url(#life-arrow)"/>
+    <rect class="node store" x="853" y="489" width="210" height="37" rx="8"/><text class="label" x="958" y="513" text-anchor="middle">7. Cited answer</text><path class="line" d="M958 469V487" marker-end="url(#life-arrow)"/>
+  </g>
+</svg>
 </div>
 
-### 3.3 Embed: chunk text → vectors {#section-4-embeddings}
+## Building the Searchable Knowledge Base
 
-**INPUT:** each chunk's `text` field. The headings and metadata remain stored alongside it; this configuration embeds only the text field.
+Before a question can retrieve anything, source material needs to become searchable. This is one continuous pipeline:
 
-**WHO:** configured embedding model `ops-embed-demo-v1`.
+**Raw file → Parse → Structure → Chunk → Embed → Store / Index**
 
-**RULE / CONFIG:** use the same model for documents and future queries. This fictional teaching model emits a six-number vector and uses cosine similarity. Real embedding vectors are usually much longer.
+### Parsing
 
-**OUTPUT:** the model returns one vector per input text:
+Parsing converts a source format into a representation the application can reliably process. For the fictional Apple PDF, that means preserving the document, title, heading hierarchy, sections, paragraphs and tables, plus source, version, and ACL/security metadata.
 
-~~~text
-RUN-EC2-CPU-2026#when-to-act
-text:   If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
-vector: [0.82, 0.11, -0.06, 0.41, 0.27, 0.09]
-
-RUN-EC2-CPU-2026#procedure
-text:   1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
-vector: [0.63, 0.38, 0.04, 0.55, 0.14, 0.22]
-
-RUN-EC2-CPU-2026#safety
-text:   Do not restart a production instance before service-owner approval.
-vector: [0.34, 0.05, -0.31, 0.20, 0.76, 0.48]
-~~~
-
-The numbers are the model's output, not labels extracted from the runbook. They look unrelated to the prose because vector dimensions are learned numeric features, not human-readable fields.
-
-### 3.4 Index: chunk + vector + metadata → database record
-
-**INPUT:** each chunk, its vector, and the metadata copied by the chunker.
-
-**WHO:** `index-writer-v1`.
-
-**RULE / CONFIG:** write one record per `chunk_id` into collection `runbooks-v1`; use `vector` for nearest-neighbour search; retain `text`, `heading_path`, `source_path`, and metadata for filtering, authorization, and citations.
-
-**OUTPUT:** the vector database now contains these three EC2 records. One record looks like this:
-
-~~~text
-collection: runbooks-v1
-id: RUN-EC2-CPU-2026#procedure
-vector: [0.63, 0.38, 0.04, 0.55, 0.14, 0.22]
-text: 1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
-heading_path: Production EC2 CPU triage > Procedure
-source_path: runbooks/ec2-cpu.md
-metadata: service=EC2, environment=prod, region=ap-southeast-2,
-  status=current, allowed_groups=[platform-oncall]
-~~~
-
-The knowledge base can now retrieve evidence. Ingestion is complete; no LLM was used to write or authorize this record.
-
-For one later filtering decision, this reduced teaching database also already contains one unrelated record from an earlier ingestion. It did **not** come from `runbooks/ec2-cpu.md`:
-
-~~~text
-id: RUN-RDS-CPU-2026#triage
-source_path: runbooks/rds-cpu.md
-text: If production RDS CPU is high, inspect database load and active sessions.
-metadata: service=RDS, environment=prod, region=ap-southeast-2,
-  status=current, allowed_groups=[platform-oncall]
-~~~
-
-This is the complete corpus for the query below: the three EC2 records created above plus this one RDS record.
-
-## 4. Stage 2 — use those records to answer the question {#section-7-query-processing}
-
-The same engineer asks again:
-
-~~~text
-What should I do when a production EC2 instance stays above 90% CPU?
-~~~
-
-### 4.1 Process the question: user text → retrieval query
-
-**INPUT:** the exact user question above.
-
-**WHO:** `query-processor-v1`.
-
-**RULE / CONFIG:** `preserve_original=true`, `rewrite=false` for this walkthrough. The question is already specific; the processor must not silently replace a safety-critical request.
-
-**OUTPUT:** a retrieval request containing the unchanged text:
-
-~~~text
-original_question: What should I do when a production EC2 instance stays above 90% CPU?
-retrieval_text:    What should I do when a production EC2 instance stays above 90% CPU?
-~~~
-
-No rewrite appears because the configured rule disabled it. A rewrite is an optional alternative introduced after the default flow.
-
-### 4.2 Embed the retrieval query: text → query vector
-
-**INPUT:** `retrieval_text` from the query processor.
-
-**WHO:** the same `ops-embed-demo-v1` embedding model used during ingestion.
-
-**RULE / CONFIG:** six dimensions; cosine similarity; use the document/query-compatible model version `ops-embed-demo-v1`.
-
-**OUTPUT:**
-
-~~~text
-query_vector: [0.79, 0.17, -0.02, 0.47, 0.22, 0.13]
-~~~
-
-Using the same model is what makes this vector comparable with the three stored chunk vectors.
-
-### 4.3 Retrieve: query → initial candidate list {#section-5-hybrid}
-
-**INPUT:** the original query text, its query vector, and indexed records.
-
-**WHO:** `retrieval-engine-v1`.
-
-**RULE / CONFIG:** `hybrid`; BM25 searches `text`, vector search uses cosine similarity over `vector`, reciprocal-rank fusion (`rrf_k=60`) combines their ranks, then `top_k=4` is returned.
-
-**OUTPUT:** four candidates. The RDS record is the explicit pre-existing record shown at the end of ingestion; it is included because `CPU` and `production` match the query, not because it came from the EC2 Markdown file.
-
-~~~text
-1. RUN-EC2-CPU-2026#when-to-act   source: runbooks/ec2-cpu.md
-   fused_rank: 1  reason: BM25 and vector search both match EC2 + CPU + 90%
-
-2. RUN-RDS-CPU-2026#triage        source: runbooks/rds-cpu.md
-   fused_rank: 2  reason: CPU and production match, but metadata service=RDS
-
-3. RUN-EC2-CPU-2026#procedure     source: runbooks/ec2-cpu.md
-   fused_rank: 3  reason: vector search matches the requested response actions
-
-4. RUN-EC2-CPU-2026#safety        source: runbooks/ec2-cpu.md
-   fused_rank: 4  reason: lexical and vector search match production + restart
-~~~
-
-These are retrieval candidates, not yet approved evidence. The RDS item is not derived from the EC2 source file; its displayed `source` and `service=RDS` explain where it came from and why it is still present at this stage.
+The useful output is not merely a wall of text. It can retain a path such as `Battery Service > Australia > Eligibility`, alongside `product=iPhone`, `region=AU`, and `status=current`.
 
 <aside class="technique-callout">
-  <strong>Technique used: Hybrid retrieval, Top-K = 4</strong>
-  <span><strong>Why this output looks this way:</strong> BM25 contributes exact terms; vector search contributes similar meaning; rank fusion selects four possible records before later policy checks.</span>
+  <strong>Parser warning</strong>
+  <span><strong>Embeddings cannot recover structure or text discarded by the parser.</strong> If a table, heading, version, or access rule is lost here, later stages have nothing reliable to search or enforce.</span>
 </aside>
 
-### 4.4 Filter by metadata: candidates → relevant candidates {#section-8-authorization}
+### Chunking
 
-**INPUT:** the four candidates above, including their stored metadata.
+A full document is usually too large and too broad to retrieve as one unit. Chunking makes small evidence units that can be found, cited, and fit into a model’s context. The boundary matters: splitting a sentence can separate a condition from its qualification.
 
-**WHO:** `metadata-filter-v1`.
-
-**RULE / CONFIG:** retain only `service=EC2 AND environment=prod AND region=ap-southeast-2 AND status=current`.
-
-**OUTPUT:** three candidates. The filter removes exactly one record:
-
-~~~text
-REMOVE  RUN-RDS-CPU-2026#triage
-RULE    service=RDS does not equal required service=EC2
-
-KEEP    RUN-EC2-CPU-2026#when-to-act
-KEEP    RUN-EC2-CPU-2026#procedure
-KEEP    RUN-EC2-CPU-2026#safety
-~~~
-
-`service`, `environment`, `region`, and `status` exist because the Markdown frontmatter supplied them and the chunker copied them to every index record. They were not inferred from the question.
-
-### 4.5 Authorize: relevant candidates → permitted candidates
-
-**INPUT:** the three filtered EC2 candidates and the caller identity from the trusted identity service:
-
-~~~text
-caller_id: alex@example.internal
-groups: [platform-oncall]
-~~~
-
-**WHO:** `authorization-layer-v1`.
-
-**RULE / CONFIG:** keep a candidate only when the caller has at least one group in the candidate's stored `allowed_groups`. Missing ACL metadata means deny.
-
-**OUTPUT:** all three candidates are permitted:
-
-~~~text
-PERMIT  RUN-EC2-CPU-2026#when-to-act   [platform-oncall] ∩ [platform-oncall] ≠ ∅
-PERMIT  RUN-EC2-CPU-2026#procedure     [platform-oncall] ∩ [platform-oncall] ≠ ∅
-PERMIT  RUN-EC2-CPU-2026#safety        [platform-oncall] ∩ [platform-oncall] ≠ ∅
-~~~
-
-No candidate disappears at this step in this run. That is visible in the output: all three have the ACL value copied from source frontmatter, and the caller has the matching trusted group. Authorization happens before the LLM sees the text.
-
-### 4.6 Rerank: permitted candidates → answer order {#section-9-reranking}
-
-**INPUT:** the question plus the three permitted candidate texts.
-
-**WHO:** `ops-reranker-v1`, a cross-encoder reranker.
-
-**RULE / CONFIG:** score each question-and-chunk pair for direct usefulness in answering the question; sort descending; do not add new candidates.
-
-**OUTPUT:**
-
-~~~text
-1. RUN-EC2-CPU-2026#when-to-act  score=0.97  threshold and duration answer “when”
-2. RUN-EC2-CPU-2026#procedure    score=0.94  inspection actions answer “what to do”
-3. RUN-EC2-CPU-2026#safety       score=0.91  restart restriction is required safety context
-~~~
-
-The reranker changes only the order. It cannot recover the RDS item after filtering or any chunk that was missed before `top_k=4`.
-
-<div class="image-wrapper">
-  <img src="./assets/rag_causal_candidates.svg" alt="Candidate flow for the EC2 CPU question: hybrid retrieval returns four candidates, the metadata filter removes the RDS candidate, authorization permits the three EC2 chunks, and reranking orders the exact context inputs" class="modal-trigger" data-caption="The RDS candidate is removed by its stored service metadata; the three EC2 chunks pass because platform-oncall matches their copied ACL">
-  <div class="diagram-caption">📊 Candidate flow — see exactly why one record is removed and three reach context</div>
+<div class="rag-diagram" role="img" aria-label="Bad chunking splits an Apple battery eligibility sentence; good section-aware chunking preserves its heading and complete rule.">
+<svg viewBox="0 0 760 255" xmlns="http://www.w3.org/2000/svg" aria-labelledby="chunk-title chunk-desc">
+  <title id="chunk-title">Why section-aware chunking helps</title><desc id="chunk-desc">A bad chunk boundary separates the phrase below 80 percent from its condition. A good chunk uses the Battery Service, Australia, Eligibility hierarchy and keeps the full rule together.</desc>
+  <rect class="panel" x="18" y="18" width="350" height="219" rx="12"/><text class="accent-text" x="40" y="48">BAD — BOUNDARY LOSES THE RULE</text>
+  <rect class="node guard" x="40" y="68" width="306" height="55" rx="8"/><text class="label" x="55" y="92">Chunk 1</text><text class="small" x="55" y="111">“An iPhone battery qualifies when capacity is below”</text>
+  <rect class="node guard" x="40" y="146" width="306" height="55" rx="8"/><text class="label" x="55" y="170">Chunk 2</text><text class="small" x="55" y="189">“80%, subject to diagnostic checks.”</text>
+  <rect class="panel" x="392" y="18" width="350" height="219" rx="12"/><text class="accent-text" x="414" y="48">GOOD — STRUCTURE TRAVELS WITH TEXT</text>
+  <text class="label" x="420" y="80">Battery Service</text><text class="small" x="435" y="103">└── Australia</text><text class="small" x="450" y="126">└── Eligibility</text>
+  <rect class="node store" x="414" y="145" width="306" height="65" rx="8"/><text class="small" x="429" y="171">“An iPhone battery qualifies when capacity is</text><text class="small" x="429" y="190">below 80%, subject to diagnostic checks.”</text>
+</svg>
 </div>
 
-### 4.7 Build context: ordered candidates → exact LLM input
+Common strategies are deliberately different tools:
 
-**INPUT:** the three ordered, permitted candidates, their source paths, and the original question.
+- **Fixed-size:** split by length; simple and predictable.
+- **Overlap:** repeat a little surrounding text to reduce boundary loss.
+- **Section-aware:** respect headings and sections.
+- **Semantic:** split where a topic changes.
+- **Parent-child:** retrieve a small child chunk, then provide its larger parent context.
 
-**WHO:** `context-builder-v1`.
+Section-aware chunking is often a strong default for policies because the heading path becomes both context and retrieval metadata. It is not automatically best: tables, transcripts, and long narrative text may need another approach.
 
-**RULE / CONFIG:** deduplicate by `document_id + chunk_id`; maximum evidence budget `180` tokens; preserve the reranker order; attach each chunk's `source_path`, `heading_path`, and `document_id` as its citation. All three chunks fit, so none is dropped.
+### Embeddings: representing meaning as vectors
 
-**OUTPUT:** exactly this LLM context:
+Once a chunk is selected, an embedding model converts its text to numbers. An **embedding** is a numerical representation useful for comparing semantic similarity—not a human-readable list of labels.
 
-~~~text
-SYSTEM
-Answer only from EVIDENCE. If EVIDENCE is insufficient, say so.
-Cite the document ID that supports each instruction.
+<div class="rag-diagram" role="img" aria-label="Two differently worded battery questions become nearby embedding vectors, illustrating semantic similarity.">
+<svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" aria-labelledby="embed-title embed-desc">
+  <title id="embed-title">Embedding intuition</title><desc id="embed-desc">Two phrases about battery replacement are passed through the same embedding model and become numerically similar vectors shown close together in a small vector space.</desc>
+  <defs><marker id="embed-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
+  <rect class="node data" x="28" y="35" width="270" height="56" rx="8"/><text class="small" x="163" y="59" text-anchor="middle">“Can I replace my worn-out battery?”</text>
+  <rect class="node data" x="28" y="143" width="270" height="56" rx="8"/><text class="small" x="163" y="167" text-anchor="middle">“Battery replacement eligibility”</text>
+  <rect class="node process" x="358" y="88" width="150" height="62" rx="8"/><text class="label" x="433" y="115" text-anchor="middle">Embedding</text><text class="small" x="433" y="134" text-anchor="middle">model</text>
+  <path class="line" d="M300 63H355 M300 171H330V150H355" marker-end="url(#embed-arrow)"/>
+  <rect class="panel" x="558" y="25" width="174" height="245" rx="12"/><text class="accent-text" x="575" y="51">VECTOR SPACE</text>
+  <circle cx="620" cy="112" r="9" fill="#2563eb"/><text class="mono" x="575" y="137">[0.12, -0.47, 0.81, …]</text>
+  <circle cx="647" cy="160" r="9" fill="#16a34a"/><text class="mono" x="575" y="185">[0.10, -0.45, 0.79, …]</text>
+  <path class="soft-line" d="M620 112L647 160" stroke-dasharray="4 4"/><text class="small" x="575" y="226">similar meaning</text><text class="small" x="575" y="244">→ nearby vectors</text>
+  <path class="line" d="M510 119H550" marker-end="url(#embed-arrow)"/>
+</svg>
+</div>
 
-EVIDENCE 1
-document_id: RUN-EC2-CPU-2026
-source: runbooks/ec2-cpu.md
-section: Production EC2 CPU triage > When to act
-If production EC2 CPU exceeds 90% for 15 minutes, start this procedure.
+At query time, use a compatible model to embed the question too. Search can then compare vectors with a score such as **cosine similarity**, **dot product**, or **Euclidean distance**. The score choice is secondary to the mental model: nearby vectors tend to represent related meaning.
 
-EVIDENCE 2
-document_id: RUN-EC2-CPU-2026
-source: runbooks/ec2-cpu.md
-section: Production EC2 CPU triage > Procedure
-1. Inspect CloudWatch metrics. 2. Identify the process using the CPU.
+## How Can We Retrieve Relevant Information?
 
-EVIDENCE 3
-document_id: RUN-EC2-CPU-2026
-source: runbooks/ec2-cpu.md
-section: Production EC2 CPU triage > Safety
-Do not restart a production instance before service-owner approval.
+Retrieval is the act of finding evidence. Vector search is only one possible method.
 
-QUESTION
-What should I do when a production EC2 instance stays above 90% CPU?
-~~~
+| Method | Best At | Example |
+| --- | --- | --- |
+| Metadata / structured filter | Known attributes | `region=AU AND product=iPhone` |
+| Lexical / BM25 | Exact words, IDs, errors | `POL-BAT-AU-2026` |
+| Vector / semantic | Meaning despite different wording | “worn-out phone battery” |
+| Hybrid | Exact + semantic requirements | policy ID + natural-language question |
 
-The RDS record does not appear because the metadata filter removed it. Nothing was removed for authorization, deduplication, or the token budget in this run; their rules are stated so that result is explainable.
+<div class="rag-diagram" role="img" aria-label="Retrieval branches into metadata filtering, lexical BM25 search, and vector search, then combines candidates for optional reranking.">
+<svg viewBox="0 0 760 310" xmlns="http://www.w3.org/2000/svg" aria-labelledby="retrieve-title retrieve-desc">
+  <title id="retrieve-title">Retrieval methods can work together</title><desc id="retrieve-desc">Metadata filtering, lexical BM25, and semantic vector search produce candidates that can be combined in hybrid retrieval, reranked, and selected as the best chunks.</desc>
+  <defs><marker id="retrieve-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
+  <rect class="node process" x="285" y="20" width="190" height="46" rx="8"/><text class="label" x="380" y="49" text-anchor="middle">RETRIEVAL</text>
+  <path class="line" d="M380 68V90H132V108 M380 90V108 M380 90H628V108" marker-end="url(#retrieve-arrow)"/>
+  <rect class="node data" x="40" y="112" width="184" height="62" rx="8"/><text class="label" x="132" y="138" text-anchor="middle">Metadata</text><text class="small" x="132" y="157" text-anchor="middle">structured filter</text>
+  <rect class="node process" x="288" y="112" width="184" height="62" rx="8"/><text class="label" x="380" y="138" text-anchor="middle">Lexical</text><text class="small" x="380" y="157" text-anchor="middle">BM25</text>
+  <rect class="node store" x="536" y="112" width="184" height="62" rx="8"/><text class="label" x="628" y="138" text-anchor="middle">Vector</text><text class="small" x="628" y="157" text-anchor="middle">semantic search</text>
+  <path class="line" d="M132 176V195H380V211 M380 176V211 M628 176V195H380" marker-end="url(#retrieve-arrow)"/>
+  <rect class="node rank" x="285" y="215" width="190" height="42" rx="8"/><text class="label" x="380" y="242" text-anchor="middle">Hybrid candidates</text>
+  <path class="line" d="M380 259V277" marker-end="url(#retrieve-arrow)"/><text class="small" x="400" y="276">optional reranker</text>
+  <rect class="node store" x="285" y="282" width="190" height="25" rx="8"/><text class="label" x="380" y="300" text-anchor="middle">Best chunks</text>
+</svg>
+</div>
 
-### 4.8 Generate: LLM context → grounded answer
+### Metadata filtering
 
-**INPUT:** the exact context above.
-
-**WHO:** `operations-answer-llm-v1`.
-
-**RULE / CONFIG:** follow the system instruction; make no operational claim that is absent from `EVIDENCE`; include the supporting document ID.
-
-**OUTPUT:**
-
-~~~text
-If production EC2 CPU exceeds 90% for 15 minutes, inspect CloudWatch metrics
-and identify the process using the CPU. Do not restart the production instance
-before service-owner approval. [RUN-EC2-CPU-2026]
-~~~
-
-The answer has its threshold, actions, restriction, and citation because each was present in the context builder's output—not because the model knew an unstated runbook.
-
-## 5. Only now: change one component at a time {#section-11-evaluation}
-
-The default flow above used section-aware chunks, hybrid retrieval, `Top-K = 4`, and one ANN-capable vector search. Alternatives change a named component and therefore a specific output.
-
-| Change | Component and new rule | What changes in this story | Trade-off to evaluate |
-|---|---|---|---|
-| Fixed-size instead of section-aware chunking | Chunker: split every 40 tokens | A boundary can land inside the Procedure or between Procedure and Safety, because length—not headings—decides it. | More uniform size; related instructions can separate. |
-| Semantic chunking instead of section-aware | Chunker: split at detected topic changes | Boundaries come from a model's topic decision instead of the literal `##` headings. | May improve topical focus; boundaries can change when the model/configuration changes. |
-| Lexical-only instead of hybrid | Retrieval engine: BM25 only | Exact words such as `EC2`, `CPU`, and `90%` dominate; differently worded queries may lose EC2 candidates. | Strong exact match; weaker vocabulary mismatch. |
-| Semantic-only instead of hybrid | Retrieval engine: vector similarity only | Similar meaning dominates; exact identifiers such as `RUN-EC2-CPU-2026` get less special treatment. | Handles paraphrase; can weaken exact-ID retrieval. |
-| `Top-K: 4 → 10` | Retrieval engine: return ten fused candidates | More records enter metadata filtering and reranking. | Recall may improve; noise, reranking latency, and context pressure increase. |
-| More ANN search effort | Vector search: explore more HNSW neighbours or IVF partitions | The vector half of hybrid search considers more approximate neighbours before fusion. | Recall may improve; latency increases. |
-| Enable query rewrite | Query processor: preserve original and generate a second retrieval text | The engine may also search “EC2 high-CPU triage procedure.” | Can bridge vocabulary; a bad rewrite can change intent, so trace both texts. |
-
-**HNSW vs IVF:** both are ANN index choices inside the retrieval engine. HNSW follows a graph of vector neighbours; IVF searches selected vector clusters. Neither changes the original Markdown, parsed document, metadata, ACL, or LLM rules—only which vector candidates are likely to reach rank fusion.
-
-Evaluate changes against traces like this one. `Recall@K` asks whether required permitted chunks appeared in the candidate list; `Precision@K` asks how much of that list was useful; latency and authorization leakage check the cost and safety of the same request. A fluent final answer cannot compensate for missing or forbidden evidence.
-
-## 6. The causal chain
+If the application already knows structured attributes, filtering can dramatically reduce the search space:
 
 ~~~text
-runbooks/ec2-cpu.md
-  → Markdown parser / frontmatter + heading rules
-  → structured sections + metadata from frontmatter
-  → section chunker / max 60, overlap 0
-  → three named chunks + copied metadata
-  → embedding model / ops-embed-demo-v1
-  → vectors
-  → index writer / one record per chunk
-  → vector database
-
-user question
-  → query processor / preserve original, no rewrite
-  → retrieval text
-  → embedding model / same model
-  → query vector
-  → retrieval engine / hybrid, RRF, Top-K 4
-  → four candidates
-  → metadata filter / EC2 + prod + ap-southeast-2 + current
-  → three EC2 candidates
-  → authorization / platform-oncall versus allowed_groups
-  → three permitted candidates
-  → reranker / question relevance
-  → ordered candidates
-  → context builder / dedupe, 180 tokens, citations
-  → exact LLM context
-  → LLM / evidence-only answer rule
-  → grounded answer + RUN-EC2-CPU-2026 citation
+region = AU
+product = iPhone
+status = current
 ~~~
 
-For production controls see [AI infrastructure and evaluation](/study/aiInfrastructure). For AWS implementations see [AWS AI services](/study/infrastructureAWSAiServices).
+This is a **relevance filter**, not permission. `region=AU` may make a policy more likely to answer the question. `user_has_access=true` determines whether the caller may see its evidence at all. Authorization must be enforced before evidence reaches the model.
+
+### Lexical / BM25
+
+Lexical search is best when the actual **word** matters: policy IDs, error codes, product names, exact phrases, and acronyms. Searching for `POL-BAT-AU-2026` should strongly favour that literal ID. Vector similarity may not be the best tool for this; lexical search is excellent.
+
+### Vector / semantic search
+
+Vector search is best when **meaning** matters. A user might ask, “When will Apple service my worn-out battery?” while the policy says, “An iPhone battery qualifies for service when tested capacity is below 80%.” The words differ, but the intent is related. This is where embeddings help.
+
+### Hybrid retrieval
+
+Real systems often combine signals instead of betting on one technique. Metadata can constrain either or both searches; BM25 and vector search can each produce candidates; then a fusion method combines their ranks.
+
+~~~text
+BM25 candidates ────────┐
+                        ├── Fuse / RRF ──→ Candidates
+Vector candidates ──────┘
+~~~
+
+**Reciprocal Rank Fusion (RRF)** is a simple option: a result earns more credit when it ranks highly in either list, without requiring the BM25 and vector score scales to match. It is a useful detail, not the definition of hybrid retrieval.
+
+## How Do We Search Millions of Vectors?
+
+Now that vector search has a job, we can ask how it scales. Start with **Exact Nearest Neighbour** search:
+
+<div class="rag-diagram" role="img" aria-label="Exact nearest-neighbour search compares a query vector with every stored vector, scores similarities, sorts them, and returns Top K.">
+<svg viewBox="0 0 760 145" xmlns="http://www.w3.org/2000/svg" aria-labelledby="exact-title exact-desc">
+  <title id="exact-title">Exact nearest-neighbour search</title><desc id="exact-desc">Exact vector search compares a query against every stored vector, calculates similarity, sorts all results, and selects the top K. It is accurate but becomes expensive as the corpus grows.</desc>
+  <defs><marker id="exact-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
+  <rect class="node data" x="20" y="31" width="140" height="52" rx="8"/><text class="label" x="90" y="61" text-anchor="middle">Query vector</text>
+  <rect class="node process" x="210" y="31" width="170" height="52" rx="8"/><text class="label" x="295" y="53" text-anchor="middle">Compare against</text><text class="small" x="295" y="72" text-anchor="middle">EVERY vector</text>
+  <rect class="node process" x="430" y="31" width="135" height="52" rx="8"/><text class="label" x="497" y="61" text-anchor="middle">Similarity + sort</text>
+  <rect class="node store" x="615" y="31" width="125" height="52" rx="8"/><text class="label" x="677" y="61" text-anchor="middle">Top K</text>
+  <path class="line" d="M162 57H208 M382 57H428 M567 57H613" marker-end="url(#exact-arrow)"/><text class="small" x="380" y="118" text-anchor="middle">Accurate, but increasingly expensive as the corpus grows.</text>
+</svg>
+</div>
+
+**ANN** means **Approximate Nearest Neighbour**. It is the general strategy: *do not search everything; search intelligently and accept a small accuracy trade-off for much better speed.*
+
+<div class="rag-diagram" role="img" aria-label="Approximate nearest-neighbour search has HNSW graph navigation and IVF partitioning approaches.">
+<svg viewBox="0 0 610 175" xmlns="http://www.w3.org/2000/svg" aria-labelledby="ann-title ann-desc">
+  <title id="ann-title">Two ANN approaches</title><desc id="ann-desc">Approximate nearest-neighbour search can use HNSW to navigate a graph or IVF to search chosen partitions.</desc>
+  <defs><marker id="ann-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
+  <rect class="node rank" x="220" y="18" width="170" height="48" rx="8"/><text class="label" x="305" y="47" text-anchor="middle">ANN</text><path class="line" d="M305 68V88H145V104 M305 88H465V104" marker-end="url(#ann-arrow)"/>
+  <rect class="node process" x="55" y="108" width="180" height="48" rx="8"/><text class="label" x="145" y="131" text-anchor="middle">HNSW</text><text class="small" x="145" y="148" text-anchor="middle">navigate graph</text>
+  <rect class="node store" x="375" y="108" width="180" height="48" rx="8"/><text class="label" x="465" y="131" text-anchor="middle">IVF</text><text class="small" x="465" y="148" text-anchor="middle">partition / cluster</text>
+</svg>
+</div>
+
+## HNSW: Navigate Through Neighbours
+
+**HNSW** stands for **Hierarchical Navigable Small World**. Its mental model is: **navigate through vector space toward increasingly similar neighbours.** It is graph-based: upper layers make larger jumps, and lower layers refine the route.
+
+<div class="rag-diagram" role="img" aria-label="A simplified HNSW hierarchy showing a query entering from an upper graph layer and navigating through neighbours toward the closest vector on layer zero.">
+<svg viewBox="0 0 800 355" xmlns="http://www.w3.org/2000/svg" aria-labelledby="hnsw-title hnsw-desc">
+  <title id="hnsw-title">HNSW navigates a graph</title><desc id="hnsw-desc">A query enters a sparse upper layer, follows edges toward more similar nodes, descends through layers, and reaches a close vector in the dense bottom layer.</desc>
+  <defs><marker id="hnsw-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#2563eb"/></marker></defs>
+  <text class="accent-text" x="35" y="43">HNSW — NAVIGATE</text><text class="small" x="35" y="64">Start coarse, then refine through closer neighbours.</text>
+  <text class="label" x="35" y="118">Layer 2</text><path class="soft-line" d="M190 108H520"/><circle cx="190" cy="108" r="10" fill="#2563eb"/><circle cx="520" cy="108" r="10" fill="#2563eb"/>
+  <text class="label" x="35" y="196">Layer 1</text><path class="soft-line" d="M150 186H280L430 186H610"/><circle cx="150" cy="186" r="10" fill="#64748b"/><circle cx="280" cy="186" r="10" fill="#64748b"/><circle cx="430" cy="186" r="10" fill="#64748b"/><circle cx="610" cy="186" r="10" fill="#64748b"/>
+  <text class="label" x="35" y="274">Layer 0</text><path class="soft-line" d="M100 264H175L250 264H325L400 264H475L550 264H625L700 264"/><g fill="#64748b"><circle cx="100" cy="264" r="10"/><circle cx="175" cy="264" r="10"/><circle cx="250" cy="264" r="10"/><circle cx="325" cy="264" r="10"/><circle cx="400" cy="264" r="10"/><circle cx="475" cy="264" r="10"/><circle cx="550" cy="264" r="10"/><circle cx="625" cy="264" r="10"/></g><circle cx="700" cy="264" r="13" fill="#16a34a"/><text class="small" x="719" y="268">closest</text>
+  <path class="soft-line" d="M190 118V175 M520 118V175 M280 196V253 M610 196V253" stroke-dasharray="4 5"/>
+  <circle class="step" cx="90" cy="90" r="13"/><text class="step-text" x="90" y="90">Q</text><path d="M103 92C140 91 160 100 180 105" stroke="#2563eb" stroke-width="3" fill="none" marker-end="url(#hnsw-arrow)"/><path d="M202 112C280 150 350 170 420 183" stroke="#2563eb" stroke-width="3" fill="none" marker-end="url(#hnsw-arrow)"/><path d="M440 190C520 225 600 250 688 262" stroke="#2563eb" stroke-width="3" fill="none" marker-end="url(#hnsw-arrow)"/>
+  <text class="small" x="35" y="327">More search effort can improve recall; graph construction and memory use are trade-offs.</text>
+</svg>
+</div>
+
+HNSW often has strong latency/recall characteristics. Higher search effort can improve recall, but memory use and index construction are important trade-offs.
+
+## IVF: Find the Right Neighbourhood
+
+**IVF** means **Inverted File Index**. Its mental model is: **find the right neighbourhood first, then search the houses.** It divides vector space into partitions (clusters), then searches the most promising ones.
+
+<div class="rag-diagram" role="img" aria-label="IVF divides vectors into clusters, identifies query X as closest to Cluster C, then searches that and nearby partitions for Top K.">
+<svg viewBox="0 0 800 360" xmlns="http://www.w3.org/2000/svg" aria-labelledby="ivf-title ivf-desc">
+  <title id="ivf-title">IVF searches promising partitions</title><desc id="ivf-desc">Vectors are grouped into three partitions. Query X lies in or closest to Cluster C, so IVF searches Cluster C and nearby partitions rather than every vector.</desc>
+  <defs><marker id="ivf-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
+  <text class="accent-text" x="35" y="42">IVF — DIVIDE AND CONQUER</text><text class="small" x="35" y="63">Partition the space, then search the likely neighbourhoods.</text>
+  <g><rect class="panel" x="35" y="90" width="205" height="150" rx="12"/><text class="label" x="137" y="117" text-anchor="middle">Cluster A</text><g fill="#64748b"><circle cx="80" cy="150" r="7"/><circle cx="115" cy="160" r="7"/><circle cx="155" cy="147" r="7"/><circle cx="190" cy="174" r="7"/><circle cx="95" cy="202" r="7"/><circle cx="140" cy="194" r="7"/></g></g>
+  <g><rect class="panel" x="298" y="90" width="205" height="150" rx="12"/><text class="label" x="400" y="117" text-anchor="middle">Cluster B</text><g fill="#64748b"><circle cx="345" cy="150" r="7"/><circle cx="385" cy="165" r="7"/><circle cx="430" cy="147" r="7"/><circle cx="465" cy="185" r="7"/><circle cx="350" cy="202" r="7"/><circle cx="410" cy="203" r="7"/></g></g>
+  <g><rect class="node store" x="561" y="90" width="205" height="150" rx="12"/><text class="label" x="663" y="117" text-anchor="middle">Cluster C</text><g fill="#16a34a"><circle cx="610" cy="150" r="7"/><circle cx="650" cy="165" r="7"/><circle cx="700" cy="149" r="7"/><circle cx="725" cy="190" r="7"/><circle cx="615" cy="205" r="7"/><circle cx="675" cy="205" r="7"/></g><path d="M664 160L682 178M682 160L664 178" stroke="#e11d48" stroke-width="4"/><text class="small" x="691" y="176">Query X</text></g>
+  <rect class="node data" x="48" y="281" width="160" height="46" rx="8"/><text class="label" x="128" y="309" text-anchor="middle">10,000,000 vectors</text><rect class="node process" x="295" y="281" width="198" height="46" rx="8"/><text class="label" x="394" y="309" text-anchor="middle">Find closest partitions</text><rect class="node store" x="580" y="281" width="170" height="46" rx="8"/><text class="label" x="665" y="301" text-anchor="middle">Search C + nearby</text><text class="small" x="665" y="318" text-anchor="middle">→ Top K</text><path class="line" d="M210 304H293 M495 304H578" marker-end="url(#ivf-arrow)"/>
+</svg>
+</div>
+
+Searching more partitions (often called probes) generally improves recall, but costs more work. It is a knob, not a guarantee.
+
+|  | HNSW | IVF |
+| --- | --- | --- |
+| Mental model | Navigate | Divide & conquer |
+| Structure | Graph | Clusters / partitions |
+| Search | Walk toward nearby vectors | Find promising partitions, then search them |
+| Trade-off control | Search effort | Number of probes |
+| Main idea | Don’t inspect every node | Don’t inspect every partition |
+
+Neither index is universally better. Choose based on corpus size, latency and recall targets, update behaviour, memory budget, and the retrieval system around it.
+
+## Reconnecting the Query-Time Pipeline
+
+This is the retrieval layer’s final mental model. The LLM is downstream of retrieval; it does not independently search HNSW, IVF, or the vector store.
+
+<div class="rag-diagram" role="img" aria-label="Query-time RAG pipeline from user question through query processing, constraints, BM25, vector ANN and structured retrieval, candidate fusion, reranking, context assembly, LLM and cited answer.">
+<svg viewBox="0 0 850 690" xmlns="http://www.w3.org/2000/svg" aria-labelledby="query-title query-desc">
+  <title id="query-title">Query-time retrieval pipeline</title><desc id="query-desc">A user question is processed and constrained by metadata and authorization. BM25, vector ANN, and structured retrieval form candidates which are fused, reranked, assembled as context, and passed to the LLM for a cited answer.</desc>
+  <defs><marker id="query-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
+  <rect class="node data" x="305" y="18" width="240" height="42" rx="8"/><text class="label" x="425" y="45" text-anchor="middle">1. User question</text><rect class="node process" x="305" y="85" width="240" height="42" rx="8"/><text class="label" x="425" y="112" text-anchor="middle">2. Query processing</text><rect class="node guard" x="270" y="152" width="310" height="50" rx="8"/><text class="label" x="425" y="178" text-anchor="middle">3. Metadata + authorization constraints</text><text class="small" x="425" y="194" text-anchor="middle">enforce access before context reaches the LLM</text><path class="line" d="M425 62V83 M425 129V150" marker-end="url(#query-arrow)"/>
+  <path class="line" d="M425 204V225H150V244 M425 225V244 M425 225H700V244" marker-end="url(#query-arrow)"/>
+  <rect class="node process" x="55" y="248" width="190" height="54" rx="8"/><text class="label" x="150" y="272" text-anchor="middle">BM25</text><text class="small" x="150" y="290" text-anchor="middle">exact words</text><rect class="node store" x="330" y="248" width="190" height="54" rx="8"/><text class="label" x="425" y="272" text-anchor="middle">Vector ANN</text><text class="small" x="425" y="290" text-anchor="middle">HNSW / IVF</text><rect class="node data" x="605" y="248" width="190" height="54" rx="8"/><text class="label" x="700" y="272" text-anchor="middle">Structured</text><text class="small" x="700" y="290" text-anchor="middle">API / SQL / filters</text>
+  <path class="line" d="M150 304V330H425V350 M425 304V350 M700 304V330H425" marker-end="url(#query-arrow)"/><rect class="node rank" x="305" y="354" width="240" height="42" rx="8"/><text class="label" x="425" y="381" text-anchor="middle">4. Candidate fusion → Top K</text><rect class="node rank" x="305" y="421" width="240" height="42" rx="8"/><text class="label" x="425" y="448" text-anchor="middle">5. Reranking</text><rect class="node store" x="305" y="488" width="240" height="49" rx="8"/><text class="label" x="425" y="513" text-anchor="middle">Best 5–10 chunks</text><text class="small" x="425" y="530" text-anchor="middle">relevant, permitted evidence</text><rect class="node process" x="305" y="562" width="240" height="42" rx="8"/><text class="label" x="425" y="589" text-anchor="middle">6. Context assembly</text><rect class="node rank" x="305" y="629" width="240" height="42" rx="8"/><text class="label" x="425" y="656" text-anchor="middle">7. LLM → cited answer</text><path class="line" d="M425 398V419 M425 465V486 M425 539V560 M425 606V627" marker-end="url(#query-arrow)"/>
+</svg>
+</div>
+
+For the battery policy, use `region=AU`, `product=iPhone`, and `status=current` to narrow results; verify the caller may access the policy; fuse lexical and semantic candidates; then send the best permitted excerpts, section paths, and citation IDs to the LLM.
+
+## Reranking: Find Broadly, Judge Narrowly
+
+First-stage vector/BM25 retrieval is a **fast candidate finder**. A reranker is a more expensive **relevance judge** that takes a question and a small candidate set, then reorders it.
+
+<div class="rag-diagram" role="img" aria-label="Reranking pipeline retrieves top 50 candidate chunks, reranks them, selects the best five, and sends those to the language model.">
+<svg viewBox="0 0 760 145" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rerank-title rerank-desc">
+  <title id="rerank-title">Reranking narrows retrieved candidates</title><desc id="rerank-desc">A query retrieves fifty candidates quickly; a reranker evaluates them more deeply, selects the best five, then the LLM receives those selected chunks.</desc>
+  <defs><marker id="rerank-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
+  <rect class="node data" x="20" y="31" width="120" height="52" rx="8"/><text class="label" x="80" y="61" text-anchor="middle">Query</text><rect class="node process" x="185" y="31" width="150" height="52" rx="8"/><text class="label" x="260" y="53" text-anchor="middle">Retrieve</text><text class="small" x="260" y="72" text-anchor="middle">Top 50</text><rect class="node rank" x="380" y="31" width="150" height="52" rx="8"/><text class="label" x="455" y="61" text-anchor="middle">Reranker</text><rect class="node store" x="575" y="31" width="165" height="52" rx="8"/><text class="label" x="657" y="53" text-anchor="middle">Best 5 → LLM</text><text class="small" x="657" y="72" text-anchor="middle">with citations</text><path class="line" d="M142 57H183 M337 57H378 M532 57H573" marker-end="url(#rerank-arrow)"/>
+</svg>
+</div>
+
+A typical vector embedding model is a **bi-encoder**: it encodes query and chunks independently, so it is fast enough to search at scale. A **cross-encoder** reranker reads the query and one candidate together, which can make a stronger relevance judgement but is too costly to run against the whole corpus.
+
+<aside class="technique-callout">
+  <strong>Ranking limit</strong>
+  <span><strong>Reranking cannot recover a document that first-stage retrieval failed to retrieve.</strong> Improve recall before expecting reranking to fix missing evidence.</span>
+</aside>
+
+## Evaluation: Does the System Retrieve and Answer Well?
+
+Evaluate retrieval and generation separately. A polished answer may still be based on poor evidence.
+
+<div class="rag-diagram" role="img" aria-label="Evaluation separates retrieval quality metrics on top K chunks from generation quality metrics on the final answer.">
+<svg viewBox="0 0 800 360" xmlns="http://www.w3.org/2000/svg" aria-labelledby="eval-title eval-desc">
+  <title id="eval-title">Measure retrieval quality separately from generation quality</title><desc id="eval-desc">A question goes to a retriever. Retrieval quality is measured on the returned top K chunks using precision, recall, MRR and NDCG. The LLM makes an answer, which is measured for groundedness, relevance and correctness.</desc>
+  <defs><marker id="eval-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
+  <rect class="node data" x="310" y="20" width="180" height="44" rx="8"/><text class="label" x="400" y="48" text-anchor="middle">Question</text><rect class="node process" x="310" y="92" width="180" height="44" rx="8"/><text class="label" x="400" y="120" text-anchor="middle">Retriever</text><rect class="node store" x="310" y="164" width="180" height="44" rx="8"/><text class="label" x="400" y="192" text-anchor="middle">Top K chunks</text><path class="line" d="M400 66V90 M400 138V162" marker-end="url(#eval-arrow)"/>
+  <rect class="panel" x="535" y="145" width="235" height="96" rx="10"/><text class="accent-text" x="552" y="170">RETRIEVAL QUALITY</text><text class="small" x="552" y="193">Precision@K · Recall@K</text><text class="small" x="552" y="214">MRR · NDCG</text><path class="line" d="M492 186H533" marker-end="url(#eval-arrow)"/>
+  <rect class="node rank" x="310" y="255" width="180" height="44" rx="8"/><text class="label" x="400" y="283" text-anchor="middle">LLM</text><rect class="node" x="310" y="321" width="180" height="28" rx="8"/><text class="label" x="400" y="341" text-anchor="middle">Answer</text><path class="line" d="M400 210V253 M400 301V319" marker-end="url(#eval-arrow)"/>
+  <rect class="panel" x="535" y="274" width="235" height="75" rx="10"/><text class="accent-text" x="552" y="298">GENERATION QUALITY</text><text class="small" x="552" y="321">Groundedness · relevance</text><text class="small" x="552" y="338">correctness</text><path class="line" d="M492 335H533" marker-end="url(#eval-arrow)"/>
+</svg>
+</div>
+
+**Precision@K** and **Recall@K** are a good starting pair. Suppose the corpus contains four relevant battery-policy chunks, and the top five returned are:
+
+~~~text
+1. Relevant ✓
+2. Relevant ✓
+3. Irrelevant ✗
+4. Relevant ✓
+5. Irrelevant ✗
+~~~
+
+**Precision@5 = 3 / 5 = 60%** — *“Was the stuff I found actually relevant?”*
+
+**Recall@5 = 3 / 4 = 75%** — *“Did I find the relevant stuff?”*
+
+MRR rewards placing the first useful result early; NDCG also accounts for graded relevance and ranking position. On the generation side, test whether claims are grounded in cited evidence, answer the question, and are correct.
+
+## Cheat Sheet
+
+<div class="rag-lifecycle" role="note" aria-label="RAG knowledge base cheat sheet">
+  <span>RAG = Retrieve → Augment → Generate</span><b>→</b>
+  <span>Ingestion: Parse → Structure → Chunk → Embed → Index</span><b>→</b>
+  <span>Metadata = exact attributes</span><b>→</b>
+  <span>BM25 = exact words</span><b>→</b>
+  <span>Vector = semantic meaning</span><b>→</b>
+  <span>Hybrid = combine signals</span><b>→</b>
+  <span>Exact NN = compare everything</span><b>→</b>
+  <span>ANN = approximate for speed</span><b>→</b>
+  <span>HNSW = navigate graph</span><b>→</b>
+  <span>IVF = promising partitions</span><b>→</b>
+  <span>Retrieve broadly → rerank narrowly</span><b>→</b>
+  <span>Precision@K = were results relevant?</span><b>→</b>
+  <span>Recall@K = did we find the relevant results?</span>
+</div>
+
+<aside class="technique-callout">
+  <strong>Final warning</strong>
+  <span><strong>RAG ≠ Vector Database.</strong> Vector search is one retrieval option. A RAG system may instead—or also—use metadata filters, BM25, hybrid retrieval, APIs, SQL, and other appropriate sources before it augments an LLM’s context with permitted evidence.</span>
+</aside>
+
+For production controls, see [AI infrastructure and evaluation](/study/aiInfrastructure). For AWS implementations, see [AWS AI services](/study/infrastructureAWSAiServices).
