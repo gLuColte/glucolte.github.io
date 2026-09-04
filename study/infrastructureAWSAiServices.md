@@ -7,6 +7,8 @@ permalink: /study/infrastructureAWSAiServices
 
 Use this page to map an AI architecture to AWS services. It is intentionally AWS-specific; model mechanics, retrieval theory, agents, and cloud-neutral production controls remain on their dedicated pages.
 
+**Part 7 of 7:** [Infrastructure and evaluation](/study/aiInfrastructure) → **AWS AI Services**. Choose AWS implementations only after the architecture, retrieval, agent, and operational boundaries are clear.
+
 ## Agent architecture mapped to AWS {#agent-layer-map}
 
 Start with the [bounded agent tool sequence](/study/aiAgents#section-1-boundaries). The layers below map each responsibility in that vendor-neutral design to AWS implementation choices; they are not a mandatory five-service stack.
@@ -288,8 +290,9 @@ App --> User: Response + citations
   - can be applied independently in selected workflows;
   - do not replace IAM, tenant authorization, tool validation, WAF, or domain rules.
 - **Prompt management**:
-  - versions and tests prompt templates and variables;
-  - helps deployment discipline but does not replace repository versioning and end-to-end regression tests.
+  - creates reusable templates with runtime variables, variants/testing, and deployable versions;
+  - helps deployment discipline but does not replace repository versioning and end-to-end regression tests;
+  - applies the prompt-template practice from [AI Prompt Engineering](/study/aiPromptEngineering#templates) through an AWS-managed service.
 - **Evaluation**:
   - supports model and knowledge-base evaluation capabilities, including automated and human-oriented approaches where available;
   - retain workload-specific datasets and release gates outside any single managed feature.

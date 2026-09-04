@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/aiModels" />
-<meta property="og:url" content="http://localhost:4000/study/aiModels" />
+<link rel="canonical" href="https://glucolte.github.io/study/aiModels" />
+<meta property="og:url" content="https://glucolte.github.io/study/aiModels" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Models and Providers" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Models and Providers","url":"http://localhost:4000/study/aiModels"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Models and Providers","url":"https://glucolte.github.io/study/aiModels"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -65,6 +65,8 @@
       <h1 id="ai-models-and-providers">AI Models and Providers</h1>
 
 <p>Use this page to select a model and decide how to consume it. It merges model characteristics and provider choices because they are evaluated together, while keeping the distinction explicit.</p>
+
+<p><strong>Part 3 of 7:</strong> <a href="/study/aiPromptEngineering">Prompt engineering</a> → <strong>Models and providers</strong> → <a href="/study/aiKnowledgebases">Knowledge bases</a>. This page is about choosing or adapting a model; it does not re-teach retrieval, tool loops, or platform operations.</p>
 
 <h2 id="section-1-boundaries">1. Model, provider, and cloud are different</h2>
 
@@ -183,53 +185,8 @@
       <li>provider internals vary and may include hidden reasoning, verifiers, search, or other techniques.</li>
     </ul>
   </li>
-</ul>
-
-<div class="image-wrapper">
-  <img src="./assets/model_reasoning_paths.png" alt="Comparison of direct model generation, internal reasoning within one model call, and external multi-step tool orchestration" class="modal-trigger" data-caption="Direct generation versus internal model reasoning versus application-controlled multi-step execution" />
-  <div class="diagram-caption" data-snippet-id="model-reasoning-paths-snippet">
-    🧭 Three execution paths: direct, reasoning, and external multi-step
-  </div>
-  <script type="text/plain" id="model-reasoning-paths-snippet">
-@startuml
-title Direct generation, internal reasoning, and external multi-step work
-actor User
-participant "Application / Router" as App
-participant "Selected Model" as Model
-participant "Policy + Tool Executor" as Tools
-
-User -> App: Request
-
-alt Simple or well-defined task
-  App -> Model: Prompt + runtime context\nlow/default reasoning effort
-  Model -> Model: Autoregressive decode
-  Model --> App: Direct answer
-else Difficult reasoning; no external state needed
-  App -> Model: Prompt + runtime context\nhigher reasoning effort where supported
-  group One model call
-    Model -> Model: Internal deliberation tokens\nplan → test → correct
-    Model -> Model: Generate final answer
-  end
-  Model --> App: Final answer
-else Live data, actions, or durable steps needed
-  loop Bounded application-controlled steps
-    App -> Model: Goal + observations + permitted tools
-    Model --> App: Proposed action
-    App -> Tools: Authorize, validate, execute
-    Tools --> App: Live result / durable state
-  end
-  App -> Model: Final permitted evidence
-  Model --> App: Grounded final answer
-end
-
-App --> User: Result
-@enduml
-  </script>
-</div>
-
-<ul>
   <li><strong>Internal multi-step reasoning</strong> occurs inside one model call and consumes inference time/tokens; providers may expose only a summary or no reasoning trace.</li>
-  <li><strong>External multi-step execution</strong> is an application, workflow, or agent loop across model calls and tools; the application owns authorization, state, limits, and retries.</li>
+  <li><strong>External multi-step execution</strong> is an application, workflow, or agent loop across model calls and tools. It is not a model category; the application owns authorization, state, limits, and retries. Learn that boundary on <a href="/study/aiAgents">AI Agents</a>.</li>
   <li>Shared conceptual levers include:
     <ul>
       <li>model/tier selection;</li>
@@ -508,145 +465,23 @@ Need broad domain language in model weights?     → continued pre-training
   <li>For every evaluation, record the exact model ID, API/access path, Region, date, and configuration.</li>
 </ul>
 
-<h2 id="section-6-pricing">6. API pricing and cost comparison</h2>
+<h2 id="section-6-pricing">6. Compare cost using the workload</h2>
 
-<blockquote>
-  <p>Pricing snapshot: <strong>20 August 2026</strong>, USD per 1 million tokens (<code class="language-plaintext highlighter-rouge">MTok</code>). Prices, previews, discounts, and model availability change; verify the linked official pages before making a production decision.</p>
-</blockquote>
-
-<p>Representative hosted text-model rates:</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Provider</th>
-      <th>Model</th>
-      <th>Position</th>
-      <th style="text-align: right">Standard/cache-miss input / MTok</th>
-      <th style="text-align: right">Output / MTok</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>OpenAI</td>
-      <td>GPT-5.6 Sol</td>
-      <td>Frontier</td>
-      <td style="text-align: right">$5.00</td>
-      <td style="text-align: right">$30.00</td>
-    </tr>
-    <tr>
-      <td>OpenAI</td>
-      <td>GPT-5.6 Terra</td>
-      <td>Balanced</td>
-      <td style="text-align: right">$2.00</td>
-      <td style="text-align: right">$12.00</td>
-    </tr>
-    <tr>
-      <td>OpenAI</td>
-      <td>GPT-5.6 Luna</td>
-      <td>High-volume</td>
-      <td style="text-align: right">$0.20</td>
-      <td style="text-align: right">$1.20</td>
-    </tr>
-    <tr>
-      <td>Anthropic</td>
-      <td>Claude Fable 5</td>
-      <td>Highest capability</td>
-      <td style="text-align: right">$10.00</td>
-      <td style="text-align: right">$50.00</td>
-    </tr>
-    <tr>
-      <td>Anthropic</td>
-      <td>Claude Opus 4.8</td>
-      <td>Advanced</td>
-      <td style="text-align: right">$5.00</td>
-      <td style="text-align: right">$25.00</td>
-    </tr>
-    <tr>
-      <td>Anthropic</td>
-      <td>Claude Sonnet 5</td>
-      <td>Balanced</td>
-      <td style="text-align: right">$2.00*</td>
-      <td style="text-align: right">$10.00*</td>
-    </tr>
-    <tr>
-      <td>Anthropic</td>
-      <td>Claude Haiku 4.5</td>
-      <td>Fast</td>
-      <td style="text-align: right">$1.00</td>
-      <td style="text-align: right">$5.00</td>
-    </tr>
-    <tr>
-      <td>Google</td>
-      <td>Gemini 3.1 Pro Preview</td>
-      <td>Advanced multimodal</td>
-      <td style="text-align: right">$2.00</td>
-      <td style="text-align: right">$12.00</td>
-    </tr>
-    <tr>
-      <td>Google</td>
-      <td>Gemini 3.5 Flash</td>
-      <td>Fast/balanced</td>
-      <td style="text-align: right">$1.50</td>
-      <td style="text-align: right">$9.00</td>
-    </tr>
-    <tr>
-      <td>Google</td>
-      <td>Gemini 3.1 Flash-Lite</td>
-      <td>High-volume</td>
-      <td style="text-align: right">$0.25</td>
-      <td style="text-align: right">$1.50</td>
-    </tr>
-    <tr>
-      <td>DeepSeek</td>
-      <td>DeepSeek V4 Pro</td>
-      <td>Advanced/open-weight</td>
-      <td style="text-align: right">$0.435</td>
-      <td style="text-align: right">$0.87</td>
-    </tr>
-    <tr>
-      <td>DeepSeek</td>
-      <td>DeepSeek V4 Flash</td>
-      <td>High-volume/open-weight</td>
-      <td style="text-align: right">$0.14</td>
-      <td style="text-align: right">$0.28</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>* Claude Sonnet 5 introductory rate through 31 August 2026; the documented standard rate is <code class="language-plaintext highlighter-rouge">$3</code> input / <code class="language-plaintext highlighter-rouge">$15</code> output per MTok.</p>
-
-<p>Basic token-cost calculation:</p>
+<p>Provider price cards change too often to be study material. Use the current official pricing page for the exact model and Region, then apply the same workload calculation:</p>
 
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>request cost ≈
     input_tokens  / 1,000,000 × input_rate
   + output_tokens / 1,000,000 × output_rate
 </code></pre></div></div>
 
-<p>Example using GPT-5.6 Terra:</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>100,000 input tokens × $2 / MTok  = $0.20
- 10,000 output tokens × $12 / MTok = $0.12
-                                          ─────
-Estimated model-token cost                $0.32
-</code></pre></div></div>
-
 <ul>
-  <li>Real cost may also include:
-    <ul>
-      <li>cached-input reads and cache writes;</li>
-      <li>reasoning/thinking tokens;</li>
-      <li>long-context price tiers;</li>
-      <li>batch, flex, priority, or provisioned capacity;</li>
-      <li>web search, grounding, file search, code execution, or other tools;</li>
-      <li>reranking, embeddings, storage, data transfer, and retries;</li>
-      <li>regional/data-residency premiums or cloud-platform pricing.</li>
-    </ul>
-  </li>
-  <li>Output is often more expensive because generation is sequential; minimizing unnecessary output can matter more than small prompt reductions.</li>
-  <li>Compare <strong>cost per successful task</strong>, not only price per token. A cheap model that retries or fails often can cost more overall.</li>
-  <li>Consumer plans such as ChatGPT Plus or Claude Pro purchase application access and usage allowances; they are not interchangeable with API credits or per-token rates.</li>
+  <li>Include cached-input, reasoning, long-context, tool, retrieval, retry, capacity, and data-transfer charges that apply to the route.</li>
+  <li>Compare <strong>cost per successful task</strong>, using realistic input/output distributions and failure rates—not only a headline token price.</li>
+  <li>Output is usually sequential and often more expensive than input; output limits are a useful lever when they do not harm task quality.</li>
+  <li>Consumer subscriptions are product access, not interchangeable API credits.</li>
 </ul>
+
+<p>For caching, capacity, queues, and cost controls across the whole system, continue to <a href="/study/aiInfrastructure#section-10-cost">AI Infrastructure and Evaluation</a>.</p>
 
 <p>Official references:</p>
 

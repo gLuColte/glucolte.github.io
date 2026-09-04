@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/aiInfrastructure" />
-<meta property="og:url" content="http://localhost:4000/study/aiInfrastructure" />
+<link rel="canonical" href="https://glucolte.github.io/study/aiInfrastructure" />
+<meta property="og:url" content="https://glucolte.github.io/study/aiInfrastructure" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Infrastructure and Evaluation" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Infrastructure and Evaluation","url":"http://localhost:4000/study/aiInfrastructure"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Infrastructure and Evaluation","url":"https://glucolte.github.io/study/aiInfrastructure"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -66,6 +66,8 @@
 
 <p>Use this page for the cloud-neutral production envelope around an AI system and the evaluation loop that proves changes are safe. AWS service mappings belong in <a href="/study/infrastructureAWSAiServices">AWS AI services</a>.</p>
 
+<p><strong>Part 6 of 7:</strong> <a href="/study/aiAgents">AI Agents</a> → <strong>Infrastructure and evaluation</strong> → <a href="/study/infrastructureAWSAiServices">AWS AI Services</a>. This page integrates the earlier layers; it owns their security, reliability, operations, and release process rather than re-explaining their mechanics.</p>
+
 <h2 id="section-1-architecture">1. Production reference architecture</h2>
 
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>user → identity → API/application → authorization → AI orchestrator
@@ -88,208 +90,51 @@
   <li><strong>Observability/evaluation</strong> surrounds every component; it is not a final model-only check.</li>
 </ul>
 
-<h2 id="section-2-company-adoption">2. How companies set up GenAI</h2>
+<h2 id="section-2-company-adoption">2. Platform adoption and ownership</h2>
+
+<p>A company can run several maturity patterns at once; use the least complex one that safely serves the workload.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Pattern</th>
+      <th>Use it when</th>
+      <th>Add next</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Bounded product integration</strong></td>
+      <td>One low-risk use case needs a model response.</td>
+      <td>Evaluation, data classification, tracing, and cost limits before it becomes a production dependency.</td>
+    </tr>
+    <tr>
+      <td><strong>Repeatable product pattern</strong></td>
+      <td>Several flows need the same prompts, model routes, retrieval, or policy.</td>
+      <td>Shared adapters and standards, while the product still owns its user journey and domain workflow.</td>
+    </tr>
+    <tr>
+      <td><strong>Shared AI platform</strong></td>
+      <td>Multiple teams need consistent identity propagation, approved model access, retrieval connectors, tool boundaries, telemetry, and evaluation.</td>
+      <td>A paved road with reusable controls—not a central team that owns every feature.</td>
+    </tr>
+    <tr>
+      <td><strong>Bounded agent extension</strong></td>
+      <td>Tool choice or sequence depends on runtime observations.</td>
+      <td>The deterministic workflow, authorization, durable state, approvals, and budgets described on <a href="/study/aiAgents">AI Agents</a>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Keep ownership explicit:</p>
 
 <ul>
-  <li>These are maturity patterns, not mandatory migration stages.</li>
-  <li>A company may use all four patterns at once for workloads with different risk and complexity.</li>
-  <li>The important change is not merely replacing an API:
-    <ul>
-      <li>traditional applications keep intelligence inside code, rules, data, and narrow models;</li>
-      <li>early GenAI applications add a language model directly inside each product;</li>
-      <li>modern platforms centralize model access, retrieval, policy, evaluation, and observability;</li>
-      <li>agentic systems add bounded runtime tool choice where fixed workflows are insufficient.</li>
-    </ul>
-  </li>
+  <li><strong>Product/domain teams</strong> own the user journey, source quality, business rules, acceptance criteria, and outcome.</li>
+  <li><strong>The shared platform</strong> owns reusable model access, identity/policy integration, telemetry, quotas, and common evaluation/release controls.</li>
+  <li><strong>Security and data teams</strong> own classification, retention, approved providers, and high-impact-action policy.</li>
 </ul>
 
-<h3 id="section-2-1-traditional">2.1 Traditional software and predictive ML</h3>
-
-<ul>
-  <li>The application owns the business workflow and deterministic decisions.</li>
-  <li>Search/databases provide facts; a narrow ML model may predict a score, class, forecast, or recommendation.</li>
-  <li>The predictive model normally returns structured output rather than generating the user experience.</li>
-  <li>Strengths:
-    <ul>
-      <li>explicit logic and permissions;</li>
-      <li>predictable tests and failure handling;</li>
-      <li>strong transaction boundaries.</li>
-    </ul>
-  </li>
-  <li>Limits:
-    <ul>
-      <li>natural-language interfaces and unstructured content require substantial custom code;</li>
-      <li>every new task needs rules, features, models, or workflow changes.</li>
-    </ul>
-  </li>
-</ul>
-
-<div class="image-wrapper">
-  <img src="./assets/company_ai_traditional.png" alt="Traditional company application and predictive ML sequence" class="modal-trigger" data-caption="Traditional application: deterministic workflow with optional predictive ML" />
-  <div class="diagram-caption" data-snippet-id="company-ai-traditional-snippet">
-    🏢 Traditional software and predictive ML
-  </div>
-  <script type="text/plain" id="company-ai-traditional-snippet">
-@startuml
-title Traditional software and predictive ML
-actor User
-participant "Business Application" as App
-participant "Rules / Workflow" as Rules
-database "Operational Data" as Data
-participant "Predictive ML Endpoint" as ML
-User -> App: Structured request
-App -> Rules: Validate identity and business rules
-Rules -> Data: Read permitted records
-Data --> Rules: Structured facts
-opt Narrow prediction needed
-  Rules -> ML: Curated features
-  ML --> Rules: Score / class / forecast
-end
-Rules --> App: Deterministic outcome
-App --> User: Screen, report, or transaction result
-@enduml
-  </script>
-</div>
-
-<h3 id="section-2-2-direct-llm">2.2 Early GenAI: direct model integration</h3>
-
-<ul>
-  <li>A product team calls a hosted LLM directly from its application backend.</li>
-  <li>The application builds a prompt from user input and selected business data.</li>
-  <li>This is useful for prototypes and one bounded use case.</li>
-  <li>It becomes difficult at company scale because teams duplicate:
-    <ul>
-      <li>provider credentials and SDK integration;</li>
-      <li>prompt storage and model configuration;</li>
-      <li>safety filters and logging;</li>
-      <li>retrieval pipelines;</li>
-      <li>cost controls and evaluation;</li>
-      <li>fallback and model-upgrade work.</li>
-    </ul>
-  </li>
-  <li>Common failure: the prototype becomes production without proper authorization, data classification, regression tests, or ownership.</li>
-</ul>
-
-<div class="image-wrapper">
-  <img src="./assets/company_ai_direct_llm.png" alt="Early direct LLM company integration sequence" class="modal-trigger" data-caption="Early GenAI application calling a model provider directly" />
-  <div class="diagram-caption" data-snippet-id="company-ai-direct-llm-snippet">
-    🚀 Early GenAI direct model integration
-  </div>
-  <script type="text/plain" id="company-ai-direct-llm-snippet">
-@startuml
-title Early GenAI point solution
-actor User
-participant "Product Application" as App
-database "Application Data" as Data
-participant "Hosted LLM API" as LLM
-User -> App: Natural-language request
-App -> Data: Read selected context
-Data --> App: Business data
-App -> App: Build prompt inside product code
-App -> LLM: Prompt + copied context
-LLM --> App: Generated response
-App -> App: Basic format/content check
-App --> User: Response
-note over App,LLM
-Each product team may duplicate credentials,
-prompts, policy, logging, evaluation, and fallback.
-end note
-@enduml
-  </script>
-</div>
-
-<h3 id="section-2-3-enterprise-platform">2.3 Modern enterprise GenAI platform</h3>
-
-<ul>
-  <li>Product teams own the user journey, domain workflow, acceptance criteria, and business outcome.</li>
-  <li>A shared AI platform provides reusable controls:
-    <ul>
-      <li>model gateway and provider adapters;</li>
-      <li>identity propagation and policy enforcement;</li>
-      <li>approved prompt/model configuration;</li>
-      <li>retrieval and knowledge-source connectors;</li>
-      <li>tool registry and execution boundaries;</li>
-      <li>guardrails, tracing, token/cost accounting, and evaluation services.</li>
-    </ul>
-  </li>
-  <li>Security/data teams define classification, retention, model/provider approval, and high-impact action policy.</li>
-  <li>Domain owners remain responsible for source quality and document permissions.</li>
-  <li>The platform should be a paved road, not a central team that must build every AI feature.</li>
-  <li>Avoid a universal orchestrator that hides all workload differences; allow product-specific flows behind shared policy and telemetry interfaces.</li>
-</ul>
-
-<div class="image-wrapper">
-  <img src="./assets/company_ai_enterprise_platform.png" alt="Modern enterprise GenAI platform sequence" class="modal-trigger" data-caption="Shared enterprise GenAI platform with retrieval, models, tools, policy, and observability" />
-  <div class="diagram-caption" data-snippet-id="company-ai-enterprise-platform-snippet">
-    🏗️ Modern shared enterprise GenAI platform
-  </div>
-  <script type="text/plain" id="company-ai-enterprise-platform-snippet">
-@startuml
-title Modern enterprise GenAI platform
-actor User
-participant "Product Application" as Product
-participant "AI Gateway / Orchestrator" as Platform
-participant "Identity + Policy" as Policy
-database "Authorized Knowledge" as Knowledge
-participant "Approved Model" as Model
-participant "Business Tool" as Tool
-participant "Trace + Evaluation" as Observe
-User -> Product: Task
-Product -> Platform: Task + trusted identity + use-case ID
-Platform -> Policy: Authorize model, data, and capabilities
-Policy --> Platform: Allowed policy and limits
-Platform -> Knowledge: Retrieve with tenant/ACL filters
-Knowledge --> Platform: Ranked evidence + source IDs
-Platform -> Model: Versioned prompt + evidence + tool schema
-Model --> Platform: Answer or tool proposal
-alt Authorized tool proposal
-  Platform -> Policy: Validate action and arguments
-  Policy --> Platform: Allow / require approval / deny
-  Platform -> Tool: Execute allowed action with idempotency
-  Tool --> Platform: Structured observation
-  Platform -> Model: Observation
-  Model --> Platform: Final answer
-end
-Platform -> Observe: Trace model, retrieval, policy, tool, tokens, outcome
-Platform --> Product: Validated response + citations
-Product --> User: Result
-@enduml
-  </script>
-</div>
-
-<h3 id="section-2-4-agentic">2.4 Agentic extension</h3>
-
-<ul>
-  <li>An enterprise platform does not make every request agentic.</li>
-  <li>Add an agent only when the path or tool choice genuinely depends on runtime observations.</li>
-  <li>Keep:
-    <ul>
-      <li>deterministic outer workflow and termination states;</li>
-      <li>allowlisted narrow tools;</li>
-      <li>application-side authorization and validation;</li>
-      <li>durable state and idempotency;</li>
-      <li>approval for high-impact actions;</li>
-      <li>step, latency, token, and cost limits.</li>
-    </ul>
-  </li>
-  <li>See the complete PlantUML sequence in <a href="/study/aiAgents">AI Agents</a>.</li>
-</ul>
-
-<h3 id="section-2-5-adoption-path">2.5 Practical adoption path</h3>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bounded experiment
-  → prove user value with an evaluation set
-  → classify data and threat-model the flow
-  → add identity, retrieval authorization, tracing, and cost limits
-  → standardize repeated capabilities into a shared platform
-  → add agentic tool choice only where deterministic workflows fail
-</code></pre></div></div>
-
-<ul>
-  <li>Centralize capabilities when several teams need the same control, not before the first use case is understood.</li>
-  <li>Keep domain logic and source ownership close to the product/domain team.</li>
-  <li>Measure adoption by completed business tasks, quality, risk, latency, and cost—not by number of model calls or chatbots launched.</li>
-</ul>
+<p>A prototype becomes unsafe when it reaches production without those owners and controls. Conversely, do not centralize every feature before a repeated need exists. Measure adoption by completed business tasks, quality, risk, latency, and cost—not model-call volume.</p>
 
 <h2 id="section-3-identity">3. Identity, authorization, and tenant isolation</h2>
 
@@ -382,6 +227,7 @@ Product --> User: Result
 <ul>
   <li><strong>Direct prompt injection</strong>: user asks the model to ignore policy.</li>
   <li><strong>Indirect prompt injection</strong>: retrieved document, email, web page, or tool result contains malicious instructions.</li>
+  <li><strong>Jailbreaking</strong>: a user attempts to bypass the model or application’s intended behavioural and safety restrictions.</li>
   <li><strong>Data exfiltration</strong>: model sends sensitive context through a permitted tool, URL, or external message.</li>
   <li><strong>Tool abuse</strong>: valid tool call performs an unauthorized or unsafe operation.</li>
   <li><strong>Poisoning</strong>: attacker changes source documents, memory, evaluation data, or fine-tuning data.</li>
@@ -399,6 +245,8 @@ Product --> User: Result
     </ul>
   </li>
 </ul>
+
+<p>Delimiters and a clear instruction hierarchy help the model distinguish instructions from data, but neither is an enforcement boundary. Treat all model-visible content as potentially hostile; enforce authorization, allowed destinations, and action policy in deterministic application and tool controls.</p>
 
 <h2 id="section-7-scalability">7. Scalability and quota management</h2>
 
@@ -622,47 +470,15 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
   </li>
 </ul>
 
-<h2 id="section-13-metrics">13. Retrieval and generation metrics</h2>
+<p>The evaluation suite composes specialist measurements; it does not duplicate them:</p>
 
 <ul>
-  <li>Retrieval metrics:
-    <ul>
-      <li><strong>Recall@K</strong>: relevant evidence was available in the first <code class="language-plaintext highlighter-rouge">K</code> results;</li>
-      <li><strong>Precision@K</strong>: returned evidence was relevant;</li>
-      <li><strong>MRR</strong>: first relevant result appeared early;</li>
-      <li><strong>NDCG</strong>: graded relevance was ordered well.</li>
-    </ul>
-  </li>
-  <li>Generation metrics:
-    <ul>
-      <li>correctness;</li>
-      <li>relevance;</li>
-      <li>completeness;</li>
-      <li>faithfulness/groundedness to supplied evidence;</li>
-      <li>citation entailment and source validity;</li>
-      <li>refusal and uncertainty behaviour;</li>
-      <li>schema and domain validity.</li>
-    </ul>
-  </li>
-  <li>Agent/tool metrics:
-    <ul>
-      <li>task completion;</li>
-      <li>correct tool and argument selection;</li>
-      <li>step count and loop termination;</li>
-      <li>side-effect correctness;</li>
-      <li>approval/escalation behaviour.</li>
-    </ul>
-  </li>
-  <li>Keep component metrics separate:
-    <ul>
-      <li>good final wording can hide poor retrieval;</li>
-      <li>high Recall@K can still produce an ungrounded answer;</li>
-      <li>schema validity can hide wrong values.</li>
-    </ul>
-  </li>
+  <li><a href="/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well">Knowledge bases</a> own retrieval, grounding, citation, and answer-quality metrics.</li>
+  <li><a href="/study/aiAgents#section-9-evaluation">AI Agents</a> own tool selection, action correctness, loop termination, and approval/escalation metrics.</li>
+  <li>This page owns cross-cutting test datasets, judge/human calibration, release gates, incident learning, and production signals.</li>
 </ul>
 
-<h3 id="131-business-and-adaptability-metrics">13.1 Business and adaptability metrics</h3>
+<h2 id="13-business-and-adaptability-metrics">13. Business and adaptability metrics</h2>
 
 <table>
   <thead>

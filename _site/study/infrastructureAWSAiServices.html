@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSAiServices" />
-<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSAiServices" />
+<link rel="canonical" href="https://glucolte.github.io/study/infrastructureAWSAiServices" />
+<meta property="og:url" content="https://glucolte.github.io/study/infrastructureAWSAiServices" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AWS AI Services" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS AI Services","url":"http://localhost:4000/study/infrastructureAWSAiServices"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS AI Services","url":"https://glucolte.github.io/study/infrastructureAWSAiServices"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -65,6 +65,8 @@
       <h1 id="aws-ai-services">AWS AI Services</h1>
 
 <p>Use this page to map an AI architecture to AWS services. It is intentionally AWS-specific; model mechanics, retrieval theory, agents, and cloud-neutral production controls remain on their dedicated pages.</p>
+
+<p><strong>Part 7 of 7:</strong> <a href="/study/aiInfrastructure">Infrastructure and evaluation</a> → <strong>AWS AI Services</strong>. Choose AWS implementations only after the architecture, retrieval, agent, and operational boundaries are clear.</p>
 
 <h2 id="agent-layer-map">Agent architecture mapped to AWS</h2>
 
@@ -463,8 +465,9 @@ App --> User: Response + citations
   </li>
   <li><strong>Prompt management</strong>:
     <ul>
-      <li>versions and tests prompt templates and variables;</li>
-      <li>helps deployment discipline but does not replace repository versioning and end-to-end regression tests.</li>
+      <li>creates reusable templates with runtime variables, variants/testing, and deployable versions;</li>
+      <li>helps deployment discipline but does not replace repository versioning and end-to-end regression tests;</li>
+      <li>applies the prompt-template practice from <a href="/study/aiPromptEngineering#templates">AI Prompt Engineering</a> through an AWS-managed service.</li>
     </ul>
   </li>
   <li><strong>Evaluation</strong>:

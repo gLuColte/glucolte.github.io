@@ -7,6 +7,8 @@ permalink: /study/aiKnowledgebases
 
 **RAG** means **Retrieve relevant information → Augment the model context → Generate an answer**. It gives an LLM current, specific evidence to work from.
 
+**Part 4 of 7:** [Models and providers](/study/aiModels) → **Knowledge bases and retrieval** → [AI Agents](/study/aiAgents). This page owns the quality of evidence selection and RAG answers; agent-loop and platform-release metrics come later.
+
 <aside class="technique-callout">
   <strong>Keep this distinction</strong>
   <span><strong>RAG ≠ Vector Database.</strong> A vector database is one component that may support semantic retrieval. RAG is the larger architecture: retrieve external evidence, place it in the model context, then generate an answer.</span>
@@ -321,7 +323,19 @@ Evaluate retrieval and generation separately. A polished answer may still be bas
 
 **Recall@5 = 3 / 4 = 75%** — *“Did I find the relevant stuff?”*
 
-MRR rewards placing the first useful result early; NDCG also accounts for graded relevance and ranking position. On the generation side, test whether claims are grounded in cited evidence, answer the question, and are correct.
+MRR rewards placing the first useful result early; NDCG also accounts for graded relevance and ranking position. Use retrieval and answer metrics together, but never substitute one for the other:
+
+| Layer | Measure | What it reveals |
+| --- | --- | --- |
+| Retrieval | Precision@K, Recall@K, MRR, NDCG | Whether permitted, relevant evidence was found and ranked high enough. |
+| Grounded answer | faithfulness/groundedness, citation entailment, source validity | Whether each answer claim is supported by the supplied evidence and valid citation. |
+| Task answer | correctness, relevance, completeness, refusal/uncertainty, schema validity | Whether the user received an appropriate answer, including a safe no-answer when evidence is absent. |
+
+- Include questions with no relevant document, stale documents, conflicting sources, exact identifiers, paraphrases, ACL denial, and tenant boundaries.
+- Record source version, chunking/index configuration, embedding model, retrieval query/filters, candidate ranks, and final citations so a bad answer can be traced to the layer that failed.
+- Keep document authorization separate from relevance: a perfect match that the caller may not access must never enter the context.
+
+Agent task/tool metrics belong on [AI Agents](/study/aiAgents#section-9-evaluation). Release gates, human review, judge calibration, latency, and cost monitoring belong on [AI Infrastructure and Evaluation](/study/aiInfrastructure#section-12-evaluation).
 
 ## Cheat Sheet
 

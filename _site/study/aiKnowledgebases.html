@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/aiKnowledgebases" />
-<meta property="og:url" content="http://localhost:4000/study/aiKnowledgebases" />
+<link rel="canonical" href="https://glucolte.github.io/study/aiKnowledgebases" />
+<meta property="og:url" content="https://glucolte.github.io/study/aiKnowledgebases" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Knowledge Bases and Retrieval" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Knowledge Bases and Retrieval","url":"http://localhost:4000/study/aiKnowledgebases"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Knowledge Bases and Retrieval","url":"https://glucolte.github.io/study/aiKnowledgebases"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -65,6 +65,8 @@
       <h1 id="ai-knowledge-bases-and-retrieval">AI Knowledge Bases and Retrieval</h1>
 
 <p><strong>RAG</strong> means <strong>Retrieve relevant information → Augment the model context → Generate an answer</strong>. It gives an LLM current, specific evidence to work from.</p>
+
+<p><strong>Part 4 of 7:</strong> <a href="/study/aiModels">Models and providers</a> → <strong>Knowledge bases and retrieval</strong> → <a href="/study/aiAgents">AI Agents</a>. This page owns the quality of evidence selection and RAG answers; agent-loop and platform-release metrics come later.</p>
 
 <aside class="technique-callout">
   <strong>Keep this distinction</strong>
@@ -433,7 +435,42 @@ Vector candidates ──────┘
 
 <p><strong>Recall@5 = 3 / 4 = 75%</strong> — <em>“Did I find the relevant stuff?”</em></p>
 
-<p>MRR rewards placing the first useful result early; NDCG also accounts for graded relevance and ranking position. On the generation side, test whether claims are grounded in cited evidence, answer the question, and are correct.</p>
+<p>MRR rewards placing the first useful result early; NDCG also accounts for graded relevance and ranking position. Use retrieval and answer metrics together, but never substitute one for the other:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Layer</th>
+      <th>Measure</th>
+      <th>What it reveals</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Retrieval</td>
+      <td>Precision@K, Recall@K, MRR, NDCG</td>
+      <td>Whether permitted, relevant evidence was found and ranked high enough.</td>
+    </tr>
+    <tr>
+      <td>Grounded answer</td>
+      <td>faithfulness/groundedness, citation entailment, source validity</td>
+      <td>Whether each answer claim is supported by the supplied evidence and valid citation.</td>
+    </tr>
+    <tr>
+      <td>Task answer</td>
+      <td>correctness, relevance, completeness, refusal/uncertainty, schema validity</td>
+      <td>Whether the user received an appropriate answer, including a safe no-answer when evidence is absent.</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>Include questions with no relevant document, stale documents, conflicting sources, exact identifiers, paraphrases, ACL denial, and tenant boundaries.</li>
+  <li>Record source version, chunking/index configuration, embedding model, retrieval query/filters, candidate ranks, and final citations so a bad answer can be traced to the layer that failed.</li>
+  <li>Keep document authorization separate from relevance: a perfect match that the caller may not access must never enter the context.</li>
+</ul>
+
+<p>Agent task/tool metrics belong on <a href="/study/aiAgents#section-9-evaluation">AI Agents</a>. Release gates, human review, judge calibration, latency, and cost monitoring belong on <a href="/study/aiInfrastructure#section-12-evaluation">AI Infrastructure and Evaluation</a>.</p>
 
 <h2 id="cheat-sheet">Cheat Sheet</h2>
 

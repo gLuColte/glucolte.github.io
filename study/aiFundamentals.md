@@ -7,6 +7,8 @@ permalink: /study/aiFundamentals
 
 This page follows **one LLM request** from text on the screen to generated, streamed text. Its running example is:
 
+**Part 1 of 7:** **Fundamentals** → [Prompt engineering](/study/aiPromptEngineering) → [Models and providers](/study/aiModels) → [Knowledge bases](/study/aiKnowledgebases) → [Agents](/study/aiAgents) → [Infrastructure](/study/aiInfrastructure) → [AWS AI Services](/study/infrastructureAWSAiServices).
+
 ```text
 "The capital of France is"
 ```

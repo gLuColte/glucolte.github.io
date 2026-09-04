@@ -7,6 +7,8 @@ permalink: /study/aiInfrastructure
 
 Use this page for the cloud-neutral production envelope around an AI system and the evaluation loop that proves changes are safe. AWS service mappings belong in [AWS AI services](/study/infrastructureAWSAiServices).
 
+**Part 6 of 7:** [AI Agents](/study/aiAgents) → **Infrastructure and evaluation** → [AWS AI Services](/study/infrastructureAWSAiServices). This page integrates the earlier layers; it owns their security, reliability, operations, and release process rather than re-explaining their mechanics.
+
 ## 1. Production reference architecture {#section-1-architecture}
 
 ```text
@@ -28,179 +30,24 @@ user → identity → API/application → authorization → AI orchestrator
 - **Guardrails/validators** inspect requests and responses but do not replace identity, authorization, or domain rules.
 - **Observability/evaluation** surrounds every component; it is not a final model-only check.
 
-## 2. How companies set up GenAI {#section-2-company-adoption}
+## 2. Platform adoption and ownership {#section-2-company-adoption}
 
-- These are maturity patterns, not mandatory migration stages.
-- A company may use all four patterns at once for workloads with different risk and complexity.
-- The important change is not merely replacing an API:
-  - traditional applications keep intelligence inside code, rules, data, and narrow models;
-  - early GenAI applications add a language model directly inside each product;
-  - modern platforms centralize model access, retrieval, policy, evaluation, and observability;
-  - agentic systems add bounded runtime tool choice where fixed workflows are insufficient.
+A company can run several maturity patterns at once; use the least complex one that safely serves the workload.
 
-### 2.1 Traditional software and predictive ML {#section-2-1-traditional}
+| Pattern | Use it when | Add next |
+| --- | --- | --- |
+| **Bounded product integration** | One low-risk use case needs a model response. | Evaluation, data classification, tracing, and cost limits before it becomes a production dependency. |
+| **Repeatable product pattern** | Several flows need the same prompts, model routes, retrieval, or policy. | Shared adapters and standards, while the product still owns its user journey and domain workflow. |
+| **Shared AI platform** | Multiple teams need consistent identity propagation, approved model access, retrieval connectors, tool boundaries, telemetry, and evaluation. | A paved road with reusable controls—not a central team that owns every feature. |
+| **Bounded agent extension** | Tool choice or sequence depends on runtime observations. | The deterministic workflow, authorization, durable state, approvals, and budgets described on [AI Agents](/study/aiAgents). |
 
-- The application owns the business workflow and deterministic decisions.
-- Search/databases provide facts; a narrow ML model may predict a score, class, forecast, or recommendation.
-- The predictive model normally returns structured output rather than generating the user experience.
-- Strengths:
-  - explicit logic and permissions;
-  - predictable tests and failure handling;
-  - strong transaction boundaries.
-- Limits:
-  - natural-language interfaces and unstructured content require substantial custom code;
-  - every new task needs rules, features, models, or workflow changes.
+Keep ownership explicit:
 
-<div class="image-wrapper">
-  <img src="./assets/company_ai_traditional.png" alt="Traditional company application and predictive ML sequence" class="modal-trigger" data-caption="Traditional application: deterministic workflow with optional predictive ML">
-  <div class="diagram-caption" data-snippet-id="company-ai-traditional-snippet">
-    🏢 Traditional software and predictive ML
-  </div>
-  <script type="text/plain" id="company-ai-traditional-snippet">
-@startuml
-title Traditional software and predictive ML
-actor User
-participant "Business Application" as App
-participant "Rules / Workflow" as Rules
-database "Operational Data" as Data
-participant "Predictive ML Endpoint" as ML
-User -> App: Structured request
-App -> Rules: Validate identity and business rules
-Rules -> Data: Read permitted records
-Data --> Rules: Structured facts
-opt Narrow prediction needed
-  Rules -> ML: Curated features
-  ML --> Rules: Score / class / forecast
-end
-Rules --> App: Deterministic outcome
-App --> User: Screen, report, or transaction result
-@enduml
-  </script>
-</div>
+- **Product/domain teams** own the user journey, source quality, business rules, acceptance criteria, and outcome.
+- **The shared platform** owns reusable model access, identity/policy integration, telemetry, quotas, and common evaluation/release controls.
+- **Security and data teams** own classification, retention, approved providers, and high-impact-action policy.
 
-### 2.2 Early GenAI: direct model integration {#section-2-2-direct-llm}
-
-- A product team calls a hosted LLM directly from its application backend.
-- The application builds a prompt from user input and selected business data.
-- This is useful for prototypes and one bounded use case.
-- It becomes difficult at company scale because teams duplicate:
-  - provider credentials and SDK integration;
-  - prompt storage and model configuration;
-  - safety filters and logging;
-  - retrieval pipelines;
-  - cost controls and evaluation;
-  - fallback and model-upgrade work.
-- Common failure: the prototype becomes production without proper authorization, data classification, regression tests, or ownership.
-
-<div class="image-wrapper">
-  <img src="./assets/company_ai_direct_llm.png" alt="Early direct LLM company integration sequence" class="modal-trigger" data-caption="Early GenAI application calling a model provider directly">
-  <div class="diagram-caption" data-snippet-id="company-ai-direct-llm-snippet">
-    🚀 Early GenAI direct model integration
-  </div>
-  <script type="text/plain" id="company-ai-direct-llm-snippet">
-@startuml
-title Early GenAI point solution
-actor User
-participant "Product Application" as App
-database "Application Data" as Data
-participant "Hosted LLM API" as LLM
-User -> App: Natural-language request
-App -> Data: Read selected context
-Data --> App: Business data
-App -> App: Build prompt inside product code
-App -> LLM: Prompt + copied context
-LLM --> App: Generated response
-App -> App: Basic format/content check
-App --> User: Response
-note over App,LLM
-Each product team may duplicate credentials,
-prompts, policy, logging, evaluation, and fallback.
-end note
-@enduml
-  </script>
-</div>
-
-### 2.3 Modern enterprise GenAI platform {#section-2-3-enterprise-platform}
-
-- Product teams own the user journey, domain workflow, acceptance criteria, and business outcome.
-- A shared AI platform provides reusable controls:
-  - model gateway and provider adapters;
-  - identity propagation and policy enforcement;
-  - approved prompt/model configuration;
-  - retrieval and knowledge-source connectors;
-  - tool registry and execution boundaries;
-  - guardrails, tracing, token/cost accounting, and evaluation services.
-- Security/data teams define classification, retention, model/provider approval, and high-impact action policy.
-- Domain owners remain responsible for source quality and document permissions.
-- The platform should be a paved road, not a central team that must build every AI feature.
-- Avoid a universal orchestrator that hides all workload differences; allow product-specific flows behind shared policy and telemetry interfaces.
-
-<div class="image-wrapper">
-  <img src="./assets/company_ai_enterprise_platform.png" alt="Modern enterprise GenAI platform sequence" class="modal-trigger" data-caption="Shared enterprise GenAI platform with retrieval, models, tools, policy, and observability">
-  <div class="diagram-caption" data-snippet-id="company-ai-enterprise-platform-snippet">
-    🏗️ Modern shared enterprise GenAI platform
-  </div>
-  <script type="text/plain" id="company-ai-enterprise-platform-snippet">
-@startuml
-title Modern enterprise GenAI platform
-actor User
-participant "Product Application" as Product
-participant "AI Gateway / Orchestrator" as Platform
-participant "Identity + Policy" as Policy
-database "Authorized Knowledge" as Knowledge
-participant "Approved Model" as Model
-participant "Business Tool" as Tool
-participant "Trace + Evaluation" as Observe
-User -> Product: Task
-Product -> Platform: Task + trusted identity + use-case ID
-Platform -> Policy: Authorize model, data, and capabilities
-Policy --> Platform: Allowed policy and limits
-Platform -> Knowledge: Retrieve with tenant/ACL filters
-Knowledge --> Platform: Ranked evidence + source IDs
-Platform -> Model: Versioned prompt + evidence + tool schema
-Model --> Platform: Answer or tool proposal
-alt Authorized tool proposal
-  Platform -> Policy: Validate action and arguments
-  Policy --> Platform: Allow / require approval / deny
-  Platform -> Tool: Execute allowed action with idempotency
-  Tool --> Platform: Structured observation
-  Platform -> Model: Observation
-  Model --> Platform: Final answer
-end
-Platform -> Observe: Trace model, retrieval, policy, tool, tokens, outcome
-Platform --> Product: Validated response + citations
-Product --> User: Result
-@enduml
-  </script>
-</div>
-
-### 2.4 Agentic extension {#section-2-4-agentic}
-
-- An enterprise platform does not make every request agentic.
-- Add an agent only when the path or tool choice genuinely depends on runtime observations.
-- Keep:
-  - deterministic outer workflow and termination states;
-  - allowlisted narrow tools;
-  - application-side authorization and validation;
-  - durable state and idempotency;
-  - approval for high-impact actions;
-  - step, latency, token, and cost limits.
-- See the complete PlantUML sequence in [AI Agents](/study/aiAgents).
-
-### 2.5 Practical adoption path {#section-2-5-adoption-path}
-
-```text
-bounded experiment
-  → prove user value with an evaluation set
-  → classify data and threat-model the flow
-  → add identity, retrieval authorization, tracing, and cost limits
-  → standardize repeated capabilities into a shared platform
-  → add agentic tool choice only where deterministic workflows fail
-```
-
-- Centralize capabilities when several teams need the same control, not before the first use case is understood.
-- Keep domain logic and source ownership close to the product/domain team.
-- Measure adoption by completed business tasks, quality, risk, latency, and cost—not by number of model calls or chatbots launched.
+A prototype becomes unsafe when it reaches production without those owners and controls. Conversely, do not centralize every feature before a repeated need exists. Measure adoption by completed business tasks, quality, risk, latency, and cost—not model-call volume.
 
 ## 3. Identity, authorization, and tenant isolation {#section-3-identity}
 
@@ -265,6 +112,7 @@ bounded experiment
 
 - **Direct prompt injection**: user asks the model to ignore policy.
 - **Indirect prompt injection**: retrieved document, email, web page, or tool result contains malicious instructions.
+- **Jailbreaking**: a user attempts to bypass the model or application's intended behavioural and safety restrictions.
 - **Data exfiltration**: model sends sensitive context through a permitted tool, URL, or external message.
 - **Tool abuse**: valid tool call performs an unauthorized or unsafe operation.
 - **Poisoning**: attacker changes source documents, memory, evaluation data, or fine-tuning data.
@@ -278,6 +126,8 @@ bounded experiment
   - sign/version artifacts and review dependencies;
   - apply token, time, step, request, and spend limits;
   - test attacks continuously, not only before launch.
+
+Delimiters and a clear instruction hierarchy help the model distinguish instructions from data, but neither is an enforcement boundary. Treat all model-visible content as potentially hostile; enforce authorization, allowed destinations, and action policy in deterministic application and tool controls.
 
 ## 7. Scalability and quota management {#section-7-scalability}
 
@@ -420,33 +270,13 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
   - parser/chunk/index configuration;
   - tool schemas and software version.
 
-## 13. Retrieval and generation metrics {#section-13-metrics}
+The evaluation suite composes specialist measurements; it does not duplicate them:
 
-- Retrieval metrics:
-  - **Recall@K**: relevant evidence was available in the first `K` results;
-  - **Precision@K**: returned evidence was relevant;
-  - **MRR**: first relevant result appeared early;
-  - **NDCG**: graded relevance was ordered well.
-- Generation metrics:
-  - correctness;
-  - relevance;
-  - completeness;
-  - faithfulness/groundedness to supplied evidence;
-  - citation entailment and source validity;
-  - refusal and uncertainty behaviour;
-  - schema and domain validity.
-- Agent/tool metrics:
-  - task completion;
-  - correct tool and argument selection;
-  - step count and loop termination;
-  - side-effect correctness;
-  - approval/escalation behaviour.
-- Keep component metrics separate:
-  - good final wording can hide poor retrieval;
-  - high Recall@K can still produce an ungrounded answer;
-  - schema validity can hide wrong values.
+- [Knowledge bases](/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well) own retrieval, grounding, citation, and answer-quality metrics.
+- [AI Agents](/study/aiAgents#section-9-evaluation) own tool selection, action correctness, loop termination, and approval/escalation metrics.
+- This page owns cross-cutting test datasets, judge/human calibration, release gates, incident learning, and production signals.
 
-### 13.1 Business and adaptability metrics
+## 13. Business and adaptability metrics
 
 | Metric | What it answers |
 |---|---|

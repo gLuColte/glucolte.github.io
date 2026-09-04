@@ -7,6 +7,8 @@ permalink: /study/aiModels
 
 Use this page to select a model and decide how to consume it. It merges model characteristics and provider choices because they are evaluated together, while keeping the distinction explicit.
 
+**Part 3 of 7:** [Prompt engineering](/study/aiPromptEngineering) → **Models and providers** → [Knowledge bases](/study/aiKnowledgebases). This page is about choosing or adapting a model; it does not re-teach retrieval, tool loops, or platform operations.
+
 ## 1. Model, provider, and cloud are different {#section-1-boundaries}
 
 - **Model**: the trained artifact and inference behaviour.
@@ -88,50 +90,8 @@ Core dimensions:
   - later tokens can attend to earlier reasoning and correct course, but the model does not literally rewrite earlier token IDs in place;
   - provider internals vary and may include hidden reasoning, verifiers, search, or other techniques.
 
-<div class="image-wrapper">
-  <img src="./assets/model_reasoning_paths.png" alt="Comparison of direct model generation, internal reasoning within one model call, and external multi-step tool orchestration" class="modal-trigger" data-caption="Direct generation versus internal model reasoning versus application-controlled multi-step execution">
-  <div class="diagram-caption" data-snippet-id="model-reasoning-paths-snippet">
-    🧭 Three execution paths: direct, reasoning, and external multi-step
-  </div>
-  <script type="text/plain" id="model-reasoning-paths-snippet">
-@startuml
-title Direct generation, internal reasoning, and external multi-step work
-actor User
-participant "Application / Router" as App
-participant "Selected Model" as Model
-participant "Policy + Tool Executor" as Tools
-
-User -> App: Request
-
-alt Simple or well-defined task
-  App -> Model: Prompt + runtime context\nlow/default reasoning effort
-  Model -> Model: Autoregressive decode
-  Model --> App: Direct answer
-else Difficult reasoning; no external state needed
-  App -> Model: Prompt + runtime context\nhigher reasoning effort where supported
-  group One model call
-    Model -> Model: Internal deliberation tokens\nplan → test → correct
-    Model -> Model: Generate final answer
-  end
-  Model --> App: Final answer
-else Live data, actions, or durable steps needed
-  loop Bounded application-controlled steps
-    App -> Model: Goal + observations + permitted tools
-    Model --> App: Proposed action
-    App -> Tools: Authorize, validate, execute
-    Tools --> App: Live result / durable state
-  end
-  App -> Model: Final permitted evidence
-  Model --> App: Grounded final answer
-end
-
-App --> User: Result
-@enduml
-  </script>
-</div>
-
 - **Internal multi-step reasoning** occurs inside one model call and consumes inference time/tokens; providers may expose only a summary or no reasoning trace.
-- **External multi-step execution** is an application, workflow, or agent loop across model calls and tools; the application owns authorization, state, limits, and retries.
+- **External multi-step execution** is an application, workflow, or agent loop across model calls and tools. It is not a model category; the application owns authorization, state, limits, and retries. Learn that boundary on [AI Agents](/study/aiAgents).
 - Shared conceptual levers include:
   - model/tier selection;
   - prompt and runtime context;
@@ -255,30 +215,9 @@ Treat this as an ecosystem map, not a permanent ranking.
 - A cloud platform may host another organisation's model without becoming that model's creator.
 - For every evaluation, record the exact model ID, API/access path, Region, date, and configuration.
 
-## 6. API pricing and cost comparison {#section-6-pricing}
+## 6. Compare cost using the workload {#section-6-pricing}
 
-> Pricing snapshot: **20 August 2026**, USD per 1 million tokens (`MTok`). Prices, previews, discounts, and model availability change; verify the linked official pages before making a production decision.
-
-Representative hosted text-model rates:
-
-| Provider | Model | Position | Standard/cache-miss input / MTok | Output / MTok |
-|---|---|---|---:|---:|
-| OpenAI | GPT-5.6 Sol | Frontier | $5.00 | $30.00 |
-| OpenAI | GPT-5.6 Terra | Balanced | $2.00 | $12.00 |
-| OpenAI | GPT-5.6 Luna | High-volume | $0.20 | $1.20 |
-| Anthropic | Claude Fable 5 | Highest capability | $10.00 | $50.00 |
-| Anthropic | Claude Opus 4.8 | Advanced | $5.00 | $25.00 |
-| Anthropic | Claude Sonnet 5 | Balanced | $2.00* | $10.00* |
-| Anthropic | Claude Haiku 4.5 | Fast | $1.00 | $5.00 |
-| Google | Gemini 3.1 Pro Preview | Advanced multimodal | $2.00 | $12.00 |
-| Google | Gemini 3.5 Flash | Fast/balanced | $1.50 | $9.00 |
-| Google | Gemini 3.1 Flash-Lite | High-volume | $0.25 | $1.50 |
-| DeepSeek | DeepSeek V4 Pro | Advanced/open-weight | $0.435 | $0.87 |
-| DeepSeek | DeepSeek V4 Flash | High-volume/open-weight | $0.14 | $0.28 |
-
-\* Claude Sonnet 5 introductory rate through 31 August 2026; the documented standard rate is `$3` input / `$15` output per MTok.
-
-Basic token-cost calculation:
+Provider price cards change too often to be study material. Use the current official pricing page for the exact model and Region, then apply the same workload calculation:
 
 ```text
 request cost ≈
@@ -286,26 +225,12 @@ request cost ≈
   + output_tokens / 1,000,000 × output_rate
 ```
 
-Example using GPT-5.6 Terra:
+- Include cached-input, reasoning, long-context, tool, retrieval, retry, capacity, and data-transfer charges that apply to the route.
+- Compare **cost per successful task**, using realistic input/output distributions and failure rates—not only a headline token price.
+- Output is usually sequential and often more expensive than input; output limits are a useful lever when they do not harm task quality.
+- Consumer subscriptions are product access, not interchangeable API credits.
 
-```text
-100,000 input tokens × $2 / MTok  = $0.20
- 10,000 output tokens × $12 / MTok = $0.12
-                                          ─────
-Estimated model-token cost                $0.32
-```
-
-- Real cost may also include:
-  - cached-input reads and cache writes;
-  - reasoning/thinking tokens;
-  - long-context price tiers;
-  - batch, flex, priority, or provisioned capacity;
-  - web search, grounding, file search, code execution, or other tools;
-  - reranking, embeddings, storage, data transfer, and retries;
-  - regional/data-residency premiums or cloud-platform pricing.
-- Output is often more expensive because generation is sequential; minimizing unnecessary output can matter more than small prompt reductions.
-- Compare **cost per successful task**, not only price per token. A cheap model that retries or fails often can cost more overall.
-- Consumer plans such as ChatGPT Plus or Claude Pro purchase application access and usage allowances; they are not interchangeable with API credits or per-token rates.
+For caching, capacity, queues, and cost controls across the whole system, continue to [AI Infrastructure and Evaluation](/study/aiInfrastructure#section-10-cost).
 
 Official references:
 

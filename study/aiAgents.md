@@ -7,6 +7,8 @@ permalink: /study/aiAgents
 
 Use this page to understand systems in which a model chooses tools or next steps. The safest default is a deterministic workflow with narrowly bounded model decisions.
 
+**Part 5 of 7:** [Knowledge bases](/study/aiKnowledgebases) → **AI Agents** → [Infrastructure and evaluation](/study/aiInfrastructure). Retrieval quality is already established before an agent uses retrieved evidence; this page focuses on runtime decisions and side effects.
+
 ## 1. LLM, tool use, workflow, and agent {#section-1-boundaries}
 
 - **LLM**: produces a probabilistic response from supplied context.
@@ -219,6 +221,8 @@ The model choosing `create_work_order` does **not** authorize it. This boundary 
 
 ## 9. Evaluation and observability {#section-9-evaluation}
 
+Evaluate the **agent loop**, not retrieval or answer grounding again. For those RAG measurements, see [AI Knowledge Bases](/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well); for release gates and operational evaluation, see [AI Infrastructure and Evaluation](/study/aiInfrastructure#section-12-evaluation).
+
 - Offline scenarios should test:
   - correct tool selection;
   - argument validity and semantic correctness;
@@ -243,4 +247,4 @@ The model choosing `create_work_order` does **not** authorize it. This boundary 
   - duplicate-action incidents;
   - cost and latency per completed task.
 
-See [AI fundamentals](/study/aiFundamentals) for tool-calling mechanics and [AI infrastructure and evaluation](/study/aiInfrastructure) for production controls.
+Continue to [AI Infrastructure and Evaluation](/study/aiInfrastructure) for the platform controls, tracing, and release process that operate around an agent.
