@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/aiModels" />
-<meta property="og:url" content="https://glucolte.github.io/study/aiModels" />
+<link rel="canonical" href="http://localhost:4000/study/aiModels" />
+<meta property="og:url" content="http://localhost:4000/study/aiModels" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Models and Providers" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Models and Providers","url":"https://glucolte.github.io/study/aiModels"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Models and Providers","url":"http://localhost:4000/study/aiModels"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -89,21 +89,7 @@
 
 <h3 id="section-1-1-model-package">1.1 What belongs to the model</h3>
 
-<ul>
-  <li>A usable model/checkpoint normally expects a compatible package:
-    <ul>
-      <li>tokenizer rules and vocabulary;</li>
-      <li>token-ID mapping;</li>
-      <li>internal embedding and transformer weights;</li>
-      <li>output vocabulary/projection;</li>
-      <li>detokenizer/configuration.</li>
-    </ul>
-  </li>
-  <li>These components are trained or defined together and are not generally interchangeable across model families.</li>
-  <li>Even versions within one family may change tokenizer, architecture, context limits, special tokens, or chat format; compatibility must be documented and tested.</li>
-  <li>General algorithms such as softmax, temperature sampling, and top-p are not owned by one model provider, although exposed controls and serving behaviour vary.</li>
-  <li>The request lifecycle and coupling are explained in <a href="/study/aiFundamentals#section-3-1-coupling">AI Fundamentals</a>.</li>
-</ul>
+<p>For self-hosting, select a compatible checkpoint, tokenizer, chat format, and serving runtime. <a href="/study/aiFundamentals#section-3-1-coupling">Fundamentals explains why the model pipeline is coupled</a>; the migration consequences are covered under <a href="#section-8-portability">portability</a>.</p>
 
 <h3 id="section-1-2-ownership">1.2 Who owns and hosts what</h3>
 
@@ -169,14 +155,53 @@
 
 <h2 id="section-3-categories">3. Model categories</h2>
 
+<p>Categories overlap: they describe a workload role or inference behaviour rather than mutually exclusive architectures.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th>Select it for</th>
+      <th>Main selection risk</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>General-purpose</strong></td>
+      <td>Varied generation, extraction, coding, and multimodal tasks</td>
+      <td>Broad capability does not imply low latency or cost.</td>
+    </tr>
+    <tr>
+      <td><strong>Reasoning</strong></td>
+      <td>Difficult planning, coding, and multi-step constraints</td>
+      <td>Extra inference compute can be wasted on simple tasks.</td>
+    </tr>
+    <tr>
+      <td><strong>Small language model</strong></td>
+      <td>High-volume classification, routing, or narrow transformations</td>
+      <td>Ambiguous and long-tail tasks may need escalation.</td>
+    </tr>
+    <tr>
+      <td><strong>Embedding</strong></td>
+      <td>Representing queries/documents for retrieval or clustering</td>
+      <td>A new embedding space normally requires corpus re-embedding.</td>
+    </tr>
+    <tr>
+      <td><strong>Reranking</strong></td>
+      <td>Improving precision within a retrieved candidate set</td>
+      <td>Added candidate-scoring cost and latency.</td>
+    </tr>
+    <tr>
+      <td><strong>Specialised</strong></td>
+      <td>Speech, vision, or another bounded domain task</td>
+      <td>Narrow coverage outside the target workload.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Embedding and reranking mechanics belong on <a href="/study/aiKnowledgebases">Knowledge Bases</a>.</p>
+
 <ul>
-  <li>Categories overlap; they describe workload role and inference behaviour more than universal neural-network architectures.</li>
-  <li>A <strong>general-purpose model</strong> is broad, not automatically fast:
-    <ul>
-      <li>smaller, distilled, quantized, or serving-optimized variants are usually the fast tiers;</li>
-      <li>a large general model can still be slower and more expensive than a smaller reasoning model.</li>
-    </ul>
-  </li>
   <li>A <strong>reasoning model</strong> is usually still an autoregressive transformer, but its training and serving encourage more useful intermediate deliberation:
     <ul>
       <li>reinforcement learning or related post-training can reward decomposition, checking, and correction;</li>
@@ -187,72 +212,17 @@
   </li>
   <li><strong>Internal multi-step reasoning</strong> occurs inside one model call and consumes inference time/tokens; providers may expose only a summary or no reasoning trace.</li>
   <li><strong>External multi-step execution</strong> is an application, workflow, or agent loop across model calls and tools. It is not a model category; the application owns authorization, state, limits, and retries. Learn that boundary on <a href="/study/aiAgents">AI Agents</a>.</li>
-  <li>Shared conceptual levers include:
-    <ul>
-      <li>model/tier selection;</li>
-      <li>prompt and runtime context;</li>
-      <li>input/output token budgets;</li>
-      <li>RAG and tools around the model;</li>
-      <li>latency, cost, and quality thresholds.</li>
-    </ul>
-  </li>
-  <li>
-    <p>Model-specific levers include reasoning effort/thinking level, temperature/top-p availability, tool/structured-output support, and context/output limits. The names and semantics are not portable guarantees.</p>
-  </li>
-  <li><strong>General-purpose model</strong>:
-    <ul>
-      <li>broad generation, summarisation, extraction, coding, and conversation;</li>
-      <li>good default when task distribution is varied;</li>
-      <li>may be expensive and less predictable than a specialist.</li>
-    </ul>
-  </li>
-  <li><strong>Reasoning model</strong>:
-    <ul>
-      <li>is post-trained and served to spend more useful inference compute on difficult multi-step tasks;</li>
-      <li>useful for difficult planning, coding, and constraint solving;</li>
-      <li>watch latency, token use, and unnecessary use on simple tasks.</li>
-    </ul>
-  </li>
-  <li><strong>Small language model</strong>:
-    <ul>
-      <li>useful for classification, routing, extraction, moderation, and high-volume transformations;</li>
-      <li>lower cost and latency;</li>
-      <li>weaker on ambiguity and long-tail reasoning.</li>
-    </ul>
-  </li>
-  <li><strong>Embedding model</strong>:
-    <ul>
-      <li>maps queries and documents into vectors for retrieval or clustering;</li>
-      <li>does not generate answers;</li>
-      <li>changing model/version/dimension usually requires re-embedding the corpus.</li>
-    </ul>
-  </li>
-  <li><strong>Reranking model</strong>:
-    <ul>
-      <li>scores a query jointly with retrieved candidates;</li>
-      <li>improves top-result precision after cheaper broad retrieval;</li>
-      <li>adds per-candidate latency and cost.</li>
-    </ul>
-  </li>
-  <li><strong>Specialised model</strong>:
-    <ul>
-      <li>targets speech, vision, classification, extraction, moderation, or a domain task;</li>
-      <li>can be cheaper and easier to evaluate than a general LLM.</li>
-    </ul>
-  </li>
 </ul>
+
+<p>Reasoning effort, sampling controls, tool/schema support, and context/output limits vary by model and serving API; their names are not portable guarantees.</p>
 
 <p>Primary examples: <a href="https://openai.com/index/learning-to-reason-with-llms/">OpenAI reasoning training and test-time compute</a>, the <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1 paper</a>, and <a href="https://ai.google.dev/gemini-api/docs/thinking">Gemini thinking controls</a>.</p>
 
-<h2 id="31-adapt-the-model-only-when-the-problem-calls-for-it">3.1 Adapt the model only when the problem calls for it</h2>
+<h3 id="model-adaptation">3.1 Adapt the model only when the problem calls for it</h3>
 
-<p>Four approaches are often confused because each can improve an answer. They change different things:</p>
+<p><span id="31-adapt-the-model-only-when-the-problem-calls-for-it"></span></p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Need a clearer one-request instruction?          → prompt engineering
-Need current/private/citeable facts?             → RAG
-Need consistent task behaviour, format, or tone? → fine-tuning
-Need broad domain language in model weights?     → continued pre-training
-</code></pre></div></div>
+<p>Choose according to what needs to change:</p>
 
 <table>
   <thead>
@@ -306,7 +276,7 @@ Need broad domain language in model weights?     → continued pre-training
     <tr>
       <th>Item</th>
       <th>Purpose</th>
-      <th>Exam recognition rule</th>
+      <th>Development rule</th>
     </tr>
   </thead>
   <tbody>
@@ -352,10 +322,6 @@ Need broad domain language in model weights?     → continued pre-training
   <li><strong>Quantization</strong> stores or computes weights with lower precision. It usually reduces memory and can improve throughput, but can reduce quality or hardware compatibility.</li>
   <li>Neither fixes stale knowledge. Re-evaluate quality, safety, latency, and cost on the same workload after either change.</li>
 </ul>
-
-<blockquote>
-  <p><strong>Decision rule:</strong> start with prompt engineering; add RAG for changing evidence; fine-tune for repeated behaviour; use continued pre-training only when a large, stable domain corpus genuinely must alter the model’s broad internal language knowledge.</p>
-</blockquote>
 
 <h2 id="section-4-deployment">4. Open weights versus managed models</h2>
 
@@ -408,25 +374,25 @@ Need broad domain language in model weights?     → continued pre-training
   <tbody>
     <tr>
       <td><strong>OpenAI</strong></td>
-      <td><strong>GPT</strong>; current GPT tiers include Sol, Terra, and Luna</td>
+      <td><strong>GPT</strong></td>
       <td>Hosted general-purpose reasoning, coding, multimodal, structured-output, and tool models</td>
       <td>OpenAI API and OpenAI applications</td>
     </tr>
     <tr>
       <td><strong>Anthropic</strong></td>
-      <td><strong>Claude</strong>: Fable, Opus, Sonnet, and Haiku tiers</td>
+      <td><strong>Claude</strong></td>
       <td>Hosted reasoning, coding, long-context, and agent/tool workloads</td>
       <td>Claude API, Amazon Bedrock, Google Cloud, and other supported platforms</td>
     </tr>
     <tr>
       <td><strong>Google / Google DeepMind</strong></td>
-      <td><strong>Gemini</strong>: Pro, Flash, and Flash-Lite tiers; Gemma open models</td>
+      <td><strong>Gemini</strong> and <strong>Gemma</strong></td>
       <td>Multimodal models with strong Google Cloud/data integration</td>
       <td>Gemini Developer API and Vertex AI</td>
     </tr>
     <tr>
       <td><strong>DeepSeek</strong></td>
-      <td><strong>DeepSeek V4 Pro and V4 Flash</strong></td>
+      <td><strong>DeepSeek</strong></td>
       <td>Reasoning/coding with low-cost APIs and open-weight options</td>
       <td>DeepSeek API, compatible API formats, and self/third-party hosting</td>
     </tr>
@@ -461,7 +427,6 @@ Need broad domain language in model weights?     → continued pre-training
   <li>GPT is a model family; ChatGPT is an application that uses models and additional product services.</li>
   <li>Claude is Anthropic’s model family; Claude.ai is an application, while Claude can also be invoked through other platforms.</li>
   <li>Gemini is used as both a model-family and product brand, so record the exact API model ID and access path.</li>
-  <li>A cloud platform may host another organisation’s model without becoming that model’s creator.</li>
   <li>For every evaluation, record the exact model ID, API/access path, Region, date, and configuration.</li>
 </ul>
 
@@ -477,7 +442,6 @@ Need broad domain language in model weights?     → continued pre-training
 <ul>
   <li>Include cached-input, reasoning, long-context, tool, retrieval, retry, capacity, and data-transfer charges that apply to the route.</li>
   <li>Compare <strong>cost per successful task</strong>, using realistic input/output distributions and failure rates—not only a headline token price.</li>
-  <li>Output is usually sequential and often more expensive than input; output limits are a useful lever when they do not harm task quality.</li>
   <li>Consumer subscriptions are product access, not interchangeable API credits.</li>
 </ul>
 

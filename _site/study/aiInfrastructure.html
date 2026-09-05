@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/aiInfrastructure" />
-<meta property="og:url" content="https://glucolte.github.io/study/aiInfrastructure" />
+<link rel="canonical" href="http://localhost:4000/study/aiInfrastructure" />
+<meta property="og:url" content="http://localhost:4000/study/aiInfrastructure" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Infrastructure and Evaluation" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Infrastructure and Evaluation","url":"https://glucolte.github.io/study/aiInfrastructure"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Infrastructure and Evaluation","url":"http://localhost:4000/study/aiInfrastructure"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -288,14 +288,8 @@
     </ul>
   </li>
   <li>Use circuit breakers to stop repeated calls to a failing dependency.</li>
-  <li>Use idempotency keys and durable state for tool calls and asynchronous jobs.</li>
-  <li>Test fallback semantics:
-    <ul>
-      <li>alternate model may lack tools, modalities, context, or schema support;</li>
-      <li>stale cache may be acceptable for one workload and unsafe for another;</li>
-      <li>“search only”, queued completion, or human escalation may be safer than a weaker answer.</li>
-    </ul>
-  </li>
+  <li>Use idempotency keys and durable status for asynchronous jobs; <a href="/study/aiAgents#section-8-failures">agent recovery</a> covers tool side effects.</li>
+  <li>Use the <a href="/study/aiModels#section-7-routing">model fallback contract</a> to qualify an alternate model. Decide separately whether stale cached evidence, search-only results, queued completion, or human escalation meets the workload’s freshness and quality requirements.</li>
   <li>Design explicit degraded modes and tell the user when quality or freshness is reduced.</li>
 </ul>
 
@@ -325,32 +319,9 @@
 
 <h2 id="section-10-cost">10. Cost engineering</h2>
 
-<ul>
-  <li>Include:
-    <ul>
-      <li>model input/output and reasoning tokens;</li>
-      <li>embeddings and reranking;</li>
-      <li>tool/API calls;</li>
-      <li>retries and agent loops;</li>
-      <li>storage, indexing, logs, and data transfer;</li>
-      <li>provisioned/idle accelerator or endpoint capacity;</li>
-      <li>human review and incident cost.</li>
-    </ul>
-  </li>
-  <li>Levers:
-    <ul>
-      <li>model routing and cascades;</li>
-      <li>shorter prompts and retrieved context;</li>
-      <li>output caps;</li>
-      <li>semantic/result/prefix caching where safe;</li>
-      <li>batch and asynchronous processing;</li>
-      <li>retrieval before expensive reasoning;</li>
-      <li>early termination for invalid or unauthorized requests.</li>
-    </ul>
-  </li>
-  <li>Measure <strong>cost per successful task</strong>, not only cost per request or token.</li>
-  <li>Segment by tenant and task so a small expensive cohort is visible.</li>
-</ul>
+<p>Start with <a href="/study/aiModels#section-6-pricing">model-call pricing</a>, then add the costs outside that call: ingestion, embeddings, reranking, storage/indexing, tools, queues, logs, transfer, idle capacity, and human review. Attribute retries and agent loops to the originating task.</p>
+
+<p>Use the latency measurements above to avoid paying for unnecessary work. Routing choices belong in <a href="/study/aiModels#section-7-routing">Models</a>; serving and caching choices follow below. Report total cost per successful task by tenant and task type so an expensive cohort is visible.</p>
 
 <h3 id="101-serving-and-caching-decision-rules">10.1 Serving and caching decision rules</h3>
 
@@ -546,19 +517,9 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
 
 <h2 id="section-15-production-eval">15. Production evaluation and release gates</h2>
 
+<p>Use the business measures from <a href="#13-business-and-adaptability-metrics">section 13</a>, the operational signals from <a href="#section-11-observability">observability</a>, and the specialist RAG/agent measures linked in <a href="#section-12-evaluation">evaluation architecture</a>. Add user correction, abandonment, and confirmed incidents to identify failures missed offline.</p>
+
 <ul>
-  <li>Production outcomes:
-    <ul>
-      <li>task completion;</li>
-      <li>user correction and re-query;</li>
-      <li>abandonment and escalation;</li>
-      <li>citation usage;</li>
-      <li>tool success;</li>
-      <li>refusal override;</li>
-      <li>incident rate;</li>
-      <li>latency and cost per successful task.</li>
-    </ul>
-  </li>
   <li>Segment by task, tenant, language, document type, risk, model route, and difficulty.</li>
   <li>Release process:
     <ul>
@@ -583,8 +544,6 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
   </li>
 </ul>
 
-<p>Continue with <a href="/study/aiKnowledgebases">AI knowledge bases</a> for retrieval tuning, <a href="/study/aiAgents">AI agents</a> for autonomous tool use, or <a href="/study/infrastructureAWSAiServices">AWS AI services</a> for AWS mappings.</p>
-
 <h2 id="16-troubleshoot-the-layer-that-failed">16. Troubleshoot the layer that failed</h2>
 
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Bad result / failed task
@@ -605,7 +564,7 @@ Did the platform meet the request contract?
   No → timeout / throttling / quota / retry / cache / deployment problem
 </code></pre></div></div>
 
-<p>Inspect the trace before changing a model. Record the prompt/model version, retrieved candidates and ACL decision, tool proposal/result, timeout/retries, token use, and deployment version. This turns a vague “the AI was wrong” report into a testable fault class.</p>
+<p>Use the <a href="#section-11-observability">request trace</a> to locate the first failed boundary, then add a regression case at that layer. Continue to <a href="/study/infrastructureAWSAiServices">AWS AI Services</a> to implement these controls on AWS.</p>
 
     </article>
   </main>

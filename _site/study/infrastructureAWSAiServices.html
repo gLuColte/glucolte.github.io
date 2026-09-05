@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/infrastructureAWSAiServices" />
-<meta property="og:url" content="https://glucolte.github.io/study/infrastructureAWSAiServices" />
+<link rel="canonical" href="http://localhost:4000/study/infrastructureAWSAiServices" />
+<meta property="og:url" content="http://localhost:4000/study/infrastructureAWSAiServices" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AWS AI Services" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS AI Services","url":"https://glucolte.github.io/study/infrastructureAWSAiServices"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AWS AI Services","url":"http://localhost:4000/study/infrastructureAWSAiServices"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -64,509 +64,238 @@
     <article class="content">
       <h1 id="aws-ai-services">AWS AI Services</h1>
 
-<p>Use this page to map an AI architecture to AWS services. It is intentionally AWS-specific; model mechanics, retrieval theory, agents, and cloud-neutral production controls remain on their dedicated pages.</p>
+<p>Use this page to choose AWS implementations for the architecture learned in the preceding pages. Service details were checked against AWS documentation on <strong>5 September 2026</strong>; check the exact model, API, Region, and account availability before implementation.</p>
 
-<p><strong>Part 7 of 7:</strong> <a href="/study/aiInfrastructure">Infrastructure and evaluation</a> → <strong>AWS AI Services</strong>. Choose AWS implementations only after the architecture, retrieval, agent, and operational boundaries are clear.</p>
+<p><strong>Part 7 of 7:</strong> <a href="/study/aiInfrastructure">Infrastructure and evaluation</a> → <strong>AWS AI Services</strong>. Continue optionally to <a href="/study/aiGenAIProfessional">AWS GenAI Professional preparation</a> for exam-domain study and practice.</p>
 
-<h2 id="agent-layer-map">Agent architecture mapped to AWS</h2>
+<h2 id="section-1-decisions">1. Architecture mapped to AWS</h2>
 
-<p>Start with the <a href="/study/aiAgents#section-1-boundaries">bounded agent tool sequence</a>. The layers below map each responsibility in that vendor-neutral design to AWS implementation choices; they are not a mandatory five-service stack.</p>
+<!-- Older section links are retained at their consolidated destination. -->
+<p><span id="agent-layer-map"></span>
+<span id="section-10-decision-flow"></span></p>
 
-<table class="study-table agent-layer-table">
-  <thead>
-    <tr>
-      <th>Layer</th>
-      <th>Bounded-agent responsibility</th>
-      <th>AWS implementation choices</th>
-      <th>Boundary to remember</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Interface Layer</strong></td>
-      <td>
-        <ul>
-          <li>Accept the user request.</li>
-          <li>Pass trusted identity to the Agent Controller.</li>
-          <li>Return or stream the response.</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>Amazon CloudFront and AWS WAF</li>
-          <li>Amazon API Gateway</li>
-          <li>Amazon Cognito</li>
-          <li>Lambda or ECS application endpoint</li>
-          <li>AgentCore Runtime endpoint where appropriate</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>Authenticate the caller.</li>
-          <li>Validate and throttle requests.</li>
-          <li>Convert identity into trusted claims—not prompt text.</li>
-        </ul>
-      </td>
-    </tr>
-    <tr>
-      <td><strong>Agent Layer</strong></td>
-      <td>
-        <ul>
-          <li>Run the Agent Controller.</li>
-          <li>Build context and choose bounded next steps.</li>
-          <li>Apply policy, budgets, and approval decisions.</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>AgentCore Runtime or Harness</li>
-          <li>AgentCore Identity and Policy</li>
-          <li>AWS Step Functions for deterministic workflow and approval</li>
-          <li>Lambda, ECS, or EKS for custom orchestration</li>
-          <li>Bedrock Agents Classic for existing workloads</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>Enforce step, time, token, and cost limits.</li>
-          <li>Treat model output as a proposal.</li>
-          <li>Let policy and workflow make the final execution decision.</li>
-        </ul>
-      </td>
-    </tr>
-    <tr>
-      <td><strong>Memory Layer</strong></td>
-      <td>
-        <ul>
-          <li>Store conversation and working context.</li>
-          <li>Persist task progress, tool results, and idempotency state.</li>
-          <li>Retrieve useful long-term memories.</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>AgentCore Memory for short- and long-term conversational memory</li>
-          <li>Amazon DynamoDB for task and idempotency state</li>
-          <li>Amazon Aurora or RDS for transactional state</li>
-          <li>Amazon S3 for durable artifacts</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>Scope memory by actor, session, and tenant.</li>
-          <li>Do not treat inferred memories as verified facts.</li>
-          <li>Keep authoritative business state in an explicit system of record.</li>
-        </ul>
-      </td>
-    </tr>
-    <tr>
-      <td><strong>Tooling Layer</strong></td>
-      <td>
-        <ul>
-          <li>Execute approved tool calls.</li>
-          <li>Retrieve external knowledge.</li>
-          <li>Return bounded observations to the Agent Controller.</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>AgentCore Gateway for MCP, API, and Lambda tools</li>
-          <li>Lambda and API Gateway adapters</li>
-          <li>Step Functions for durable actions</li>
-          <li>Bedrock Knowledge Bases, OpenSearch, or Kendra for retrieval</li>
-          <li>EventBridge and SQS for asynchronous work</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>Validate schema, authorization, risk, and timeout.</li>
-          <li>Use idempotency for side effects.</li>
-          <li>Do not confuse Gateway connectivity with business permission.</li>
-        </ul>
-      </td>
-    </tr>
-    <tr>
-      <td><strong>Model Layer</strong></td>
-      <td>
-        <ul>
-          <li>Interpret the supplied context.</li>
-          <li>Propose an action or produce the final answer.</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>Foundation models through Amazon Bedrock</li>
-          <li>Custom or controlled endpoints through SageMaker AI</li>
-        </ul>
-      </td>
-      <td>
-        <ul>
-          <li>Predict tokens; do not grant permissions.</li>
-          <li>Do not provide transaction guarantees.</li>
-          <li>Do not act as authoritative durable memory.</li>
-        </ul>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<ul>
-  <li>AgentCore spans several layers because it is modular:
-    <ul>
-      <li>Runtime/Harness and Policy belong mainly to the Agent Layer;</li>
-      <li>Memory belongs to the Memory Layer;</li>
-      <li>Gateway belongs to the Tooling Layer;</li>
-      <li>Identity connects trusted identity across Interface, Agent, and Tooling boundaries.</li>
-    </ul>
-  </li>
-  <li>Cross-cutting controls apply to every layer: IAM and resource policies, KMS, Secrets Manager, VPC endpoints/PrivateLink, CloudWatch, CloudTrail, WAF, and workload evaluation.</li>
-  <li>Read the stack as:</li>
-</ul>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User → Interface → Agent Controller → Model
-                         ↕
-                       Memory
-                         ↓
-                Tools / Retrieval / Workflows
-</code></pre></div></div>
-
-<h2 id="section-1-decisions">1. Start with the architecture problem</h2>
-
-<ul>
-  <li>Need managed access to foundation models and GenAI building blocks?
-    <ul>
-      <li>Start with <strong>Amazon Bedrock</strong>.</li>
-    </ul>
-  </li>
-  <li>Need custom training, full ML lifecycle, serving-container control, or dedicated model endpoints?
-    <ul>
-      <li>Start with <strong>Amazon SageMaker AI</strong>.</li>
-    </ul>
-  </li>
-  <li>Need custom lexical, vector, filtered, or hybrid search?
-    <ul>
-      <li>Start with <strong>Amazon OpenSearch Service</strong>.</li>
-    </ul>
-  </li>
-  <li>Need managed enterprise search with connectors and document ACL awareness?
-    <ul>
-      <li>Evaluate <strong>Amazon Kendra</strong>.</li>
-    </ul>
-  </li>
-  <li>Need managed standard RAG connected to a Bedrock model?
-    <ul>
-      <li>Evaluate <strong>Knowledge Bases for Amazon Bedrock</strong>.</li>
-    </ul>
-  </li>
-  <li>Need to deploy and operate custom agents with managed runtime, memory, tools, identity, policy, and tracing?
-    <ul>
-      <li>Evaluate <strong>Amazon Bedrock AgentCore</strong>.</li>
-    </ul>
-  </li>
-  <li>These choices can be combined; they are architecture boundaries, not mutually exclusive products.</li>
-</ul>
-
-<div class="image-wrapper">
-  <img src="./assets/llm_conversation_flow.png" alt="AWS AI application flow" class="modal-trigger" data-caption="AWS AI request through identity, retrieval, Bedrock inference, and an approved tool" />
-  <div class="diagram-caption" data-snippet-id="aws-ai-flow-snippet">
-    ☁️ AWS AI application request sequence
-  </div>
-  <script type="text/plain" id="aws-ai-flow-snippet">
-@startuml
-title AWS AI application request flow
-actor User
-participant "API Gateway / Application" as App
-participant "Cognito / IAM" as Identity
-participant "Bedrock Knowledge Base\nOpenSearch / Kendra" as Retrieval
-participant "Amazon Bedrock" as Bedrock
-participant "Lambda / AWS Service Tool" as Tool
-participant "CloudWatch / CloudTrail" as Audit
-User -> App: Request + identity token
-App -> Identity: Authenticate and authorize
-Identity --> App: Trusted principal + claims
-App -> Retrieval: Query + permitted metadata filters
-Retrieval --> App: Ranked evidence + source IDs
-App -> Bedrock: Instructions + evidence + tool schema
-Bedrock --> App: Answer or tool proposal
-alt Tool proposed and authorized
-  App -> Tool: Validated arguments + least-privilege role
-  Tool --> App: Structured result
-  App -> Bedrock: Tool result
-  Bedrock --> App: Final response
-end
-App -> Audit: Metrics, trace, policy decision
-App --> User: Response + citations
-@enduml
-  </script>
-</div>
-
-<h2 id="section-2-bedrock">2. Amazon Bedrock</h2>
-
-<ul>
-  <li>Bedrock is a fully managed platform for consuming foundation models from Amazon and third-party providers.</li>
-  <li>Bedrock is <strong>not itself a model</strong>.</li>
-  <li>The exact model determines:
-    <ul>
-      <li>modalities;</li>
-      <li>context and output limits;</li>
-      <li>tool/structured-output behaviour;</li>
-      <li>inference parameters;</li>
-      <li>regional availability;</li>
-      <li>quota and capacity options.</li>
-    </ul>
-  </li>
-  <li>Keep model IDs and Region support in deployment configuration because the catalogue changes.</li>
-</ul>
-
-<h3 id="section-2-1-inference">2.1 Inference choices</h3>
-
-<ul>
-  <li><strong>On-demand inference</strong>:
-    <ul>
-      <li>useful for variable or early-stage workloads;</li>
-      <li>subject to service/model quotas and throttling.</li>
-    </ul>
-  </li>
-  <li><strong>Streaming inference</strong>:
-    <ul>
-      <li>improves time to first visible output;</li>
-      <li>does not remove total token cost or the need for output controls.</li>
-    </ul>
-  </li>
-  <li><strong>Batch inference</strong>:
-    <ul>
-      <li>useful for non-interactive, high-volume processing;</li>
-      <li>requires asynchronous job and output handling.</li>
-    </ul>
-  </li>
-  <li><strong>Inference profiles / cross-Region routing</strong>:
-    <ul>
-      <li>can improve capacity and routing where supported;</li>
-      <li>require review of permitted processing Regions, IAM, quotas, and data-residency policy.</li>
-    </ul>
-  </li>
-  <li><strong>Provisioned Throughput</strong>:
-    <ul>
-      <li>reserves model capacity where supported;</li>
-      <li>useful for predictable demand or throughput requirements;</li>
-      <li>creates commitment/utilization trade-offs.</li>
-    </ul>
-  </li>
-  <li><strong>Custom/imported models</strong>:
-    <ul>
-      <li>Bedrock supports selected customization and import paths;</li>
-      <li>verify model, Region, deployment, and lifecycle constraints rather than assuming parity with SageMaker AI.</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="211-choose-the-bedrock-api-and-capacity-mode">2.1.1 Choose the Bedrock API and capacity mode</h3>
+<p>Use this map to locate the implementation decision. Each service is explained once in the sections below; the choices can be combined.</p>
 
 <table>
   <thead>
     <tr>
-      <th>Need</th>
-      <th>Choose</th>
-      <th>Why</th>
-      <th>AIP-C01-style recognition</th>
+      <th>Architecture layer</th>
+      <th>AWS decision</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Unified multi-turn request shape across supported Bedrock models</td>
-      <td><strong>Converse</strong></td>
-      <td>Standardizes messages and inference configuration across compatible models</td>
-      <td>“The team wants a model-agnostic chat integration.”</td>
+      <td>Model</td>
+      <td><a href="#section-2-bedrock">Bedrock APIs and capabilities</a>, or <a href="#section-4-bedrock-sagemaker">SageMaker AI for lifecycle/serving control</a>.</td>
     </tr>
     <tr>
-      <td>Stream those conversational tokens</td>
-      <td><strong>ConverseStream</strong></td>
-      <td>Same unified approach with incremental output</td>
-      <td>“Show text as it is generated.”</td>
+      <td>Agent controller</td>
+      <td><a href="#section-3-1-agentcore-boundary">AgentCore, Agents Classic, or deterministic orchestration</a>.</td>
     </tr>
     <tr>
-      <td>Direct model-specific request/response control, including non-chat payloads</td>
-      <td><strong>InvokeModel</strong></td>
-      <td>Exposes direct model invocation format; model compatibility still matters</td>
-      <td>“The application needs direct access to a model’s request format.”</td>
+      <td>Retrieval</td>
+      <td><a href="#section-8-retrieval-choice">Knowledge Bases, OpenSearch, or Kendra</a>.</td>
     </tr>
     <tr>
-      <td>Stream a direct invocation</td>
-      <td><strong>InvokeModelWithResponseStream</strong></td>
-      <td>Direct API with incremental response events</td>
-      <td>“Direct model call and streaming output.”</td>
+      <td>Interface, tools, and durable state</td>
+      <td><a href="#section-9-supporting-services">Application services</a>.</td>
     </tr>
     <tr>
-      <td>Long-running non-interactive Bedrock work</td>
-      <td><strong>AsyncInvoke / batch capability where supported</strong></td>
-      <td>Caller does not hold an interactive connection; output handling is asynchronous</td>
-      <td>“Process a backlog and write results for later consumption.”</td>
-    </tr>
-    <tr>
-      <td>Variable, early, or uncertain traffic</td>
-      <td><strong>On-demand inference</strong></td>
-      <td>Pay/use capacity without reserving a fixed throughput commitment</td>
-      <td>“New workload with spiky demand.”</td>
-    </tr>
-    <tr>
-      <td>Predictable sustained token demand or a customized model that requires it</td>
-      <td><strong>Provisioned Throughput</strong></td>
-      <td>Reserve model capacity; pay/commitment and utilization must justify it</td>
-      <td>“Stable production traffic needs known capacity.”</td>
-    </tr>
-    <tr>
-      <td>Capacity across supported Regions or usage/cost tracking by workload</td>
-      <td><strong>Inference profile</strong></td>
-      <td>Can route eligible requests across Regions or associate usage with an application profile</td>
-      <td>“Model capacity is limited in one Region; policy permits listed Regions.”</td>
+      <td>Security and operations</td>
+      <td><a href="#section-9-1-entry">Identity/network controls</a> and <a href="#section-9-4-operations">encryption/telemetry</a>.</td>
     </tr>
   </tbody>
 </table>
 
-<p><strong>Decision rule:</strong> streaming changes <em>delivery</em>, not total model work. Provisioned Throughput changes <em>capacity economics</em>, not answer quality. Cross-Region inference changes <em>where eligible processing can occur</em>, so confirm residency policy, Region support, IAM, and quotas.</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Authenticated application → permitted retrieval → Bedrock model
+                                    ↑                  ↓
+                              evidence/context   answer or tool proposal
+                                    ↑                  ↓
+                              tool result ← authorized business workflow
+</code></pre></div></div>
 
-<h3 id="section-2-2-capabilities">2.2 Bedrock application capabilities</h3>
+<p>For the underlying responsibilities, return to the <a href="/study/aiInfrastructure#section-1-architecture">production architecture</a> or <a href="/study/aiAgents#section-1-boundaries">agent tool loop</a>.</p>
 
-<ul>
-  <li><strong>Model customization / fine-tuning</strong>:
-    <ul>
-      <li>uses a labelled training dataset to adjust parameters of a supported base model for a narrow task or consistent behaviour;</li>
-      <li>is separate from retrieval; it is not a way to attach a document library at inference time.</li>
-    </ul>
-  </li>
-  <li><strong>Knowledge Bases</strong>:
-    <ul>
-      <li>managed ingestion and RAG retrieval/generation integration;</li>
-      <li>retrieves relevant documents into a request without changing the foundation model’s weights;</li>
-      <li>covered in the retrieval comparison below.</li>
-    </ul>
-  </li>
-  <li><strong>Bedrock Agents Classic</strong>:
-    <ul>
-      <li>orchestrate model decisions across action groups and knowledge bases;</li>
-      <li>action groups commonly use Lambda or return control to the application;</li>
-      <li>use aliases/versions, traces, bounded execution, least-privilege roles, and approval gates;</li>
-      <li>is an existing-workload path: AWS states that it is no longer open to new customers after 30 July 2026 and directs similar new implementations toward AgentCore.</li>
-    </ul>
-  </li>
-  <li><strong>Flows</strong>:
-    <ul>
-      <li>compose prompts, models, knowledge bases, conditions, and AWS integrations into explicit flows;</li>
-      <li>useful when visual/managed orchestration fits the process;</li>
-      <li>compare with Step Functions when broader durable AWS workflow semantics are needed.</li>
-    </ul>
-  </li>
-  <li><strong>Guardrails</strong>:
-    <ul>
-      <li>apply configurable input/output policies such as content, denied topics, word filters, and sensitive-information handling where supported;</li>
-      <li>can be applied independently in selected workflows;</li>
-      <li>do not replace IAM, tenant authorization, tool validation, WAF, or domain rules.</li>
-    </ul>
-  </li>
-  <li><strong>Prompt management</strong>:
-    <ul>
-      <li>creates reusable templates with runtime variables, variants/testing, and deployable versions;</li>
-      <li>helps deployment discipline but does not replace repository versioning and end-to-end regression tests;</li>
-      <li>applies the prompt-template practice from <a href="/study/aiPromptEngineering#templates">AI Prompt Engineering</a> through an AWS-managed service.</li>
-    </ul>
-  </li>
-  <li><strong>Evaluation</strong>:
-    <ul>
-      <li>supports model and knowledge-base evaluation capabilities, including automated and human-oriented approaches where available;</li>
-      <li>retain workload-specific datasets and release gates outside any single managed feature.</li>
-    </ul>
-  </li>
-</ul>
+<h2 id="section-2-bedrock">2. Amazon Bedrock</h2>
+
+<p>Bedrock provides managed access to foundation models and GenAI application capabilities. The chosen model and access path determine supported modalities, context/output limits, inference controls, tool/schema behaviour, quotas, and Regions.</p>
+
+<h3 id="section-2-1-inference">2.1 Inference APIs and capacity</h3>
+
+<p><span id="211-choose-the-bedrock-api-and-capacity-mode"></span></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Integration need</th>
+      <th>API</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Consistent message interface across compatible models</td>
+      <td><code class="language-plaintext highlighter-rouge">Converse</code>; <code class="language-plaintext highlighter-rouge">ConverseStream</code> for streamed output.</td>
+    </tr>
+    <tr>
+      <td>Model-specific invocation payload</td>
+      <td><code class="language-plaintext highlighter-rouge">InvokeModel</code>; <code class="language-plaintext highlighter-rouge">InvokeModelWithResponseStream</code> for streaming.</td>
+    </tr>
+    <tr>
+      <td>Supported long-running generation with results in S3</td>
+      <td><code class="language-plaintext highlighter-rouge">StartAsyncInvoke</code>; inspect job status separately.</td>
+    </tr>
+    <tr>
+      <td>Existing compatible client integration</td>
+      <td>Check the model’s supported Chat Completions, Responses, or Messages interface.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>These are integration choices, not interchangeable capabilities. See the <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html">AWS API compatibility matrix</a> for supported models, bidirectional streaming, and endpoint differences.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Traffic/capacity requirement</th>
+      <th>Bedrock option</th>
+      <th>Check</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Variable demand without reserved capacity</td>
+      <td>On-demand inference</td>
+      <td>Model quotas and throttling.</td>
+    </tr>
+    <tr>
+      <td>Sustained demand that justifies reserved capacity</td>
+      <td>Provisioned Throughput</td>
+      <td>Model support, commitments, and expected utilization.</td>
+    </tr>
+    <tr>
+      <td>Finite dataset processed offline</td>
+      <td>Batch inference</td>
+      <td>Supported model, job format, and output handling; this is separate from a single async invocation.</td>
+    </tr>
+    <tr>
+      <td>Eligible requests distributed across Regions</td>
+      <td>Cross-Region inference profile</td>
+      <td>Destination Regions, organizational policies, IAM, and quotas.</td>
+    </tr>
+    <tr>
+      <td>Workload-level usage attribution</td>
+      <td>Application inference profile</td>
+      <td>Tags and the underlying model or routing profile.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Use the cloud-neutral <a href="/study/aiInfrastructure#101-serving-and-caching-decision-rules">serving and caching rules</a> to select a pattern. AWS details: <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html">Provisioned Throughput</a>, <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference.html">batch inference</a>, and <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles.html">inference profiles</a>.</p>
+
+<h3 id="section-2-2-capabilities">2.2 Application capabilities</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Capability</th>
+      <th>AWS-specific role</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html">Prompt management</a></td>
+      <td>Store templates, variables, model configuration, variants, and versions.</td>
+    </tr>
+    <tr>
+      <td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/flows.html">Flows</a></td>
+      <td>Connect prompt/model/retrieval nodes, conditions, and supported integrations in an explicit flow.</td>
+    </tr>
+    <tr>
+      <td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html">Guardrails</a></td>
+      <td>Apply supported content, topic, word, sensitive-information, and grounding policies.</td>
+    </tr>
+    <tr>
+      <td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html">Evaluation</a></td>
+      <td>Run supported model and RAG evaluations using the workload’s datasets and metrics.</td>
+    </tr>
+    <tr>
+      <td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html">Customization and import</a></td>
+      <td>Adapt or import supported models; verify the technique and deployment path for the selected model.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Knowledge Bases and agent capabilities have their own sections below. Guardrails filter model interactions; <a href="#section-9-1-entry">IAM and application authorization</a> still decide which resources and actions a caller may use.</p>
 
 <h2 id="section-3-agentcore">3. Amazon Bedrock AgentCore</h2>
 
-<ul>
-  <li>AgentCore is a modular platform for deploying and operating agents; it is <strong>not a model</strong>.</li>
-  <li>It can run agents built with frameworks such as Strands Agents, LangGraph, CrewAI, or LlamaIndex and can use Bedrock or other supported model providers.</li>
-  <li>Adopt only the components the architecture needs:
-    <ul>
-      <li><strong>Runtime</strong> runs custom agent code in managed, isolated, serverless sessions.</li>
-      <li><strong>Harness</strong> provides a managed agent loop when configuring instructions, models, and tools is preferable to owning the loop.</li>
-      <li><strong>Gateway</strong> exposes APIs, Lambda functions, and services as controlled tools, including through MCP; it handles tool discovery, ingress authentication, and credential exchange.</li>
-      <li><strong>Identity</strong> carries user/agent identity and obtains authorized credentials for AWS or third-party services.</li>
-      <li><strong>Policy</strong> applies deterministic action rules independently of what the model proposes.</li>
-      <li><strong>Memory</strong> stores short- and long-term agent context; it must be scoped by user and tenant and is not the business system of record.</li>
-      <li><strong>Browser</strong> and <strong>Code Interpreter</strong> provide isolated capabilities for browsing and code execution where required.</li>
-      <li><strong>Observability</strong> and <strong>Evaluations</strong> expose agent, model, and tool behaviour for tracing and quality measurement.</li>
-    </ul>
-  </li>
-  <li>AgentCore does not remove the need for application authentication, source-system authorization, least-privilege IAM, data isolation, or human approval.</li>
-</ul>
+<p>AgentCore supplies modular services around an agent. Choose only the components your implementation needs. It supports custom frameworks and models beyond Bedrock. <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html">AWS AgentCore overview</a>.</p>
 
-<h3 id="section-3-1-agentcore-boundary">3.1 AgentCore versus Bedrock Agents Classic versus Step Functions</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Responsibility</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Runtime / Harness</td>
+      <td>Host custom agent code / use a managed agent loop.</td>
+    </tr>
+    <tr>
+      <td>Gateway</td>
+      <td>Connect APIs, Lambda functions, and MCP tools.</td>
+    </tr>
+    <tr>
+      <td>Identity / Policy</td>
+      <td>Obtain authorized credentials / enforce deterministic rules on Gateway tool calls.</td>
+    </tr>
+    <tr>
+      <td>Memory</td>
+      <td>Store scoped conversation events and longer-lived memories.</td>
+    </tr>
+    <tr>
+      <td>Browser / Code Interpreter</td>
+      <td>Run browsing or code tasks in isolated environments.</td>
+    </tr>
+    <tr>
+      <td>Observability / Evaluations</td>
+      <td>Trace execution and assess agent/tool outcomes.</td>
+    </tr>
+  </tbody>
+</table>
 
-<ul>
-  <li>Choose <strong>AgentCore</strong> for new implementations when custom or managed agent loops need runtime, memory, tool connectivity, identity, policy, and observability.</li>
-  <li>Maintain or migrate <strong>Bedrock Agents Classic</strong> when an existing workload uses managed model-led orchestration around instructions, action groups, and knowledge bases.</li>
-  <li>Choose <strong>Step Functions</strong> when the states, branches, retries, compensations, and approvals are known in advance.</li>
-  <li>Combine them when useful:
-    <ul>
-      <li>AgentCore handles bounded reasoning and tool selection;</li>
-      <li>Step Functions owns durable business workflow and human approval;</li>
-      <li>business APIs remain responsible for validating and authorizing every state change.</li>
-    </ul>
-  </li>
-</ul>
+<h3 id="section-3-1-agentcore-boundary">3.1 Choose the orchestration boundary</h3>
 
-<h3 id="section-3-2-industrial-example">3.2 Industrial example: plant-maintenance agent</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Use it for</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AgentCore</td>
+      <td>Agent execution needing managed runtime, tool connectivity, or the other modules above.</td>
+    </tr>
+    <tr>
+      <td>Bedrock Agents Classic</td>
+      <td>Existing workloads using instructions, action groups, knowledge bases, versions/aliases, and agent traces.</td>
+    </tr>
+    <tr>
+      <td>Step Functions</td>
+      <td>Known business states, retries, callbacks, and approval paths; it can invoke an agent as one bounded step.</td>
+    </tr>
+  </tbody>
+</table>
 
-<ul>
-  <li><strong>Use case</strong>: a plant engineer asks why a pump is vibrating and, if justified, requests a maintenance work order.</li>
-  <li><strong>Entry boundary</strong>:
-    <ul>
-      <li>AWS WAF protects the public endpoint;</li>
-      <li>Amazon Cognito authenticates the engineer;</li>
-      <li>API Gateway passes trusted identity claims such as <code class="language-plaintext highlighter-rouge">user_id</code>, <code class="language-plaintext highlighter-rouge">plant_id</code>, and <code class="language-plaintext highlighter-rouge">role</code> to the application.</li>
-    </ul>
-  </li>
-  <li><strong>Agent boundary</strong>:
-    <ul>
-      <li>AgentCore Runtime hosts a supervisor agent built with a selected framework;</li>
-      <li>the agent invokes a Bedrock model for reasoning but treats model output as a proposal;</li>
-      <li>AgentCore Identity and Policy restrict which tools that principal can invoke for that plant.</li>
-    </ul>
-  </li>
-  <li><strong>Tool boundary</strong>:
-    <ul>
-      <li>AgentCore Gateway exposes narrow tools such as <code class="language-plaintext highlighter-rouge">get_asset_health</code>, <code class="language-plaintext highlighter-rouge">search_manuals</code>, and <code class="language-plaintext highlighter-rouge">create_work_order</code>;</li>
-      <li>Lambda/API adapters call AWS IoT SiteWise, the maintenance system, or other industrial APIs;</li>
-      <li>tool schemas, server-side authorization, validation, timeouts, and idempotency remain mandatory.</li>
-    </ul>
-  </li>
-  <li><strong>Knowledge boundary</strong>:
-    <ul>
-      <li>manuals and incident history can be retrieved through Bedrock Knowledge Bases or OpenSearch over documents in S3;</li>
-      <li><code class="language-plaintext highlighter-rouge">plant_id</code>, asset class, and document ACLs constrain retrieval;</li>
-      <li>metadata relevance filters do not replace authorization at the source.</li>
-    </ul>
-  </li>
-  <li><strong>State boundary</strong>:
-    <ul>
-      <li>AgentCore Memory can retain scoped conversational context and preferences;</li>
-      <li>asset telemetry and work-order status remain authoritative in their operational systems.</li>
-    </ul>
-  </li>
-  <li><strong>Safety boundary</strong>:
-    <ul>
-      <li>read-only diagnosis may execute automatically when policy permits;</li>
-      <li>work orders, shutdown requests, or other high-impact actions use Step Functions and human approval;</li>
-      <li>the agent must not directly write to PLCs or bypass deterministic industrial safety controls.</li>
-    </ul>
-  </li>
-  <li><strong>Operations boundary</strong>:
-    <ul>
-      <li>use VPC connectivity/private endpoints where supported, KMS encryption, and Secrets Manager for credentials;</li>
-      <li>CloudWatch/OpenTelemetry records the model, policy, retrieval, tool, latency, and outcome trace;</li>
-      <li>CloudTrail records supported AWS API activity;</li>
-      <li>EventBridge and SQS decouple telemetry/document ingestion and absorb bursts.</li>
-    </ul>
-  </li>
-</ul>
+<p><strong>Current availability:</strong> AWS states that Agents Classic is closed to new customers; existing customers may continue using it. AWS points new implementations toward AgentCore. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html">Agents Classic notice</a>.</p>
+
+<h3 id="section-3-2-industrial-example">3.2 Example: plant-maintenance agent</h3>
+
+<p>A plant engineer asks why a pump is vibrating and requests a maintenance work order. Runtime hosts the controller; Gateway connects <code class="language-plaintext highlighter-rouge">get_asset_health</code>, <code class="language-plaintext highlighter-rouge">search_manuals</code>, and <code class="language-plaintext highlighter-rouge">create_work_order</code>. Plant telemetry and work-order status remain in the operational systems. The sequence shows how a model proposal reaches a business action:</p>
 
 <div class="image-wrapper">
   <img src="./assets/agentcore_industrial_maintenance_sequence.png" alt="Production industrial maintenance agent using Amazon Bedrock AgentCore" class="modal-trigger" data-caption="Industrial maintenance request through AgentCore with policy and human approval" />
@@ -623,836 +352,327 @@ Edge --> User: Display result
   </script>
 </div>
 
+<p>The maintenance API must enforce the engineer’s plant-level permissions and reconcile retries. A conversational memory is not an asset record, and an agent must not bypass industrial safety controls.</p>
+
 <h2 id="section-4-bedrock-sagemaker">4. Amazon Bedrock versus SageMaker AI</h2>
 
-<ul>
-  <li>Choose <strong>Bedrock</strong> when the main goal is to:
-    <ul>
-      <li>consume supported foundation models through managed APIs;</li>
-      <li>switch among catalogue models with less serving infrastructure;</li>
-      <li>use managed GenAI capabilities such as Knowledge Bases, Agents, Flows, Guardrails, or prompt management;</li>
-      <li>integrate with AWS identity, networking, logging, and billing.</li>
-    </ul>
-  </li>
-  <li>Choose <strong>SageMaker AI</strong> when the main goal is to:
-    <ul>
-      <li>prepare data and run training jobs;</li>
-      <li>build custom ML models or use custom training code;</li>
-      <li>fine-tune with broader control over compute and artifacts;</li>
-      <li>deploy custom containers/models to controlled endpoints;</li>
-      <li>choose real-time, serverless, asynchronous, or batch inference patterns where supported;</li>
-      <li>operate notebooks, experiments, model registry, and ML pipelines/lifecycle.</li>
-    </ul>
-  </li>
-  <li>The real decision boundary is <strong>managed model capability versus lifecycle/serving control</strong>, not simply “GenAI versus ML”.</li>
-  <li>Use both when useful:
-    <ul>
-      <li>custom classifier or embedding endpoint on SageMaker AI + generation on Bedrock;</li>
-      <li>model trained/customized through SageMaker AI and deployed through an appropriate SageMaker or Bedrock path;</li>
-      <li>Bedrock for rapid evaluation, then a controlled endpoint when economics or specialization justify it.</li>
-    </ul>
-  </li>
-  <li>Compare using:
-    <ul>
-      <li>supported model and customization technique;</li>
-      <li>serving/container and hardware control;</li>
-      <li>scaling and cold-start behaviour;</li>
-      <li>networking and encryption requirements;</li>
-      <li>operations expertise;</li>
-      <li>utilization and total cost;</li>
-      <li>model artifact portability.</li>
-    </ul>
-  </li>
-</ul>
+<p>The decision is <strong>managed model capabilities versus control over the ML lifecycle and serving environment</strong>. Bedrock fits supported model APIs and the capabilities in section 2; SageMaker AI fits custom training code, artifacts, containers, compute, and endpoints. A system can use a SageMaker classifier alongside Bedrock generation.</p>
 
-<h3 id="41-sagemaker-ai-lifecycle-patterns">4.1 SageMaker AI lifecycle patterns</h3>
+<p><span id="41-sagemaker-ai-lifecycle-patterns"></span>
+<span id="section-12-1-platforms"></span></p>
 
 <table>
   <thead>
     <tr>
-      <th>Requirement</th>
-      <th>SageMaker AI pattern</th>
-      <th>Why</th>
+      <th>Lifecycle need</th>
+      <th>SageMaker AI capability</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Train or customize with your own code/data</td>
-      <td><strong>Training job</strong></td>
-      <td>Full training container, compute, and artifact control</td>
+      <td>Develop and prepare data</td>
+      <td>Studio, Data Wrangler, Processing.</td>
     </tr>
     <tr>
-      <td>Serve low-latency online predictions</td>
-      <td><strong>Real-time endpoint</strong></td>
-      <td>Persistent endpoint for request/response inference</td>
+      <td>Label data / add human prediction review</td>
+      <td>Ground Truth / Amazon A2I.</td>
     </tr>
     <tr>
-      <td>Payload or processing may take longer</td>
-      <td><strong>Asynchronous inference</strong></td>
-      <td>Queue/request handling with output delivered later</td>
+      <td>Start from a pretrained model</td>
+      <td>JumpStart.</td>
     </tr>
     <tr>
-      <td>Score a large finite dataset</td>
-      <td><strong>Batch Transform</strong></td>
-      <td>Offline bulk inference without a persistent endpoint</td>
+      <td>Customize with controlled code and compute</td>
+      <td>Training jobs; Automatic Model Tuning for hyperparameter trials.</td>
     </tr>
     <tr>
-      <td>Search hyperparameters</td>
-      <td><strong>Automatic Model Tuning</strong></td>
-      <td>Runs trials to find values such as learning rate or batch size</td>
+      <td>Version and approve artifacts</td>
+      <td>Model Registry; Model Cards for model documentation.</td>
     </tr>
     <tr>
-      <td>Repeat a governed ML lifecycle</td>
-      <td><strong>Pipelines + Model Registry</strong></td>
-      <td>Automate stages; version/approve model artifacts before deployment</td>
+      <td>Automate lifecycle stages</td>
+      <td>Pipelines.</td>
     </tr>
     <tr>
-      <td>Detect bias / explain predictions</td>
-      <td><strong>Clarify</strong></td>
-      <td>Responsible-ML analysis; not a replacement for application authorization</td>
+      <td>Serve online, intermittent, queued, or offline workloads</td>
+      <td>Real-time, serverless, asynchronous inference, or Batch Transform, subject to model/endpoint support.</td>
     </tr>
     <tr>
-      <td>Label sensitive or specialized training data</td>
-      <td><strong>Ground Truth</strong></td>
-      <td>Managed labeling workflows, including private workforces</td>
+      <td>Assess bias/explanations and monitor drift</td>
+      <td>Clarify and Model Monitor, with task-appropriate checks.</td>
     </tr>
   </tbody>
 </table>
 
-<blockquote>
-  <p><strong>Bedrock vs SageMaker scenario rule:</strong> choose Bedrock to consume supported FMs and managed GenAI building blocks quickly. Choose SageMaker AI when the requirement is custom training code, model artifacts/containers, controlled endpoint deployment, or a full ML lifecycle.</p>
-</blockquote>
+<p>Match endpoint scaling, cold starts, model loading, hardware requirements, and utilization to the workload. <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/whatis-features.html">SageMaker AI features</a> and <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html">deployment options</a> describe the supported paths. The reason to customize a model is covered in <a href="/study/aiModels#model-adaptation">Models: adaptation choices</a>.</p>
 
-<h2 id="section-5-bedrock-kb">5. Knowledge Bases for Amazon Bedrock</h2>
+<h2 id="section-8-retrieval-choice">5. Retrieval: Knowledge Bases, OpenSearch, and Kendra</h2>
 
-<ul>
-  <li>A managed Knowledge Base can coordinate supported parts of:
-    <ul>
-      <li>source connection and ingestion;</li>
-      <li>parsing and chunking configuration;</li>
-      <li>embedding generation;</li>
-      <li>vector/knowledge store integration;</li>
-      <li>metadata filtering;</li>
-      <li>retrieval and reranking options;</li>
-      <li><code class="language-plaintext highlighter-rouge">Retrieve</code> or retrieve-and-generate application flows;</li>
-      <li>citations/source attribution.</li>
-    </ul>
-  </li>
-  <li>Managed convenience is strongest for standard RAG with supported sources and stores.</li>
-  <li>Validate rather than assume:
-    <ul>
-      <li>parser quality for PDFs, tables, images, and scanned documents;</li>
-      <li>chunking strategy and parent/child behaviour;</li>
-      <li>freshness and sync failure handling;</li>
-      <li>exact-match and hybrid-search behaviour;</li>
-      <li>metadata and ACL enforcement;</li>
-      <li>vector store, Region, embedding, and reranker compatibility;</li>
-      <li>retrieval traces and evaluation access.</li>
-    </ul>
-  </li>
-  <li>Use custom retrieval when the workload needs:
-    <ul>
-      <li>specialized document parsing;</li>
-      <li>complex entitlement logic;</li>
-      <li>carefully tuned lexical/vector fusion;</li>
-      <li>custom query rewriting or reranking;</li>
-      <li>graph, SQL, API, or multi-index retrieval;</li>
-      <li>strict freshness or ingestion transactions;</li>
-      <li>full control over candidate scoring and context assembly.</li>
-    </ul>
-  </li>
-  <li>Agentic retrieval can decompose complex questions and iterate across managed knowledge-base retrievers where supported:
-    <ul>
-      <li>useful for multi-step questions;</li>
-      <li>adds model calls, latency, cost, and more failure paths;</li>
-      <li>bound iterations and evaluate against simpler retrieval.</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="section-6-opensearch">6. Amazon OpenSearch Service</h2>
-
-<ul>
-  <li>Use OpenSearch when the application needs direct control over search/index design.</li>
-  <li>Relevant capabilities:
-    <ul>
-      <li>inverted indexes and BM25 full-text search;</li>
-      <li>exact terms, filters, phrases, facets, and aggregations;</li>
-      <li>vector fields and approximate nearest-neighbour search;</li>
-      <li>neural/semantic search integrations;</li>
-      <li>hybrid search and search pipelines for combining signals;</li>
-      <li>metadata filtering and operational search APIs.</li>
-    </ul>
-  </li>
-  <li>Responsibilities that remain with the application/managed layer:
-    <ul>
-      <li>parsing and chunking;</li>
-      <li>document/ACL synchronization;</li>
-      <li>embedding lifecycle;</li>
-      <li>query rewriting;</li>
-      <li>score/rank fusion tuning;</li>
-      <li>reranking and context assembly;</li>
-      <li>generation and citation policy.</li>
-    </ul>
-  </li>
-  <li>Deployment choices:
-    <ul>
-      <li>managed domains provide node/topology control;</li>
-      <li>OpenSearch Serverless reduces cluster operations for supported collection patterns;</li>
-      <li>evaluate cost shape, scaling behaviour, limits, networking, and feature support.</li>
-    </ul>
-  </li>
-  <li>Failure modes:
-    <ul>
-      <li>vector-only retrieval misses identifiers;</li>
-      <li>raw BM25/vector scores are fused without normalization;</li>
-      <li>restrictive filters reduce ANN recall;</li>
-      <li>mappings or embedding dimensions drift;</li>
-      <li>index refresh or failed ingestion serves stale evidence;</li>
-      <li>an application filter is mistaken for complete authorization.</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="section-7-kendra">7. Amazon Kendra</h2>
-
-<ul>
-  <li>Kendra is a managed enterprise search service oriented around organizational content discovery.</li>
-  <li>Useful capabilities include:
-    <ul>
-      <li>data-source connectors;</li>
-      <li>document indexing and field mapping;</li>
-      <li>ranked results, excerpts, and FAQ-style content;</li>
-      <li>document attributes and relevance tuning;</li>
-      <li>user/group context and ACL-aware filtering where supported.</li>
-    </ul>
-  </li>
-  <li>Kendra may be preferable when connector behavior and enterprise permissions are the primary problem.</li>
-  <li>Check exact index type, API, connector, and edition/feature support:
-    <ul>
-      <li>ACL ingestion differs by connector;</li>
-      <li>documents without ACLs may be treated as public under relevant configurations;</li>
-      <li>group mapping and identity synchronization must stay current;</li>
-      <li>relevance tuning changes ranking, not authorization.</li>
-    </ul>
-  </li>
-  <li>Kendra returns search evidence; an application or Bedrock integration still owns generation, prompts, validation, and end-to-end citations.</li>
-</ul>
-
-<h2 id="section-8-retrieval-choice">8. Kendra versus OpenSearch versus Bedrock Knowledge Bases</h2>
-
-<ul>
-  <li>Choose <strong>Bedrock Knowledge Bases</strong> when:
-    <ul>
-      <li>managed standard RAG is the priority;</li>
-      <li>supported sources/stores and retrieval controls meet requirements;</li>
-      <li>reduced implementation effort is worth less stage-level control.</li>
-    </ul>
-  </li>
-  <li>Choose <strong>OpenSearch</strong> when:
-    <ul>
-      <li>exact terms, BM25, vectors, filters, facets, and hybrid tuning are central;</li>
-      <li>the team can own ingestion, schema, ranking, security integration, and operations.</li>
-    </ul>
-  </li>
-  <li>Choose <strong>Kendra</strong> when:
-    <ul>
-      <li>enterprise connectors and search-oriented ACL/user context are central;</li>
-      <li>managed relevance and organizational knowledge discovery matter more than low-level index control.</li>
-    </ul>
-  </li>
-  <li>Combine only with a clear boundary:
-    <ul>
-      <li>Bedrock Knowledge Bases can use supported retrieval stores/services;</li>
-      <li>a custom application can retrieve from OpenSearch or Kendra and call Bedrock for generation;</li>
-      <li>avoid indexing the same corpus several times without explicit ownership, freshness, and evaluation reasons.</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="section-9-supporting-services">9. Supporting AWS services by architecture role</h2>
-
-<h3 id="section-9-1-entry">9.1 Entry, identity, and protection</h3>
-
-<ul>
-  <li><strong>Amazon API Gateway</strong>:
-    <ul>
-      <li>authenticated API boundary, throttling, request validation, and service integration;</li>
-      <li>confirm streaming and timeout requirements for interactive model responses.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon Cognito</strong>:
-    <ul>
-      <li>application user sign-up/sign-in and token issuance;</li>
-      <li>pass trusted user/tenant claims into application authorization, not directly as model authority.</li>
-    </ul>
-  </li>
-  <li><strong>AWS IAM</strong>:
-    <ul>
-      <li>least-privilege roles for model invocation, ingestion, retrieval, agents, Lambda, and operators;</li>
-      <li>use separate runtime and deployment roles; constrain resources and delegated roles.</li>
-    </ul>
-  </li>
-  <li><strong>AWS WAF</strong>:
-    <ul>
-      <li>controls abusive/malformed public traffic and common web attacks;</li>
-      <li>is not a complete prompt-injection detector.</li>
-    </ul>
-  </li>
-  <li><strong>AWS PrivateLink / VPC endpoints</strong>:
-    <ul>
-      <li>private access to supported services without public internet paths;</li>
-      <li>verify service/Region support and still enforce IAM and egress controls.</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="section-9-2-compute">9.2 Compute and orchestration</h3>
-
-<ul>
-  <li><strong>AWS Lambda</strong>:
-    <ul>
-      <li>short ingestion transforms, validation, tool adapters, event handlers, and Agent action groups;</li>
-      <li>avoid forcing long-running/high-memory parsing or orchestration into Lambda limits.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon ECS</strong>:
-    <ul>
-      <li>containerized parsers, model gateways, retrieval services, workers, and long-running tools with simpler orchestration than Kubernetes.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon EKS</strong>:
-    <ul>
-      <li>Kubernetes-based custom serving and platform control;</li>
-      <li>justified when Kubernetes capabilities and operational maturity already exist.</li>
-    </ul>
-  </li>
-  <li><strong>AWS Step Functions</strong>:
-    <ul>
-      <li>durable, explicit ingestion, evaluation, approval, and tool workflows;</li>
-      <li>useful for visible state, retries, compensation, callback, and long-running execution.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon EventBridge</strong>:
-    <ul>
-      <li>routes document, workflow, evaluation, and model lifecycle events between components.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon SQS</strong>:
-    <ul>
-      <li>buffers ingestion or inference jobs, smooths bursts/quotas, and isolates retries;</li>
-      <li>configure visibility timeout, dead-letter handling, deduplication/idempotency, and queue-age alarms.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon SNS</strong>:
-    <ul>
-      <li>delivers a notification to multiple subscribed endpoints such as queues, Lambda functions, HTTP endpoints, or email;</li>
-      <li>use it for fan-out, not as the durable work queue that owns one job’s retry lifecycle.</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="section-9-3-data">9.3 Data and state</h3>
-
-<ul>
-  <li><strong>Amazon S3</strong>:
-    <ul>
-      <li>versioned source documents, parser output, prompts, evaluation sets, model artifacts, and batch input/output;</li>
-      <li>use event-driven ingestion, encryption, access points/policies, lifecycle, and object versioning as required.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon DynamoDB</strong>:
-    <ul>
-      <li>task/conversation state, idempotency keys, tool status, routing configuration, and evaluation metadata;</li>
-      <li>design tenant-aware keys, conditional writes, and TTL deliberately.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon Aurora / Amazon RDS</strong>:
-    <ul>
-      <li>transactional application data, entitlements, audit relationships, and tool-backed business operations;</li>
-      <li>vector extensions may fit workloads already centered on relational consistency, but evaluate search scale/features.</li>
-    </ul>
-  </li>
-  <li><strong>AWS Glue</strong>:
-    <ul>
-      <li>catalogues and transforms governed data for batch preparation, metadata enrichment, and analytics/evaluation pipelines;</li>
-      <li>it is not the online RAG orchestrator.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon Macie</strong>:
-    <ul>
-      <li>discovers sensitive data in S3 before documents enter indexes, prompts, or evaluation datasets;</li>
-      <li>findings need a response/quarantine workflow.</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="section-9-4-operations">9.4 Encryption, secrets, and operations</h3>
-
-<ul>
-  <li><strong>AWS KMS</strong>:
-    <ul>
-      <li>customer-managed key policies and encryption boundaries for documents, indexes, logs, databases, and artifacts;</li>
-      <li>key policy and cross-account design are part of authorization.</li>
-    </ul>
-  </li>
-  <li><strong>AWS Secrets Manager</strong>:
-    <ul>
-      <li>stores and rotates database, provider, and tool credentials;</li>
-      <li>applications retrieve secrets at runtime and never place them in model context.</li>
-    </ul>
-  </li>
-  <li><strong>AWS CloudTrail</strong>:
-    <ul>
-      <li>records supported AWS control-plane/data events for governance and investigation;</li>
-      <li>configure the relevant event types, retention, and protected central storage.</li>
-    </ul>
-  </li>
-  <li><strong>Amazon CloudWatch</strong>:
-    <ul>
-      <li>logs, metrics, alarms, dashboards, and traces for latency, throttling, errors, queues, and application outcomes;</li>
-      <li>redact sensitive prompts/responses and correlate with model/retrieval/tool IDs.</li>
-    </ul>
-  </li>
-  <li><strong>AWS Artifact</strong>: download AWS compliance reports and agreements, such as SOC and PCI documents.</li>
-  <li><strong>AWS Audit Manager</strong>: continuously collect and organize evidence for audits and compliance assessments.</li>
-  <li><strong>AWS Config</strong>: record resource configurations and evaluate them against compliance rules.</li>
-  <li><strong>AWS Security Hub</strong>: aggregate and prioritize security findings for a unified security-posture view.</li>
-  <li><strong>Amazon Inspector</strong>: scan supported workloads for software vulnerabilities and unintended network exposure.</li>
-  <li><strong>AWS Trusted Advisor</strong>: recommendations across cost, performance, security, fault tolerance, and service quotas; it does not provide detailed billing reports.</li>
-</ul>
-
-<h2 id="section-10-decision-flow">10. Reference AWS decision flow</h2>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Need a managed foundation-model API?
-  └─ Bedrock
-
-Need custom training, serving code, hardware, or ML lifecycle control?
-  └─ SageMaker AI
-
-Need changing/private knowledge?
-  └─ RAG
-      ├─ managed standard Bedrock integration → Bedrock Knowledge Bases
-      ├─ custom lexical/vector/hybrid search  → OpenSearch
-      └─ enterprise connectors + ACL search  → Kendra
-
-Need a known multi-step AWS process?
-  └─ Step Functions / application workflow
-
-Need dynamic tool choice?
-  ├─ new agent/runtime implementation → AgentCore
-  └─ existing action-group workload    → Bedrock Agents Classic / migration review
-
-Need known durable states, compensation, or human approval?
-  └─ Step Functions, optionally invoking an AgentCore agent
-</code></pre></div></div>
-
-<h3 id="101-high-value-aip-c01-comparison-rules">10.1 High-value AIP-C01 comparison rules</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>Compare</th>
-      <th>Difference and decision rule</th>
-      <th>Short scenario</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Bedrock Knowledge Bases vs custom retrieval</strong></td>
-      <td>KB is managed standard RAG. Custom retrieval owns parsers, hybrid scoring, authorization integration, query rewrite, and context assembly.</td>
-      <td>“PDF tables and complex ACL logic need custom processing and lexical + vector tuning.” → custom retrieval/OpenSearch around Bedrock.</td>
-    </tr>
-    <tr>
-      <td><strong>Guardrails vs IAM vs application authorization</strong></td>
-      <td>Guardrails guide/filter model input/output. IAM authorizes AWS principals/actions. Application/domain authorization decides whether a user may read <em>this</em> record or perform <em>this</em> business action. Use all as needed.</td>
-      <td>“The assistant must not let a support agent view another customer’s order.” → application/data authorization, not a Guardrail.</td>
-    </tr>
-    <tr>
-      <td><strong>Lambda vs ECS/EKS</strong></td>
-      <td>Lambda fits short, event-driven adapters/validation. ECS fits long-running container services/workers with simpler operations; EKS fits Kubernetes-specific control/maturity.</td>
-      <td>“A heavy document parser needs long-lived workers and custom libraries.” → ECS/EKS, not forced Lambda.</td>
-    </tr>
-    <tr>
-      <td><strong>SQS vs SNS vs EventBridge</strong></td>
-      <td>SQS buffers work for durable pull-based consumers. SNS fans out a notification to subscribers. EventBridge routes events by rules to many targets and supports event buses.</td>
-      <td>“Ingestion must absorb bursts and retry each job.” → SQS. “Notify several systems of a completed job.” → SNS/EventBridge based on routing needs.</td>
-    </tr>
-    <tr>
-      <td><strong>Step Functions vs AgentCore/agent</strong></td>
-      <td>Step Functions owns known states, retries, compensation, and approvals. An agent chooses bounded tools/next steps from observations. Combine: deterministic outer workflow + bounded agent step.</td>
-      <td>“Payment approval path is predefined.” → Step Functions, not an autonomous agent.</td>
-    </tr>
-    <tr>
-      <td><strong>CloudWatch vs CloudTrail</strong></td>
-      <td>CloudWatch is operational telemetry: logs, metrics, alarms, traces. CloudTrail is AWS API activity/audit evidence.</td>
-      <td>“Alert when model latency or throttling rises.” → CloudWatch. “Who changed a Bedrock configuration?” → CloudTrail.</td>
-    </tr>
-    <tr>
-      <td><strong>RAG vs fine-tuning</strong></td>
-      <td>RAG supplies current/private/citeable documents at runtime; fine-tuning changes a supported model’s learned behaviour from training examples.</td>
-      <td>“Policies change weekly and require sources.” → RAG. “Extract the same custom fields in one consistent format.” → fine-tuning after prompt evaluation.</td>
-    </tr>
-    <tr>
-      <td><strong>Agentic vs deterministic workflow</strong></td>
-      <td>An agent is justified when useful tool choice/path depends on runtime observations. Prefer deterministic workflow for known, high-impact, auditable steps.</td>
-      <td>“The system must execute a known three-step refund process.” → workflow with a bounded model step if needed.</td>
-    </tr>
-    <tr>
-      <td><strong>On-demand vs Provisioned Throughput</strong></td>
-      <td>On-demand suits variable use and carries quotas. Provisioned Throughput reserves supported capacity at a commitment/utilization trade-off.</td>
-      <td>“Sustained business-hours traffic needs stable token capacity.” → evaluate Provisioned Throughput.</td>
-    </tr>
-    <tr>
-      <td><strong>Synchronous vs asynchronous vs batch inference</strong></td>
-      <td>Synchronous is interactive request/response; asynchronous decouples a long job; batch processes a finite large dataset.</td>
-      <td>“Summarize one live chat.” → synchronous/stream. “Summarize 10 million archived tickets.” → batch/asynchronous.</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="section-11-checklist">11. AWS architecture review checklist</h2>
-
-<ul>
-  <li>Model and Region:
-    <ul>
-      <li>exact model ID, quota, capacity mode, fallback, and deprecation plan are known.</li>
-    </ul>
-  </li>
-  <li>Identity:
-    <ul>
-      <li>caller, runtime role, agent/tool role, and deployment role are distinct and least privileged.</li>
-    </ul>
-  </li>
-  <li>Data:
-    <ul>
-      <li>classification, processing Region, encryption, retention, and provider-use terms are approved.</li>
-    </ul>
-  </li>
-  <li>Retrieval:
-    <ul>
-      <li>parser, chunking, embedding, lexical/hybrid behaviour, ACL sync, freshness, and evaluation are explicit.</li>
-    </ul>
-  </li>
-  <li>Network:
-    <ul>
-      <li>ingress, private endpoints, outbound destinations, DNS, and cross-account paths are documented.</li>
-    </ul>
-  </li>
-  <li>Reliability:
-    <ul>
-      <li>timeout, retry, idempotency, queue, quota, fallback, and degraded mode are tested.</li>
-    </ul>
-  </li>
-  <li>Safety:
-    <ul>
-      <li>guardrails, WAF, authorization, schema validation, and human approval have separate responsibilities.</li>
-    </ul>
-  </li>
-  <li>Observability:
-    <ul>
-      <li>one trace links API caller, model, retrieval, tool, IAM/policy decision, latency, tokens, and outcome.</li>
-    </ul>
-  </li>
-  <li>Evaluation:
-    <ul>
-      <li>prompt/model/retrieval changes run against a versioned workload suite before promotion.</li>
-    </ul>
-  </li>
-</ul>
-
-<p>For how retrieval works internally, see <a href="/study/aiKnowledgebases">AI knowledge bases</a>. For vendor-neutral security, reliability, cost, and evaluation, see <a href="/study/aiInfrastructure">AI infrastructure and evaluation</a>.</p>
-
-<h2 id="section-12-service-map">12. AWS service lookup list</h2>
-
-<p>This is a quick map of AWS products whose primary role is AI/ML, plus search and industry services commonly used with them. “Features” means the major capabilities worth distinguishing—not every API operation. Services marked <strong>legacy</strong> may have restricted availability or an announced end of support, so verify them before designing a new workload.</p>
-
-<h3 id="section-12-1-platforms">12.1 Generative AI and ML platforms</h3>
+<p><span id="section-5-bedrock-kb"></span>
+<span id="section-6-opensearch"></span>
+<span id="section-7-kendra"></span></p>
 
 <table>
   <thead>
     <tr>
       <th>Service</th>
-      <th>Major feature → purpose</th>
-      <th>Service purpose</th>
+      <th>Choose it when</th>
+      <th>Integration responsibility</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>Amazon Bedrock</strong></td>
-      <td><strong>Model inference</strong> → invoke managed FMs<br /><strong>Knowledge Bases</strong> → managed RAG<br /><strong>Guardrails</strong> → filter content, topics and sensitive data<br /><strong>Flows</strong> → visual GenAI workflows<br /><strong>Prompt management</strong> → version prompt templates<br /><strong>Evaluation/customization</strong> → compare or adapt supported models</td>
-      <td>Build managed generative-AI applications.</td>
+      <td><strong>Bedrock Knowledge Bases</strong></td>
+      <td>Supported managed ingestion and retrieval meet the RAG workload.</td>
+      <td>Configure sources, parsing/chunking, embeddings, store, filters, sync, and evaluation.</td>
     </tr>
     <tr>
-      <td><strong>Amazon Bedrock AgentCore</strong></td>
-      <td><strong>Runtime/Harness</strong> → run agent loops<br /><strong>Gateway</strong> → expose APIs/Lambda/MCP tools<br /><strong>Identity/Policy</strong> → authorize bounded actions<br /><strong>Memory</strong> → retain scoped context<br /><strong>Browser/Code Interpreter</strong> → isolated tools<br /><strong>Observability/Evaluations</strong> → trace and assess agents</td>
-      <td>Deploy and operate production agents.</td>
+      <td><strong>OpenSearch Service</strong></td>
+      <td>Direct index design, lexical/vector/hybrid ranking, filters, facets, and query control matter.</td>
+      <td>Own the ingestion and query pipeline around search; compare managed domains with Serverless feature/cost constraints.</td>
     </tr>
     <tr>
-      <td><strong>Amazon Nova</strong></td>
-      <td><strong>Understanding models</strong> → reason over text, images, video and documents<br /><strong>Creative models</strong> → generate images/video<br /><strong>Speech models</strong> → real-time voice interaction<br /><strong>Multimodal embeddings</strong> → similarity search across modalities</td>
-      <td>Amazon foundation-model family accessed through Bedrock.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon SageMaker AI</strong></td>
-      <td><strong>Studio</strong> → ML development environment<br /><strong>Canvas/Data Wrangler</strong> → visual or low-code data preparation and ML<br /><strong>Processing</strong> → managed transformation/evaluation jobs<br /><strong>Ground Truth</strong> → label training data<br /><strong>A2I</strong> → human review of predictions<br /><strong>Feature Store</strong> → reusable online/offline features<br /><strong>Clarify</strong> → bias detection and explainability<br /><strong>Autopilot</strong> → AutoML<br /><strong>JumpStart</strong> → pretrained models and solution templates<br /><strong>Experiments/Debugger</strong> → track and diagnose training<br /><strong>Automatic Model Tuning</strong> → optimize hyperparameters<br /><strong>Pipelines</strong> → automate ML workflows<br /><strong>Registry/Model Cards</strong> → version and govern models<br /><strong>Endpoints/Batch Transform</strong> → online or bulk inference</td>
-      <td>Build, train, tune, deploy, and govern custom ML models.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Q Business</strong></td>
-      <td><strong>Connectors</strong> → ingest enterprise sources<br /><strong>RAG/search</strong> → grounded organizational answers<br /><strong>Permission awareness</strong> → respect source access<br /><strong>Guardrails</strong> → control topics and responses<br /><strong>Plugins</strong> → take actions in Jira, Salesforce, and other applications</td>
-      <td>Build a permissions-aware enterprise assistant.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Q Developer</strong></td>
-      <td><strong>Code chat/completion</strong> → assist development<br /><strong>Agentic tasks</strong> → implement, test, review, or transform code<br /><strong>AWS assistance</strong> → explain and operate supported AWS resources</td>
-      <td>Assist software development and AWS work.</td>
-    </tr>
-    <tr>
-      <td><strong>Kiro</strong></td>
-      <td><strong>Specs</strong> → turn requirements into structured designs/tasks<br /><strong>Agent hooks</strong> → automate development events<br /><strong>Agentic IDE/CLI</strong> → implement and review code</td>
-      <td>Provide spec-driven, agentic software development.</td>
-    </tr>
-    <tr>
-      <td><strong>AWS Transform</strong></td>
-      <td><strong>Discovery/planning</strong> → assess and sequence migrations<br /><strong>Server/network migration</strong> → move environments to EC2/VPC<br /><strong>Code modernization</strong> → transform supported .NET, Java, mainframe, and other workloads<br /><strong>Containerization</strong> → create and deploy containers with review gates</td>
-      <td>Use agents to modernize infrastructure, applications, and code.</td>
-    </tr>
-    <tr>
-      <td><strong>PartyRock</strong></td>
-      <td><strong>Playground</strong> → build and share prompt-based GenAI apps without coding</td>
-      <td>Learn and prototype with Amazon Bedrock.</td>
+      <td><strong>Kendra</strong></td>
+      <td>Enterprise connectors, organizational search, and supported document-ACL integration dominate.</td>
+      <td>Verify connector/index/API support, ACL ingestion, and user/group synchronization.</td>
     </tr>
   </tbody>
 </table>
 
-<h3 id="section-12-2-language">12.2 Language, speech, and documents</h3>
+<p>These operate at different levels. Knowledge Bases can use supported stores or retrievers; a custom application can query OpenSearch or Kendra and then invoke a model. Do not create multiple copies of a corpus without explicit ownership and freshness requirements.</p>
+
+<p>For Bedrock integration, <code class="language-plaintext highlighter-rouge">Retrieve</code> returns evidence for application-controlled context assembly; <code class="language-plaintext highlighter-rouge">RetrieveAndGenerate</code> combines retrieval and generation. Check source attribution, supported reranking/search options, and the source/store/model combination. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html">Knowledge Bases documentation</a>.</p>
+
+<p>Use custom retrieval when required parsing, entitlement logic, ranking, query transformations, or ingestion guarantees exceed the managed path. Test missing ACL metadata and stale group membership explicitly. <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-configure-neural-search.html">OpenSearch hybrid search</a> and <a href="https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html">Kendra user-context filtering</a> describe service-specific controls.</p>
+
+<p>Parsing, chunking, ANN indexes, reranking, and retrieval metrics are taught on <a href="/study/aiKnowledgebases">AI Knowledge Bases</a>.</p>
+
+<h2 id="section-9-supporting-services">6. Supporting services by architecture role</h2>
+
+<p><span id="section-11-checklist"></span></p>
+
+<p>Apply the <a href="/study/aiInfrastructure#section-15-production-eval">production release process</a> using the following AWS controls.</p>
+
+<h3 id="section-9-1-entry">6.1 Entry, identity, and network</h3>
 
 <table>
   <thead>
     <tr>
       <th>Service</th>
-      <th>Major feature → purpose</th>
-      <th>Service purpose</th>
+      <th>Role and boundary</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>Amazon Comprehend</strong></td>
-      <td><strong>Sentiment</strong> → positive/negative/neutral/mixed tone<br /><strong>Entities/key phrases</strong> → important concepts<br /><strong>Language/syntax</strong> → language and grammar<br /><strong>PII detection</strong> → locate sensitive data<br /><strong>Topics</strong> → themes across documents<br /><strong>Custom classification/entities</strong> → business-specific NLP</td>
-      <td>Extract insights from unstructured text.</td>
+      <td>API Gateway</td>
+      <td>API integration, request validation, and throttling; match endpoint type to streaming and timeout needs.</td>
     </tr>
     <tr>
-      <td><strong>Amazon Comprehend Medical</strong></td>
-      <td><strong>Medical entities/relationships</strong> → conditions, medications and treatments<br /><strong>PHI detection</strong> → identify protected health information<br /><strong>Ontology linking</strong> → map text to ICD-10-CM, RxNorm or SNOMED CT</td>
-      <td>Extract structured clinical information from medical text.</td>
+      <td>Cognito</td>
+      <td>Application sign-in and identity tokens; derive tenant claims from trusted identity.</td>
     </tr>
     <tr>
-      <td><strong>Amazon Lex</strong></td>
-      <td><strong>ASR</strong> → speech to text<br /><strong>Intents/utterances</strong> → understand user goals<br /><strong>Slots</strong> → collect required values<br /><strong>Dialog management</strong> → manage a conversation flow</td>
-      <td>Build voice and text conversational bots.</td>
+      <td>IAM</td>
+      <td>Authorize AWS principals, API actions, and resources; distinguish runtime, tool, and deployment roles.</td>
     </tr>
     <tr>
-      <td><strong>Amazon Polly</strong></td>
-      <td><strong>Standard/neural/generative voices</strong> → synthesize speech<br /><strong>SSML/lexicons</strong> → control pauses, rate, pronunciation and supported voice properties<br /><strong>Speech marks</strong> → synchronize text or animation with audio</td>
-      <td>Convert text to lifelike speech.</td>
+      <td>WAF</td>
+      <td>Filter abusive public web traffic; application controls still handle model/tool abuse.</td>
     </tr>
     <tr>
-      <td><strong>Amazon Textract</strong></td>
-      <td><strong>DetectDocumentText</strong> → OCR text/handwriting<br /><strong>AnalyzeDocument</strong> → forms, key-value pairs, tables, queries and signatures<br /><strong>AnalyzeExpense</strong> → invoices and receipts<br /><strong>AnalyzeID</strong> → identity documents<br /><strong>AnalyzeLending</strong> → lending-document packets</td>
-      <td>Extract text and structured data from scanned documents.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Transcribe</strong></td>
-      <td><strong>Batch/streaming transcription</strong> → speech to text<br /><strong>Speaker/channel identification</strong> → separate participants<br /><strong>Custom vocabulary/models</strong> → improve domain terms<br /><strong>PII redaction/toxicity detection</strong> → protect or moderate transcripts<br /><strong>Call Analytics</strong> → contact-centre insights<br /><strong>Transcribe Medical</strong> → clinical speech recognition</td>
-      <td>Convert audio to searchable, structured text.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Translate</strong></td>
-      <td><strong>Real-time/batch translation</strong> → translate text<br /><strong>Language detection integration</strong> → handle unknown source language<br /><strong>Custom terminology/parallel data</strong> → preserve preferred domain wording</td>
-      <td>Translate text between languages.</td>
-    </tr>
-    <tr>
-      <td><strong>AWS HealthScribe</strong></td>
-      <td><strong>Clinical transcription</strong> → capture conversations<br /><strong>Speaker roles/medical terms</strong> → structure dialogue<br /><strong>Clinical-note generation</strong> → create preliminary notes for review</td>
-      <td>Document patient–clinician conversations.</td>
+      <td>VPC endpoints / PrivateLink</td>
+      <td>Private paths to supported services; retain IAM and outbound-destination controls.</td>
     </tr>
   </tbody>
 </table>
 
-<h3 id="section-12-3-purpose-built">12.3 Vision, search, recommendations, and industry AI</h3>
+<p>The application must also authorize the exact business record/action. An IAM permission to invoke a model does not grant a user access to every document it could retrieve.</p>
+
+<h3 id="section-9-2-compute">6.2 Compute and integration</h3>
 
 <table>
   <thead>
     <tr>
       <th>Service</th>
-      <th>Major feature → purpose</th>
-      <th>Service purpose</th>
+      <th>Role</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>Amazon Rekognition</strong></td>
-      <td><strong>Label detection</strong> → objects/scenes and supported bounding boxes<br /><strong>Custom Labels</strong> → domain-specific object/class detection<br /><strong>Face collections/indexing</strong> → face search and comparison<br /><strong>Text detection</strong> → text in images/video<br /><strong>Content moderation</strong> → unsafe visual content<br /><strong>Celebrity/PPE/video analysis</strong> → specialized visual analysis</td>
-      <td>Analyze images and video.</td>
+      <td>Lambda</td>
+      <td>Short event handlers, validation, ingestion transforms, and tool adapters.</td>
     </tr>
     <tr>
-      <td><strong>Amazon Personalize</strong></td>
-      <td><strong>Datasets/imports</strong> → historical user, item and interaction data<br /><strong>Real-time events</strong> → adapt to recent behaviour<br /><strong>Recommenders/campaigns</strong> → serve recommendations<br /><strong>Personalized ranking</strong> → reorder item lists<br /><strong>Exploration</strong> → surface new or less-seen items<br /><strong>Batch inference/metrics</strong> → bulk output and impact measurement</td>
-      <td>Create personalized recommendations and rankings.</td>
+      <td>ECS / EKS</td>
+      <td>Containerized parsers, workers, gateways, and custom serving; EKS adds Kubernetes control and operational responsibilities.</td>
     </tr>
     <tr>
-      <td><strong>Amazon Kendra</strong></td>
-      <td><strong>Connectors/indexing</strong> → ingest enterprise documents<br /><strong>Semantic search/FAQs</strong> → intent-aware answers<br /><strong>User context/ACLs</strong> → permission-aware results<br /><strong>Metadata/relevance tuning</strong> → filter and adjust ranking</td>
-      <td>Search organizational knowledge.</td>
+      <td>SQS</td>
+      <td>Buffer work and manage consumer retries; configure visibility timeout, dead-letter handling, and queue-age alarms.</td>
     </tr>
     <tr>
-      <td><strong>Amazon OpenSearch Service</strong></td>
-      <td><strong>BM25/full-text</strong> → lexical search<br /><strong>Vector search</strong> → semantic similarity<br /><strong>Hybrid search/pipelines</strong> → combine and rerank signals<br /><strong>Filters/facets/aggregations</strong> → structured search and analytics</td>
-      <td>Build controlled search, observability, and RAG retrieval.</td>
+      <td>SNS</td>
+      <td>Fan out notifications to subscribers.</td>
     </tr>
     <tr>
-      <td><strong>Amazon Forecast</strong> <strong>(legacy)</strong></td>
-      <td><strong>Datasets/predictors</strong> → train from time-series and related data<br /><strong>Forecasts/explainability</strong> → predict values and understand drivers</td>
-      <td>Produce managed time-series forecasts.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Fraud Detector</strong> <strong>(legacy)</strong></td>
-      <td><strong>Events/entities/labels</strong> → define fraud data<br /><strong>Models</strong> → learn from labelled historical events<br /><strong>Rules/outcomes/detectors</strong> → combine scores with business logic</td>
-      <td>Detect potentially fraudulent online activity.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Lookout for Vision</strong> <strong>(discontinued)</strong></td>
-      <td><strong>Custom visual anomaly model</strong> → identify product defects from images</td>
-      <td>Formerly automated industrial visual inspection.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Lookout for Equipment</strong> <strong>(legacy)</strong></td>
-      <td><strong>Sensor-data models</strong> → detect abnormal equipment behaviour and early failure signals</td>
-      <td>Perform predictive maintenance from industrial telemetry.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Lookout for Metrics</strong> <strong>(discontinued)</strong></td>
-      <td><strong>Anomaly detection/root-cause grouping</strong> → find and explain unusual business metrics</td>
-      <td>Formerly detected anomalies in business and operational data.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Monitron</strong> <strong>(legacy)</strong></td>
-      <td><strong>Sensors/gateway/ML/mobile app</strong> → collect vibration/temperature and alert on abnormal machinery</td>
-      <td>End-to-end predictive-maintenance system for existing customers.</td>
-    </tr>
-    <tr>
-      <td><strong>AWS Panorama</strong> <strong>(discontinued)</strong></td>
-      <td><strong>Edge appliance/SDK</strong> → run computer-vision models against local camera streams</td>
-      <td>Formerly performed low-latency computer vision at the edge.</td>
-    </tr>
-    <tr>
-      <td><strong>AWS HealthLake</strong></td>
-      <td><strong>FHIR data store</strong> → store health records<br /><strong>Medical NLP/search</strong> → structure and query clinical text</td>
-      <td>Store, transform, and analyze health data.</td>
-    </tr>
-    <tr>
-      <td><strong>Amazon Connect</strong></td>
-      <td><strong>Contact Lens</strong> → conversation analytics<br /><strong>Amazon Q in Connect</strong> → agent assistance and self-service<br /><strong>Forecasting/scheduling</strong> → workforce optimization</td>
-      <td>Operate an AI-assisted cloud contact centre.</td>
+      <td>EventBridge</td>
+      <td>Route events by rules between application components.</td>
     </tr>
   </tbody>
 </table>
 
-<h3 id="section-12-4-operations-learning">12.4 AI-assisted operations and learning</h3>
+<p>Durable workflow orchestration is covered by <a href="#section-3-1-agentcore-boundary">Step Functions in section 3</a>.</p>
+
+<h3 id="section-9-3-data">6.3 Data and state</h3>
+
+<p><span id="section-12-5-security"></span></p>
 
 <table>
   <thead>
     <tr>
       <th>Service</th>
-      <th>Major feature → purpose</th>
-      <th>Service purpose</th>
+      <th>Role</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>Amazon CodeGuru</strong></td>
-      <td><strong>Reviewer/Security</strong> → find code-quality and security issues<br /><strong>Profiler</strong> → identify expensive or inefficient runtime code</td>
-      <td>Improve application code and performance with ML-assisted analysis.</td>
+      <td>S3</td>
+      <td>Source documents, evaluation datasets, artifacts, and batch input/output; manage versions and lifecycle.</td>
     </tr>
     <tr>
-      <td><strong>Amazon DevOps Guru</strong></td>
-      <td><strong>Anomaly detection/insights</strong> → correlate operational signals and suggest likely causes or remediation</td>
-      <td>Detect and diagnose application operational problems.</td>
+      <td>DynamoDB</td>
+      <td>Task status, conversation records, and idempotency keys with conditional writes and deliberate expiry.</td>
     </tr>
     <tr>
-      <td><strong>AWS DeepRacer</strong></td>
-      <td><strong>Simulator/model training/racing</strong> → learn reinforcement learning through autonomous driving</td>
-      <td>Hands-on reinforcement-learning education.</td>
+      <td>Aurora / RDS</td>
+      <td>Transactional records and entitlements; supported PostgreSQL vector extensions may also fit relational retrieval workloads.</td>
     </tr>
     <tr>
-      <td><strong>AWS DeepComposer</strong> <strong>(legacy)</strong></td>
-      <td><strong>Generative music models/keyboard experience</strong> → learn generative AI concepts</td>
-      <td>Hands-on generative-AI education.</td>
+      <td>Glue</td>
+      <td>Data preparation, catalogue, lineage, and quality workflows feeding ingestion/evaluation.</td>
+    </tr>
+    <tr>
+      <td>Macie</td>
+      <td>Discover sensitive data in S3 and trigger a findings-response workflow.</td>
     </tr>
   </tbody>
 </table>
 
-<h3 id="section-12-5-security">12.5 ML-assisted security and data protection</h3>
+<h3 id="section-9-4-operations">6.4 Encryption, secrets, and operations</h3>
 
 <table>
   <thead>
     <tr>
       <th>Service</th>
-      <th>Major feature → purpose</th>
-      <th>Service purpose</th>
+      <th>Role</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><strong>Amazon Macie</strong></td>
-      <td><strong>Automated sensitive data discovery</strong> → continually sample and inspect eligible S3 objects<br /><strong>Sensitive data discovery jobs</strong> → target selected S3 buckets or objects<br /><strong>Managed/custom data identifiers</strong> → detect PII, financial data, credentials, or organization-specific patterns<br /><strong>Findings/S3 posture monitoring</strong> → report sensitive-data and policy risks</td>
-      <td>Discover, monitor, and help protect sensitive data in Amazon S3 using machine learning and pattern matching.</td>
+      <td>KMS / Secrets Manager</td>
+      <td>Encryption-key policies / stored credentials and rotation.</td>
+    </tr>
+    <tr>
+      <td>CloudWatch</td>
+      <td>Operational logs, metrics, alarms, dashboards, and supported tracing.</td>
+    </tr>
+    <tr>
+      <td>CloudTrail</td>
+      <td>Supported AWS API activity for investigation and audit.</td>
+    </tr>
+    <tr>
+      <td>Config</td>
+      <td>Resource-configuration history and compliance-rule evaluation.</td>
+    </tr>
+    <tr>
+      <td>Artifact / Audit Manager</td>
+      <td>AWS compliance reports and agreements / collection of audit evidence.</td>
+    </tr>
+    <tr>
+      <td>Security Hub / Inspector</td>
+      <td>Aggregated security findings / workload vulnerability scanning.</td>
+    </tr>
+    <tr>
+      <td>Cost Explorer / Cost Anomaly Detection</td>
+      <td>Cost analysis / unusual-spend detection.</td>
     </tr>
   </tbody>
 </table>
 
-<h2 id="section-13-practice-traps">13. Practice-exam traps</h2>
+<p>Keep sensitive payloads out of routine telemetry. Use the <a href="/study/aiInfrastructure#section-11-observability">shared trace design</a> to connect operational signals to the model, retrieval, and tool decisions.</p>
 
-<ul>
-  <li><strong>Textract</strong>: Form Analysis returns key-value pairs; invoices and receipts have the specialized <code class="language-plaintext highlighter-rouge">AnalyzeExpense</code> API. Treating these as competing answers is misleading.</li>
-  <li><strong>Comprehend Medical</strong> extracts clinical entities and PHI; standard <strong>Comprehend</strong> supplies sentiment and topic analysis.</li>
-  <li><strong>Comprehend custom classification</strong> categorizes whole documents into business labels, such as routing emails to Sales, Support, or Billing. Entities and key phrases extract details; they do not perform the routing classification by themselves.</li>
-  <li><strong>Bedrock Knowledge Bases</strong> provide RAG at inference time; <strong>Bedrock fine-tuning</strong> uses labelled training data to modify a supported model. They solve different problems.</li>
-  <li><strong>CloudTrail</strong> answers “who called which AWS API and when?”; <strong>AWS Config</strong> answers “which resource configuration was present, and does it comply with a rule?” Use both when a question asks for API auditing plus configuration compliance.</li>
-  <li><strong>Rekognition</strong> <code class="language-plaintext highlighter-rouge">DetectLabels</code> can return labels and bounding boxes. Custom shelf-state detection normally uses <strong>Custom Labels</strong>; “Object Detection” is not a separate standard Rekognition feature name.</li>
-  <li>A neural network’s practical purpose is to <strong>learn complex mappings and patterns</strong>. It is loosely brain-inspired, not a literal brain simulation.</li>
-  <li>To reduce generative-output variability, lower <strong>temperature/top-p</strong> or use deterministic controls where supported. Multiple runs measure variability; they do not make one run deterministic.</li>
-  <li>Encryption primarily provides confidentiality. Integrity requires an authenticated-encryption mode, MAC, hash/signature, or another integrity control.</li>
-</ul>
+<h2 id="section-12-service-map">7. Other AI services: compact lookup</h2>
+
+<p><span id="section-12-2-language"></span>
+<span id="section-12-3-purpose-built"></span>
+<span id="section-12-4-operations-learning"></span></p>
+
+<p>Use a purpose-built API or packaged assistant when it already meets the task. This is an orientation list; the <a href="https://docs.aws.amazon.com/whitepapers/latest/aws-overview/machine-learning.html">AWS AI service overview</a> provides the broader catalogue and lifecycle notices.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Service</th>
+      <th>Primary use</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Comprehend</td>
+      <td>Text classification, entities, sentiment, and PII detection.</td>
+    </tr>
+    <tr>
+      <td>Comprehend Medical</td>
+      <td>Clinical entities, relationships, and PHI extraction.</td>
+    </tr>
+    <tr>
+      <td>Textract</td>
+      <td>OCR and document structure; <code class="language-plaintext highlighter-rouge">AnalyzeDocument</code> handles forms/tables, <code class="language-plaintext highlighter-rouge">AnalyzeExpense</code> invoices/receipts.</td>
+    </tr>
+    <tr>
+      <td>Transcribe / Polly</td>
+      <td>Speech to text / text to speech.</td>
+    </tr>
+    <tr>
+      <td>Translate</td>
+      <td>Text translation.</td>
+    </tr>
+    <tr>
+      <td>Lex</td>
+      <td>Intent/slot-based voice and text conversations.</td>
+    </tr>
+    <tr>
+      <td>Rekognition</td>
+      <td>Image/video analysis and supported custom visual labels.</td>
+    </tr>
+    <tr>
+      <td>Personalize</td>
+      <td>Recommendations and personalized ranking.</td>
+    </tr>
+    <tr>
+      <td>Connect</td>
+      <td>Contact-centre workflows and conversation assistance/analytics.</td>
+    </tr>
+    <tr>
+      <td>Q Business</td>
+      <td>Managed organizational assistant with connected enterprise content.</td>
+    </tr>
+    <tr>
+      <td>Q Developer</td>
+      <td>Coding and supported AWS development assistance.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="section-13-practice-traps">8. Continue to certification preparation</h2>
+
+<p><span id="101-high-value-aip-c01-comparison-rules"></span></p>
+
+<p>Use <a href="/study/aiGenAIProfessional">AWS GenAI Professional preparation</a> for the exam blueprint, domain exercises, scenario practice, and readiness checks. Keep this page as the service reference when answering those scenarios.</p>
 
 <h2 id="official-references">Official references</h2>
 
-<ul>
-  <li><a href="https://docs.aws.amazon.com/whitepapers/latest/aws-overview/machine-learning.html">AWS machine learning and AI service overview</a></li>
-  <li><a href="https://docs.aws.amazon.com/nova/">Amazon Nova documentation</a></li>
-  <li><a href="https://docs.aws.amazon.com/transform/">AWS Transform documentation</a></li>
-  <li><a href="https://docs.aws.amazon.com/sagemaker/latest/dg/whatis-features.html">Amazon SageMaker AI features</a></li>
-  <li><a href="https://docs.aws.amazon.com/textract/latest/dg/how-it-works-analyzing.html">Amazon Textract document analysis</a></li>
-  <li><a href="https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/built-in-plugin.html">Amazon Q Business built-in plugins</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock/">Amazon Bedrock documentation</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html">Amazon Bedrock API compatibility and inference APIs</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html">Amazon Bedrock Provisioned Throughput</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-use.html">Amazon Bedrock inference profiles</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html">Amazon Bedrock model customization</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html">Amazon Bedrock inference parameters</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html">Amazon Bedrock AgentCore overview</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html">AgentCore Memory types</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html">AgentCore Gateway</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html">AgentCore VPC connectivity</a></li>
-  <li><a href="https://aws.amazon.com/blogs/machine-learning/shared-infrastructure-isolated-tenants-pool-model-multi-tenancy-with-amazon-bedrock-agentcore/">AgentCore multi-tenant reference architecture</a></li>
-  <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/agents-action-create.html">Bedrock Agents Classic action groups and maintenance notice</a></li>
-  <li><a href="https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html">Deploy models for inference with SageMaker AI</a></li>
-  <li><a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-configure-neural-search.html">Amazon OpenSearch Service neural and hybrid search</a></li>
-  <li><a href="https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html">Amazon Kendra user-context filtering</a></li>
-  <li><a href="https://docs.aws.amazon.com/kendra/latest/dg/tuning.html">Amazon Kendra relevance tuning</a></li>
-  <li><a href="https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html">Amazon Macie overview</a></li>
-</ul>
+<p>Service documentation is linked beside each decision above. For exam scope, use the <a href="https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html">current AIP-C01 guide</a> and its <a href="https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/aip-01-in-scope-services.html">in-scope service list</a>.</p>
 
     </article>
   </main>

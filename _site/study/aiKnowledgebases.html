@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/aiKnowledgebases" />
-<meta property="og:url" content="https://glucolte.github.io/study/aiKnowledgebases" />
+<link rel="canonical" href="http://localhost:4000/study/aiKnowledgebases" />
+<meta property="og:url" content="http://localhost:4000/study/aiKnowledgebases" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Knowledge Bases and Retrieval" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Knowledge Bases and Retrieval","url":"https://glucolte.github.io/study/aiKnowledgebases"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Knowledge Bases and Retrieval","url":"http://localhost:4000/study/aiKnowledgebases"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -73,7 +73,7 @@
   <span><strong>RAG ≠ Vector Database.</strong> A vector database is one component that may support semantic retrieval. RAG is the larger architecture: retrieve external evidence, place it in the model context, then generate an answer.</span>
 </aside>
 
-<p>Imagine Apple has published a battery-service policy. Ingestion prepares that policy when it changes. The query path runs each time someone asks, “Can I replace my worn-out iPhone battery in Australia?” The application—not the LLM—finds permitted evidence and supplies it to the LLM.</p>
+<p>Use a fictional Apple battery-service policy for the running example. Ingestion prepares that policy when it changes. The query path runs each time someone asks, “Can I replace my worn-out iPhone battery in Australia?” The application—not the LLM—finds permitted evidence and supplies it to the LLM.</p>
 
 <div class="rag-diagram" role="img" aria-label="RAG has two separate lifecycles: asynchronous ingestion and per-request query processing.">
 <svg viewBox="0 0 1120 555" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rag-lifecycle-title rag-lifecycle-desc">
@@ -312,8 +312,6 @@ Vector candidates ──────┘
 </svg>
 </div>
 
-<p>HNSW often has strong latency/recall characteristics. Higher search effort can improve recall, but memory use and index construction are important trade-offs.</p>
-
 <h2 id="ivf-find-the-right-neighbourhood">IVF: Find the Right Neighbourhood</h2>
 
 <p><strong>IVF</strong> means <strong>Inverted File Index</strong>. Its mental model is: <strong>find the right neighbourhood first, then search the houses.</strong> It divides vector space into partitions (clusters), then searches the most promising ones.</p>
@@ -331,43 +329,6 @@ Vector candidates ──────┘
 </div>
 
 <p>Searching more partitions (often called probes) generally improves recall, but costs more work. It is a knob, not a guarantee.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th> </th>
-      <th>HNSW</th>
-      <th>IVF</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Mental model</td>
-      <td>Navigate</td>
-      <td>Divide &amp; conquer</td>
-    </tr>
-    <tr>
-      <td>Structure</td>
-      <td>Graph</td>
-      <td>Clusters / partitions</td>
-    </tr>
-    <tr>
-      <td>Search</td>
-      <td>Walk toward nearby vectors</td>
-      <td>Find promising partitions, then search them</td>
-    </tr>
-    <tr>
-      <td>Trade-off control</td>
-      <td>Search effort</td>
-      <td>Number of probes</td>
-    </tr>
-    <tr>
-      <td>Main idea</td>
-      <td>Don’t inspect every node</td>
-      <td>Don’t inspect every partition</td>
-    </tr>
-  </tbody>
-</table>
 
 <p>Neither index is universally better. Choose based on corpus size, latency and recall targets, update behaviour, memory budget, and the retrieval system around it.</p>
 
@@ -472,30 +433,16 @@ Vector candidates ──────┘
 
 <p>Agent task/tool metrics belong on <a href="/study/aiAgents#section-9-evaluation">AI Agents</a>. Release gates, human review, judge calibration, latency, and cost monitoring belong on <a href="/study/aiInfrastructure#section-12-evaluation">AI Infrastructure and Evaluation</a>.</p>
 
-<h2 id="cheat-sheet">Cheat Sheet</h2>
+<h2 id="cheat-sheet">Check your understanding</h2>
 
-<div class="rag-lifecycle" role="note" aria-label="RAG knowledge base cheat sheet">
-  <span>RAG = Retrieve → Augment → Generate</span><b>→</b>
-  <span>Ingestion: Parse → Structure → Chunk → Embed → Index</span><b>→</b>
-  <span>Metadata = exact attributes</span><b>→</b>
-  <span>BM25 = exact words</span><b>→</b>
-  <span>Vector = semantic meaning</span><b>→</b>
-  <span>Hybrid = combine signals</span><b>→</b>
-  <span>Exact NN = compare everything</span><b>→</b>
-  <span>ANN = approximate for speed</span><b>→</b>
-  <span>HNSW = navigate graph</span><b>→</b>
-  <span>IVF = promising partitions</span><b>→</b>
-  <span>Retrieve broadly → rerank narrowly</span><b>→</b>
-  <span>Precision@K = were results relevant?</span><b>→</b>
-  <span>Recall@K = did we find the relevant results?</span>
-</div>
+<ul>
+  <li>A policy ID is missing from results: would you inspect lexical retrieval, ANN search effort, or the answer prompt first?</li>
+  <li>The relevant chunk is absent from the candidate set: can a reranker help?</li>
+  <li>The right document was retrieved but its exception was lost: inspect the parser and chunk boundary before changing the generation model.</li>
+  <li>The answer cites a real document that does not support its claim: inspect citation entailment and grounding, separately from retrieval recall.</li>
+</ul>
 
-<aside class="technique-callout">
-  <strong>Final warning</strong>
-  <span><strong>RAG ≠ Vector Database.</strong> Vector search is one retrieval option. A RAG system may instead—or also—use metadata filters, BM25, hybrid retrieval, APIs, SQL, and other appropriate sources before it augments an LLM’s context with permitted evidence.</span>
-</aside>
-
-<p>For production controls, see <a href="/study/aiInfrastructure">AI infrastructure and evaluation</a>. For AWS implementations, see <a href="/study/infrastructureAWSAiServices">AWS AI services</a>.</p>
+<p>Continue to <a href="/study/aiAgents">AI Agents</a> for using evidence during tool execution. For AWS implementations, see <a href="/study/infrastructureAWSAiServices#section-8-retrieval-choice">AWS AI Services</a>.</p>
 
     </article>
   </main>

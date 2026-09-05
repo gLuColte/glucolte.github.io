@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/aiFundamentals" />
-<meta property="og:url" content="https://glucolte.github.io/study/aiFundamentals" />
+<link rel="canonical" href="http://localhost:4000/study/aiFundamentals" />
+<meta property="og:url" content="http://localhost:4000/study/aiFundamentals" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Fundamentals" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Fundamentals","url":"https://glucolte.github.io/study/aiFundamentals"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Fundamentals","url":"http://localhost:4000/study/aiFundamentals"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -64,7 +64,7 @@
     <article class="content">
       <h1 id="ai-fundamentals">AI Fundamentals</h1>
 
-<p>This page follows <strong>one LLM request</strong> from text on the screen to generated, streamed text. Its running example is:</p>
+<p>This page follows <strong>one LLM request</strong> from text on the screen to generated, streamed text.</p>
 
 <p><strong>Part 1 of 7:</strong> <strong>Fundamentals</strong> → <a href="/study/aiPromptEngineering">Prompt engineering</a> → <a href="/study/aiModels">Models and providers</a> → <a href="/study/aiKnowledgebases">Knowledge bases</a> → <a href="/study/aiAgents">Agents</a> → <a href="/study/aiInfrastructure">Infrastructure</a> → <a href="/study/infrastructureAWSAiServices">AWS AI Services</a>.</p>
 
@@ -241,93 +241,152 @@ App --> User: Completed response
 
 <h2 id="section-4-prefill">4. Stage 3 — prefill processes the prompt</h2>
 
-<ul>
-  <li>The model first processes the supplied input tokens in the <strong>prefill phase</strong>.</li>
-  <li>Prompt tokens can generally be processed together across each transformer layer, subject to causal attention.</li>
-</ul>
+<p><strong>Prefill is the initial forward pass over the supplied prompt, before the first response token is selected.</strong> Starting with the vectors from Stage 2, the model processes the prompt through its Transformer layers. This computes the context needed to predict the first new token and normally fills a <strong>key-value (KV) cache</strong> for later generation.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"The capital of France is"
-          ↓
-[464, 3139, 286, 4881, 318]
-          ↓ embedding lookup
-[vector, vector, vector, vector, vector]
-          ↓
-transformer prefill
-</code></pre></div></div>
+<p>All five prompt tokens are already known, so their positions can be processed <strong>together within each layer</strong>. The layers still run in sequence. This differs from later decoding, where the next generated token must be selected before it can become the next input.</p>
 
-<ul>
-  <li>A causal mask prevents a token position from reading future positions.</li>
-  <li>The last input position can use the earlier prompt when predicting what comes next.</li>
-  <li>During prefill, the model normally builds a <strong>key-value (KV) cache</strong> containing reusable attention information for each processed token.</li>
-  <li><strong>Time to first token (TTFT)</strong> includes:
-    <ul>
-      <li>request/network overhead;</li>
-      <li>tokenization and scheduling;</li>
-      <li>prefill computation;</li>
-      <li>generation of the first output token.</li>
-    </ul>
-  </li>
-  <li>Larger prompts require more prefill work and memory, so they commonly increase TTFT before output appears.</li>
-</ul>
+<figure class="inference-diagram" aria-labelledby="prefill-caption">
+  <div class="inference-progress"><strong>3 · Prompt pass</strong><span aria-hidden="true">›</span><span>4 · Inside the Transformer</span><span aria-hidden="true">→</span><span>5 · Vocabulary logits</span></div>
+  <div class="inference-label">From Stage 2 · all five prompt vectors are ready</div>
+  <div class="inference-tokens">
+    <div><span>The</span><span class="inference-dot" aria-hidden="true">●</span><span>v₁</span></div>
+    <div><span>capital</span><span class="inference-dot" aria-hidden="true">●</span><span>v₂</span></div>
+    <div><span>of</span><span class="inference-dot" aria-hidden="true">●</span><span>v₃</span></div>
+    <div><span>France</span><span class="inference-dot" aria-hidden="true">●</span><span>v₄</span></div>
+    <div><span>is</span><span class="inference-dot" aria-hidden="true">●</span><span>v₅</span></div>
+  </div>
+  <div class="inference-input-arrows" aria-hidden="true"><span>↓</span><span>↓</span><span>↓</span><span>↓</span><span>↓</span></div>
+  <div class="inference-node inference-node--initial"><span class="inference-label">Prefill · run the prompt through the Transformer</span><strong>Layer 1 → Layer 2 → … → Layer N</strong><br />Process the five positions together in each layer.<br /><a href="#section-5-transformer">Stage 4 zooms inside this same pass.</a></div>
+  <div class="inference-lanes">
+    <div class="inference-flow">
+      <div class="inference-arrow">↓ <span>result for next-token prediction</span></div>
+      <div class="inference-node inference-node--context"><span class="inference-star" aria-hidden="true">★</span> <strong>Final hidden state at “is”</strong><br /><span class="inference-note">The last position can use “The capital of France is”.</span></div>
+      <div class="inference-arrow" aria-hidden="true">↓</div>
+      <div class="inference-node"><strong>Stage 5: vocabulary scores</strong><br />Stages 6–9 select the first new token:<br /><code>" Paris"</code></div>
+    </div>
+    <div class="inference-flow">
+      <div class="inference-arrow">↓ <span>attention information saved along the way</span></div>
+      <div class="inference-node"><strong>KV cache for the prompt</strong><br /><span class="inference-note">Each layer saves its attention keys and values for the five positions.</span></div>
+      <div class="inference-arrow" aria-hidden="true">↓</div>
+      <div class="inference-node"><strong>Reuse during decoding</strong><br />Process the new <code>" Paris"</code> token using the saved prompt cache.<br /><a href="#section-7-autoregressive">Continue this loop in Stage 10.</a></div>
+    </div>
+  </div>
+  <figcaption id="prefill-caption">Prefill does the prompt's initial computation and saves attention work for reuse. Each dot represents a whole vector from Stage 2; text labels are for us, with leading spaces omitted.</figcaption>
+</figure>
+
+<p><strong>Together does not mean looking ahead.</strong> A causal mask allows each position to use only itself and earlier positions: <code class="language-plaintext highlighter-rouge">"The"</code> can use only <code class="language-plaintext highlighter-rouge">"The"</code>; <code class="language-plaintext highlighter-rouge">"is"</code> can use all five prompt positions. No position can use <code class="language-plaintext highlighter-rouge">" Paris"</code> yet.</p>
+
+<p><strong>What is being “prefilled”?</strong> In typical cached generation, the attention cache is populated with the prompt’s computed keys and values. These are per-layer numerical features that later tokens can attend to, so the model can reuse earlier work. They are temporary computation for this context, not newly learned model weights. See <a href="https://huggingface.co/docs/transformers/main/en/cache_explanation">how KV caching works</a>.</p>
+
+<p><strong>Why the pause before the first token?</strong> The prompt pass must finish before the first response token can be selected. Longer prompts generally increase this work and cache memory. <strong>Time to first token (TTFT)</strong> includes prefill plus network overhead, tokenization, scheduling, and first-token selection.</p>
+
+<details class="inference-details">
+  <summary>Does every request process the entire prompt in one batch?</summary>
+  <p>This example starts with no reusable cache. Serving systems may reuse a cached prefix or split a long prompt into chunks. Prefill still processes the supplied input that has not yet been cached, preparing it for subsequent generation.</p>
+</details>
 
 <h2 id="section-5-transformer">5. Stage 4 — the transformer makes tokens contextual</h2>
 
-<ul>
-  <li><strong>Positional information</strong> tells the model where tokens occur in the sequence.
-    <ul>
-      <li>Exact implementations vary; many modern models apply relative or rotary positional information in attention.</li>
-    </ul>
-  </li>
-  <li><strong>Self-attention</strong> lets each token position weigh relevant earlier positions.
-    <ul>
-      <li>When predicting after <code class="language-plaintext highlighter-rouge">"The capital of France is"</code>, the final representation can use <code class="language-plaintext highlighter-rouge">"France"</code>, <code class="language-plaintext highlighter-rouge">"capital"</code>, and the surrounding words.</li>
-    </ul>
-  </li>
-  <li><strong>Multiple attention heads</strong> can focus on different relationships, such as:
-    <ul>
-      <li>local syntax;</li>
-      <li>names and references;</li>
-      <li>long-range dependencies;</li>
-      <li>task or formatting patterns.</li>
-    </ul>
-  </li>
-  <li><strong>Feed-forward layers</strong> transform each position after attention.</li>
-  <li><strong>Residual connections</strong> preserve and combine earlier representations.</li>
-  <li><strong>Normalization</strong> keeps activations stable through a deep network.</li>
-  <li>This attention-plus-transformation block is repeated through many transformer layers.</li>
-</ul>
+<p><strong>What does the Transformer change?</strong> Each position’s initial representation becomes a <strong>context-dependent hidden state</strong>, also called a <strong>contextual representation</strong>. Follow the vector at <code class="language-plaintext highlighter-rouge">"is"</code>: its token label stays the same, but the information represented by its numbers changes.</p>
 
-<p>Engineering mental model:</p>
+<p>This is a closer look inside the prefill pass from Stage 3. The same Transformer layers also process each new token during the later decoding loop. <strong>Positional information</strong> supplies token order: some models add position vectors to embeddings; others apply position inside attention, such as rotary positions. “Embedding + position” below is a conceptual shorthand.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>initial token vectors
-        ↓
-attention: gather relevant context
-        ↓
-feed-forward: transform each position
-        ↓
-residual + normalization
-        ↓
-repeat through many layers
-        ↓
-contextual representation used for next-token prediction
-</code></pre></div></div>
+<figure class="inference-diagram" aria-labelledby="context-caption">
+  <div class="inference-progress"><span>3 · Prompt pass</span><span aria-hidden="true">›</span><strong>4 · Inside the Transformer</strong><span aria-hidden="true">→</span><span>5 · Vocabulary logits</span></div>
+  <div class="inference-label">Before · Stage 2's vectors entering the prompt pass</div>
+  <p class="inference-comparison"><strong>Before at “is”:</strong> mainly its token embedding + position. It has not yet incorporated this prompt's preceding context.</p>
+  <div class="inference-tokens">
+    <div><span>The</span><span class="inference-dot" aria-hidden="true">●</span><span>v₁</span></div>
+    <div><span>capital</span><span class="inference-dot" aria-hidden="true">●</span><span>v₂</span></div>
+    <div><span>of</span><span class="inference-dot" aria-hidden="true">●</span><span>v₃</span></div>
+    <div><span>France</span><span class="inference-dot" aria-hidden="true">●</span><span>v₄</span></div>
+    <div class="inference-focus"><span>is</span><span class="inference-dot" aria-hidden="true">●</span><strong>v₅</strong></div>
+  </div>
+  <div class="inference-attention">
+    <svg viewBox="0 0 600 100" role="img" aria-labelledby="attention-title attention-desc">
+      <title id="attention-title">Information from all five positions can contribute at “is”</title>
+      <desc id="attention-desc">Five paths from The, capital, of, France, and is converge at the is position. These show allowed information flow, not measured attention weights or vector geometry.</desc>
+      <defs><marker id="inference-arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" /></marker></defs>
+      <g class="inference-attention-lines" marker-end="url(#inference-arrowhead)">
+        <path d="M60 4 C60 55 530 25 540 86" />
+        <path d="M180 4 C180 48 530 30 540 86" />
+        <path d="M300 4 C300 44 530 36 540 86" />
+        <path d="M420 4 C420 40 530 42 540 86" />
+        <path d="M540 4 L540 86" />
+      </g>
+    </svg>
+    <p><strong>Self-attention at “is”</strong> combines information from relevant earlier positions and itself, using learned, context-dependent weights.</p>
+  </div>
+  <div class="inference-blocks" aria-label="Initial vectors pass through Transformer Block 1, Block 2, and further blocks through Block N">
+    <div>Transformer<br /><strong>Block 1</strong></div><span aria-hidden="true">↓</span>
+    <div>Transformer<br /><strong>Block 2</strong></div><span aria-label="More blocks">⋮</span>
+    <div>Transformer<br /><strong>Block N</strong></div>
+  </div>
+  <p class="inference-note">Each block updates all five representations. The paths above highlight only the information available at “is”.</p>
+  <div class="inference-arrow" aria-hidden="true">↓</div>
+  <div class="inference-label">After · contextual hidden states</div>
+  <div class="inference-tokens inference-tokens--context">
+    <div><span>The</span><span class="inference-dot" aria-hidden="true">●</span><span>h₁</span></div>
+    <div><span>capital</span><span class="inference-dot" aria-hidden="true">●</span><span>h₂</span></div>
+    <div><span>of</span><span class="inference-dot" aria-hidden="true">●</span><span>h₃</span></div>
+    <div><span>France</span><span class="inference-dot" aria-hidden="true">●</span><span>h₄</span></div>
+    <div class="inference-focus"><span>is</span><span class="inference-star" aria-hidden="true">★</span><strong>h₅ = h</strong></div>
+  </div>
+  <p class="inference-comparison inference-comparison--context"><strong>After at “is”:</strong> h encodes contextually useful information for predicting what follows <em>“The capital of France is …”</em></p>
+  <figcaption id="context-caption">Five vectors in → five contextual hidden states out, each still d_model dimensions. The star marks the final position we follow into Stage 5; it is still a vector, not a word.</figcaption>
+</figure>
 
-<ul>
-  <li>Attention learns useful contextual patterns; it does not guarantee logical reasoning or factual verification.</li>
-</ul>
+<p>The Transformer repeatedly transforms a sequence of vectors so that each position contains contextually useful information. Attention combines learned numerical features; it does not literally copy word meanings into <code class="language-plaintext highlighter-rouge">"is"</code>. Each position can use only its own prefix, so <code class="language-plaintext highlighter-rouge">"France"</code> cannot use the later <code class="language-plaintext highlighter-rouge">"is"</code>.</p>
+
+<details class="inference-details">
+  <summary>What happens inside each Transformer block?</summary>
+  <p><strong>Multiple self-attention heads</strong> combine information across allowed positions in different learned ways. <strong>Feed-forward layers</strong> then transform each position's features. <strong>Residual connections</strong> combine updates with earlier representations, and <strong>normalization</strong> helps keep activations stable. Repeating these operations across many blocks produces the final hidden states.</p>
+  <p>The dots and paths are an educational schematic, not literal vector geometry or measured attention strengths. Contextualization does not guarantee factual accuracy.</p>
+</details>
 
 <h2 id="section-6-logits-decoding">6. Stage 5 — output projection produces logits</h2>
 
-<ul>
-  <li>The transformer projects the final position’s representation into one score for every token in its output vocabulary.</li>
-  <li>These raw scores are <strong>logits</strong>.</li>
-  <li>Logits are not yet probabilities and do not need to sum to anything.</li>
-</ul>
+<p><strong>How does a contextual vector become scores for words?</strong> Take <strong>h</strong>, the final hidden state at <code class="language-plaintext highlighter-rouge">"is"</code> from Stage 4. The <strong>output projection</strong> is a learned mapping from the hidden dimension to the vocabulary dimension: it produces one <strong>logit</strong> (raw score) for <strong>every vocabulary token</strong>, including word pieces and punctuation.</p>
 
-<p>For the final position in <code class="language-plaintext highlighter-rouge">"The capital of France is"</code>, the output projection produces one logit for every vocabulary token. The values are illustrative, not output from a particular model.</p>
-<ul>
-  <li>We are now at the <strong>logits</strong> box on the map. The next four stages convert these scores into one selected token ID.</li>
-</ul>
+<figure class="inference-diagram" aria-labelledby="logits-caption">
+  <div class="inference-progress"><span>3 · Prompt pass</span><span aria-hidden="true">›</span><span>4 · Inside the Transformer</span><span aria-hidden="true">→</span><strong>5 · Vocabulary logits</strong></div>
+  <div class="inference-tokens inference-tokens--context">
+    <div><span>The</span><span class="inference-dot" aria-hidden="true">●</span><span>h₁</span></div>
+    <div><span>capital</span><span class="inference-dot" aria-hidden="true">●</span><span>h₂</span></div>
+    <div><span>of</span><span class="inference-dot" aria-hidden="true">●</span><span>h₃</span></div>
+    <div><span>France</span><span class="inference-dot" aria-hidden="true">●</span><span>h₄</span></div>
+    <div class="inference-focus"><span>is</span><span class="inference-star" aria-hidden="true">★</span><strong>h₅ = h</strong></div>
+  </div>
+  <div class="inference-select" aria-hidden="true">↓</div>
+  <div class="inference-node inference-node--context"><span class="inference-label">Select the last position's final hidden state</span><span class="inference-star" aria-hidden="true">★</span> <code>h = […, …, …, …]</code><br /><span class="inference-note">d_model dimensions · after any final normalization</span></div>
+  <div class="inference-arrow" aria-hidden="true">↓</div>
+  <div class="inference-node"><span class="inference-label">Learned output projection</span><code>logits = W_vocab · h + b</code><br /><span class="inference-note">W_vocab: vocabulary_size × d_model · bias b is optional</span></div>
+  <div class="inference-arrow" aria-hidden="true">↓</div>
+  <div class="inference-node"><span class="inference-label">Vocabulary-sized vector of raw scores</span><code>[…, -0.693, …, -1.386, …, -3.507, …]</code><br /><span class="inference-note">vocabulary_size dimensions · one entry per token ID</span></div>
+  <div class="inference-logits" role="group" aria-label="Illustrative vocabulary logits, five entries shown; higher, less negative scores rank above lower scores">
+    <div class="inference-logit-axis" aria-hidden="true"><span>Token / logit</span><span>−4 <span>0</span></span></div>
+    <div class="inference-logit-row inference-logit-row--top"><span><code>" Paris"</code><strong>−0.693</strong></span><span class="inference-logit-track" aria-hidden="true"><i style="width:17.325%"></i></span></div>
+    <div class="inference-logit-row"><span><code>" Lyon"</code><strong>−1.386</strong></span><span class="inference-logit-track" aria-hidden="true"><i style="width:34.65%"></i></span></div>
+    <div class="inference-logit-row"><span><code>" Marseille"</code><strong>−1.897</strong></span><span class="inference-logit-track" aria-hidden="true"><i style="width:47.425%"></i></span></div>
+    <div class="inference-logit-row"><span><code>" Berlin"</code><strong>−2.659</strong></span><span class="inference-logit-track" aria-hidden="true"><i style="width:66.475%"></i></span></div>
+    <div class="inference-logit-row"><span><code>" Rome"</code><strong>−3.507</strong></span><span class="inference-logit-track" aria-hidden="true"><i style="width:87.675%"></i></span></div>
+    <p class="inference-note">… every other vocabulary token also has a score.<br />Bars extend left from zero. Here, less negative = higher score; “ Paris” scores highest among the entries shown.</p>
+  </div>
+  <figcaption id="logits-caption">Illustrative values, reused in Stage 6. Five vocabulary entries are displayed, not the full vocabulary. Logits can be positive or negative; they are not probabilities and need not sum to 1.</figcaption>
+</figure>
+
+<p><strong>This is not vector search.</strong> The model does not run “find the nearest word to h”. It multiplies h by a learned weight matrix to compute all vocabulary scores. Each row supplies a token’s scoring weights: a dot product with h, plus an optional bias. Although dot products also appear in similarity search—and some models share input embedding and output weights—this operation scores the fixed model vocabulary; it does not retrieve nearest words from a vector database.</p>
+
+<div class="inference-diagram inference-handoff" aria-label="Continue from hidden state to the sampled token">
+  <span><span class="inference-star" aria-hidden="true">★</span> Contextual hidden state h</span><b aria-hidden="true">↓</b>
+  <span>Output projection → raw logits</span><b aria-hidden="true">↓</b>
+  <a href="#section-6-1-temperature-top-p">Stage 6 · Temperature</a><b aria-hidden="true">↓</b>
+  <span>Stage 7 · Softmax → probabilities</span><b aria-hidden="true">↓</b>
+  <span>Stage 8 · Top-P → candidate tokens</span><b aria-hidden="true">↓</b>
+  <a href="#section-6-4-next-token">Stage 9 · Sampling → <code>" Paris"</code></a>
+</div>
+
+<p>The output projection has scored the next-token candidates; it has not selected one. The next four stages turn those scores into the sampled <code class="language-plaintext highlighter-rouge">" Paris"</code> in this walkthrough. For the underlying embedding, attention, and linear output mapping, see <a href="https://arxiv.org/html/1706.03762v7#S3.SS4">Attention Is All You Need, §§3.2–3.5</a>.</p>
 
 <h2 id="section-6-1-temperature-top-p">7. Stage 6 — temperature</h2>
 
@@ -336,7 +395,6 @@ contextual representation used for next-token prediction
 <ul>
   <li>Lower temperature concentrates probability on likely tokens; it does not make them factual.</li>
   <li>Temperature does not remove tokens or choose the next token by itself.</li>
-  <li><strong>Tip:</strong> higher temperature makes outputs more varied and less predictable; lower temperature makes them more conservative and repeatable.</li>
   <li><code class="language-plaintext highlighter-rouge">T = 1</code> is the baseline: it leaves the logits unchanged. Values below <code class="language-plaintext highlighter-rouge">1</code> sharpen the distribution; values above <code class="language-plaintext highlighter-rouge">1</code>, if an API allows them, flatten it. If your API only offers <code class="language-plaintext highlighter-rouge">0–1</code>, then <code class="language-plaintext highlighter-rouge">1</code> is simply its least-conservative setting. This walkthrough compares <code class="language-plaintext highlighter-rouge">1.2</code>, <code class="language-plaintext highlighter-rouge">0.9</code>, <code class="language-plaintext highlighter-rouge">0.5</code>, and <code class="language-plaintext highlighter-rouge">0.1</code>.</li>
 </ul>
 
@@ -513,9 +571,7 @@ contextual representation used for next-token prediction
   <div class="diagram-caption">🔢 Top-k fixes the number of candidates; ✂️ Top-p fixes the probability mass; supported APIs can apply both</div>
 </div>
 
-<p><strong>Cumulative probability</strong> means a running total after sorting tokens from most likely to least likely:</p>
-
-<p>The <strong>Cumulative</strong> column is not another probability assigned to a token. It is that token’s probability <strong>plus every probability above it</strong>. Because the tokens are ordered from most likely to least likely, the running total eventually reaches 100%.</p>
+<p><strong>Cumulative probability</strong> is the running total in descending probability order: each row adds its probability to every row above it.</p>
 
 <table>
   <thead>
@@ -554,17 +610,7 @@ contextual representation used for next-token prediction
   </tbody>
 </table>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>" Paris"                         = 73.4%
-" Paris" + " Lyon"              = 73.4% + 18.3% = 91.7%
-+ " Marseille"                    = 91.7% + 6.6%  = 98.3%
-</code></pre></div></div>
-
-<p>Top-p compares its threshold with this running total. It does <strong>not</strong> require an individual token to have an 80% probability.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>" Paris"       73.4%  → below 80%, keep going
-" Lyon"       +18.3%  → cumulative 91.7%, keep it and stop
-" Marseille", " Berlin", " Rome" → excluded from this sampling step
-</code></pre></div></div>
+<p>The threshold is crossed at <code class="language-plaintext highlighter-rouge">" Lyon"</code> (91.7%), so retain Paris and Lyon and exclude the remaining candidates. Top-p does not require any individual token to have an 80% probability.</p>
 
 <div class="image-wrapper">
   <img src="./assets/top_p_candidate_filter.svg" alt="Colour-coded comparison showing that Top-p 0.8 keeps three candidates at temperatures 1.2 and 0.9, two at 0.5, and one at 0.1" class="modal-trigger" data-caption="Temperature changes the distribution; Top-p then filters it" />
@@ -580,23 +626,7 @@ contextual representation used for next-token prediction
   <div class="diagram-caption">🎲 The retained probabilities are rescaled to 100%, then one token is sampled</div>
 </div>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>next-token logits
-       ↓
-temperature scales the logits
-       ↓
-softmax produces probabilities
-       ↓
-top-p keeps the cumulative candidate set
-       ↓
-sample one token → append it → repeat
-</code></pre></div></div>
-
-<ul>
-  <li>With the original <code class="language-plaintext highlighter-rouge">temperature = 1</code> distribution, the same <code class="language-plaintext highlighter-rouge">top-p = 0.8</code> would keep <code class="language-plaintext highlighter-rouge">" Paris"</code>, <code class="language-plaintext highlighter-rouge">" Lyon"</code>, and <code class="language-plaintext highlighter-rouge">" Marseille"</code>. Lowering the temperature caused the 80% threshold to be reached with fewer tokens.</li>
-  <li><strong>Temperature does not choose the candidate set directly; top-p does. Top-p does not reshape probabilities; temperature does.</strong></li>
-  <li>Exact controls and processing order can vary by model/API; some providers recommend changing temperature or top-p rather than both.</li>
-  <li>This <strong>generation top-p</strong> is separate from retrieval <strong>top-k</strong>: retrieval chooses documents/chunks before the LLM runs; top-p chooses output-token candidates during decoding.</li>
-</ul>
+<p>The selected ID now becomes input to the next decode step.</p>
 
 <h2 id="section-7-autoregressive">11. Stage 10 — append the token and repeat autoregressively</h2>
 
@@ -866,9 +896,6 @@ end
 </div>
 
 <ul>
-  <li>A useful prompt makes the task, required evidence, refusal conditions, and output shape explicit.</li>
-  <li>Prompting can improve model behaviour; it cannot enforce identity, authorization, factual truth, or transaction integrity.</li>
-  <li>Treat user text, retrieved documents, and tool results as untrusted data because they may contain conflicting or malicious instructions.</li>
   <li>Practical consequences:
     <ul>
       <li>longer context increases input tokens, cost, prefill work, TTFT, and KV-cache memory;</li>
@@ -884,13 +911,12 @@ end
 <h2 id="section-10-training">14. Training, fine-tuning, and inference</h2>
 
 <ul>
-  <li><strong>Pretraining</strong> changes the model’s parameters on broad data. It gives <strong>capability</strong>: in this example, the ability to understand and speak Korean.</li>
-  <li><strong>Fine-tuning</strong> changes parameters again with representative examples. It gives consistent <strong>behaviour/specialization</strong>: fashion terminology, style classification patterns, and a Korean-fashion tone.</li>
-  <li><strong>RAG</strong> retrieves <strong>knowledge</strong> into this request without changing weights: recent Korean fashion trends, current collections, policies, or documents.</li>
-  <li><strong>Prompt engineering</strong> supplies the <strong>instruction</strong> for this request: “Answer in Korean,” “summarize this trend,” “return JSON,” or “recommend a red outfit.”</li>
-  <li><strong>API / tools</strong> connect to <strong>live state or actions</strong> outside the model: current inventory, current price, customer/account state, or placing an order.</li>
-  <li><strong>Inference</strong> runs the trained model for the assembled request (prefill, then autoregressive decoding). One production application can use every layer below at the same time.</li>
+  <li><strong>Pretraining</strong> learns model parameters from broad data.</li>
+  <li><strong>Fine-tuning</strong> updates parameters for a more specific behaviour or task.</li>
+  <li><strong>Inference</strong> uses those parameters to generate output; the request changes context, not weights.</li>
 </ul>
+
+<p>The Korean-fashion example shows how a trained model can be combined with retrieved evidence, a prompt, and external tools. The choice of adaptation method belongs in <a href="/study/aiModels#model-adaptation">Models: prompt engineering, RAG, or customization</a>.</p>
 
 <p>The nesting below shows conceptual scope, not literal data containment: each inner layer narrows what is used for the current task.</p>
 
@@ -899,61 +925,15 @@ end
   <div class="diagram-caption">🧩 Model + context narrows toward this request; API / Tools remain outside the model</div>
 </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Layer</th>
-      <th>Main Question</th>
-      <th>Example</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Pretraining</td>
-      <td>What can the model fundamentally do?</td>
-      <td>Understand Korean</td>
-    </tr>
-    <tr>
-      <td>Fine-tuning</td>
-      <td>How should it consistently behave?</td>
-      <td>Behave like a Korean fashion specialist</td>
-    </tr>
-    <tr>
-      <td>RAG</td>
-      <td>What external knowledge does it need?</td>
-      <td>Retrieve recent Korean fashion trends</td>
-    </tr>
-    <tr>
-      <td>API / Tools</td>
-      <td>What is true right now / what action is required?</td>
-      <td>Check current inventory</td>
-    </tr>
-    <tr>
-      <td>Prompt</td>
-      <td>What should it do for this request?</td>
-      <td>Answer in Korean and recommend red clothing</td>
-    </tr>
-  </tbody>
-</table>
+<p><span id="141-exam-distinction-ragknowledge-bases-versus-fine-tuning"></span></p>
 
-<blockquote>
-  <p>Prompting can often reproduce behaviour that could otherwise be fine-tuned. Start with prompting. Fine-tuning becomes useful when the behaviour is stable, repeated, and prompting alone is too inconsistent, expensive, or cumbersome.</p>
-</blockquote>
-
-<h3 id="141-exam-distinction-ragknowledge-bases-versus-fine-tuning">14.1 Exam distinction: RAG/knowledge bases versus fine-tuning</h3>
-
-<p>Do not merge these ideas: RAG adds current evidence to the request; fine-tuning changes the model’s learned behaviour. For Amazon Bedrock specifically, a Knowledge Base is managed RAG, not a fine-tuning dataset.</p>
-
-<h3 id="section-10-1-mechanism">14.2 Apply it: a Korean fashion assistant</h3>
+<h3 id="section-10-1-mechanism">14.1 Apply it: a Korean fashion assistant</h3>
 
 <p>For “한국어로 최근 트렌드를 요약하고 빨간 옷을 추천해 주세요,” the application can retrieve trend documents with RAG, look up a live price and stock through an API, then instruct the model to answer in Korean. These techniques complement one another; they are not alternatives.</p>
 
-<ul>
-  <li>Fine-tuning is a poor database for prices, inventory, policies, or other facts that change frequently.</li>
-  <li>Model output is a proposal. Authentication, authorization, validation, and order transactions remain deterministic application controls.</li>
-</ul>
+<p><span id="143-compact-ml-concepts-for-exam-questions"></span></p>
 
-<h3 id="143-compact-ml-concepts-for-exam-questions">14.3 Compact ML concepts for exam questions</h3>
+<h3 id="142-related-ml-vocabulary">14.2 Related ML vocabulary</h3>
 
 <table>
   <thead>
@@ -1009,17 +989,9 @@ Generated answer: "The CEO of Glucolte is Gary Lu."
 <ul>
   <li>The probabilities are illustrative; names may also span several tokens.</li>
   <li>The answer is grammatical and may sound confident, but the request contained no evidence supporting it. Even if it were accidentally correct, the answer would still be ungrounded.</li>
-  <li>The model does not reliably execute an internal rule such as <code class="language-plaintext highlighter-rouge">fact unknown → stop</code>. Its basic operation remains:</li>
-</ul>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>learned weights + supplied context
-               ↓
-next-token probability distribution
-               ↓
-plausible continuation
-</code></pre></div></div>
-
-<ul>
+  <li>
+    <p>The model does not reliably apply <code class="language-plaintext highlighter-rouge">fact unknown → stop</code>; the same next-token process from the walkthrough still applies.</p>
+  </li>
   <li>Unsupported output can arise because:
     <ul>
       <li>the fact was absent, incorrect, or stale in training data;</li>
@@ -1028,15 +1000,7 @@ plausible continuation
       <li>the model ignored or incorrectly combined valid evidence.</li>
     </ul>
   </li>
-  <li>RAG improves the evidence available to next-token prediction; it does not change the underlying generation process:</li>
-</ul>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>without RAG: weights + question                         → plausible guess
-with RAG:    weights + question + authoritative evidence → better-grounded answer
-</code></pre></div></div>
-
-<ul>
-  <li>RAG therefore reduces hallucination risk but cannot eliminate it: retrieval can fail, and the model can still misuse correct evidence.</li>
+  <li>RAG can reduce hallucination risk by supplying evidence, but retrieval can fail and the model can misuse correct evidence. <a href="/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well">RAG evaluation</a> measures these separately.</li>
   <li>Low temperature does not solve this:
     <ul>
       <li>it makes high-probability continuations more likely;</li>
@@ -1063,28 +1027,7 @@ with RAG:    weights + question + authoritative evidence → better-grounded ans
 
 <h2 id="section-12-boundaries">16. What remains outside the model</h2>
 
-<ul>
-  <li>The model can propose text, structured data, or a tool call.</li>
-  <li>The surrounding application must own:
-    <ul>
-      <li>authentication and authorization;</li>
-      <li>retrieval of permitted evidence;</li>
-      <li>tool execution and least-privilege credentials;</li>
-      <li>schema and domain validation;</li>
-      <li>retries, idempotency, state, and approvals;</li>
-      <li>logging, evaluation, and user-visible error handling.</li>
-    </ul>
-  </li>
-  <li>Prompt instructions cannot enforce permissions or transaction integrity.</li>
-  <li>Never treat generated tool arguments as authorization.</li>
-</ul>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>user request → model proposes tool + arguments
-             → application validates identity, policy, schema, and risk
-             → tool executes with least privilege
-             → model receives bounded observation
-             → model produces the next token or final answer
-</code></pre></div></div>
+<p>The model proposes output. The application decides which evidence to supply, which actions to execute, and whether the result is acceptable. Continue with the page that owns each responsibility:</p>
 
 <ul>
   <li>Retrieval internals: <a href="/study/aiKnowledgebases">AI Knowledge Bases</a></li>

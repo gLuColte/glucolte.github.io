@@ -26,16 +26,7 @@ workload → model capability → provider/model family → access path → prod
 
 ### 1.1 What belongs to the model {#section-1-1-model-package}
 
-- A usable model/checkpoint normally expects a compatible package:
-  - tokenizer rules and vocabulary;
-  - token-ID mapping;
-  - internal embedding and transformer weights;
-  - output vocabulary/projection;
-  - detokenizer/configuration.
-- These components are trained or defined together and are not generally interchangeable across model families.
-- Even versions within one family may change tokenizer, architecture, context limits, special tokens, or chat format; compatibility must be documented and tested.
-- General algorithms such as softmax, temperature sampling, and top-p are not owned by one model provider, although exposed controls and serving behaviour vary.
-- The request lifecycle and coupling are explained in [AI Fundamentals](/study/aiFundamentals#section-3-1-coupling).
+For self-hosting, select a compatible checkpoint, tokenizer, chat format, and serving runtime. [Fundamentals explains why the model pipeline is coupled](/study/aiFundamentals#section-3-1-coupling); the migration consequences are covered under [portability](#section-8-portability).
 
 ### 1.2 Who owns and hosts what {#section-1-2-ownership}
 
@@ -80,10 +71,19 @@ Core dimensions:
 
 ## 3. Model categories {#section-3-categories}
 
-- Categories overlap; they describe workload role and inference behaviour more than universal neural-network architectures.
-- A **general-purpose model** is broad, not automatically fast:
-  - smaller, distilled, quantized, or serving-optimized variants are usually the fast tiers;
-  - a large general model can still be slower and more expensive than a smaller reasoning model.
+Categories overlap: they describe a workload role or inference behaviour rather than mutually exclusive architectures.
+
+| Category | Select it for | Main selection risk |
+|---|---|---|
+| **General-purpose** | Varied generation, extraction, coding, and multimodal tasks | Broad capability does not imply low latency or cost. |
+| **Reasoning** | Difficult planning, coding, and multi-step constraints | Extra inference compute can be wasted on simple tasks. |
+| **Small language model** | High-volume classification, routing, or narrow transformations | Ambiguous and long-tail tasks may need escalation. |
+| **Embedding** | Representing queries/documents for retrieval or clustering | A new embedding space normally requires corpus re-embedding. |
+| **Reranking** | Improving precision within a retrieved candidate set | Added candidate-scoring cost and latency. |
+| **Specialised** | Speech, vision, or another bounded domain task | Narrow coverage outside the target workload. |
+
+Embedding and reranking mechanics belong on [Knowledge Bases](/study/aiKnowledgebases).
+
 - A **reasoning model** is usually still an autoregressive transformer, but its training and serving encourage more useful intermediate deliberation:
   - reinforcement learning or related post-training can reward decomposition, checking, and correction;
   - more reasoning effort/test-time compute can generate more internal tokens before the final answer;
@@ -92,50 +92,16 @@ Core dimensions:
 
 - **Internal multi-step reasoning** occurs inside one model call and consumes inference time/tokens; providers may expose only a summary or no reasoning trace.
 - **External multi-step execution** is an application, workflow, or agent loop across model calls and tools. It is not a model category; the application owns authorization, state, limits, and retries. Learn that boundary on [AI Agents](/study/aiAgents).
-- Shared conceptual levers include:
-  - model/tier selection;
-  - prompt and runtime context;
-  - input/output token budgets;
-  - RAG and tools around the model;
-  - latency, cost, and quality thresholds.
-- Model-specific levers include reasoning effort/thinking level, temperature/top-p availability, tool/structured-output support, and context/output limits. The names and semantics are not portable guarantees.
 
-- **General-purpose model**:
-  - broad generation, summarisation, extraction, coding, and conversation;
-  - good default when task distribution is varied;
-  - may be expensive and less predictable than a specialist.
-- **Reasoning model**:
-  - is post-trained and served to spend more useful inference compute on difficult multi-step tasks;
-  - useful for difficult planning, coding, and constraint solving;
-  - watch latency, token use, and unnecessary use on simple tasks.
-- **Small language model**:
-  - useful for classification, routing, extraction, moderation, and high-volume transformations;
-  - lower cost and latency;
-  - weaker on ambiguity and long-tail reasoning.
-- **Embedding model**:
-  - maps queries and documents into vectors for retrieval or clustering;
-  - does not generate answers;
-  - changing model/version/dimension usually requires re-embedding the corpus.
-- **Reranking model**:
-  - scores a query jointly with retrieved candidates;
-  - improves top-result precision after cheaper broad retrieval;
-  - adds per-candidate latency and cost.
-- **Specialised model**:
-  - targets speech, vision, classification, extraction, moderation, or a domain task;
-  - can be cheaper and easier to evaluate than a general LLM.
+Reasoning effort, sampling controls, tool/schema support, and context/output limits vary by model and serving API; their names are not portable guarantees.
 
 Primary examples: [OpenAI reasoning training and test-time compute](https://openai.com/index/learning-to-reason-with-llms/), the [DeepSeek-R1 paper](https://arxiv.org/abs/2501.12948), and [Gemini thinking controls](https://ai.google.dev/gemini-api/docs/thinking).
 
-## 3.1 Adapt the model only when the problem calls for it
+### 3.1 Adapt the model only when the problem calls for it {#model-adaptation}
 
-Four approaches are often confused because each can improve an answer. They change different things:
+<span id="31-adapt-the-model-only-when-the-problem-calls-for-it"></span>
 
-```text
-Need a clearer one-request instruction?          → prompt engineering
-Need current/private/citeable facts?             → RAG
-Need consistent task behaviour, format, or tone? → fine-tuning
-Need broad domain language in model weights?     → continued pre-training
-```
+Choose according to what needs to change:
 
 | Approach | What changes? | Choose it when | Do not choose it when |
 |---|---|---|---|
@@ -154,7 +120,7 @@ For AWS-specific customization capabilities and lifecycle decisions, see [AWS AI
 
 ### Training data, evaluation data, and training controls
 
-| Item | Purpose | Exam recognition rule |
+| Item | Purpose | Development rule |
 |---|---|---|
 | **Training set** | Updates model parameters | The examples the model learns from |
 | **Validation set** | Tunes choices and detects overfitting during development | Never use it to update weights |
@@ -170,8 +136,6 @@ Use a representative, deduplicated, permissioned dataset. Check label quality, c
 - **Distillation** trains a smaller *student* to approximate a stronger *teacher*. Choose it when the target is lower serving cost/latency while retaining enough task quality.
 - **Quantization** stores or computes weights with lower precision. It usually reduces memory and can improve throughput, but can reduce quality or hardware compatibility.
 - Neither fixes stale knowledge. Re-evaluate quality, safety, latency, and cost on the same workload after either change.
-
-> **Decision rule:** start with prompt engineering; add RAG for changing evidence; fine-tune for repeated behaviour; use continued pre-training only when a large, stable domain corpus genuinely must alter the model's broad internal language knowledge.
 
 ## 4. Open weights versus managed models {#section-4-deployment}
 
@@ -200,10 +164,10 @@ Treat this as an ecosystem map, not a permanent ranking.
 
 | Organisation | Famous model families | Typical shape | Common access paths |
 |---|---|---|---|
-| **OpenAI** | **GPT**; current GPT tiers include Sol, Terra, and Luna | Hosted general-purpose reasoning, coding, multimodal, structured-output, and tool models | OpenAI API and OpenAI applications |
-| **Anthropic** | **Claude**: Fable, Opus, Sonnet, and Haiku tiers | Hosted reasoning, coding, long-context, and agent/tool workloads | Claude API, Amazon Bedrock, Google Cloud, and other supported platforms |
-| **Google / Google DeepMind** | **Gemini**: Pro, Flash, and Flash-Lite tiers; Gemma open models | Multimodal models with strong Google Cloud/data integration | Gemini Developer API and Vertex AI |
-| **DeepSeek** | **DeepSeek V4 Pro and V4 Flash** | Reasoning/coding with low-cost APIs and open-weight options | DeepSeek API, compatible API formats, and self/third-party hosting |
+| **OpenAI** | **GPT** | Hosted general-purpose reasoning, coding, multimodal, structured-output, and tool models | OpenAI API and OpenAI applications |
+| **Anthropic** | **Claude** | Hosted reasoning, coding, long-context, and agent/tool workloads | Claude API, Amazon Bedrock, Google Cloud, and other supported platforms |
+| **Google / Google DeepMind** | **Gemini** and **Gemma** | Multimodal models with strong Google Cloud/data integration | Gemini Developer API and Vertex AI |
+| **DeepSeek** | **DeepSeek** | Reasoning/coding with low-cost APIs and open-weight options | DeepSeek API, compatible API formats, and self/third-party hosting |
 | **Meta** | **Llama** | Open-weight ecosystem with many sizes and community serving stacks | Self-hosting and many cloud/model hosts |
 | **Mistral AI** | **Mistral and Mixtral** families | Hosted and open-weight models, often emphasizing efficient deployment | Mistral API, self-hosting, and cloud/model hosts |
 | **Cohere** | **Command, Embed, and Rerank** | Enterprise generation plus dedicated retrieval and ranking models | Cohere API and supported cloud platforms |
@@ -212,7 +176,6 @@ Treat this as an ecosystem map, not a permanent ranking.
 - GPT is a model family; ChatGPT is an application that uses models and additional product services.
 - Claude is Anthropic's model family; Claude.ai is an application, while Claude can also be invoked through other platforms.
 - Gemini is used as both a model-family and product brand, so record the exact API model ID and access path.
-- A cloud platform may host another organisation's model without becoming that model's creator.
 - For every evaluation, record the exact model ID, API/access path, Region, date, and configuration.
 
 ## 6. Compare cost using the workload {#section-6-pricing}
@@ -227,7 +190,6 @@ request cost ≈
 
 - Include cached-input, reasoning, long-context, tool, retrieval, retry, capacity, and data-transfer charges that apply to the route.
 - Compare **cost per successful task**, using realistic input/output distributions and failure rates—not only a headline token price.
-- Output is usually sequential and often more expensive than input; output limits are a useful lever when they do not harm task quality.
 - Consumer subscriptions are product access, not interchangeable API credits.
 
 For caching, capacity, queues, and cost controls across the whole system, continue to [AI Infrastructure and Evaluation](/study/aiInfrastructure#section-10-cost).

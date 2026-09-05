@@ -14,7 +14,7 @@ permalink: /study/aiKnowledgebases
   <span><strong>RAG ≠ Vector Database.</strong> A vector database is one component that may support semantic retrieval. RAG is the larger architecture: retrieve external evidence, place it in the model context, then generate an answer.</span>
 </aside>
 
-Imagine Apple has published a battery-service policy. Ingestion prepares that policy when it changes. The query path runs each time someone asks, “Can I replace my worn-out iPhone battery in Australia?” The application—not the LLM—finds permitted evidence and supplies it to the LLM.
+Use a fictional Apple battery-service policy for the running example. Ingestion prepares that policy when it changes. The query path runs each time someone asks, “Can I replace my worn-out iPhone battery in Australia?” The application—not the LLM—finds permitted evidence and supplies it to the LLM.
 
 <div class="rag-diagram" role="img" aria-label="RAG has two separate lifecycles: asynchronous ingestion and per-request query processing.">
 <svg viewBox="0 0 1120 555" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rag-lifecycle-title rag-lifecycle-desc">
@@ -228,8 +228,6 @@ Now that vector search has a job, we can ask how it scales. Start with **Exact N
 </svg>
 </div>
 
-HNSW often has strong latency/recall characteristics. Higher search effort can improve recall, but memory use and index construction are important trade-offs.
-
 ## IVF: Find the Right Neighbourhood
 
 **IVF** means **Inverted File Index**. Its mental model is: **find the right neighbourhood first, then search the houses.** It divides vector space into partitions (clusters), then searches the most promising ones.
@@ -247,14 +245,6 @@ HNSW often has strong latency/recall characteristics. Higher search effort can i
 </div>
 
 Searching more partitions (often called probes) generally improves recall, but costs more work. It is a knob, not a guarantee.
-
-|  | HNSW | IVF |
-| --- | --- | --- |
-| Mental model | Navigate | Divide & conquer |
-| Structure | Graph | Clusters / partitions |
-| Search | Walk toward nearby vectors | Find promising partitions, then search them |
-| Trade-off control | Search effort | Number of probes |
-| Main idea | Don’t inspect every node | Don’t inspect every partition |
 
 Neither index is universally better. Choose based on corpus size, latency and recall targets, update behaviour, memory budget, and the retrieval system around it.
 
@@ -337,27 +327,11 @@ MRR rewards placing the first useful result early; NDCG also accounts for graded
 
 Agent task/tool metrics belong on [AI Agents](/study/aiAgents#section-9-evaluation). Release gates, human review, judge calibration, latency, and cost monitoring belong on [AI Infrastructure and Evaluation](/study/aiInfrastructure#section-12-evaluation).
 
-## Cheat Sheet
+## Check your understanding {#cheat-sheet}
 
-<div class="rag-lifecycle" role="note" aria-label="RAG knowledge base cheat sheet">
-  <span>RAG = Retrieve → Augment → Generate</span><b>→</b>
-  <span>Ingestion: Parse → Structure → Chunk → Embed → Index</span><b>→</b>
-  <span>Metadata = exact attributes</span><b>→</b>
-  <span>BM25 = exact words</span><b>→</b>
-  <span>Vector = semantic meaning</span><b>→</b>
-  <span>Hybrid = combine signals</span><b>→</b>
-  <span>Exact NN = compare everything</span><b>→</b>
-  <span>ANN = approximate for speed</span><b>→</b>
-  <span>HNSW = navigate graph</span><b>→</b>
-  <span>IVF = promising partitions</span><b>→</b>
-  <span>Retrieve broadly → rerank narrowly</span><b>→</b>
-  <span>Precision@K = were results relevant?</span><b>→</b>
-  <span>Recall@K = did we find the relevant results?</span>
-</div>
+- A policy ID is missing from results: would you inspect lexical retrieval, ANN search effort, or the answer prompt first?
+- The relevant chunk is absent from the candidate set: can a reranker help?
+- The right document was retrieved but its exception was lost: inspect the parser and chunk boundary before changing the generation model.
+- The answer cites a real document that does not support its claim: inspect citation entailment and grounding, separately from retrieval recall.
 
-<aside class="technique-callout">
-  <strong>Final warning</strong>
-  <span><strong>RAG ≠ Vector Database.</strong> Vector search is one retrieval option. A RAG system may instead—or also—use metadata filters, BM25, hybrid retrieval, APIs, SQL, and other appropriate sources before it augments an LLM’s context with permitted evidence.</span>
-</aside>
-
-For production controls, see [AI infrastructure and evaluation](/study/aiInfrastructure). For AWS implementations, see [AWS AI services](/study/infrastructureAWSAiServices).
+Continue to [AI Agents](/study/aiAgents) for using evidence during tool execution. For AWS implementations, see [AWS AI Services](/study/infrastructureAWSAiServices#section-8-retrieval-choice).

@@ -157,11 +157,8 @@ Delimiters and a clear instruction hierarchy help the model distinguish instruct
   - bound attempts and remaining deadline;
   - never blindly retry non-idempotent side effects.
 - Use circuit breakers to stop repeated calls to a failing dependency.
-- Use idempotency keys and durable state for tool calls and asynchronous jobs.
-- Test fallback semantics:
-  - alternate model may lack tools, modalities, context, or schema support;
-  - stale cache may be acceptable for one workload and unsafe for another;
-  - “search only”, queued completion, or human escalation may be safer than a weaker answer.
+- Use idempotency keys and durable status for asynchronous jobs; [agent recovery](/study/aiAgents#section-8-failures) covers tool side effects.
+- Use the [model fallback contract](/study/aiModels#section-7-routing) to qualify an alternate model. Decide separately whether stale cached evidence, search-only results, queued completion, or human escalation meets the workload’s freshness and quality requirements.
 - Design explicit degraded modes and tell the user when quality or freshness is reduced.
 
 ## 9. Latency engineering {#section-9-latency}
@@ -186,24 +183,9 @@ total latency = network + identity + retrieval + reranking + context build
 
 ## 10. Cost engineering {#section-10-cost}
 
-- Include:
-  - model input/output and reasoning tokens;
-  - embeddings and reranking;
-  - tool/API calls;
-  - retries and agent loops;
-  - storage, indexing, logs, and data transfer;
-  - provisioned/idle accelerator or endpoint capacity;
-  - human review and incident cost.
-- Levers:
-  - model routing and cascades;
-  - shorter prompts and retrieved context;
-  - output caps;
-  - semantic/result/prefix caching where safe;
-  - batch and asynchronous processing;
-  - retrieval before expensive reasoning;
-  - early termination for invalid or unauthorized requests.
-- Measure **cost per successful task**, not only cost per request or token.
-- Segment by tenant and task so a small expensive cohort is visible.
+Start with [model-call pricing](/study/aiModels#section-6-pricing), then add the costs outside that call: ingestion, embeddings, reranking, storage/indexing, tools, queues, logs, transfer, idle capacity, and human review. Attribute retries and agent loops to the originating task.
+
+Use the latency measurements above to avoid paying for unnecessary work. Routing choices belong in [Models](/study/aiModels#section-7-routing); serving and caching choices follow below. Report total cost per successful task by tenant and task type so an expensive cohort is visible.
 
 ### 10.1 Serving and caching decision rules
 
@@ -313,15 +295,8 @@ These measure different things. A system can be efficient but unpopular, or sati
 
 ## 15. Production evaluation and release gates {#section-15-production-eval}
 
-- Production outcomes:
-  - task completion;
-  - user correction and re-query;
-  - abandonment and escalation;
-  - citation usage;
-  - tool success;
-  - refusal override;
-  - incident rate;
-  - latency and cost per successful task.
+Use the business measures from [section 13](#13-business-and-adaptability-metrics), the operational signals from [observability](#section-11-observability), and the specialist RAG/agent measures linked in [evaluation architecture](#section-12-evaluation). Add user correction, abandonment, and confirmed incidents to identify failures missed offline.
+
 - Segment by task, tenant, language, document type, risk, model route, and difficulty.
 - Release process:
   - keep prompts, model routes, retrieval configuration, tool schemas, evaluation suites, and deployment manifests versioned;
@@ -338,8 +313,6 @@ These measure different things. A system can be efficient but unpopular, or sati
   - a reproducible test case;
   - a control or recovery improvement;
   - an observable alert where possible.
-
-Continue with [AI knowledge bases](/study/aiKnowledgebases) for retrieval tuning, [AI agents](/study/aiAgents) for autonomous tool use, or [AWS AI services](/study/infrastructureAWSAiServices) for AWS mappings.
 
 ## 16. Troubleshoot the layer that failed
 
@@ -362,4 +335,4 @@ Did the platform meet the request contract?
   No → timeout / throttling / quota / retry / cache / deployment problem
 ```
 
-Inspect the trace before changing a model. Record the prompt/model version, retrieved candidates and ACL decision, tool proposal/result, timeout/retries, token use, and deployment version. This turns a vague “the AI was wrong” report into a testable fault class.
+Use the [request trace](#section-11-observability) to locate the first failed boundary, then add a regression case at that layer. Continue to [AWS AI Services](/study/infrastructureAWSAiServices) to implement these controls on AWS.

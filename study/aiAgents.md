@@ -18,13 +18,6 @@ Use this page to understand systems in which a model chooses tools or next steps
 - A single function call is tool use, not necessarily an agent.
 - “Agentic” means the model has meaningful runtime discretion over action or sequence.
 
-```text
-Known process and transitions?       → deterministic workflow
-Known process, ambiguous subtask?    → workflow with bounded model step
-Unknown path, dynamic tool choice?   → bounded agent
-High-impact irreversible action?     → explicit human approval
-```
-
 <div class="image-wrapper">
   <img src="./assets/ai_agent_architecture.png" alt="AI agent architecture" class="modal-trigger" data-caption="Bounded agent controller, model, state, tools, and approval">
   <div class="diagram-caption" data-snippet-id="agent-architecture-snippet">
@@ -137,23 +130,7 @@ Agent --> User: Result, partial result, or escalation
 - Do not save model inferences as user facts without validation or clear labelling.
 - Persist state before and after side effects so retries can determine what occurred.
 
-| Memory/state type | Lifetime | Typical contents | Control to remember |
-|---|---|---|---|
-| **Short-term/session context** | One conversation or task | recent messages, current plan, recent tool observations | keep bounded and expire it |
-| **Persistent memory** | Across sessions | validated preferences, durable summaries, approved facts | provenance, ownership, retention, correction, and access control |
-| **Business system of record** | Durable operational record | orders, balances, entitlements, asset state | model memory never replaces it |
-
-```text
-Model proposes an action
-          ↓
-Application/tool authorizes principal + resource + action
-          ↓
-Tool executes with least privilege
-          ↓
-Durable state records result / idempotency key
-```
-
-The model choosing `create_work_order` does **not** authorize it. This boundary applies equally to tools, memory writes, and retrieval.
+Business systems remain authoritative for orders, balances, entitlements, and asset state; agent memory never replaces them. Apply the [tool execution boundary](#section-3-tools) to memory writes as well.
 
 ## 6. MCP {#section-6-mcp}
 
@@ -193,31 +170,17 @@ The model choosing `create_work_order` does **not** authorize it. This boundary 
 
 ## 8. Failure modes and controls {#section-8-failures}
 
-- **Infinite/repeated loops**:
-  - detect repeated state/action pairs;
-  - enforce step, time, token, and spend budgets.
-- **Hallucinated parameters**:
-  - use strict schemas, enums, existence checks, and tool-side authorization.
-- **Prompt injection**:
-  - separate instructions from data;
-  - minimize tool privilege;
-  - block secrets and unauthorized outbound destinations.
-- **Duplicate side effects**:
-  - use idempotency keys, durable execution records, and safe retry semantics.
-- **Partial failure**:
-  - model compensation steps explicitly;
-  - report what completed and what did not.
-- **State corruption**:
-  - version transitions;
-  - use transactional writes where needed;
-  - reconstruct from an append-only event/audit history.
-- **Cost/latency explosion**:
-  - parallelize only independent safe reads;
-  - summarize observations;
-  - route simple steps to smaller models;
-  - stop with a partial result rather than loop indefinitely.
-- **Excessive autonomy**:
-  - require approval for external communications, payments, deletions, privilege changes, and other high-impact actions.
+The earlier sections define tool validation, loop budgets, and memory controls. Handle failures that span those components explicitly:
+
+| Failure | Recovery behaviour |
+|---|---|
+| Duplicate side effect after a timeout | Reconcile the durable execution record and idempotency key before retrying. |
+| Partially completed task | Record completed steps; run defined compensation or escalate with the remaining work. |
+| Conflicting state updates | Version transitions and use conditional/transactional writes; reconstruct from event history if needed. |
+| Repeated state/action pair or exhausted budget | Terminate with a partial result or escalation, with the stop reason recorded. |
+| Malicious tool observation | Reject unsafe actions at the tool boundary and preserve the observation for controlled investigation. |
+
+For the full threat model and platform response, see [Infrastructure security](/study/aiInfrastructure#section-6-security).
 
 ## 9. Evaluation and observability {#section-9-evaluation}
 
@@ -231,14 +194,8 @@ Evaluate the **agent loop**, not retrieval or answer grounding again. For those 
   - loop termination;
   - prompt-injection resistance;
   - task completion within budget.
-- Production traces should capture:
-  - model request/version;
-  - proposed action;
-  - policy and approval decision;
-  - tool request/result reference;
-  - state transition;
-  - token, latency, and cost;
-  - final outcome and user feedback.
+Record proposed action, policy/approval decision, execution result, state transition, and stop reason as spans in the [shared request trace](/study/aiInfrastructure#section-11-observability).
+
 - Key metrics:
   - task completion rate;
   - tool success and invalid-argument rate;
