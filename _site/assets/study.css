@@ -1512,3 +1512,283 @@
     white-space: nowrap;
   }
 }
+
+/* AWS GenAI Professional: responsive, code-native architecture diagrams. */
+.aws-architecture {
+  --aws-orange: #ff9900;
+  --aws-blue: #2563eb;
+  --aws-purple: #7c3aed;
+  --aws-pink: #c026d3;
+  --aws-green: #15803d;
+  --aws-red: #dc2626;
+  max-width: 960px;
+  margin: 24px auto;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.aws-architecture__title {
+  margin-bottom: 16px;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 750;
+  text-align: center;
+}
+
+.aws-architecture__subtitle {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.aws-flow,
+.aws-flow__group,
+.aws-service-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+}
+
+.aws-flow__group {
+  flex: 1 1 0;
+}
+
+.aws-arrow {
+  align-self: center;
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.aws-node,
+.aws-choice,
+.aws-control,
+.aws-mode {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--aws-blue);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: var(--ink);
+  text-align: center;
+}
+
+.aws-node {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 112px;
+  padding: 13px 10px 12px;
+}
+
+.aws-node img,
+.aws-choice img,
+.aws-control img,
+.aws-mode img {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 8px;
+  object-fit: contain;
+}
+
+.aws-node strong,
+.aws-choice strong,
+.aws-control strong,
+.aws-mode strong {
+  display: block;
+  color: var(--ink);
+  font-size: 0.86rem;
+  line-height: 1.25;
+}
+
+.aws-node small,
+.aws-choice small,
+.aws-control small,
+.aws-mode small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.aws-node--person { border-top-color: #64748b; }
+.aws-node--network { border-top-color: var(--aws-purple); }
+.aws-node--compute { border-top-color: var(--aws-orange); }
+.aws-node--ai { border-top-color: var(--aws-purple); }
+.aws-node--integration { border-top-color: var(--aws-pink); }
+.aws-node--storage { border-top-color: var(--aws-green); }
+.aws-node--security { border-top-color: var(--aws-red); }
+.aws-node--operations { border-top-color: #db2777; }
+
+.aws-person-mark {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 8px;
+  place-items: center;
+  border-radius: 50%;
+  background: #334155;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.aws-support-row,
+.aws-control-grid,
+.aws-choice-grid,
+.aws-mode-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.aws-support-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.aws-control-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.aws-choice-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.aws-mode-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+.aws-control,
+.aws-choice,
+.aws-mode {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  column-gap: 9px;
+  align-items: center;
+  padding: 11px;
+  text-align: left;
+}
+
+.aws-control img,
+.aws-choice img,
+.aws-mode img {
+  grid-row: 1 / span 2;
+  width: 38px;
+  height: 38px;
+  margin: 0;
+}
+
+.aws-control--security { border-top-color: var(--aws-red); }
+.aws-control--operations { border-top-color: #db2777; }
+.aws-choice--compute { border-top-color: var(--aws-orange); }
+.aws-choice--workflow { border-top-color: var(--aws-pink); }
+.aws-choice--agent { border-top-color: var(--aws-purple); }
+.aws-mode { border-top-color: var(--aws-purple); }
+
+.aws-lanes {
+  display: grid;
+  gap: 14px;
+}
+
+.aws-lane {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.aws-lane__label {
+  margin-bottom: 10px;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.aws-architecture__rule {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-left: 4px solid var(--aws-orange);
+  border-radius: 6px;
+  background: #fff7ed;
+  color: var(--ink);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.aws-boundary {
+  padding: 14px;
+  border: 2px dashed #94a3b8;
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.75);
+}
+
+.aws-boundary__label {
+  margin-bottom: 11px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aws-architecture figcaption {
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.architecture-reference {
+  margin: 18px 0 26px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.architecture-reference > summary {
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .aws-node,
+[data-theme="dark"] .aws-choice,
+[data-theme="dark"] .aws-control,
+[data-theme="dark"] .aws-mode,
+[data-theme="dark"] .aws-lane {
+  background: #262626;
+}
+
+[data-theme="dark"] .aws-boundary { background: rgba(38, 38, 38, 0.72); }
+[data-theme="dark"] .aws-architecture__rule { background: #431407; }
+
+@media (max-width: 820px) {
+  .aws-flow,
+  .aws-flow__group,
+  .aws-service-row {
+    flex-direction: column;
+  }
+
+  .aws-arrow { transform: rotate(90deg); }
+  .aws-support-row,
+  .aws-control-grid,
+  .aws-choice-grid,
+  .aws-mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .aws-architecture { padding: 14px; }
+  .aws-support-row,
+  .aws-control-grid,
+  .aws-choice-grid,
+  .aws-mode-grid { grid-template-columns: 1fr; }
+}

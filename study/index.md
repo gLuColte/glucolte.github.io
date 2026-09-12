@@ -10,6 +10,85 @@ Think of this page as your **mental compass** — quick reminders on *how to thi
 
 ---
 
+## AI {#ai}
+
+- Recommended order: fundamentals → prompt engineering → models/providers → retrieval → agents → infrastructure/evaluation → AWS services.
+- Each page owns one layer; follow its links for details taught elsewhere. Merged and legacy URLs remain available for old bookmarks but are hidden here.
+- After the introduction, use [AWS GenAI Professional preparation](/study/aiGenAIProfessional) as an optional certification track.
+
+<div class="study-tiles">
+  <a href="{{ '/study/aiFundamentals' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">1️⃣</span>
+      AI Fundamentals
+    </div>
+  </a>
+  <a href="{{ '/study/aiPromptEngineering' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">2️⃣</span>
+      AI Prompt Engineering
+    </div>
+  </a>
+  <a href="{{ '/study/aiModels' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">3️⃣</span>
+      AI Models and Providers
+    </div>
+  </a>
+  <a href="{{ '/study/aiKnowledgebases' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">4️⃣</span>
+      AI Knowledge Bases and Retrieval
+    </div>
+  </a>
+  <a href="{{ '/study/aiAgents' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">5️⃣</span>
+      AI Agents
+    </div>
+  </a>
+  <a href="{{ '/study/aiInfrastructure' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">6️⃣</span>
+      AI Infrastructure and Evaluation
+    </div>
+  </a>
+  <a href="{{ '/study/infrastructureAWSAiServices' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">7️⃣</span>
+      AWS AI Services
+    </div>
+  </a>
+  <a href="{{ '/study/aiGenAIProfessional' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">🎓</span>
+      AWS GenAI Professional Preparation
+    </div>
+  </a>
+</div>
+
+---
+
+## System Design Fundamentals {#system-design-fundamentals}
+
+The following are system design fundamentals study pages:
+
+<div class="study-tiles">
+{% assign all_pages = site.pages | sort: "title" %}
+{% for p in all_pages %}
+  {% if p.url contains '/study/systemDesign' and p.url != '/study/' and p.hidden != true %}
+    <a href="{{ p.url | relative_url }}" class="study-tile system-design">
+      <div class="study-tile-title">
+        <span class="study-tile-icon">📊</span>
+        {{ p.title | default: p.url }}
+      </div>
+    </a>
+  {% endif %}
+{% endfor %}
+</div>
+
+---
+
 ## Infrastructure & Cloud {#infrastructure-cloud}
 
 The following are infrastructure and cloud services study pages:
@@ -360,86 +439,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
-
----
-
-## System Design Fundamentals {#system-design-fundamentals}
-
-The following are system design fundamentals study pages:
-
-<div class="study-tiles">
-{% assign all_pages = site.pages | sort: "title" %}
-{% for p in all_pages %}
-  {% if p.url contains '/study/systemDesign' and p.url != '/study/' and p.hidden != true %}
-    <a href="{{ p.url | relative_url }}" class="study-tile system-design">
-      <div class="study-tile-title">
-        <span class="study-tile-icon">📊</span>
-        {{ p.title | default: p.url }}
-      </div>
-    </a>
-  {% endif %}
-{% endfor %}
-</div>
-
-
----
-
-## AI {#ai}
-
-- Recommended order: fundamentals → prompt engineering → models/providers → retrieval → agents → infrastructure/evaluation → AWS services.
-- Each page owns one layer; follow its links for details taught elsewhere. Merged and legacy URLs remain available for old bookmarks but are hidden here.
-- After the introduction, use [AWS GenAI Professional preparation](/study/aiGenAIProfessional) as an optional certification track.
-
-<div class="study-tiles">
-  <a href="{{ '/study/aiFundamentals' | relative_url }}" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">1️⃣</span>
-      AI Fundamentals
-    </div>
-  </a>
-  <a href="{{ '/study/aiPromptEngineering' | relative_url }}" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">2️⃣</span>
-      AI Prompt Engineering
-    </div>
-  </a>
-  <a href="{{ '/study/aiModels' | relative_url }}" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">3️⃣</span>
-      AI Models and Providers
-    </div>
-  </a>
-  <a href="{{ '/study/aiKnowledgebases' | relative_url }}" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">4️⃣</span>
-      AI Knowledge Bases and Retrieval
-    </div>
-  </a>
-  <a href="{{ '/study/aiAgents' | relative_url }}" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">5️⃣</span>
-      AI Agents
-    </div>
-  </a>
-  <a href="{{ '/study/aiInfrastructure' | relative_url }}" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">6️⃣</span>
-      AI Infrastructure and Evaluation
-    </div>
-  </a>
-  <a href="{{ '/study/infrastructureAWSAiServices' | relative_url }}" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">7️⃣</span>
-      AWS AI Services
-    </div>
-  </a>
-  <a href="{{ '/study/aiGenAIProfessional' | relative_url }}" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">🎓</span>
-      AWS GenAI Professional Preparation
-    </div>
-  </a>
-</div>
 
 ---
 

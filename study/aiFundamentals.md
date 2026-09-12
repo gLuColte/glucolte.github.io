@@ -9,11 +9,22 @@ This page follows **one LLM request** from text on the screen to generated, stre
 
 **Part 1 of 7:** **Fundamentals** → [Prompt engineering](/study/aiPromptEngineering) → [Models and providers](/study/aiModels) → [Knowledge bases](/study/aiKnowledgebases) → [Agents](/study/aiAgents) → [Infrastructure](/study/aiInfrastructure) → [AWS AI Services](/study/infrastructureAWSAiServices).
 
+## Visual intuition: a journey through a learned world
+
+Use the infographic below as an intuitive mental model for LLM inference. It gives you a way to picture how a trained model responds to a prompt and builds an answer one token at a time. The journey is only an analogy; the sections that follow explain the actual mechanics.
+
+<div class="image-wrapper">
+  <img src="./assets/aifundamentalIllustration.png" alt="Infographic using a tourist travelling through a learned world to introduce model weights, prompts, tokens and embeddings, prefill, the KV cache, and token-by-token decoding" class="modal-trigger" data-caption="LLM inference intuition: from a vast learned world to a request-specific, token-by-token journey">
+  <div class="diagram-caption">An intuitive mental model for how an LLM turns a prompt into a response</div>
+</div>
+
+With that overall picture in mind, the rest of this page follows one simple prompt through every stage of the process:
+
 ```text
 "The capital of France is"
 ```
 
-An LLM generates a response one token at a time. First use the map below to see the entire journey; the rest of the page then walks through each box in order.
+The model will complete this prompt one token at a time. Section 1 maps the complete request flow, and the remaining sections then walk through each stage in order.
 
 ## 1. Big picture: complete request flow {#section-1-request}
 
