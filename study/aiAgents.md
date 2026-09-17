@@ -16,7 +16,7 @@ tag:
 
 Use this page to understand systems in which a model chooses tools or next steps. The safest default is a deterministic workflow with narrowly bounded model decisions.
 
-**Part 5 of 7:** [Knowledge bases](/study/aiKnowledgebases) → **AI Agents** → [Infrastructure and evaluation](/study/aiInfrastructure). Retrieval quality is already established before an agent uses retrieved evidence; this page focuses on runtime decisions and side effects.
+**Part 5 of 7:** [Knowledge bases](/study/aiKnowledgebases) → **AI Agents** → [Infrastructure and evaluation](/study/aiInfrastructure). The preceding page explains retrieval; this page focuses on runtime decisions and side effects. An agent can change retrieval queries and context, so the integrated system still needs evaluation.
 
 ## 1. LLM, tool use, workflow, and agent {#section-1-boundaries}
 
@@ -26,6 +26,8 @@ Use this page to understand systems in which a model chooses tools or next steps
 - **Agent**: a controller repeatedly asks a model what action to take, observes the result, updates state, and decides whether to continue.
 - A single function call is tool use, not necessarily an agent.
 - “Agentic” means the model has meaningful runtime discretion over action or sequence.
+
+These are working definitions for LLM applications; usage of “agent” varies. The workflow-versus-agent distinction follows [Anthropic's architecture guidance](https://www.anthropic.com/engineering/building-effective-agents).
 
 <div class="image-wrapper">
   <img src="./assets/ai_agent_architecture.png" alt="AI agent architecture" class="modal-trigger" data-caption="Bounded agent controller, model, state, tools, and approval">
@@ -144,14 +146,14 @@ Business systems remain authoritative for orders, balances, entitlements, and as
 ## 6. MCP {#section-6-mcp}
 
 - The Model Context Protocol standardizes how clients discover and use tools, resources, and prompts from servers.
-- MCP improves interoperability; it does not create trust or authorization.
+- MCP improves interoperability and defines authorization mechanisms for applicable transports; it does not make a server trustworthy or replace application authorization.
 - Treat an MCP server as:
-  - a network dependency;
+  - a local process dependency (stdio) or HTTP service dependency, local or remote (Streamable HTTP);
   - a software supply-chain dependency;
   - a source of untrusted content;
   - a holder of potentially powerful credentials.
 - Controls:
-  - authenticate client and server;
+  - use appropriate HTTP authentication/authorization, or local process and OS permission controls for stdio;
   - allowlist servers and capabilities;
   - expose only required tools/resources;
   - keep credentials outside model-visible context;
@@ -159,6 +161,8 @@ Business systems remain authoritative for orders, balances, entitlements, and as
   - apply network egress restrictions;
   - pin/review versions and audit calls.
 - A malicious resource may tell the model to ignore policy or exfiltrate data; instruction hierarchy alone is not an adequate defence.
+
+The transport distinction matters: a local stdio server is not automatically a network service. See the [MCP transport specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports) and [security guidance](https://modelcontextprotocol.io/docs/2025-11-25/tutorials/security/security_best_practices).
 
 ## 7. Multi-agent systems {#section-7-multi-agent}
 
@@ -193,7 +197,7 @@ For the full threat model and platform response, see [Infrastructure security](/
 
 ## 9. Evaluation and observability {#section-9-evaluation}
 
-Evaluate the **agent loop**, not retrieval or answer grounding again. For those RAG measurements, see [AI Knowledge Bases](/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well); for release gates and operational evaluation, see [AI Infrastructure and Evaluation](/study/aiInfrastructure#section-12-evaluation).
+Evaluate the **agent loop alongside retrieval and final-answer quality**. A valid tool sequence can still retrieve poor evidence or produce an unsupported answer. Reuse the [RAG measurements](/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well) in end-to-end agent tests; apply the [shared release gates](/study/aiInfrastructure#section-12-evaluation).
 
 - Offline scenarios should test:
   - correct tool selection;
@@ -203,6 +207,7 @@ Evaluate the **agent loop**, not retrieval or answer grounding again. For those 
   - loop termination;
   - prompt-injection resistance;
   - task completion within budget.
+
 Record proposed action, policy/approval decision, execution result, state transition, and stop reason as spans in the [shared request trace](/study/aiInfrastructure#section-11-observability).
 
 - Key metrics:

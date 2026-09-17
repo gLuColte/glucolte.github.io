@@ -64,7 +64,7 @@
     <article class="content">
       <h1 id="ai-knowledge-bases-and-retrieval">AI Knowledge Bases and Retrieval</h1>
 
-<p><strong>RAG</strong> means <strong>Retrieve relevant information → Augment the model context → Generate an answer</strong>. It gives an LLM current, specific evidence to work from.</p>
+<p><strong>RAG</strong> stands for <strong>retrieval-augmented generation</strong>: retrieve relevant information, augment the model context, then generate an answer. It can supply current, specific evidence when the sources and retrieval pipeline are current and reliable.</p>
 
 <p><strong>Part 4 of 7:</strong> <a href="/study/aiModels">Models and providers</a> → <strong>Knowledge bases and retrieval</strong> → <a href="/study/aiAgents">AI Agents</a>. This page owns the quality of evidence selection and RAG answers; agent-loop and platform-release metrics come later.</p>
 
@@ -121,7 +121,7 @@
 
 <p>Before a question can retrieve anything, source material needs to become searchable. This is one continuous pipeline:</p>
 
-<p><strong>Raw file → Parse → Structure → Chunk → Embed → Store / Index</strong></p>
+<p>For the vector-based implementation in this walkthrough: <strong>Raw file → Parse → Structure → Chunk → Embed → Store / Index</strong>. A lexical-only index does not require embedding.</p>
 
 <h3 id="parsing">Parsing</h3>
 
@@ -164,7 +164,7 @@
 
 <h3 id="embeddings-representing-meaning-as-vectors">Embeddings: representing meaning as vectors</h3>
 
-<p>Once a chunk is selected, an embedding model converts its text to numbers. An <strong>embedding</strong> is a numerical representation useful for comparing semantic similarity—not a human-readable list of labels.</p>
+<p>During ingestion, an embedding model converts each prepared chunk’s text to numbers. An <strong>embedding</strong> is a numerical representation useful for comparing semantic similarity—not a human-readable list of labels.</p>
 
 <div class="rag-diagram" role="img" aria-label="Two differently worded battery questions become nearby embedding vectors, illustrating semantic similarity.">
 <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" aria-labelledby="embed-title embed-desc">
@@ -182,7 +182,7 @@
 </svg>
 </div>
 
-<p>At query time, use a compatible model to embed the question too. Search can then compare vectors with a score such as <strong>cosine similarity</strong>, <strong>dot product</strong>, or <strong>Euclidean distance</strong>. The score choice is secondary to the mental model: nearby vectors tend to represent related meaning.</p>
+<p>At query time, use a compatible model and its prescribed query/document encoding settings. Search compares vectors using a supported metric such as <strong>cosine similarity</strong>, <strong>dot product</strong>, or <strong>Euclidean distance</strong>. Match the metric and normalization to the model: these scores are not generally interchangeable. With unit-normalized vectors, dot product equals cosine similarity and squared Euclidean distance produces equivalent rankings. <a href="https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances">Faiss metric guidance</a>.</p>
 
 <h2 id="how-can-we-retrieve-relevant-information">How Can We Retrieve Relevant Information?</h2>
 
@@ -245,11 +245,13 @@ product = iPhone
 status = current
 </code></pre></div></div>
 
-<p>This is a <strong>relevance filter</strong>, not permission. <code class="language-plaintext highlighter-rouge">region=AU</code> may make a policy more likely to answer the question. <code class="language-plaintext highlighter-rouge">user_has_access=true</code> determines whether the caller may see its evidence at all. Authorization must be enforced before evidence reaches the model.</p>
+<p>These example fields are <strong>relevance filters</strong>, not permission. <code class="language-plaintext highlighter-rouge">region=AU</code> may make a policy relevant. Authorization must instead use trusted caller identity and document ACLs or equivalent policy. A caller-supplied <code class="language-plaintext highlighter-rouge">user_has_access=true</code> flag is not proof of permission. Enforce access before evidence reaches a model, external reranker, or user-visible result.</p>
 
 <h3 id="lexical--bm25">Lexical / BM25</h3>
 
 <p>Lexical search is best when the actual <strong>word</strong> matters: policy IDs, error codes, product names, exact phrases, and acronyms. Searching for <code class="language-plaintext highlighter-rouge">POL-BAT-AU-2026</code> should strongly favour that literal ID. Vector similarity may not be the best tool for this; lexical search is excellent.</p>
+
+<p>BM25 ranks indexed terms; it does not by itself guarantee an exact identifier or phrase match. Tokenization/analyzers can split IDs and punctuation. Use a keyword field with an exact term filter for an identifier, or an appropriate phrase query for ordered text. <a href="https://docs.opensearch.org/latest/query-dsl/term/term/">OpenSearch exact-term queries</a>.</p>
 
 <h3 id="vector--semantic-search">Vector / semantic search</h3>
 
@@ -264,11 +266,11 @@ status = current
 Vector candidates ──────┘
 </code></pre></div></div>
 
-<p><strong>Reciprocal Rank Fusion (RRF)</strong> is a simple option: a result earns more credit when it ranks highly in either list, without requiring the BM25 and vector score scales to match. It is a useful detail, not the definition of hybrid retrieval.</p>
+<p><strong>Reciprocal Rank Fusion (RRF)</strong> is a simple option: a result earns more credit when it ranks highly in either list, without requiring the BM25 and vector score scales to match. Hybrid retrieval can also combine normalized scores; RRF is one fusion method. <a href="https://docs.opensearch.org/latest/search-plugins/search-pipelines/score-ranker-processor/">OpenSearch rank fusion</a>.</p>
 
 <h2 id="how-do-we-search-millions-of-vectors">How Do We Search Millions of Vectors?</h2>
 
-<p>Now that vector search has a job, we can ask how it scales. Start with <strong>Exact Nearest Neighbour</strong> search:</p>
+<p>Now that vector search has a job, we can ask how it scales. Start with a <strong>brute-force exact nearest-neighbour</strong> baseline, which compares the query with every stored vector and selects the top K:</p>
 
 <div class="rag-diagram" role="img" aria-label="Exact nearest-neighbour search compares a query vector with every stored vector, scores similarities, sorts them, and returns Top K.">
 <svg viewBox="0 0 760 145" xmlns="http://www.w3.org/2000/svg" aria-labelledby="exact-title exact-desc">
@@ -282,7 +284,7 @@ Vector candidates ──────┘
 </svg>
 </div>
 
-<p><strong>ANN</strong> means <strong>Approximate Nearest Neighbour</strong>. It is the general strategy: <em>do not search everything; search intelligently and accept a small accuracy trade-off for much better speed.</em></p>
+<p><strong>ANN</strong> means <strong>Approximate Nearest Neighbour</strong>. Methods such as HNSW and IVF reduce search work in exchange for possibly missing exact nearest neighbours. The speed/recall tradeoff depends on data and settings; it is not guaranteed to be small. Here, <strong>ANN recall</strong> means recovering neighbours from an exact-search baseline, which differs from retrieving documents a human judges relevant. Exact vector search is exact about the chosen metric, not about factual or semantic correctness. <a href="https://github.com/facebookresearch/faiss/wiki/Faiss-indexes">Faiss index comparison</a>.</p>
 
 <div class="rag-diagram" role="img" aria-label="Approximate nearest-neighbour search has HNSW graph navigation and IVF partitioning approaches.">
 <svg viewBox="0 0 610 175" xmlns="http://www.w3.org/2000/svg" aria-labelledby="ann-title ann-desc">
@@ -298,14 +300,14 @@ Vector candidates ──────┘
 
 <p><strong>HNSW</strong> stands for <strong>Hierarchical Navigable Small World</strong>. Its mental model is: <strong>navigate through vector space toward increasingly similar neighbours.</strong> It is graph-based: upper layers make larger jumps, and lower layers refine the route.</p>
 
-<div class="rag-diagram" role="img" aria-label="A simplified HNSW hierarchy showing a query entering from an upper graph layer and navigating through neighbours toward the closest vector on layer zero.">
+<div class="rag-diagram" role="img" aria-label="A simplified HNSW hierarchy showing a query entering from an upper graph layer and navigating through neighbours toward a nearby candidate on layer zero.">
 <svg viewBox="0 0 800 355" xmlns="http://www.w3.org/2000/svg" aria-labelledby="hnsw-title hnsw-desc">
   <title id="hnsw-title">HNSW navigates a graph</title><desc id="hnsw-desc">A query enters a sparse upper layer, follows edges toward more similar nodes, descends through layers, and reaches a close vector in the dense bottom layer.</desc>
   <defs><marker id="hnsw-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#2563eb" /></marker></defs>
   <text class="accent-text" x="35" y="43">HNSW — NAVIGATE</text><text class="small" x="35" y="64">Start coarse, then refine through closer neighbours.</text>
   <text class="label" x="35" y="118">Layer 2</text><path class="soft-line" d="M190 108H520" /><circle cx="190" cy="108" r="10" fill="#2563eb" /><circle cx="520" cy="108" r="10" fill="#2563eb" />
   <text class="label" x="35" y="196">Layer 1</text><path class="soft-line" d="M150 186H280L430 186H610" /><circle cx="150" cy="186" r="10" fill="#64748b" /><circle cx="280" cy="186" r="10" fill="#64748b" /><circle cx="430" cy="186" r="10" fill="#64748b" /><circle cx="610" cy="186" r="10" fill="#64748b" />
-  <text class="label" x="35" y="274">Layer 0</text><path class="soft-line" d="M100 264H175L250 264H325L400 264H475L550 264H625L700 264" /><g fill="#64748b"><circle cx="100" cy="264" r="10" /><circle cx="175" cy="264" r="10" /><circle cx="250" cy="264" r="10" /><circle cx="325" cy="264" r="10" /><circle cx="400" cy="264" r="10" /><circle cx="475" cy="264" r="10" /><circle cx="550" cy="264" r="10" /><circle cx="625" cy="264" r="10" /></g><circle cx="700" cy="264" r="13" fill="#16a34a" /><text class="small" x="719" y="268">closest</text>
+  <text class="label" x="35" y="274">Layer 0</text><path class="soft-line" d="M100 264H175L250 264H325L400 264H475L550 264H625L700 264" /><g fill="#64748b"><circle cx="100" cy="264" r="10" /><circle cx="175" cy="264" r="10" /><circle cx="250" cy="264" r="10" /><circle cx="325" cy="264" r="10" /><circle cx="400" cy="264" r="10" /><circle cx="475" cy="264" r="10" /><circle cx="550" cy="264" r="10" /><circle cx="625" cy="264" r="10" /></g><circle cx="700" cy="264" r="13" fill="#16a34a" /><text class="small" x="719" y="268">nearby</text>
   <path class="soft-line" d="M190 118V175 M520 118V175 M280 196V253 M610 196V253" stroke-dasharray="4 5" />
   <circle class="step" cx="90" cy="90" r="13" /><text class="step-text" x="90" y="90">Q</text><path d="M103 92C140 91 160 100 180 105" stroke="#2563eb" stroke-width="3" fill="none" marker-end="url(#hnsw-arrow)" /><path d="M202 112C280 150 350 170 420 183" stroke="#2563eb" stroke-width="3" fill="none" marker-end="url(#hnsw-arrow)" /><path d="M440 190C520 225 600 250 688 262" stroke="#2563eb" stroke-width="3" fill="none" marker-end="url(#hnsw-arrow)" />
   <text class="small" x="35" y="327">More search effort can improve recall; graph construction and memory use are trade-offs.</text>
@@ -331,6 +333,8 @@ Vector candidates ──────┘
 <p>Searching more partitions (often called probes) generally improves recall, but costs more work. It is a knob, not a guarantee.</p>
 
 <p>Neither index is universally better. Choose based on corpus size, latency and recall targets, update behaviour, memory budget, and the retrieval system around it.</p>
+
+<p>IVF commonly needs representative data to train its partition centroids; HNSW builds a neighbour graph. Query-time search effort (<code class="language-plaintext highlighter-rouge">nprobe</code> for IVF, often <code class="language-plaintext highlighter-rouge">efSearch</code> for HNSW) is separate from index-construction settings. <a href="https://github.com/facebookresearch/faiss/wiki/Faiss-indexes">Faiss index details</a>.</p>
 
 <h2 id="reconnecting-the-query-time-pipeline">Reconnecting the Query-Time Pipeline</h2>
 
@@ -361,7 +365,7 @@ Vector candidates ──────┘
 </svg>
 </div>
 
-<p>A typical vector embedding model is a <strong>bi-encoder</strong>: it encodes query and chunks independently, so it is fast enough to search at scale. A <strong>cross-encoder</strong> reranker reads the query and one candidate together, which can make a stronger relevance judgement but is too costly to run against the whole corpus.</p>
+<p>A typical dense-retrieval system uses a <strong>bi-encoder</strong> to encode queries and chunks independently, allowing document vectors to be precomputed. A <strong>cross-encoder</strong> reranker reads a query and candidate together; this is usually too expensive for a large corpus, so it scores a shortlist. Other rerankers exist, and improved relevance must be measured. <a href="https://www.sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html">Sentence Transformers retrieval and reranking</a>.</p>
 
 <aside class="technique-callout">
   <strong>Ranking limit</strong>

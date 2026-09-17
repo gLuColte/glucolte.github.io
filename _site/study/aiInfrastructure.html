@@ -90,7 +90,7 @@
   <li><strong>Observability/evaluation</strong> surrounds every component; it is not a final model-only check.</li>
 </ul>
 
-<h2 id="section-2-company-adoption">2. Platform adoption and ownership</h2>
+<h2 id="section-2-company-adoption">2. Ownership, data governance, and responsible AI</h2>
 
 <p>A company can run several maturity patterns at once; use the least complex one that safely serves the workload.</p>
 
@@ -298,7 +298,7 @@
 <h2 id="section-6-security">6. AI-specific security threats</h2>
 
 <ul>
-  <li><strong>Direct prompt injection</strong>: user asks the model to ignore policy.</li>
+  <li><strong>Direct prompt injection</strong>: a caller supplies instructions intended to override the application’s intended behaviour; this can be more subtle than explicitly asking it to ignore policy.</li>
   <li><strong>Indirect prompt injection</strong>: retrieved document, email, web page, or tool result contains malicious instructions.</li>
   <li><strong>Jailbreaking</strong>: a user attempts to bypass the model or application’s intended behavioural and safety restrictions.</li>
   <li><strong>Data exfiltration</strong>: model sends sensitive context through a permitted tool, URL, or external message.</li>
@@ -368,9 +368,12 @@
 
 <h2 id="section-9-latency">9. Latency engineering</h2>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>total latency = network + identity + retrieval + reranking + context build
-              + model input processing + model output generation + tools
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>serial request latency ≈ queueing + network + identity + retrieval
+                       + reranking + context build + model prefill
+                       + model decoding + tools
 </code></pre></div></div>
+
+<p>This is a serial-path approximation. Concurrent stages overlap, while agent loops, retries, and additional model calls add work to the critical path. Measure end-to-end latency directly; component p95 values cannot simply be added to obtain end-to-end p95.</p>
 
 <ul>
   <li>Measure p50, p95, and p99 for every component and end-to-end task.</li>
@@ -387,7 +390,7 @@
     </ul>
   </li>
   <li>Streaming improves time to first visible token but does not reduce total compute or make output safe before validation.</li>
-  <li>Output tokens are sequential and often dominate generation latency; cap verbosity when the task allows it.</li>
+  <li>Autoregressive output dependencies often make decoding a major latency cost; cap verbosity when the task allows it. Speculative decoding and serving optimizations can change the amount of work per emitted token.</li>
 </ul>
 
 <h2 id="section-10-cost">10. Cost engineering</h2>
@@ -645,7 +648,7 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
       <li>define observable rubric levels;</li>
       <li>blind model identity and randomize answer order;</li>
       <li>include calibrated examples;</li>
-      <li>compare multiple judges or deterministic checks;</li>
+      <li>compare judges with deterministic checks where possible; multiple judges can share errors;</li>
       <li>measure agreement with expert humans;</li>
       <li>manually review disagreements and high-impact failures.</li>
     </ul>
@@ -660,6 +663,8 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
     </ul>
   </li>
 </ul>
+
+<p>These are empirically observed limitations, not only theoretical concerns: <a href="https://arxiv.org/abs/2306.05685">the MT-Bench judge study</a> examines position, verbosity, and self-enhancement biases. Agreement with another model is not a substitute for an appropriate human or reference standard.</p>
 
 <h2 id="section-15-production-eval">15. Production evaluation and release gates</h2>
 

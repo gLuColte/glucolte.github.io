@@ -66,6 +66,8 @@
 
 <p>This page follows <strong>one LLM request</strong> from text on the screen to generated, streamed text.</p>
 
+<p>The walkthrough uses a <strong>decoder-only, autoregressive text transformer with ordinary cached decoding</strong>. It is a common design, not a description of every language model or serving optimization.</p>
+
 <p><strong>Part 1 of 7:</strong> <strong>Fundamentals</strong> → <a href="/study/aiPromptEngineering">Prompt engineering</a> → <a href="/study/aiModels">Models and providers</a> → <a href="/study/aiKnowledgebases">Knowledge bases</a> → <a href="/study/aiAgents">Agents</a> → <a href="/study/aiInfrastructure">Infrastructure</a> → <a href="/study/infrastructureAWSAiServices">AWS AI Services</a>.</p>
 
 <h2 id="visual-intuition-a-journey-through-a-learned-world">Visual intuition: a journey through a learned world</h2>
@@ -409,7 +411,7 @@ App --> User: Completed response
   <li><code class="language-plaintext highlighter-rouge">T = 1</code> is the baseline: it leaves the logits unchanged. Values below <code class="language-plaintext highlighter-rouge">1</code> sharpen the distribution; values above <code class="language-plaintext highlighter-rouge">1</code>, if an API allows them, flatten it. If your API only offers <code class="language-plaintext highlighter-rouge">0–1</code>, then <code class="language-plaintext highlighter-rouge">1</code> is simply its least-conservative setting. This walkthrough compares <code class="language-plaintext highlighter-rouge">1.2</code>, <code class="language-plaintext highlighter-rouge">0.9</code>, <code class="language-plaintext highlighter-rouge">0.5</code>, and <code class="language-plaintext highlighter-rouge">0.1</code>.</li>
 </ul>
 
-<p>Continue the France request with these illustrative <strong>relative logits</strong>. Conceptually, temperature divides each logit by <code class="language-plaintext highlighter-rouge">T</code>: a lower <code class="language-plaintext highlighter-rouge">T</code> increases the separation between scores.</p>
+<p>Continue the France request with these illustrative <strong>relative logits</strong>. For <code class="language-plaintext highlighter-rouge">T &gt; 0</code>, temperature divides each logit by <code class="language-plaintext highlighter-rouge">T</code>: a lower <code class="language-plaintext highlighter-rouge">T</code> increases the separation between scores. If an API accepts <code class="language-plaintext highlighter-rouge">T = 0</code>, it usually selects greedy decoding rather than literally dividing by zero. Greedy decoding chooses a highest-scoring token; it is not an absolute reproducibility guarantee across serving implementations. <a href="https://huggingface.co/docs/transformers/main/en/generation_strategies">Generation strategies</a>.</p>
 
 <table>
   <thead>
@@ -475,7 +477,9 @@ App --> User: Completed response
 
 <h2 id="8-stage-7--softmax-produces-probabilities">8. Stage 7 — softmax produces probabilities</h2>
 
-<p><strong>Softmax</strong> converts the temperature-adjusted logits from Stage 6 into a probability distribution: every probability is non-negative and the full vocabulary sums to 100%. For the France example, it produces:</p>
+<p><strong>Softmax</strong> converts the adjusted scores from Stage 6 into probabilities. Written in terms of the <strong>raw logits</strong> <code class="language-plaintext highlighter-rouge">zᵢ</code>, the formula is <code class="language-plaintext highlighter-rouge">pᵢ = exp(zᵢ / T) / Σⱼ exp(zⱼ / T)</code>. Temperature is applied once; the denominator includes every eligible vocabulary token.</p>
+
+<p><strong>For the numerical examples in Stages 7–9, use a toy vocabulary containing only the five tokens below.</strong> Applying softmax to their rounded logits gives these approximate percentages. In a real full vocabulary, the other logits also contribute to the denominator; these five entries would not generally sum to 100%. Rounding can also make displayed totals differ slightly from 100%.</p>
 
 <table>
   <thead>
@@ -491,7 +495,7 @@ App --> User: Completed response
     <tr>
       <td><code class="language-plaintext highlighter-rouge">" Paris"</code></td>
       <td style="text-align: right">45.1%</td>
-      <td style="text-align: right">53.2%</td>
+      <td style="text-align: right">53.1%</td>
       <td style="text-align: right">73.4%</td>
       <td style="text-align: right">99.9%</td>
     </tr>
@@ -537,11 +541,11 @@ App --> User: Completed response
 
 <p><strong>Apply <code class="language-plaintext highlighter-rouge">top-p = 0.8</code></strong> to the Stage 7 probabilities. Starting from the most likely token, keep tokens until their cumulative probability reaches at least 80%:</p>
 
-<p><strong>Tip:</strong> higher top-p keeps a larger probability mass and more candidate tokens; lower top-p keeps fewer, more likely candidates.</p>
+<p><strong>Tip:</strong> for a fixed probability distribution, higher top-p keeps at least as much probability mass and may keep more candidates. The retained set can stay the same until the threshold crosses another token.</p>
 
 <h3 id="how-top-k-and-top-p-differ--and-can-combine">How top-k and top-p differ — and can combine</h3>
 
-<p><strong>Top-k</strong> keeps exactly the <code class="language-plaintext highlighter-rouge">k</code> most likely next-token candidates. <strong>Top-p</strong> keeps a variable number of candidates until their combined probability reaches <code class="language-plaintext highlighter-rouge">p</code>. They are not inherently an either/or choice: when a model API supports both, both can constrain the candidate pool before sampling. The exact filtering order is implementation-specific.</p>
+<p><strong>Top-k</strong> restricts sampling to the <code class="language-plaintext highlighter-rouge">k</code> highest-ranked next-token candidates. This simple example has distinct scores and enough eligible tokens; tie handling and other filters can affect the final count in real implementations. <strong>Top-p</strong> keeps a variable number of candidates until their combined probability reaches <code class="language-plaintext highlighter-rouge">p</code>. When an API supports both, both can constrain the candidate pool; filtering order and renormalization are implementation-specific. <a href="https://huggingface.co/docs/transformers/main/en/main_classes/text_generation">Generation controls</a>.</p>
 
 <table>
   <thead>
@@ -579,7 +583,7 @@ App --> User: Completed response
 
 <div class="image-wrapper">
   <img src="./assets/top_k_vs_top_p.svg" alt="Side-by-side examples comparing fixed-count generation Top-k with cumulative-probability generation Top-p" class="modal-trigger" data-caption="Generation Top-k keeps a fixed count; Top-p keeps enough candidates to reach a probability threshold; supported APIs can apply both" />
-  <div class="diagram-caption">🔢 Top-k fixes the number of candidates; ✂️ Top-p fixes the probability mass; supported APIs can apply both</div>
+  <div class="diagram-caption">🔢 Top-k sets the candidate count; ✂️ Top-p sets a probability-mass threshold; supported APIs can apply both</div>
 </div>
 
 <p><strong>Cumulative probability</strong> is the running total in descending probability order: each row adds its probability to every row above it.</p>
@@ -668,6 +672,8 @@ predict end-of-sequence
   <li>Because tokens are produced one at a time, the server can stream each completed text piece to the client instead of waiting for the full response.</li>
 </ul>
 
+<p>The sequence is autoregressive, but some serving systems accelerate it using <strong>speculative decoding</strong>: a draft proposes several tokens and the target model verifies them together. Streaming chunks also need not correspond one-to-one with tokens. <a href="https://huggingface.co/docs/transformers/main/en/generation_strategies">Assisted decoding</a>.</p>
+
 <h2 id="section-8-detokenization">12. Stage 11 — token IDs become text again and stream</h2>
 
 <ul>
@@ -698,13 +704,14 @@ predict end-of-sequence
   <li><strong>Conversation</strong>: the logical history stored by the application or agent.</li>
   <li><strong>Context</strong>: the tokens actually constructed and supplied to this particular model call.</li>
   <li><strong>Context window</strong>: the model-defined maximum token budget available to one call, usually covering input context plus generated output.</li>
-  <li>Each API call is independent:
+  <li>In the stateless request pattern illustrated here:
     <ul>
-      <li>the model does not automatically retain the previous call;</li>
+      <li>the model does not automatically retain the previous conversation;</li>
       <li>the application stores messages or another memory representation;</li>
-      <li>the application selects and resends the relevant history for the next call.</li>
+      <li>the application selects and resends relevant history for the next call.</li>
     </ul>
   </li>
+  <li>Stateful APIs may let the client send a conversation/session identifier instead. The serving platform then manages history or cached state; this does not mean inference has trained that conversation into the model’s weights.</li>
 </ul>
 
 <p>The application may build context from:</p>
@@ -719,7 +726,7 @@ predict end-of-sequence
 </code></pre></div></div>
 
 <ul>
-  <li><strong>Runtime context</strong> is the actual content assembled for one independent LLM call; generated token IDs join the running context during decoding.</li>
+  <li><strong>Runtime context</strong> is the actual content assembled for one LLM invocation; generated token IDs join the running context during decoding.</li>
   <li><strong>Runtime context = contents. Context window = maximum capacity.</strong></li>
   <li>A <strong>128K</strong> context window in the diagram is illustrative; limits differ by model and may include separate output constraints.</li>
   <li>RAG and tools run outside the model, then add retrieved evidence or tool results to that context.</li>
@@ -733,7 +740,7 @@ predict end-of-sequence
 </ul>
 
 <div class="image-wrapper">
-  <img src="./assets/llm_runtime_context.png" alt="Application assembling runtime context from instructions, history, RAG evidence, tools, and a user question before one LLM call" class="modal-trigger" data-caption="Runtime context is assembled outside the LLM and supplied to one independent call" />
+  <img src="./assets/llm_runtime_context.png" alt="Application assembling runtime context from instructions, history, RAG evidence, tools, and a user question before one LLM call" class="modal-trigger" data-caption="Runtime context is assembled outside the LLM and supplied to the current model invocation" />
   <div class="diagram-caption" data-snippet-id="llm-runtime-context-snippet">
     🧩 Runtime context: application inputs become one LLM request
   </div>
@@ -806,16 +813,17 @@ Detokenizer -down-> Output : generated text / tool proposal
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_output_tokens</span><span class="p">):</span>
         <span class="n">logits</span> <span class="o">=</span> <span class="n">model_forward</span><span class="p">(</span><span class="n">model_parameters</span><span class="p">,</span> <span class="n">running_context</span><span class="p">)</span>
         <span class="n">next_token_id</span> <span class="o">=</span> <span class="n">decode</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
-        <span class="n">running_context</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">next_token_id</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">detokenize</span><span class="p">(</span><span class="n">next_token_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">is_stop_token</span><span class="p">(</span><span class="n">next_token_id</span><span class="p">):</span>
             <span class="k">break</span>
+        <span class="n">running_context</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">next_token_id</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">detokenize</span><span class="p">(</span><span class="n">next_token_id</span><span class="p">)</span>
 </code></pre></div></div>
 
 <ul>
   <li><strong>model_parameters</strong> stay fixed during inference; <strong>running_context</strong> is different for every call and grows during generation.</li>
+  <li>The pseudocode shows the mental model; production serving normally reuses a KV cache rather than recomputing the entire prefix.</li>
   <li>
-    <p>The pseudocode shows the mental model; production serving normally reuses a KV cache rather than recomputing the entire prefix.</p>
+    <p>A real streaming detokenizer may buffer multiple tokens/bytes before emitting valid text; stop sequences may also span several tokens.</p>
   </li>
   <li>The selected context is serialized according to the model’s chat format, tokenized, and supplied to a new inference call.</li>
   <li>Message roles are structured context conventions:
@@ -835,7 +843,7 @@ Detokenizer -down-> Output : generated text / tool proposal
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>input context tokens + generated output tokens ≤ context window
 </code></pre></div></div>
 
-<p>Each call is independent, but resending selected conversation history usually makes later input contexts larger:</p>
+<p>In this stateless example, the application builds each request independently; resending selected history usually makes later input contexts larger:</p>
 
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CALL 1 — independent request
 Input context: [system + user] = 15 tokens
@@ -916,7 +924,7 @@ end
       <li>a larger advertised window does not guarantee reliable attention to every detail.</li>
     </ul>
   </li>
-  <li>A provider may offer managed conversation state, but that remains an application/platform feature around independent inference calls.</li>
+  <li>A provider may manage conversation history or cached session state between API calls. That state belongs to the application/serving platform; ordinary inference does not train it into model weights.</li>
 </ul>
 
 <h2 id="section-10-training">14. Training, fine-tuning, and inference</h2>
@@ -1035,7 +1043,7 @@ end
     </tr>
     <tr>
       <td><strong>GAN</strong></td>
-      <td>A <strong>generator</strong> creates synthetic samples; a <strong>discriminator</strong> learns to distinguish real from generated samples. Their adversarial feedback improves the generator.</td>
+      <td>A generative-model training approach; see <a href="/study/aiModels#generative-model-families">generative model families</a> for the generator/discriminator relationship.</td>
     </tr>
     <tr>
       <td><strong>Regularization</strong></td>
@@ -1052,7 +1060,7 @@ end
 
 <ul>
   <li>The model selects plausible next tokens from learned patterns and supplied context; it does not automatically verify claims.</li>
-  <li>A <strong>hallucination</strong> is a claim, citation, entity, calculation, or tool argument unsupported by available evidence.</li>
+  <li>A <strong>hallucination</strong> can be fabricated or factually incorrect content, or output that contradicts or goes beyond the source material it was required to use. Definitions vary by task, so distinguish <strong>factual correctness</strong> from <strong>faithfulness/grounding in supplied evidence</strong>. <a href="https://arxiv.org/abs/2311.05232">Hallucination taxonomy</a>.</li>
 </ul>
 
 <p>Fictional example:</p>
@@ -1072,7 +1080,7 @@ Generated answer: "The CEO of Glucolte is Gary Lu."
 
 <ul>
   <li>The probabilities are illustrative; names may also span several tokens.</li>
-  <li>The answer is grammatical and may sound confident, but the request contained no evidence supporting it. Even if it were accidentally correct, the answer would still be ungrounded.</li>
+  <li>The answer is grammatical and may sound confident, but this example supplies no evidence establishing the person’s role. It is ungrounded in the request; that alone does not establish that it is false. A model can answer some questions correctly from learned knowledge without retrieved context. An evidence-only task must still reject unsupported assertions.</li>
   <li>
     <p>The model does not reliably apply <code class="language-plaintext highlighter-rouge">fact unknown → stop</code>; the same next-token process from the walkthrough still applies.</p>
   </li>

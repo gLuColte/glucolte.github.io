@@ -282,9 +282,13 @@
   </tbody>
 </table>
 
-<p>In RAG, an embedding model finds related evidence and a generative model writes the response from that evidence. A multimodal embedding model can retrieve an image from a text query without generating an image. <a href="https://aws.amazon.com/what-is/embeddings/">AWS embeddings overview</a> and <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/titan-multiemb-models.html">Titan Multimodal Embeddings</a>.</p>
+<p>In vector-based RAG, an embedding model encodes the query and content; a <strong>retriever searches the index</strong> for related evidence, and a generative model writes the response. RAG can also use lexical or structured retrieval without an embedding model. A multimodal embedding model can support retrieving images from text queries without generating images. <a href="https://aws.amazon.com/what-is/embeddings/">AWS embeddings overview</a> and <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/titan-multiemb-models.html">Titan Multimodal Embeddings</a>.</p>
 
 <p>Check <strong>input and output modalities separately</strong>: accepting images and returning text does not imply image generation. “Multimodal” does not guarantee support for every combination of text, images, audio, and video. AWS lists these separately in its <a href="https://docs.aws.amazon.com/nova/latest/nova2-userguide/what-is-nova-2.html">Nova model capability table</a>.</p>
+
+<h4 id="generative-model-families">Generative model families</h4>
+
+<p>Generative AI is broader than LLMs. For example, a <strong>generative adversarial network (GAN)</strong> trains a generator to produce samples and a discriminator to distinguish generated samples from training examples. The discriminator’s learning signal guides the generator; successful training is not guaranteed. This is different from the next-token prediction objective in the LLM walkthrough. <a href="https://arxiv.org/abs/1406.2661">Original GAN paper</a>.</p>
 
 <h3 id="model-adaptation">3.3 Adapt the model only when the problem calls for it</h3>
 
@@ -306,13 +310,13 @@
       <td><strong>Prompt engineering</strong></td>
       <td>Current request only</td>
       <td>A clear instruction, examples, or output schema can solve the task</td>
-      <td>Facts must stay current or behaviour is still inconsistent after evaluation</td>
+      <td>Prompt wording alone cannot supply missing current/private facts; combine it with retrieval or tools</td>
     </tr>
     <tr>
       <td><strong>RAG</strong></td>
       <td>Current runtime context</td>
       <td>Knowledge changes often, is private, needs citations, or must respect document ACLs</td>
-      <td>The real problem is stable style or repeated input→output behaviour</td>
+      <td>Retrieval alone will not reliably teach stable style or repeated input→output behaviour</td>
     </tr>
     <tr>
       <td><strong>Supervised fine-tuning (SFT)</strong></td>
@@ -331,7 +335,7 @@
 
 <p><strong>Instruction tuning</strong> is a form of post-training that teaches a model to follow instructions and preferred response patterns. In practice, SFT often uses instruction/input → desired-output examples. It is not a document lookup mechanism.</p>
 
-<p><strong>PEFT / LoRA</strong> are parameter-efficient fine-tuning ideas: instead of updating every base-model weight, training learns a small set of added or low-rank parameters. They reduce customization compute/storage and can make serving several task adaptations practical. They still change model behaviour and need the same evaluation, versioning, and rollback discipline as any other customization.</p>
+<p><strong>Parameter-efficient fine-tuning (PEFT)</strong> is a family of methods that trains a small subset of existing or added parameters. <strong>LoRA</strong> is one such method: it learns low-rank weight updates while freezing the base weights. These approaches can reduce training memory and adaptation storage, but still require evaluation, versioning, and rollback. <a href="https://huggingface.co/docs/peft/index">PEFT methods</a>.</p>
 
 <p><strong>Catastrophic forgetting</strong> is a customization risk: aggressive or narrow training can degrade capabilities the base model previously had. Keep holdout tests for both the target task and important general/safety behaviours.</p>
 
@@ -368,12 +372,12 @@
     <tr>
       <td><strong>Epoch</strong></td>
       <td>One full pass through the training set</td>
-      <td>More epochs increase learning <em>and</em> overfitting/cost risk</td>
+      <td>More epochs add compute; held-out quality may improve, plateau, or deteriorate</td>
     </tr>
     <tr>
-      <td><strong>Batch size</strong></td>
-      <td>Examples processed before one parameter update</td>
-      <td>A training-efficiency/stability control, not an inference setting</td>
+      <td><strong>Training batch size</strong></td>
+      <td>Examples processed together during training</td>
+      <td>The effective batch per update also depends on gradient accumulation and distributed workers; serving has a separate inference-batching concept</td>
     </tr>
     <tr>
       <td><strong>Learning rate</strong></td>
@@ -438,9 +442,9 @@
 <p><span id="make-a-customized-model-smaller-only-after-measuring-quality"></span></p>
 
 <ul>
-  <li><strong>Distillation</strong> trains a smaller <em>student</em> to approximate a stronger <em>teacher</em>. Choose it when the target is lower serving cost/latency while retaining enough task quality.</li>
+  <li><strong>Distillation</strong> trains a <em>student</em> using a teacher’s outputs or other learned signals. For compression, the student is usually smaller; distillation does not inherently require different model sizes. Choose it when measured task quality justifies the serving savings.</li>
   <li><strong>Quantization</strong> stores or computes weights with lower precision. It usually reduces memory and can improve throughput, but can reduce quality or hardware compatibility.</li>
-  <li>Neither fixes stale knowledge. Re-evaluate quality, safety, latency, and cost on the same workload after either change.</li>
+  <li>Neither guarantees current knowledge. Distillation transfers what its teaching data supports; quantization changes numerical representation. Re-evaluate quality, safety, latency, and cost after either change.</li>
 </ul>
 
 <h2 id="section-4-deployment">4. Open weights versus managed models</h2>
@@ -507,8 +511,8 @@
     <tr>
       <td><strong>Google / Google DeepMind</strong></td>
       <td><strong>Gemini</strong> and <strong>Gemma</strong></td>
-      <td>Multimodal models with strong Google Cloud/data integration</td>
-      <td>Gemini Developer API and Vertex AI</td>
+      <td>Gemini includes managed multimodal models; Gemma provides open-weight models</td>
+      <td>Gemini API / Vertex AI for supported Gemini models; local, self-hosted, or supported hosted deployment for Gemma</td>
     </tr>
     <tr>
       <td><strong>DeepSeek</strong></td>
@@ -536,9 +540,9 @@
     </tr>
     <tr>
       <td><strong>Amazon</strong></td>
-      <td><strong>Nova</strong> generation models and <strong>Titan</strong> embedding/model families</td>
-      <td>AWS-native model families and managed delivery</td>
-      <td>Amazon Bedrock</td>
+      <td><strong>Nova</strong> and <strong>Titan</strong></td>
+      <td>Generation and embedding models; supported modalities depend on the exact model</td>
+      <td>Amazon Bedrock and other documented model-specific access paths</td>
     </tr>
   </tbody>
 </table>
@@ -550,6 +554,8 @@
   <li>For every evaluation, record the exact model ID, API/access path, Region, date, and configuration.</li>
 </ul>
 
+<p>Provider references: <a href="https://platform.claude.com/docs/en/models/overview">Claude models</a>, <a href="https://ai.google.dev/gemini-api/docs/models">Gemini</a>, <a href="https://ai.google.dev/gemma/docs">Gemma</a>, <a href="https://docs.cohere.com/docs/models">Cohere</a>, and <a href="https://docs.mistral.ai/models">Mistral</a>. Family membership does not guarantee that every model supports the same features or access paths.</p>
+
 <h2 id="section-6-pricing">6. Compare cost using the workload</h2>
 
 <p>Provider price cards change too often to be study material. Use the current official pricing page for the exact model and Region, then apply the same workload calculation:</p>
@@ -560,7 +566,7 @@
 </code></pre></div></div>
 
 <ul>
-  <li>Include cached-input, reasoning, long-context, tool, retrieval, retry, capacity, and data-transfer charges that apply to the route.</li>
+  <li>Use the provider’s billable token categories: reasoning tokens may already be included in billed output, and cached input may have a separate rate. Do not count the same tokens twice. Add applicable tool, retrieval, retry, capacity, and data-transfer charges.</li>
   <li>Compare <strong>cost per successful task</strong>, using realistic input/output distributions and failure rates—not only a headline token price.</li>
   <li>Consumer subscriptions are product access, not interchangeable API credits.</li>
 </ul>
@@ -580,7 +586,7 @@
 
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>request → policy + difficulty classifier
           ├─ simple classification/extraction → small model
-          ├─ retrieve documents              → embedding model
+          ├─ vector retrieval                → embedding model + index search
           ├─ reorder candidates              → reranker
           ├─ normal generation               → general model
           └─ difficult reasoning             → reasoning model

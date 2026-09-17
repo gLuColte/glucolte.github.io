@@ -64,9 +64,7 @@
     <article class="content">
       <h1 id="aws-ai-services">AWS AI Services</h1>
 
-<p>Use this page to choose AWS implementations for the architecture learned in the preceding pages. Service details were checked against AWS documentation on <strong>5 September 2026</strong>; check the exact model, API, Region, and account availability before implementation.</p>
-
-<p>The expanded SageMaker, human-review, search-analytics, recognition, and audit notes were checked on <strong>17 September 2026</strong>.</p>
+<p>Use this page to choose AWS implementations for the architecture learned in the preceding pages. Service behavior and lifecycle notices were checked against AWS documentation on <strong>17 September 2026</strong>; check the exact model, API, Region, feature, and account availability before implementation.</p>
 
 <p><strong>Part 7 of 7:</strong> <a href="/study/aiInfrastructure">Infrastructure and evaluation</a> → <strong>AWS AI Services</strong>. Continue optionally to <a href="/study/aiGenAIProfessional">AWS GenAI Professional preparation</a> for exam-domain study and practice.</p>
 
@@ -143,7 +141,7 @@
       <td><code class="language-plaintext highlighter-rouge">InvokeModel</code>; <code class="language-plaintext highlighter-rouge">InvokeModelWithResponseStream</code> for streaming.</td>
     </tr>
     <tr>
-      <td>Supported long-running generation with results in S3</td>
+      <td>Supported asynchronous video generation with results in S3</td>
       <td><code class="language-plaintext highlighter-rouge">StartAsyncInvoke</code>; inspect job status separately.</td>
     </tr>
     <tr>
@@ -265,6 +263,18 @@
       <td>Observability / Evaluations</td>
       <td>Trace execution and assess agent/tool outcomes.</td>
     </tr>
+    <tr>
+      <td>Registry</td>
+      <td>Catalog and govern agents, MCP servers, tools, skills, and custom resources.</td>
+    </tr>
+    <tr>
+      <td>Optimization</td>
+      <td>Generate and test versioned prompt/tool-configuration improvements from agent traces.</td>
+    </tr>
+    <tr>
+      <td>Payments</td>
+      <td>Give agents controlled access to compatible paid services with wallet and spending-limit controls.</td>
+    </tr>
   </tbody>
 </table>
 
@@ -288,10 +298,12 @@
     </tr>
     <tr>
       <td>Step Functions</td>
-      <td>Known business states, retries, callbacks, and approval paths; it can invoke an agent as one bounded step.</td>
+      <td>Known business states, retries, and approval paths; use a Standard workflow when a callback task token or long wait is required. It can invoke an agent as one bounded step.</td>
     </tr>
   </tbody>
 </table>
+
+<p>Standard Workflows support <code class="language-plaintext highlighter-rouge">.waitForTaskToken</code>; Express Workflows support request-response integrations but not callback task tokens or <code class="language-plaintext highlighter-rouge">.sync</code> job runs. <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html">Step Functions integration patterns</a>.</p>
 
 <p><strong>Current availability:</strong> AWS states that Agents Classic is closed to new customers; existing customers may continue using it. AWS points new implementations toward AgentCore. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html">Agents Classic notice</a>.</p>
 
@@ -489,7 +501,7 @@ Edge --> User: Display result
 
 <p>An A2I human-review workflow defines the task interface, worker instructions, and assigned work team. Built-in integrations include supported Textract document extraction and Rekognition image-moderation tasks; custom workflows can review other model outputs. Activation conditions can include uncertainty or sampling for quality checks. Review results can inform the application and later dataset curation; review alone does not retrain a model. <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-use-augmented-ai-a2i-human-review-loops.html">A2I human-review documentation</a>.</p>
 
-<p><strong>A2I availability, checked 17 September 2026:</strong> the <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-use-augmented-ai-a2i-human-review-loops.html">current AWS notice</a> states that A2I is no longer open to new customers; existing customers can continue using it.</p>
+<p><strong>Ground Truth and A2I availability, checked 17 September 2026:</strong> current AWS notices state that both services are no longer open to new customers; existing customers can continue using them. The concepts remain relevant to existing workloads and the current AIP-C01 in-scope list. <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/sms.html">Ground Truth notice</a> and <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-use-augmented-ai-a2i-human-review-loops.html">A2I notice</a>.</p>
 
 <p><strong>Workforce</strong> means the pool of people; a <strong>work team</strong> is the group assigned work. Options include a private workforce and vendor-managed workers. Exam material may also name the public MTurk workforce. <strong>Lifecycle note, checked 17 September 2026:</strong> AWS announces that Mechanical Turk will permanently close on <strong>30 September 2026</strong>. Retain the exam association, but consult the notice when selecting a workforce. Public-worker tasks must not contain confidential or personal data. <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management.html">Workforce options</a> and <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management-public.html">MTurk notice and restrictions</a>.</p>
 
@@ -569,6 +581,8 @@ Edge --> User: Display result
 </table>
 
 <p>These operate at different levels. Knowledge Bases can use supported stores or retrievers; a custom application can query OpenSearch or Kendra and then invoke a model. Do not create multiple copies of a corpus without explicit ownership and freshness requirements.</p>
+
+<p><strong>Kendra availability, checked 17 September 2026:</strong> Kendra entered maintenance mode on 30 June 2026 and is closed to new customers from 30 July 2026. Existing customers remain supported; AWS recommends Amazon Bedrock Knowledge Bases for new search applications while documenting feature gaps that must be assessed during migration. Kendra remains in the current AIP-C01 in-scope list, so its behavior is still exam-relevant. <a href="https://docs.aws.amazon.com/kendra/latest/dg/kendra-availability-change.html">Kendra availability and migration guidance</a>.</p>
 
 <p>For Bedrock integration, <code class="language-plaintext highlighter-rouge">Retrieve</code> returns evidence for application-controlled context assembly; <code class="language-plaintext highlighter-rouge">RetrieveAndGenerate</code> combines retrieval and generation. Check source attribution, supported reranking/search options, and the source/store/model combination. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html">Knowledge Bases documentation</a>.</p>
 
@@ -777,6 +791,8 @@ Edge --> User: Display result
 
 <p>Sources: <a href="https://docs.aws.amazon.com/audit-manager/latest/userguide/what-is.html">Audit Manager overview</a> and <a href="https://docs.aws.amazon.com/audit-manager/latest/userguide/concepts.html">evidence and assessment concepts</a>.</p>
 
+<p><strong>Availability, checked 17 September 2026:</strong> Audit Manager is in maintenance mode and cannot be set up in new accounts or additional Regions from 30 April 2026. Existing configured accounts can continue using it subject to the documented account, organization, and Region limits. AWS recommends evaluating AWS Config Conformance Packs for technical compliance controls, but explicitly notes that they do not replace Audit Manager’s full framework evidence and audit-reporting functions. <a href="https://docs.aws.amazon.com/audit-manager/latest/userguide/audit-manager-availability-change.html">Audit Manager availability guidance</a>.</p>
+
 <h2 id="section-12-service-map">7. Other AI services: compact lookup</h2>
 
 <p><span id="section-12-2-language"></span>
@@ -819,7 +835,7 @@ Edge --> User: Display result
     </tr>
     <tr>
       <td>Rekognition</td>
-      <td>Image/video analysis and supported custom visual labels.</td>
+      <td>Image and supported stored-video analysis, plus supported custom visual labels; verify feature-level availability.</td>
     </tr>
     <tr>
       <td>Personalize</td>
@@ -831,7 +847,11 @@ Edge --> User: Display result
     </tr>
     <tr>
       <td>Q Business</td>
-      <td>Managed organizational assistant with connected enterprise content.</td>
+      <td>Existing-customer organizational assistant with connected enterprise content; the service is in maintenance mode.</td>
+    </tr>
+    <tr>
+      <td>Quick</td>
+      <td>Current managed work assistant for connected enterprise data, analysis, workflows, and agentic actions.</td>
     </tr>
     <tr>
       <td>Q Developer</td>
@@ -839,6 +859,8 @@ Edge --> User: Display result
     </tr>
   </tbody>
 </table>
+
+<p><strong>Q Business availability, checked 17 September 2026:</strong> Q Business is closed to new customers; existing customers remain supported, and AWS recommends Amazon Quick for new implementations and migration. Both appear in the current AIP-C01 in-scope list. <a href="https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/qbusiness-availability-change.html">Q Business availability and migration guidance</a>.</p>
 
 <h3 id="recognition-extraction">7.1 Recognition: text entities versus computer vision</h3>
 
@@ -879,6 +901,8 @@ Edge --> User: Display result
 <p>Comprehend entity detection assigns types to text spans. Key phrase extraction returns noun phrases and confidence scores; it does not require a predefined entity type and is not a generated summary. Use <code class="language-plaintext highlighter-rouge">DetectEntities</code> and <code class="language-plaintext highlighter-rouge">DetectKeyPhrases</code> for their respective tasks. <a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-entities.html">Comprehend entities</a> and <a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-key-phrases.html">key phrases</a>.</p>
 
 <p>Rekognition analyzes visual content, with capabilities including labels, faces, image text, and moderation. A face detection is not automatically identification of a named person. For a scanned contract, OCR followed by Comprehend can extract named parties; detecting objects in a photograph is a different task. <a href="https://docs.aws.amazon.com/rekognition/latest/dg/labels.html">Rekognition visual labels</a>.</p>
+
+<p>The core service remains available, but <strong>Rekognition Streaming Events and Batch Image Content Moderation are closed to new customers</strong>. Do not infer availability of those features from general Rekognition image/video support. <a href="https://docs.aws.amazon.com/general/latest/gr/maintenance_services.html">AWS services in maintenance</a>.</p>
 
 <h2 id="section-13-practice-traps">8. Continue to certification preparation</h2>
 

@@ -15,7 +15,7 @@ tag:
 
 # AI Knowledge Bases and Retrieval
 
-**RAG** means **Retrieve relevant information → Augment the model context → Generate an answer**. It gives an LLM current, specific evidence to work from.
+**RAG** stands for **retrieval-augmented generation**: retrieve relevant information, augment the model context, then generate an answer. It can supply current, specific evidence when the sources and retrieval pipeline are current and reliable.
 
 **Part 4 of 7:** [Models and providers](/study/aiModels) → **Knowledge bases and retrieval** → [AI Agents](/study/aiAgents). This page owns the quality of evidence selection and RAG answers; agent-loop and platform-release metrics come later.
 
@@ -72,7 +72,7 @@ Use a fictional Apple battery-service policy for the running example. Ingestion 
 
 Before a question can retrieve anything, source material needs to become searchable. This is one continuous pipeline:
 
-**Raw file → Parse → Structure → Chunk → Embed → Store / Index**
+For the vector-based implementation in this walkthrough: **Raw file → Parse → Structure → Chunk → Embed → Store / Index**. A lexical-only index does not require embedding.
 
 ### Parsing
 
@@ -113,7 +113,7 @@ Section-aware chunking is often a strong default for policies because the headin
 
 ### Embeddings: representing meaning as vectors
 
-Once a chunk is selected, an embedding model converts its text to numbers. An **embedding** is a numerical representation useful for comparing semantic similarity—not a human-readable list of labels.
+During ingestion, an embedding model converts each prepared chunk's text to numbers. An **embedding** is a numerical representation useful for comparing semantic similarity—not a human-readable list of labels.
 
 <div class="rag-diagram" role="img" aria-label="Two differently worded battery questions become nearby embedding vectors, illustrating semantic similarity.">
 <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" aria-labelledby="embed-title embed-desc">
@@ -131,7 +131,7 @@ Once a chunk is selected, an embedding model converts its text to numbers. An **
 </svg>
 </div>
 
-At query time, use a compatible model to embed the question too. Search can then compare vectors with a score such as **cosine similarity**, **dot product**, or **Euclidean distance**. The score choice is secondary to the mental model: nearby vectors tend to represent related meaning.
+At query time, use a compatible model and its prescribed query/document encoding settings. Search compares vectors using a supported metric such as **cosine similarity**, **dot product**, or **Euclidean distance**. Match the metric and normalization to the model: these scores are not generally interchangeable. With unit-normalized vectors, dot product equals cosine similarity and squared Euclidean distance produces equivalent rankings. [Faiss metric guidance](https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances).
 
 ## How Can We Retrieve Relevant Information?
 
@@ -170,11 +170,13 @@ product = iPhone
 status = current
 ~~~
 
-This is a **relevance filter**, not permission. `region=AU` may make a policy more likely to answer the question. `user_has_access=true` determines whether the caller may see its evidence at all. Authorization must be enforced before evidence reaches the model.
+These example fields are **relevance filters**, not permission. `region=AU` may make a policy relevant. Authorization must instead use trusted caller identity and document ACLs or equivalent policy. A caller-supplied `user_has_access=true` flag is not proof of permission. Enforce access before evidence reaches a model, external reranker, or user-visible result.
 
 ### Lexical / BM25
 
 Lexical search is best when the actual **word** matters: policy IDs, error codes, product names, exact phrases, and acronyms. Searching for `POL-BAT-AU-2026` should strongly favour that literal ID. Vector similarity may not be the best tool for this; lexical search is excellent.
+
+BM25 ranks indexed terms; it does not by itself guarantee an exact identifier or phrase match. Tokenization/analyzers can split IDs and punctuation. Use a keyword field with an exact term filter for an identifier, or an appropriate phrase query for ordered text. [OpenSearch exact-term queries](https://docs.opensearch.org/latest/query-dsl/term/term/).
 
 ### Vector / semantic search
 
@@ -190,11 +192,11 @@ BM25 candidates ────────┐
 Vector candidates ──────┘
 ~~~
 
-**Reciprocal Rank Fusion (RRF)** is a simple option: a result earns more credit when it ranks highly in either list, without requiring the BM25 and vector score scales to match. It is a useful detail, not the definition of hybrid retrieval.
+**Reciprocal Rank Fusion (RRF)** is a simple option: a result earns more credit when it ranks highly in either list, without requiring the BM25 and vector score scales to match. Hybrid retrieval can also combine normalized scores; RRF is one fusion method. [OpenSearch rank fusion](https://docs.opensearch.org/latest/search-plugins/search-pipelines/score-ranker-processor/).
 
 ## How Do We Search Millions of Vectors?
 
-Now that vector search has a job, we can ask how it scales. Start with **Exact Nearest Neighbour** search:
+Now that vector search has a job, we can ask how it scales. Start with a **brute-force exact nearest-neighbour** baseline, which compares the query with every stored vector and selects the top K:
 
 <div class="rag-diagram" role="img" aria-label="Exact nearest-neighbour search compares a query vector with every stored vector, scores similarities, sorts them, and returns Top K.">
 <svg viewBox="0 0 760 145" xmlns="http://www.w3.org/2000/svg" aria-labelledby="exact-title exact-desc">
@@ -208,7 +210,7 @@ Now that vector search has a job, we can ask how it scales. Start with **Exact N
 </svg>
 </div>
 
-**ANN** means **Approximate Nearest Neighbour**. It is the general strategy: *do not search everything; search intelligently and accept a small accuracy trade-off for much better speed.*
+**ANN** means **Approximate Nearest Neighbour**. Methods such as HNSW and IVF reduce search work in exchange for possibly missing exact nearest neighbours. The speed/recall tradeoff depends on data and settings; it is not guaranteed to be small. Here, **ANN recall** means recovering neighbours from an exact-search baseline, which differs from retrieving documents a human judges relevant. Exact vector search is exact about the chosen metric, not about factual or semantic correctness. [Faiss index comparison](https://github.com/facebookresearch/faiss/wiki/Faiss-indexes).
 
 <div class="rag-diagram" role="img" aria-label="Approximate nearest-neighbour search has HNSW graph navigation and IVF partitioning approaches.">
 <svg viewBox="0 0 610 175" xmlns="http://www.w3.org/2000/svg" aria-labelledby="ann-title ann-desc">
@@ -224,14 +226,14 @@ Now that vector search has a job, we can ask how it scales. Start with **Exact N
 
 **HNSW** stands for **Hierarchical Navigable Small World**. Its mental model is: **navigate through vector space toward increasingly similar neighbours.** It is graph-based: upper layers make larger jumps, and lower layers refine the route.
 
-<div class="rag-diagram" role="img" aria-label="A simplified HNSW hierarchy showing a query entering from an upper graph layer and navigating through neighbours toward the closest vector on layer zero.">
+<div class="rag-diagram" role="img" aria-label="A simplified HNSW hierarchy showing a query entering from an upper graph layer and navigating through neighbours toward a nearby candidate on layer zero.">
 <svg viewBox="0 0 800 355" xmlns="http://www.w3.org/2000/svg" aria-labelledby="hnsw-title hnsw-desc">
   <title id="hnsw-title">HNSW navigates a graph</title><desc id="hnsw-desc">A query enters a sparse upper layer, follows edges toward more similar nodes, descends through layers, and reaches a close vector in the dense bottom layer.</desc>
   <defs><marker id="hnsw-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#2563eb"/></marker></defs>
   <text class="accent-text" x="35" y="43">HNSW — NAVIGATE</text><text class="small" x="35" y="64">Start coarse, then refine through closer neighbours.</text>
   <text class="label" x="35" y="118">Layer 2</text><path class="soft-line" d="M190 108H520"/><circle cx="190" cy="108" r="10" fill="#2563eb"/><circle cx="520" cy="108" r="10" fill="#2563eb"/>
   <text class="label" x="35" y="196">Layer 1</text><path class="soft-line" d="M150 186H280L430 186H610"/><circle cx="150" cy="186" r="10" fill="#64748b"/><circle cx="280" cy="186" r="10" fill="#64748b"/><circle cx="430" cy="186" r="10" fill="#64748b"/><circle cx="610" cy="186" r="10" fill="#64748b"/>
-  <text class="label" x="35" y="274">Layer 0</text><path class="soft-line" d="M100 264H175L250 264H325L400 264H475L550 264H625L700 264"/><g fill="#64748b"><circle cx="100" cy="264" r="10"/><circle cx="175" cy="264" r="10"/><circle cx="250" cy="264" r="10"/><circle cx="325" cy="264" r="10"/><circle cx="400" cy="264" r="10"/><circle cx="475" cy="264" r="10"/><circle cx="550" cy="264" r="10"/><circle cx="625" cy="264" r="10"/></g><circle cx="700" cy="264" r="13" fill="#16a34a"/><text class="small" x="719" y="268">closest</text>
+  <text class="label" x="35" y="274">Layer 0</text><path class="soft-line" d="M100 264H175L250 264H325L400 264H475L550 264H625L700 264"/><g fill="#64748b"><circle cx="100" cy="264" r="10"/><circle cx="175" cy="264" r="10"/><circle cx="250" cy="264" r="10"/><circle cx="325" cy="264" r="10"/><circle cx="400" cy="264" r="10"/><circle cx="475" cy="264" r="10"/><circle cx="550" cy="264" r="10"/><circle cx="625" cy="264" r="10"/></g><circle cx="700" cy="264" r="13" fill="#16a34a"/><text class="small" x="719" y="268">nearby</text>
   <path class="soft-line" d="M190 118V175 M520 118V175 M280 196V253 M610 196V253" stroke-dasharray="4 5"/>
   <circle class="step" cx="90" cy="90" r="13"/><text class="step-text" x="90" y="90">Q</text><path d="M103 92C140 91 160 100 180 105" stroke="#2563eb" stroke-width="3" fill="none" marker-end="url(#hnsw-arrow)"/><path d="M202 112C280 150 350 170 420 183" stroke="#2563eb" stroke-width="3" fill="none" marker-end="url(#hnsw-arrow)"/><path d="M440 190C520 225 600 250 688 262" stroke="#2563eb" stroke-width="3" fill="none" marker-end="url(#hnsw-arrow)"/>
   <text class="small" x="35" y="327">More search effort can improve recall; graph construction and memory use are trade-offs.</text>
@@ -257,6 +259,8 @@ Now that vector search has a job, we can ask how it scales. Start with **Exact N
 Searching more partitions (often called probes) generally improves recall, but costs more work. It is a knob, not a guarantee.
 
 Neither index is universally better. Choose based on corpus size, latency and recall targets, update behaviour, memory budget, and the retrieval system around it.
+
+IVF commonly needs representative data to train its partition centroids; HNSW builds a neighbour graph. Query-time search effort (`nprobe` for IVF, often `efSearch` for HNSW) is separate from index-construction settings. [Faiss index details](https://github.com/facebookresearch/faiss/wiki/Faiss-indexes).
 
 ## Reconnecting the Query-Time Pipeline
 
@@ -287,7 +291,7 @@ First-stage vector/BM25 retrieval is a **fast candidate finder**. A reranker is 
 </svg>
 </div>
 
-A typical vector embedding model is a **bi-encoder**: it encodes query and chunks independently, so it is fast enough to search at scale. A **cross-encoder** reranker reads the query and one candidate together, which can make a stronger relevance judgement but is too costly to run against the whole corpus.
+A typical dense-retrieval system uses a **bi-encoder** to encode queries and chunks independently, allowing document vectors to be precomputed. A **cross-encoder** reranker reads a query and candidate together; this is usually too expensive for a large corpus, so it scores a shortlist. Other rerankers exist, and improved relevance must be measured. [Sentence Transformers retrieval and reranking](https://www.sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html).
 
 <aside class="technique-callout">
   <strong>Ranking limit</strong>

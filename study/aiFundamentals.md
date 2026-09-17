@@ -18,6 +18,8 @@ tag:
 
 This page follows **one LLM request** from text on the screen to generated, streamed text.
 
+The walkthrough uses a **decoder-only, autoregressive text transformer with ordinary cached decoding**. It is a common design, not a description of every language model or serving optimization.
+
 **Part 1 of 7:** **Fundamentals** → [Prompt engineering](/study/aiPromptEngineering) → [Models and providers](/study/aiModels) → [Knowledge bases](/study/aiKnowledgebases) → [Agents](/study/aiAgents) → [Infrastructure](/study/aiInfrastructure) → [AWS AI Services](/study/infrastructureAWSAiServices).
 
 ## Visual intuition: a journey through a learned world
@@ -342,7 +344,7 @@ Temperature is applied at every generated-token step. It changes the shape of th
 - Temperature does not remove tokens or choose the next token by itself.
 - `T = 1` is the baseline: it leaves the logits unchanged. Values below `1` sharpen the distribution; values above `1`, if an API allows them, flatten it. If your API only offers `0–1`, then `1` is simply its least-conservative setting. This walkthrough compares `1.2`, `0.9`, `0.5`, and `0.1`.
 
-Continue the France request with these illustrative **relative logits**. Conceptually, temperature divides each logit by `T`: a lower `T` increases the separation between scores.
+Continue the France request with these illustrative **relative logits**. For `T > 0`, temperature divides each logit by `T`: a lower `T` increases the separation between scores. If an API accepts `T = 0`, it usually selects greedy decoding rather than literally dividing by zero. Greedy decoding chooses a highest-scoring token; it is not an absolute reproducibility guarantee across serving implementations. [Generation strategies](https://huggingface.co/docs/transformers/main/en/generation_strategies).
 
 | Token | Raw logit | `÷ 1.2` | `÷ 0.9` | `÷ 0.5` | `÷ 0.1` |
 |---|---:|---:|---:|---:|---:|
@@ -361,11 +363,13 @@ These are still **logits**, not probabilities. The diagram shows only the Stage 
 
 ## 8. Stage 7 — softmax produces probabilities
 
-**Softmax** converts the temperature-adjusted logits from Stage 6 into a probability distribution: every probability is non-negative and the full vocabulary sums to 100%. For the France example, it produces:
+**Softmax** converts the adjusted scores from Stage 6 into probabilities. Written in terms of the **raw logits** `zᵢ`, the formula is `pᵢ = exp(zᵢ / T) / Σⱼ exp(zⱼ / T)`. Temperature is applied once; the denominator includes every eligible vocabulary token.
+
+**For the numerical examples in Stages 7–9, use a toy vocabulary containing only the five tokens below.** Applying softmax to their rounded logits gives these approximate percentages. In a real full vocabulary, the other logits also contribute to the denominator; these five entries would not generally sum to 100%. Rounding can also make displayed totals differ slightly from 100%.
 
 | Token | `temperature = 1.2` | `temperature = 0.9` | `temperature = 0.5` | `temperature = 0.1` |
 |---|---:|---:|---:|---:|
-| `" Paris"` | 45.1% | 53.2% | 73.4% | 99.9% |
+| `" Paris"` | 45.1% | 53.1% | 73.4% | 99.9% |
 | `" Lyon"` | 25.3% | 24.6% | 18.3% | 0.1% |
 | `" Marseille"` | 16.5% | 13.9% | 6.6% | <0.1% |
 | `" Berlin"` | 8.8% | 6.0% | 1.4% | <0.1% |
@@ -382,11 +386,11 @@ Only now do we have probabilities that top-p can use. To keep one concrete path 
 
 **Apply `top-p = 0.8`** to the Stage 7 probabilities. Starting from the most likely token, keep tokens until their cumulative probability reaches at least 80%:
 
-**Tip:** higher top-p keeps a larger probability mass and more candidate tokens; lower top-p keeps fewer, more likely candidates.
+**Tip:** for a fixed probability distribution, higher top-p keeps at least as much probability mass and may keep more candidates. The retained set can stay the same until the threshold crosses another token.
 
 ### How top-k and top-p differ — and can combine
 
-**Top-k** keeps exactly the `k` most likely next-token candidates. **Top-p** keeps a variable number of candidates until their combined probability reaches `p`. They are not inherently an either/or choice: when a model API supports both, both can constrain the candidate pool before sampling. The exact filtering order is implementation-specific.
+**Top-k** restricts sampling to the `k` highest-ranked next-token candidates. This simple example has distinct scores and enough eligible tokens; tie handling and other filters can affect the final count in real implementations. **Top-p** keeps a variable number of candidates until their combined probability reaches `p`. When an API supports both, both can constrain the candidate pool; filtering order and renormalization are implementation-specific. [Generation controls](https://huggingface.co/docs/transformers/main/en/main_classes/text_generation).
 
 | Setting | With the `temperature = 0.5` probabilities below | What is fixed? |
 |---|---|---|
@@ -399,7 +403,7 @@ Think of both together as a double boundary: Top-k prevents a pool from growing 
 
 <div class="image-wrapper">
   <img src="./assets/top_k_vs_top_p.svg" alt="Side-by-side examples comparing fixed-count generation Top-k with cumulative-probability generation Top-p" class="modal-trigger" data-caption="Generation Top-k keeps a fixed count; Top-p keeps enough candidates to reach a probability threshold; supported APIs can apply both">
-  <div class="diagram-caption">🔢 Top-k fixes the number of candidates; ✂️ Top-p fixes the probability mass; supported APIs can apply both</div>
+  <div class="diagram-caption">🔢 Top-k sets the candidate count; ✂️ Top-p sets a probability-mass threshold; supported APIs can apply both</div>
 </div>
 
 **Cumulative probability** is the running total in descending probability order: each row adds its probability to every row above it.
@@ -456,6 +460,8 @@ predict end-of-sequence
 - TPOT is influenced by model size, serving hardware, batch/load, KV-cache size, and provider implementation.
 - Because tokens are produced one at a time, the server can stream each completed text piece to the client instead of waiting for the full response.
 
+The sequence is autoregressive, but some serving systems accelerate it using **speculative decoding**: a draft proposes several tokens and the target model verifies them together. Streaming chunks also need not correspond one-to-one with tokens. [Assisted decoding](https://huggingface.co/docs/transformers/main/en/generation_strategies).
+
 ## 12. Stage 11 — token IDs become text again and stream {#section-8-detokenization}
 
 - The decoder produces token IDs.
@@ -482,10 +488,11 @@ The core journey ends when decoded text is streamed. The following material expl
 - **Conversation**: the logical history stored by the application or agent.
 - **Context**: the tokens actually constructed and supplied to this particular model call.
 - **Context window**: the model-defined maximum token budget available to one call, usually covering input context plus generated output.
-- Each API call is independent:
-  - the model does not automatically retain the previous call;
+- In the stateless request pattern illustrated here:
+  - the model does not automatically retain the previous conversation;
   - the application stores messages or another memory representation;
-  - the application selects and resends the relevant history for the next call.
+  - the application selects and resends relevant history for the next call.
+- Stateful APIs may let the client send a conversation/session identifier instead. The serving platform then manages history or cached state; this does not mean inference has trained that conversation into the model's weights.
 
 The application may build context from:
 
@@ -499,7 +506,7 @@ system/developer instructions
 + space reserved for generated output
 ```
 
-- **Runtime context** is the actual content assembled for one independent LLM call; generated token IDs join the running context during decoding.
+- **Runtime context** is the actual content assembled for one LLM invocation; generated token IDs join the running context during decoding.
 - **Runtime context = contents. Context window = maximum capacity.**
 - A **128K** context window in the diagram is illustrative; limits differ by model and may include separate output constraints.
 - RAG and tools run outside the model, then add retrieved evidence or tool results to that context.
@@ -509,7 +516,7 @@ system/developer instructions
   - the context window is the per-request token budget.
 
 <div class="image-wrapper">
-  <img src="./assets/llm_runtime_context.png" alt="Application assembling runtime context from instructions, history, RAG evidence, tools, and a user question before one LLM call" class="modal-trigger" data-caption="Runtime context is assembled outside the LLM and supplied to one independent call">
+  <img src="./assets/llm_runtime_context.png" alt="Application assembling runtime context from instructions, history, RAG evidence, tools, and a user question before one LLM call" class="modal-trigger" data-caption="Runtime context is assembled outside the LLM and supplied to the current model invocation">
   <div class="diagram-caption" data-snippet-id="llm-runtime-context-snippet">
     🧩 Runtime context: application inputs become one LLM request
   </div>
@@ -581,14 +588,15 @@ def llm_call(input_tokens, max_output_tokens):
     for _ in range(max_output_tokens):
         logits = model_forward(model_parameters, running_context)
         next_token_id = decode(logits)
-        running_context.append(next_token_id)
-        yield detokenize(next_token_id)
         if is_stop_token(next_token_id):
             break
+        running_context.append(next_token_id)
+        yield detokenize(next_token_id)
 ~~~
 
 - **model_parameters** stay fixed during inference; **running_context** is different for every call and grows during generation.
 - The pseudocode shows the mental model; production serving normally reuses a KV cache rather than recomputing the entire prefix.
+- A real streaming detokenizer may buffer multiple tokens/bytes before emitting valid text; stop sequences may also span several tokens.
 
 - The selected context is serialized according to the model's chat format, tokenized, and supplied to a new inference call.
 - Message roles are structured context conventions:
@@ -605,7 +613,7 @@ The diagram used `128K` to show the boundary. Shrink it to `1,000` tokens to mak
 input context tokens + generated output tokens ≤ context window
 ```
 
-Each call is independent, but resending selected conversation history usually makes later input contexts larger:
+In this stateless example, the application builds each request independently; resending selected history usually makes later input contexts larger:
 
 ```text
 CALL 1 — independent request
@@ -682,7 +690,7 @@ end
   - excess history must be trimmed, summarized/compacted, or retrieved selectively;
   - important evidence can be buried in irrelevant or repeated content;
   - a larger advertised window does not guarantee reliable attention to every detail.
-- A provider may offer managed conversation state, but that remains an application/platform feature around independent inference calls.
+- A provider may manage conversation history or cached session state between API calls. That state belongs to the application/serving platform; ordinary inference does not train it into model weights.
 
 ## 14. Training, fine-tuning, and inference {#section-10-training}
 
@@ -739,7 +747,7 @@ For squared-error prediction, the classical decomposition is **expected error = 
 |---|---|
 | **Overfitting** | Very high training performance but weak performance on unseen validation/test data; excessive complexity for the amount of training data increases the risk. |
 | **Underfitting** | Poor performance on both training and unseen data; often too simple or insufficiently trained. |
-| **GAN** | A **generator** creates synthetic samples; a **discriminator** learns to distinguish real from generated samples. Their adversarial feedback improves the generator. |
+| **GAN** | A generative-model training approach; see [generative model families](/study/aiModels#generative-model-families) for the generator/discriminator relationship. |
 | **Regularization** | Constrains learning to reduce overfitting; it is different from the reward signal that defines desired RL outcomes. |
 
 Continue to [training/validation/test sets](/study/aiModels#training-data-splits), [regularization versus reward](/study/aiModels#regularization-reward), and [reinforcement learning from human feedback](/study/aiModels#rlhf) to connect these concepts to model adaptation.
@@ -749,7 +757,7 @@ For deeper treatment, see [AI Knowledge Bases](/study/aiKnowledgebases), [AI Age
 ## 15. Hallucination, grounding, and structured output {#section-11-hallucination}
 
 - The model selects plausible next tokens from learned patterns and supplied context; it does not automatically verify claims.
-- A **hallucination** is a claim, citation, entity, calculation, or tool argument unsupported by available evidence.
+- A **hallucination** can be fabricated or factually incorrect content, or output that contradicts or goes beyond the source material it was required to use. Definitions vary by task, so distinguish **factual correctness** from **faithfulness/grounding in supplied evidence**. [Hallucination taxonomy](https://arxiv.org/abs/2311.05232).
 
 Fictional example:
 
@@ -768,7 +776,7 @@ Generated answer: "The CEO of Glucolte is Gary Lu."
 ```
 
 - The probabilities are illustrative; names may also span several tokens.
-- The answer is grammatical and may sound confident, but the request contained no evidence supporting it. Even if it were accidentally correct, the answer would still be ungrounded.
+- The answer is grammatical and may sound confident, but this example supplies no evidence establishing the person's role. It is ungrounded in the request; that alone does not establish that it is false. A model can answer some questions correctly from learned knowledge without retrieved context. An evidence-only task must still reject unsupported assertions.
 - The model does not reliably apply `fact unknown → stop`; the same next-token process from the walkthrough still applies.
 
 - Unsupported output can arise because:

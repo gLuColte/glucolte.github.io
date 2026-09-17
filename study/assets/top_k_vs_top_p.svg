@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="750" viewBox="0 0 1000 750" role="img" aria-labelledby="title description">
   <title id="title">Generation top-k and top-p</title>
-  <desc id="description">Two examples compare generation top-k and top-p after softmax. Top-k always retains a fixed number of next-token candidates, whereas top-p retains as many candidates as necessary to reach its cumulative probability threshold. Supported inference APIs can apply both filters together.</desc>
+  <desc id="description">Two examples compare generation top-k and top-p after softmax. In these distinct-score examples, top-k retains a fixed number of next-token candidates, whereas top-p retains as many candidates as necessary to reach its cumulative probability threshold. Supported inference APIs can apply both filters together.</desc>
   <rect width="1000" height="750" rx="18" fill="#f8fafc"/>
   <g font-family="Arial, sans-serif">
     <text x="500" y="42" text-anchor="middle" font-size="25" font-weight="700" fill="#0f172a">Generation Top-k and Top-p</text>
-    <text x="500" y="69" text-anchor="middle" font-size="15" fill="#475569">Both act after softmax and before sampling; supported APIs can apply both filters.</text>
+    <text x="500" y="69" text-anchor="middle" font-size="15" fill="#475569">Both filter next-token candidates before sampling; this diagram uses probabilities.</text>
 
     <rect x="60" y="93" width="420" height="76" rx="12" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
     <text x="86" y="126" font-size="20" font-weight="700" fill="#2563eb">Top-k = 2</text>
-    <text x="86" y="151" font-size="14" fill="#334155">Keep exactly the two highest-probability tokens.</text>
+    <text x="86" y="151" font-size="14" fill="#334155">Keep the two highest-probability tokens in these examples.</text>
     <rect x="520" y="93" width="420" height="76" rx="12" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
     <text x="546" y="126" font-size="20" font-weight="700" fill="#c2410c">Top-p = 0.8</text>
     <text x="546" y="151" font-size="14" fill="#334155">Keep tokens until their running total reaches 80%.</text>

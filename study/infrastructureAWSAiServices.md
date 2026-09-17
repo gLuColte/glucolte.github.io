@@ -21,9 +21,7 @@ tag:
 
 # AWS AI Services
 
-Use this page to choose AWS implementations for the architecture learned in the preceding pages. Service details were checked against AWS documentation on **5 September 2026**; check the exact model, API, Region, and account availability before implementation.
-
-The expanded SageMaker, human-review, search-analytics, recognition, and audit notes were checked on **17 September 2026**.
+Use this page to choose AWS implementations for the architecture learned in the preceding pages. Service behavior and lifecycle notices were checked against AWS documentation on **17 September 2026**; check the exact model, API, Region, feature, and account availability before implementation.
 
 **Part 7 of 7:** [Infrastructure and evaluation](/study/aiInfrastructure) → **AWS AI Services**. Continue optionally to [AWS GenAI Professional preparation](/study/aiGenAIProfessional) for exam-domain study and practice.
 
@@ -65,7 +63,7 @@ Bedrock provides managed access to foundation models and GenAI application capab
 |---|---|
 | Consistent message interface across compatible models | `Converse`; `ConverseStream` for streamed output. |
 | Model-specific invocation payload | `InvokeModel`; `InvokeModelWithResponseStream` for streaming. |
-| Supported long-running generation with results in S3 | `StartAsyncInvoke`; inspect job status separately. |
+| Supported asynchronous video generation with results in S3 | `StartAsyncInvoke`; inspect job status separately. |
 | Existing compatible client integration | Check the model's supported Chat Completions, Responses, or Messages interface. |
 
 These are integration choices, not interchangeable capabilities. See the [AWS API compatibility matrix](https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html) for supported models, bidirectional streaming, and endpoint differences.
@@ -104,6 +102,9 @@ AgentCore supplies modular services around an agent. Choose only the components 
 | Memory | Store scoped conversation events and longer-lived memories. |
 | Browser / Code Interpreter | Run browsing or code tasks in isolated environments. |
 | Observability / Evaluations | Trace execution and assess agent/tool outcomes. |
+| Registry | Catalog and govern agents, MCP servers, tools, skills, and custom resources. |
+| Optimization | Generate and test versioned prompt/tool-configuration improvements from agent traces. |
+| Payments | Give agents controlled access to compatible paid services with wallet and spending-limit controls. |
 
 ### 3.1 Choose the orchestration boundary {#section-3-1-agentcore-boundary}
 
@@ -111,7 +112,9 @@ AgentCore supplies modular services around an agent. Choose only the components 
 |---|---|
 | AgentCore | Agent execution needing managed runtime, tool connectivity, or the other modules above. |
 | Bedrock Agents Classic | Existing workloads using instructions, action groups, knowledge bases, versions/aliases, and agent traces. |
-| Step Functions | Known business states, retries, callbacks, and approval paths; it can invoke an agent as one bounded step. |
+| Step Functions | Known business states, retries, and approval paths; use a Standard workflow when a callback task token or long wait is required. It can invoke an agent as one bounded step. |
+
+Standard Workflows support `.waitForTaskToken`; Express Workflows support request-response integrations but not callback task tokens or `.sync` job runs. [Step Functions integration patterns](https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html).
 
 **Current availability:** AWS states that Agents Classic is closed to new customers; existing customers may continue using it. AWS points new implementations toward AgentCore. [Agents Classic notice](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html).
 
@@ -230,7 +233,7 @@ Ground Truth supports human labelling and, for supported tasks, **automated data
 
 An A2I human-review workflow defines the task interface, worker instructions, and assigned work team. Built-in integrations include supported Textract document extraction and Rekognition image-moderation tasks; custom workflows can review other model outputs. Activation conditions can include uncertainty or sampling for quality checks. Review results can inform the application and later dataset curation; review alone does not retrain a model. [A2I human-review documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-use-augmented-ai-a2i-human-review-loops.html).
 
-**A2I availability, checked 17 September 2026:** the [current AWS notice](https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-use-augmented-ai-a2i-human-review-loops.html) states that A2I is no longer open to new customers; existing customers can continue using it.
+**Ground Truth and A2I availability, checked 17 September 2026:** current AWS notices state that both services are no longer open to new customers; existing customers can continue using them. The concepts remain relevant to existing workloads and the current AIP-C01 in-scope list. [Ground Truth notice](https://docs.aws.amazon.com/sagemaker/latest/dg/sms.html) and [A2I notice](https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-use-augmented-ai-a2i-human-review-loops.html).
 
 **Workforce** means the pool of people; a **work team** is the group assigned work. Options include a private workforce and vendor-managed workers. Exam material may also name the public MTurk workforce. **Lifecycle note, checked 17 September 2026:** AWS announces that Mechanical Turk will permanently close on **30 September 2026**. Retain the exam association, but consult the notice when selecting a workforce. Public-worker tasks must not contain confidential or personal data. [Workforce options](https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management.html) and [MTurk notice and restrictions](https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management-public.html).
 
@@ -264,6 +267,8 @@ For Bedrock applications, use the relevant **model evaluation**, **CloudWatch me
 | **Kendra** | Enterprise connectors, organizational search, and supported document-ACL integration dominate. | Verify connector/index/API support, ACL ingestion, and user/group synchronization. |
 
 These operate at different levels. Knowledge Bases can use supported stores or retrievers; a custom application can query OpenSearch or Kendra and then invoke a model. Do not create multiple copies of a corpus without explicit ownership and freshness requirements.
+
+**Kendra availability, checked 17 September 2026:** Kendra entered maintenance mode on 30 June 2026 and is closed to new customers from 30 July 2026. Existing customers remain supported; AWS recommends Amazon Bedrock Knowledge Bases for new search applications while documenting feature gaps that must be assessed during migration. Kendra remains in the current AIP-C01 in-scope list, so its behavior is still exam-relevant. [Kendra availability and migration guidance](https://docs.aws.amazon.com/kendra/latest/dg/kendra-availability-change.html).
 
 For Bedrock integration, `Retrieve` returns evidence for application-controlled context assembly; `RetrieveAndGenerate` combines retrieval and generation. Check source attribution, supported reranking/search options, and the source/store/model combination. [Knowledge Bases documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html).
 
@@ -352,6 +357,8 @@ For an AI application, configuration evidence might show that logging is enabled
 
 Sources: [Audit Manager overview](https://docs.aws.amazon.com/audit-manager/latest/userguide/what-is.html) and [evidence and assessment concepts](https://docs.aws.amazon.com/audit-manager/latest/userguide/concepts.html).
 
+**Availability, checked 17 September 2026:** Audit Manager is in maintenance mode and cannot be set up in new accounts or additional Regions from 30 April 2026. Existing configured accounts can continue using it subject to the documented account, organization, and Region limits. AWS recommends evaluating AWS Config Conformance Packs for technical compliance controls, but explicitly notes that they do not replace Audit Manager's full framework evidence and audit-reporting functions. [Audit Manager availability guidance](https://docs.aws.amazon.com/audit-manager/latest/userguide/audit-manager-availability-change.html).
+
 ## 7. Other AI services: compact lookup {#section-12-service-map}
 
 <span id="section-12-2-language"></span>
@@ -368,11 +375,14 @@ Use a purpose-built API or packaged assistant when it already meets the task. Th
 | Transcribe / Polly | Speech to text / text to speech. |
 | Translate | Text translation. |
 | Lex | Intent/slot-based voice and text conversations. |
-| Rekognition | Image/video analysis and supported custom visual labels. |
+| Rekognition | Image and supported stored-video analysis, plus supported custom visual labels; verify feature-level availability. |
 | Personalize | Recommendations and personalized ranking. |
 | Connect | Contact-centre workflows and conversation assistance/analytics. |
-| Q Business | Managed organizational assistant with connected enterprise content. |
+| Q Business | Existing-customer organizational assistant with connected enterprise content; the service is in maintenance mode. |
+| Quick | Current managed work assistant for connected enterprise data, analysis, workflows, and agentic actions. |
 | Q Developer | Coding and supported AWS development assistance. |
+
+**Q Business availability, checked 17 September 2026:** Q Business is closed to new customers; existing customers remain supported, and AWS recommends Amazon Quick for new implementations and migration. Both appear in the current AIP-C01 in-scope list. [Q Business availability and migration guidance](https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/qbusiness-availability-change.html).
 
 ### 7.1 Recognition: text entities versus computer vision {#recognition-extraction}
 
@@ -388,6 +398,8 @@ Use a purpose-built API or packaged assistant when it already meets the task. Th
 Comprehend entity detection assigns types to text spans. Key phrase extraction returns noun phrases and confidence scores; it does not require a predefined entity type and is not a generated summary. Use `DetectEntities` and `DetectKeyPhrases` for their respective tasks. [Comprehend entities](https://docs.aws.amazon.com/comprehend/latest/dg/how-entities.html) and [key phrases](https://docs.aws.amazon.com/comprehend/latest/dg/how-key-phrases.html).
 
 Rekognition analyzes visual content, with capabilities including labels, faces, image text, and moderation. A face detection is not automatically identification of a named person. For a scanned contract, OCR followed by Comprehend can extract named parties; detecting objects in a photograph is a different task. [Rekognition visual labels](https://docs.aws.amazon.com/rekognition/latest/dg/labels.html).
+
+The core service remains available, but **Rekognition Streaming Events and Batch Image Content Moderation are closed to new customers**. Do not infer availability of those features from general Rekognition image/video support. [AWS services in maintenance](https://docs.aws.amazon.com/general/latest/gr/maintenance_services.html).
 
 ## 8. Continue to certification preparation {#section-13-practice-traps}
 

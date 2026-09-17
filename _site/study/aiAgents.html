@@ -66,7 +66,7 @@
 
 <p>Use this page to understand systems in which a model chooses tools or next steps. The safest default is a deterministic workflow with narrowly bounded model decisions.</p>
 
-<p><strong>Part 5 of 7:</strong> <a href="/study/aiKnowledgebases">Knowledge bases</a> → <strong>AI Agents</strong> → <a href="/study/aiInfrastructure">Infrastructure and evaluation</a>. Retrieval quality is already established before an agent uses retrieved evidence; this page focuses on runtime decisions and side effects.</p>
+<p><strong>Part 5 of 7:</strong> <a href="/study/aiKnowledgebases">Knowledge bases</a> → <strong>AI Agents</strong> → <a href="/study/aiInfrastructure">Infrastructure and evaluation</a>. The preceding page explains retrieval; this page focuses on runtime decisions and side effects. An agent can change retrieval queries and context, so the integrated system still needs evaluation.</p>
 
 <h2 id="section-1-boundaries">1. LLM, tool use, workflow, and agent</h2>
 
@@ -78,6 +78,8 @@
   <li>A single function call is tool use, not necessarily an agent.</li>
   <li>“Agentic” means the model has meaningful runtime discretion over action or sequence.</li>
 </ul>
+
+<p>These are working definitions for LLM applications; usage of “agent” varies. The workflow-versus-agent distinction follows <a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic’s architecture guidance</a>.</p>
 
 <div class="image-wrapper">
   <img src="./assets/ai_agent_architecture.png" alt="AI agent architecture" class="modal-trigger" data-caption="Bounded agent controller, model, state, tools, and approval" />
@@ -229,10 +231,10 @@ Agent --> User: Result, partial result, or escalation
 
 <ul>
   <li>The Model Context Protocol standardizes how clients discover and use tools, resources, and prompts from servers.</li>
-  <li>MCP improves interoperability; it does not create trust or authorization.</li>
+  <li>MCP improves interoperability and defines authorization mechanisms for applicable transports; it does not make a server trustworthy or replace application authorization.</li>
   <li>Treat an MCP server as:
     <ul>
-      <li>a network dependency;</li>
+      <li>a local process dependency (stdio) or HTTP service dependency, local or remote (Streamable HTTP);</li>
       <li>a software supply-chain dependency;</li>
       <li>a source of untrusted content;</li>
       <li>a holder of potentially powerful credentials.</li>
@@ -240,7 +242,7 @@ Agent --> User: Result, partial result, or escalation
   </li>
   <li>Controls:
     <ul>
-      <li>authenticate client and server;</li>
+      <li>use appropriate HTTP authentication/authorization, or local process and OS permission controls for stdio;</li>
       <li>allowlist servers and capabilities;</li>
       <li>expose only required tools/resources;</li>
       <li>keep credentials outside model-visible context;</li>
@@ -251,6 +253,8 @@ Agent --> User: Result, partial result, or escalation
   </li>
   <li>A malicious resource may tell the model to ignore policy or exfiltrate data; instruction hierarchy alone is not an adequate defence.</li>
 </ul>
+
+<p>The transport distinction matters: a local stdio server is not automatically a network service. See the <a href="https://modelcontextprotocol.io/specification/2025-11-25/basic/transports">MCP transport specification</a> and <a href="https://modelcontextprotocol.io/docs/2025-11-25/tutorials/security/security_best_practices">security guidance</a>.</p>
 
 <h2 id="section-7-multi-agent">7. Multi-agent systems</h2>
 
@@ -316,7 +320,7 @@ Agent --> User: Result, partial result, or escalation
 
 <h2 id="section-9-evaluation">9. Evaluation and observability</h2>
 
-<p>Evaluate the <strong>agent loop</strong>, not retrieval or answer grounding again. For those RAG measurements, see <a href="/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well">AI Knowledge Bases</a>; for release gates and operational evaluation, see <a href="/study/aiInfrastructure#section-12-evaluation">AI Infrastructure and Evaluation</a>.</p>
+<p>Evaluate the <strong>agent loop alongside retrieval and final-answer quality</strong>. A valid tool sequence can still retrieve poor evidence or produce an unsupported answer. Reuse the <a href="/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well">RAG measurements</a> in end-to-end agent tests; apply the <a href="/study/aiInfrastructure#section-12-evaluation">shared release gates</a>.</p>
 
 <ul>
   <li>Offline scenarios should test:
@@ -327,10 +331,14 @@ Agent --> User: Result, partial result, or escalation
       <li>tool timeout/error recovery;</li>
       <li>loop termination;</li>
       <li>prompt-injection resistance;</li>
-      <li>task completion within budget.
-Record proposed action, policy/approval decision, execution result, state transition, and stop reason as spans in the <a href="/study/aiInfrastructure#section-11-observability">shared request trace</a>.</li>
+      <li>task completion within budget.</li>
     </ul>
   </li>
+</ul>
+
+<p>Record proposed action, policy/approval decision, execution result, state transition, and stop reason as spans in the <a href="/study/aiInfrastructure#section-11-observability">shared request trace</a>.</p>
+
+<ul>
   <li>Key metrics:
     <ul>
       <li>task completion rate;</li>

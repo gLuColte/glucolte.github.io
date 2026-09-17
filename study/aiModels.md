@@ -6,6 +6,7 @@ tag:
   - small and large language models
   - multimodal models
   - generative models
+  - generative adversarial networks (GANs)
   - embedding models
   - reasoning models
   - fine-tuning
@@ -131,9 +132,13 @@ These terms answer different questions: **what output does the model produce**, 
 | **Embedding model** | Text/image/other supported input → numerical vector | Similarity search, clustering, and retrieval. The vector itself is not a written answer. |
 | **Multimodal model** | More than one modality, such as text and images | Answer a question about a photograph, or map image/text into a shared embedding space. |
 
-In RAG, an embedding model finds related evidence and a generative model writes the response from that evidence. A multimodal embedding model can retrieve an image from a text query without generating an image. [AWS embeddings overview](https://aws.amazon.com/what-is/embeddings/) and [Titan Multimodal Embeddings](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-multiemb-models.html).
+In vector-based RAG, an embedding model encodes the query and content; a **retriever searches the index** for related evidence, and a generative model writes the response. RAG can also use lexical or structured retrieval without an embedding model. A multimodal embedding model can support retrieving images from text queries without generating images. [AWS embeddings overview](https://aws.amazon.com/what-is/embeddings/) and [Titan Multimodal Embeddings](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-multiemb-models.html).
 
 Check **input and output modalities separately**: accepting images and returning text does not imply image generation. “Multimodal” does not guarantee support for every combination of text, images, audio, and video. AWS lists these separately in its [Nova model capability table](https://docs.aws.amazon.com/nova/latest/nova2-userguide/what-is-nova-2.html).
+
+#### Generative model families {#generative-model-families}
+
+Generative AI is broader than LLMs. For example, a **generative adversarial network (GAN)** trains a generator to produce samples and a discriminator to distinguish generated samples from training examples. The discriminator's learning signal guides the generator; successful training is not guaranteed. This is different from the next-token prediction objective in the LLM walkthrough. [Original GAN paper](https://arxiv.org/abs/1406.2661).
 
 ### 3.3 Adapt the model only when the problem calls for it {#model-adaptation}
 
@@ -143,14 +148,14 @@ Choose according to what needs to change:
 
 | Approach | What changes? | Choose it when | Do not choose it when |
 |---|---|---|---|
-| **Prompt engineering** | Current request only | A clear instruction, examples, or output schema can solve the task | Facts must stay current or behaviour is still inconsistent after evaluation |
-| **RAG** | Current runtime context | Knowledge changes often, is private, needs citations, or must respect document ACLs | The real problem is stable style or repeated input→output behaviour |
+| **Prompt engineering** | Current request only | A clear instruction, examples, or output schema can solve the task | Prompt wording alone cannot supply missing current/private facts; combine it with retrieval or tools |
+| **RAG** | Current runtime context | Knowledge changes often, is private, needs citations, or must respect document ACLs | Retrieval alone will not reliably teach stable style or repeated input→output behaviour |
 | **Supervised fine-tuning (SFT)** | Selected model weights | Many labelled examples should make a narrow task, terminology, tone, or structure more consistent | You need a searchable, frequently changing knowledge base |
 | **Continued pre-training** | Model weights, using a large domain corpus | The model needs broad domain-language adaptation before downstream tasks | A small set of instructions or current documents is sufficient |
 
 **Instruction tuning** is a form of post-training that teaches a model to follow instructions and preferred response patterns. In practice, SFT often uses instruction/input → desired-output examples. It is not a document lookup mechanism.
 
-**PEFT / LoRA** are parameter-efficient fine-tuning ideas: instead of updating every base-model weight, training learns a small set of added or low-rank parameters. They reduce customization compute/storage and can make serving several task adaptations practical. They still change model behaviour and need the same evaluation, versioning, and rollback discipline as any other customization.
+**Parameter-efficient fine-tuning (PEFT)** is a family of methods that trains a small subset of existing or added parameters. **LoRA** is one such method: it learns low-rank weight updates while freezing the base weights. These approaches can reduce training memory and adaptation storage, but still require evaluation, versioning, and rollback. [PEFT methods](https://huggingface.co/docs/peft/index).
 
 **Catastrophic forgetting** is a customization risk: aggressive or narrow training can degrade capabilities the base model previously had. Keep holdout tests for both the target task and important general/safety behaviours.
 
@@ -165,8 +170,8 @@ For AWS-specific customization capabilities and lifecycle decisions, see [AWS AI
 | **Training set** | Updates model parameters | The examples the model learns from |
 | **Validation set** | Selects hyperparameters, checkpoints, thresholds, or early stopping | Does not directly update weights during that training run; it influences model selection |
 | **Test set** | Estimates performance after development choices are fixed | Keep it held out from training and tuning |
-| **Epoch** | One full pass through the training set | More epochs increase learning *and* overfitting/cost risk |
-| **Batch size** | Examples processed before one parameter update | A training-efficiency/stability control, not an inference setting |
+| **Epoch** | One full pass through the training set | More epochs add compute; held-out quality may improve, plateau, or deteriorate |
+| **Training batch size** | Examples processed together during training | The effective batch per update also depends on gradient accumulation and distributed workers; serving has a separate inference-batching concept |
 | **Learning rate** | Step size of each parameter update | Too high can destabilize training; too low learns slowly |
 
 Use a representative, deduplicated, permissioned dataset. Check label quality, class/edge-case coverage, PII/licensing, and train/validation/test leakage before interpreting a good score.
@@ -204,9 +209,9 @@ Human preferences supply the training signal; a person does not have to approve 
 
 <span id="make-a-customized-model-smaller-only-after-measuring-quality"></span>
 
-- **Distillation** trains a smaller *student* to approximate a stronger *teacher*. Choose it when the target is lower serving cost/latency while retaining enough task quality.
+- **Distillation** trains a *student* using a teacher's outputs or other learned signals. For compression, the student is usually smaller; distillation does not inherently require different model sizes. Choose it when measured task quality justifies the serving savings.
 - **Quantization** stores or computes weights with lower precision. It usually reduces memory and can improve throughput, but can reduce quality or hardware compatibility.
-- Neither fixes stale knowledge. Re-evaluate quality, safety, latency, and cost on the same workload after either change.
+- Neither guarantees current knowledge. Distillation transfers what its teaching data supports; quantization changes numerical representation. Re-evaluate quality, safety, latency, and cost after either change.
 
 ## 4. Open weights versus managed models {#section-4-deployment}
 
@@ -237,17 +242,19 @@ Treat this as an ecosystem map, not a permanent ranking.
 |---|---|---|---|
 | **OpenAI** | **GPT** | Hosted general-purpose reasoning, coding, multimodal, structured-output, and tool models | OpenAI API and OpenAI applications |
 | **Anthropic** | **Claude** | Hosted reasoning, coding, long-context, and agent/tool workloads | Claude API, Amazon Bedrock, Google Cloud, and other supported platforms |
-| **Google / Google DeepMind** | **Gemini** and **Gemma** | Multimodal models with strong Google Cloud/data integration | Gemini Developer API and Vertex AI |
+| **Google / Google DeepMind** | **Gemini** and **Gemma** | Gemini includes managed multimodal models; Gemma provides open-weight models | Gemini API / Vertex AI for supported Gemini models; local, self-hosted, or supported hosted deployment for Gemma |
 | **DeepSeek** | **DeepSeek** | Reasoning/coding with low-cost APIs and open-weight options | DeepSeek API, compatible API formats, and self/third-party hosting |
 | **Meta** | **Llama** | Open-weight ecosystem with many sizes and community serving stacks | Self-hosting and many cloud/model hosts |
 | **Mistral AI** | **Mistral and Mixtral** families | Hosted and open-weight models, often emphasizing efficient deployment | Mistral API, self-hosting, and cloud/model hosts |
 | **Cohere** | **Command, Embed, and Rerank** | Enterprise generation plus dedicated retrieval and ranking models | Cohere API and supported cloud platforms |
-| **Amazon** | **Nova** generation models and **Titan** embedding/model families | AWS-native model families and managed delivery | Amazon Bedrock |
+| **Amazon** | **Nova** and **Titan** | Generation and embedding models; supported modalities depend on the exact model | Amazon Bedrock and other documented model-specific access paths |
 
 - GPT is a model family; ChatGPT is an application that uses models and additional product services.
 - Claude is Anthropic's model family; Claude.ai is an application, while Claude can also be invoked through other platforms.
 - Gemini is used as both a model-family and product brand, so record the exact API model ID and access path.
 - For every evaluation, record the exact model ID, API/access path, Region, date, and configuration.
+
+Provider references: [Claude models](https://platform.claude.com/docs/en/models/overview), [Gemini](https://ai.google.dev/gemini-api/docs/models), [Gemma](https://ai.google.dev/gemma/docs), [Cohere](https://docs.cohere.com/docs/models), and [Mistral](https://docs.mistral.ai/models). Family membership does not guarantee that every model supports the same features or access paths.
 
 ## 6. Compare cost using the workload {#section-6-pricing}
 
@@ -259,7 +266,7 @@ request cost ≈
   + output_tokens / 1,000,000 × output_rate
 ```
 
-- Include cached-input, reasoning, long-context, tool, retrieval, retry, capacity, and data-transfer charges that apply to the route.
+- Use the provider's billable token categories: reasoning tokens may already be included in billed output, and cached input may have a separate rate. Do not count the same tokens twice. Add applicable tool, retrieval, retry, capacity, and data-transfer charges.
 - Compare **cost per successful task**, using realistic input/output distributions and failure rates—not only a headline token price.
 - Consumer subscriptions are product access, not interchangeable API credits.
 
@@ -277,7 +284,7 @@ Official references:
 ```text
 request → policy + difficulty classifier
           ├─ simple classification/extraction → small model
-          ├─ retrieve documents              → embedding model
+          ├─ vector retrieval                → embedding model + index search
           ├─ reorder candidates              → reranker
           ├─ normal generation               → general model
           └─ difficult reasoning             → reasoning model

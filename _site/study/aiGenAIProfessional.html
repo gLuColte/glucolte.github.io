@@ -66,7 +66,7 @@
 
 <p>Prepare for <strong>AWS Certified Generative AI Developer – Professional (AIP-C01)</strong> as an architecture and production-integration exam. This page assumes the concepts from the dedicated <a href="/study/#ai">AI learning pages</a>, then brings them together as one architecture journey: begin with a simple model request, change the design as requirements appear, and defend each choice against plausible alternatives.</p>
 
-<p><strong>Blueprint checked: 11 September 2026.</strong> The current guide has five domains: Foundation Model Integration, Data Management, and Compliance (31%); Implementation and Integration (26%); AI Safety, Security, and Governance (20%); Operational Efficiency and Optimization (12%); and Testing, Validation, and Troubleshooting (11%). It validates integration of foundation models into production applications and business workflows. <a href="https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html">Current AIP-C01 exam guide</a>.</p>
+<p><strong>Blueprint checked: 17 September 2026.</strong> The current guide has five domains: Foundation Model Integration, Data Management, and Compliance (31%); Implementation and Integration (26%); AI Safety, Security, and Governance (20%); Operational Efficiency and Optimization (12%); and Testing, Validation, and Troubleshooting (11%). It validates integration of foundation models into production applications and business workflows. <a href="https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html">Current AIP-C01 exam guide</a>.</p>
 
 <blockquote>
   <p><strong>The governing rule:</strong> identify the decisive constraint first. Requirements beat defaults, rules of thumb, and fashionable architectures.</p>
@@ -260,8 +260,8 @@
       </tr>
       <tr>
         <td>Human approval</td>
-        <td>Step Functions callback/approval workflow</td>
-        <td>Persists state while waiting and resumes from an explicit decision.</td>
+        <td>Step Functions <strong>Standard</strong> callback/approval workflow</td>
+        <td>Persists state while waiting and resumes from an explicit decision. Express workflows do not support callback task tokens.</td>
         <td>A waiting Lambda consumes duration and loses durable workflow visibility.</td>
       </tr>
       <tr>
@@ -471,6 +471,8 @@
     </tr>
   </tbody>
 </table>
+
+<p>Choose the workflow type deliberately. <strong>Standard Workflows</strong> can run for up to one year and support <code class="language-plaintext highlighter-rouge">.sync</code> job runs and <code class="language-plaintext highlighter-rouge">.waitForTaskToken</code> callbacks. <strong>Express Workflows</strong> run for up to five minutes and support request-response integrations, but not <code class="language-plaintext highlighter-rouge">.sync</code>, callback task tokens, Distributed Map, or Activities. Their execution guarantees also differ: Standard is exactly-once unless retries are configured; asynchronous Express is at-least-once, and synchronous Express is at-most-once. Continue to make external side effects idempotent because configured retries, timeouts, and uncertain downstream outcomes can still repeat an operation. <a href="https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html">Step Functions workflow types</a> and <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html">service integration patterns</a>.</p>
 
 <figure class="aws-architecture" aria-labelledby="workflow-caption">
   <div class="aws-architecture__title">A controlled document workflow<span class="aws-architecture__subtitle">Step Functions owns progress; individual services perform bounded tasks.</span></div>
@@ -987,7 +989,7 @@
     </tr>
     <tr>
       <td>Geographic cross-Region inference</td>
-      <td>More capacity/resilience is needed while processing must stay inside an approved geography such as EU, US, or APAC.</td>
+      <td>A broader destination compute pool is needed while processing must stay inside an approved geography such as EU, US, or APAC.</td>
       <td>Prompts/outputs can move among destination Regions in the profile; IAM/SCPs must allow the necessary resources/Regions. It does not satisfy a strict single-Region rule.</td>
     </tr>
     <tr>
@@ -1057,8 +1059,8 @@
     </tr>
     <tr>
       <td>Cross-Region inference</td>
-      <td>Regional capacity/resilience requirement; geographic/global routing is allowed.</td>
-      <td>Broader compute pool and possible eligible pricing benefit; adds destination, IAM/SCP, compliance, and latency analysis.</td>
+      <td>A broader destination compute pool is required and geographic/global routing is allowed.</td>
+      <td>Broader compute pool and possible eligible pricing benefit; adds destination, IAM/SCP, compliance, and latency analysis. It does not by itself fail over the application’s source-Region endpoint.</td>
       <td>Choosing global routing when residency limits processing geography.</td>
     </tr>
   </tbody>
@@ -1219,7 +1221,7 @@
   </tbody>
 </table>
 
-<p>Amazon Bedrock evaluations support automatic, LLM-as-a-judge, human-worker, model, and RAG evaluation patterns subject to current model/Region support. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html">Bedrock evaluation options</a>. Use automated judges as measurements, not unquestionable ground truth.</p>
+<p>Amazon Bedrock evaluations support automatic model evaluations, judge-model evaluations, human-based model evaluations, and automated or human-based RAG evaluations, subject to the documented model, dataset, and Region support. They can evaluate supported Bedrock resources and supplied results from external models or RAG systems. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html">Bedrock evaluation options</a>. Use automated judges as measurements, not unquestionable ground truth.</p>
 
 <h2 id="wording-reflex">7. Turn understanding into exam reflexes</h2>
 
@@ -1266,8 +1268,8 @@
     </tr>
     <tr>
       <td>“human approval”</td>
-      <td>Step Functions callback/approval</td>
-      <td>Persist decision, timeout, escalation, and audit state.</td>
+      <td>Step Functions Standard callback/approval</td>
+      <td>Persist decision, timeout, escalation, and audit state; Express does not support <code class="language-plaintext highlighter-rouge">.waitForTaskToken</code>.</td>
     </tr>
     <tr>
       <td>“real-time incremental response”</td>
@@ -1384,7 +1386,7 @@
   <ul>
     <li><strong>Requirements:</strong> multi-step, parallel, conditional, human approval, durable state, targeted retries.</li>
     <li><strong>Decisive constraint:</strong> the workflow must survive waits and partial failure.</li>
-    <li><strong>Best architecture:</strong> S3 event → EventBridge → Step Functions; extraction/preprocessing tasks; <code class="language-plaintext highlighter-rouge">Parallel</code> checks; <code class="language-plaintext highlighter-rouge">Choice</code>; callback approval; idempotent Lambda/API business action.</li>
+    <li><strong>Best architecture:</strong> S3 event → EventBridge → Step Functions Standard workflow; extraction/preprocessing tasks; <code class="language-plaintext highlighter-rouge">Parallel</code> checks; <code class="language-plaintext highlighter-rouge">Choice</code>; callback approval; idempotent Lambda/API business action.</li>
     <li><strong>Why:</strong> workflow state and error boundaries are explicit and inspectable.</li>
     <li><strong>Why alternatives fail:</strong> one Lambda risks timeout and repeats completed side effects; an agent adds autonomy where business rules already define the path.</li>
     <li><strong>What would change the answer:</strong> if the path through diagnostic tools cannot be predetermined, use an agent for that reasoning stage and return to Step Functions for approval/action.</li>
@@ -1492,7 +1494,7 @@
   <ul>
     <li><strong>Requirements:</strong> content/PII filtering plus deterministic authorization and financial limits.</li>
     <li><strong>Decisive constraint:</strong> probabilistic safety and business authorization are different controls.</li>
-    <li><strong>Best architecture:</strong> Guardrails on relevant input/output; trusted identity; scoped IAM/application authorization; schema/amount/account validation in the refund API; Step Functions/human approval above threshold; audit and trace.</li>
+    <li><strong>Best architecture:</strong> Guardrails on relevant input/output; trusted identity; scoped IAM/application authorization; schema/amount/account validation in the refund API; Step Functions Standard callback/human approval above threshold; audit and trace.</li>
     <li><strong>Why:</strong> Guardrails handle supported AI-safety policies while code/workflow controls enforce money and tenancy.</li>
     <li><strong>Why alternatives fail:</strong> a prompt saying “refund only this account” is not authorization; IAM alone does not inspect harmful text; Guardrails alone do not implement transaction rules.</li>
     <li><strong>What would change the answer:</strong> a read-only bot may not need the action workflow, but still needs safety and data authorization.</li>
@@ -1538,18 +1540,18 @@
 
 <h3 id="scenario-11-cross-region-capacity-without-residency-limits">Scenario 11: cross-Region capacity without residency limits</h3>
 
-<p><strong>Scenario:</strong> A global consumer application experiences Regional throttling. It has no geographic processing restriction and wants greater capacity and resilience with minimal routing code.</p>
+<p><strong>Scenario:</strong> A global consumer application experiences Regional throttling. It has no geographic processing restriction and wants a broader inference-capacity pool with minimal destination-routing code.</p>
 
 <details>
   <summary>Architecture reasoning</summary>
 
   <ul>
-    <li><strong>Requirements:</strong> broader capacity/resilience, no geography constraint, low custom routing effort.</li>
+    <li><strong>Requirements:</strong> broader destination capacity, no geography constraint, low custom routing effort.</li>
     <li><strong>Decisive constraint:</strong> Bedrock may route worldwide.</li>
     <li><strong>Best architecture:</strong> evaluate a supported global cross-Region inference profile; configure IAM/SCPs, quotas, monitoring, and fallback behavior.</li>
-    <li><strong>Why:</strong> the managed profile selects capacity across supported commercial Regions without custom regional routers.</li>
+    <li><strong>Why:</strong> the managed profile selects inference capacity across supported commercial Regions without custom destination routing.</li>
     <li><strong>Why alternatives fail:</strong> geographic routing unnecessarily limits the pool if no boundary/other requirement prefers it; DIY replication/routing adds operations; Provisioned Throughput is a different fixed-capacity choice and is not supported by inference profiles.</li>
-    <li><strong>What would change the answer:</strong> any geographic restriction rules out global routing; stable measured demand might justify evaluating Provisioned Throughput instead.</li>
+    <li><strong>What would change the answer:</strong> any geographic restriction rules out global routing; stable measured demand might justify evaluating Provisioned Throughput instead. If the requirement includes failure of the source-Region application or Bedrock endpoint, add an application/client multi-Region failover design; an inference profile alone does not provide that entry-point failover.</li>
   </ul>
 
 </details>
@@ -1711,7 +1713,7 @@
   <li>Why is the nearest plausible answer inferior, and what requirement change would make it correct?</li>
 </ol>
 
-<p>Use AWS’s <a href="https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/aip-01-in-scope-services.html">in-scope services list</a> for breadth and the current service documentation for behavior. Older beta experiences can suggest practice areas, but they cannot overrule the current guide. The durable lesson is: <strong>know how AWS expects production GenAI systems to be architected, and understand the trade-offs between valid architectures.</strong></p>
+<p>Use AWS’s <a href="https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/aip-01-in-scope-services.html">in-scope services list</a> for breadth and the current service documentation for behavior. In-scope does not mean recommended for a new deployment: the current list still includes services in maintenance mode such as Kendra, Q Business, A2I, Ground Truth, Clarify, and Model Monitor. Learn their exam distinctions, then follow their current availability and migration notices for implementation. <a href="https://docs.aws.amazon.com/general/latest/gr/maintenance_services.html">AWS services in maintenance</a>. Older beta experiences can suggest practice areas, but they cannot overrule the current guide. The durable lesson is: <strong>know how AWS expects production GenAI systems to be architected, and understand the trade-offs between valid architectures.</strong></p>
 
     </article>
   </main>

@@ -202,7 +202,7 @@ Examples show desired behaviour. **Decomposition** breaks difficult work into ma
   <figcaption class="prompt-note" id="reasoning-caption">Intermediate structured outputs—issue lists, evidence, tool results—make a workflow inspectable.</figcaption>
 </figure>
 
-**Chain-of-thought (CoT)** refers to intermediate reasoning before an answer. “Think step by step” is not a universal quality switch, and exposing hidden reasoning is not required. Ask for useful deliverables, such as a plan and supporting evidence. A plausible explanation or self-check is not proof; verify calculations and consequential decisions with authoritative tools or application checks. Additional reasoning can add latency and token cost.
+**Chain-of-thought (CoT)** refers to intermediate reasoning before an answer. The [original CoT prompting study](https://arxiv.org/abs/2201.11903) demonstrated gains from worked reasoning examples on particular models and tasks; “think step by step” is not a universal quality switch. Exposing hidden reasoning is not required. Ask for useful deliverables, such as a plan and supporting evidence. A plausible explanation or self-check is not proof; verify calculations and consequential decisions with authoritative tools or application checks. Additional reasoning can add latency and token cost.
 
 ## 6. Turn a working prompt into a template {#templates}
 

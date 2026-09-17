@@ -42,7 +42,7 @@ user → identity → API/application → authorization → AI orchestrator
 - **Guardrails/validators** inspect requests and responses but do not replace identity, authorization, or domain rules.
 - **Observability/evaluation** surrounds every component; it is not a final model-only check.
 
-## 2. Platform adoption and ownership {#section-2-company-adoption}
+## 2. Ownership, data governance, and responsible AI {#section-2-company-adoption}
 
 A company can run several maturity patterns at once; use the least complex one that safely serves the workload.
 
@@ -152,7 +152,7 @@ AWS describes eight dimensions, often called pillars in study material. The exam
 
 ## 6. AI-specific security threats {#section-6-security}
 
-- **Direct prompt injection**: user asks the model to ignore policy.
+- **Direct prompt injection**: a caller supplies instructions intended to override the application's intended behaviour; this can be more subtle than explicitly asking it to ignore policy.
 - **Indirect prompt injection**: retrieved document, email, web page, or tool result contains malicious instructions.
 - **Jailbreaking**: a user attempts to bypass the model or application's intended behavioural and safety restrictions.
 - **Data exfiltration**: model sends sensitive context through a permitted tool, URL, or external message.
@@ -206,9 +206,12 @@ Delimiters and a clear instruction hierarchy help the model distinguish instruct
 ## 9. Latency engineering {#section-9-latency}
 
 ```text
-total latency = network + identity + retrieval + reranking + context build
-              + model input processing + model output generation + tools
+serial request latency ≈ queueing + network + identity + retrieval
+                       + reranking + context build + model prefill
+                       + model decoding + tools
 ```
+
+This is a serial-path approximation. Concurrent stages overlap, while agent loops, retries, and additional model calls add work to the critical path. Measure end-to-end latency directly; component p95 values cannot simply be added to obtain end-to-end p95.
 
 - Measure p50, p95, and p99 for every component and end-to-end task.
 - Optimize the actual bottleneck:
@@ -221,7 +224,7 @@ total latency = network + identity + retrieval + reranking + context build
   - stream output for faster perceived response;
   - move long tasks to asynchronous jobs.
 - Streaming improves time to first visible token but does not reduce total compute or make output safe before validation.
-- Output tokens are sequential and often dominate generation latency; cap verbosity when the task allows it.
+- Autoregressive output dependencies often make decoding a major latency cost; cap verbosity when the task allows it. Speculative decoding and serving optimizations can change the amount of work per emitted token.
 
 ## 10. Cost engineering {#section-10-cost}
 
@@ -354,7 +357,7 @@ These measure different things. A system can be efficient but unpopular, or sati
   - define observable rubric levels;
   - blind model identity and randomize answer order;
   - include calibrated examples;
-  - compare multiple judges or deterministic checks;
+  - compare judges with deterministic checks where possible; multiple judges can share errors;
   - measure agreement with expert humans;
   - manually review disagreements and high-impact failures.
 - Human evaluation:
@@ -363,6 +366,8 @@ These measure different things. A system can be efficient but unpopular, or sati
   - provide consistent grading guidance;
   - track inter-rater agreement;
   - turn confirmed failures into regression cases.
+
+These are empirically observed limitations, not only theoretical concerns: [the MT-Bench judge study](https://arxiv.org/abs/2306.05685) examines position, verbosity, and self-enhancement biases. Agreement with another model is not a substitute for an appropriate human or reference standard.
 
 ## 15. Production evaluation and release gates {#section-15-production-eval}
 

@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520" role="img" aria-labelledby="title description">
   <title id="title">Softmax probabilities at temperatures 1.2, 0.9, 0.5, and 0.1</title>
-  <desc id="description">Grouped bar chart showing that temperature 1.2 produces a flatter distribution, while lower temperatures make Paris more dominant. Paris has probabilities 45.1, 53.2, 73.4, and 99.9 percent at temperatures 1.2, 0.9, 0.5, and 0.1 respectively.</desc>
+  <desc id="description">Grouped bar chart showing that temperature 1.2 produces a flatter distribution, while lower temperatures make Paris more dominant. Paris has probabilities 45.1, 53.1, 73.4, and 99.9 percent at temperatures 1.2, 0.9, 0.5, and 0.1 respectively.</desc>
   <rect width="1100" height="520" rx="18" fill="#f8fafc"/>
   <text x="550" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a">Softmax turns scaled logits into different probability distributions</text>
-  <text x="550" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">Each colour is the Stage 7 probability output for the same France prompt at a different temperature.</text>
+  <text x="550" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#475569">Toy vocabulary: softmax over the five shown tokens, at different temperatures.</text>
   <g font-family="Arial, sans-serif" font-size="14" fill="#334155">
     <rect x="330" y="88" width="16" height="16" rx="3" fill="#3b82f6"/><text x="354" y="101">T = 1.2</text>
     <rect x="450" y="88" width="16" height="16" rx="3" fill="#14b8a6"/><text x="474" y="101">T = 0.9</text>
@@ -14,13 +14,13 @@
   <g font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="end"><text x="103" y="405">0%</text><text x="103" y="349">20%</text><text x="103" y="293">40%</text><text x="103" y="237">60%</text><text x="103" y="181">80%</text><text x="103" y="125">100%</text></g>
   <text x="28" y="260" transform="rotate(-90 28 260)" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#475569">Probability after softmax</text>
   <g>
-    <!-- Paris --> <rect x="132" y="273.7" width="22" height="126.3" rx="4" fill="#3b82f6"/><rect x="158" y="251.0" width="22" height="149.0" rx="4" fill="#14b8a6"/><rect x="184" y="194.5" width="22" height="205.5" rx="4" fill="#f97316"/><rect x="210" y="120.3" width="22" height="279.7" rx="4" fill="#8b5cf6"/>
+    <!-- Paris --> <rect x="132" y="273.7" width="22" height="126.3" rx="4" fill="#3b82f6"/><rect x="158" y="251.3" width="22" height="148.7" rx="4" fill="#14b8a6"/><rect x="184" y="194.5" width="22" height="205.5" rx="4" fill="#f97316"/><rect x="210" y="120.3" width="22" height="279.7" rx="4" fill="#8b5cf6"/>
     <!-- Lyon --> <rect x="312" y="329.2" width="22" height="70.8" rx="4" fill="#3b82f6"/><rect x="338" y="331.1" width="22" height="68.9" rx="4" fill="#14b8a6"/><rect x="364" y="348.8" width="22" height="51.2" rx="4" fill="#f97316"/><rect x="390" y="399.7" width="22" height="0.3" rx="1" fill="#8b5cf6"/>
     <!-- Marseille --> <rect x="492" y="353.8" width="22" height="46.2" rx="4" fill="#3b82f6"/><rect x="518" y="361.1" width="22" height="38.9" rx="4" fill="#14b8a6"/><rect x="544" y="381.5" width="22" height="18.5" rx="4" fill="#f97316"/><rect x="570" y="399.9" width="22" height="0.1" rx="1" fill="#8b5cf6"/>
     <!-- Berlin --> <rect x="672" y="375.4" width="22" height="24.6" rx="4" fill="#3b82f6"/><rect x="698" y="383.2" width="22" height="16.8" rx="4" fill="#14b8a6"/><rect x="724" y="396.1" width="22" height="3.9" rx="3" fill="#f97316"/><rect x="750" y="399.9" width="22" height="0.1" rx="1" fill="#8b5cf6"/>
     <!-- Rome --> <rect x="852" y="388.0" width="22" height="12.0" rx="4" fill="#3b82f6"/><rect x="878" y="393.6" width="22" height="6.4" rx="3" fill="#14b8a6"/><rect x="904" y="399.2" width="22" height="0.8" rx="1" fill="#f97316"/><rect x="930" y="399.9" width="22" height="0.1" rx="1" fill="#8b5cf6"/>
   </g>
-  <g font-family="Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle"><text x="143" y="265" fill="#2563eb">45.1%</text><text x="169" y="242" fill="#0f766e">53.2%</text><text x="195" y="185" fill="#c2410c">73.4%</text><text x="221" y="111" fill="#7e22ce">99.9%</text></g>
+  <g font-family="Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle"><text x="143" y="265" fill="#2563eb">45.1%</text><text x="169" y="242" fill="#0f766e">53.1%</text><text x="195" y="185" fill="#c2410c">73.4%</text><text x="221" y="111" fill="#7e22ce">99.9%</text></g>
   <g font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155" text-anchor="middle"><text x="182" y="431">Paris</text><text x="362" y="431">Lyon</text><text x="542" y="431">Marseille</text><text x="722" y="431">Berlin</text><text x="902" y="431">Rome</text></g>
   <rect x="115" y="456" width="910" height="44" rx="9" fill="#e2e8f0"/><text x="570" y="483" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#334155">T = 1.2 flattens the distribution; lower temperatures concentrate probability on the leading token.</text>
 </svg>
