@@ -396,6 +396,8 @@ Vector candidates ──────┘
 
 <p><strong>Recall@5 = 3 / 4 = 75%</strong> — <em>“Did I find the relevant stuff?”</em></p>
 
+<p>For the underlying TP/FP/FN definitions, F1, and why accuracy can mislead on imbalanced data, see <a href="/study/aiInfrastructure#classification-metrics">classification metrics</a>. Here, K is the number of retrieved results; it is unrelated to the model’s next-token top-k sampling control. AWS-specific query and click trends are covered under <a href="/study/infrastructureAWSAiServices#kendra-search-analytics">Kendra Search Analytics</a>.</p>
+
 <p>MRR rewards placing the first useful result early; NDCG also accounts for graded relevance and ranking position. Use retrieval and answer metrics together, but never substitute one for the other:</p>
 
 <table>

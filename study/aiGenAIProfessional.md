@@ -1,6 +1,16 @@
 ---
 title: AWS AIP-C01 Architecture Decision Guide
 permalink: /study/aiGenAIProfessional
+tag:
+  - AWS Certified Generative AI Developer Professional
+  - AIP-C01
+  - Amazon Bedrock
+  - Amazon SageMaker AI
+  - retrieval-augmented generation (RAG)
+  - generative AI security
+  - AI governance
+  - model evaluation
+  - serverless architecture
 ---
 
 # AWS AIP-C01 Architecture Decision Guide

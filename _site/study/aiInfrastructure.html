@@ -136,6 +136,79 @@
 
 <p>A prototype becomes unsafe when it reaches production without those owners and controls. Conversely, do not centralize every feature before a repeated need exists. Measure adoption by completed business tasks, quality, risk, latency, and cost—not model-call volume.</p>
 
+<h3 id="data-virtualization">2.1 Data virtualization, ownership, and integrity</h3>
+
+<p><strong>Data virtualization</strong> exposes a logical view across data sources without first requiring all their data to be copied into one central store. Consumers query that view while source systems remain responsible for their records. Implementations may still cache or materialize results. <a href="https://aws.amazon.com/what-is/data-virtualization/">AWS’s data virtualization overview</a>.</p>
+
+<p>For an AI system, the architectural implication is that <strong>shared access still needs explicit ownership and integrity controls</strong>:</p>
+
+<ul>
+  <li><strong>Ownership:</strong> identify the source owner and system of record, who approves access, and who resolves incorrect records.</li>
+  <li><strong>Integrity:</strong> validate schemas, keys, joins, and transformations; retain lineage so a model input or answer can be traced to its source.</li>
+  <li><strong>Freshness and reproducibility:</strong> define cache expiry and source timestamps; preserve a versioned snapshot when reproducing training or evaluation results requires the same data.</li>
+  <li><strong>Access:</strong> enforce source entitlements through the logical view and any downstream caches, indexes, or exports.</li>
+</ul>
+
+<p>For example, a stock assistant can join warehouse and product views while each team owns its source records. An incorrect join can duplicate stock counts even when both sources are correct. Virtualization reduces unnecessary copies; it does not automatically repair data quality, transfer ownership, or provide consistent snapshots across independent systems. These are design responsibilities, consistent with AWS’s <a href="https://aws.amazon.com/blogs/big-data/how-novo-nordisk-built-a-modern-data-architecture-on-aws/">data ownership and governance architecture example</a>.</p>
+
+<h3 id="responsible-ai">2.2 Responsible AI dimensions</h3>
+
+<p>AWS describes eight dimensions, often called pillars in study material. The examples below translate them into controls for this architecture. <a href="https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/responsible-ai.html">AWS Responsible AI dimensions</a>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Dimension</th>
+      <th>Practical question</th>
+      <th>Example control</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Fairness</strong></td>
+      <td>Who experiences worse outcomes?</td>
+      <td>Evaluate error rates across relevant groups.</td>
+    </tr>
+    <tr>
+      <td><strong>Explainability</strong></td>
+      <td>Can an output be understood and assessed?</td>
+      <td>Provide validated feature-attribution information.</td>
+    </tr>
+    <tr>
+      <td><strong>Privacy and security</strong></td>
+      <td>Is data used appropriately and protected?</td>
+      <td>Minimize inputs and enforce access controls.</td>
+    </tr>
+    <tr>
+      <td><strong>Safety</strong></td>
+      <td>Could outputs or actions cause harm?</td>
+      <td>Test harmful requests and escalation paths.</td>
+    </tr>
+    <tr>
+      <td><strong>Controllability</strong></td>
+      <td>Can people steer or stop the system?</td>
+      <td>Human review, overrides, and rollback.</td>
+    </tr>
+    <tr>
+      <td><strong>Veracity and robustness</strong></td>
+      <td>Does it remain correct under difficult inputs?</td>
+      <td>Grounding checks and adversarial evaluation.</td>
+    </tr>
+    <tr>
+      <td><strong>Governance</strong></td>
+      <td>Who owns decisions and oversight?</td>
+      <td>Approval records, model documentation, and audits.</td>
+    </tr>
+    <tr>
+      <td><strong>Transparency</strong></td>
+      <td>Do stakeholders know how AI is being used?</td>
+      <td>Disclose purpose, limitations, and data practices.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Transparency concerns disclosure; explainability concerns understanding outputs.</strong> Publishing a model card improves transparency but does not by itself explain every prediction. A fluent generated explanation is not proof of the model’s actual decision process. AWS implementations include <a href="/study/infrastructureAWSAiServices#model-governance">Model Cards and Clarify</a> and <a href="/study/infrastructureAWSAiServices#audit-manager">Audit Manager</a>.</p>
+
 <h2 id="section-3-identity">3. Identity, authorization, and tenant isolation</h2>
 
 <ul>
@@ -448,6 +521,79 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
   <li><a href="/study/aiAgents#section-9-evaluation">AI Agents</a> own tool selection, action correctness, loop termination, and approval/escalation metrics.</li>
   <li>This page owns cross-cutting test datasets, judge/human calibration, release gates, incident learning, and production signals.</li>
 </ul>
+
+<h3 id="classification-metrics">12.1 Precision, recall, F1, and accuracy</h3>
+
+<p>For binary classification, first define the <strong>positive class</strong>. If positive means a defective product, the confusion matrix is:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>Actually defective</th>
+      <th>Actually acceptable</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Predicted defective</strong></td>
+      <td>True positive (TP)</td>
+      <td>False positive (FP): false alarm</td>
+    </tr>
+    <tr>
+      <td><strong>Predicted acceptable</strong></td>
+      <td>False negative (FN): missed defect</td>
+      <td>True negative (TN)</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Formula</th>
+      <th>Question</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Precision</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">TP / (TP + FP)</code></td>
+      <td>Of the flagged products, how many were defective?</td>
+    </tr>
+    <tr>
+      <td><strong>Recall</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">TP / (TP + FN)</code></td>
+      <td>Of all defective products, how many did we catch?</td>
+    </tr>
+    <tr>
+      <td><strong>F1</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">2 × precision × recall / (precision + recall)</code> = <code class="language-plaintext highlighter-rouge">2TP / (2TP + FP + FN)</code></td>
+      <td>How well do we balance precision and recall?</td>
+    </tr>
+    <tr>
+      <td><strong>Accuracy</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">(TP + TN) / (TP + TN + FP + FN)</code></td>
+      <td>What fraction of all predictions were correct?</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>F1 is a <strong>harmonic mean</strong>, not an arithmetic average; it excludes true negatives. Accuracy includes true negatives and can hide missed positives when they are rare. Choose a metric according to the consequences of false alarms and missed cases. <a href="https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall">Google’s classification metrics</a>.</p>
+
+<p><strong>Worked example:</strong> among 1,000 products, 100 are defective. The model flags 80: 60 are defective and 20 are acceptable. Thus <code class="language-plaintext highlighter-rouge">TP=60</code>, <code class="language-plaintext highlighter-rouge">FP=20</code>, <code class="language-plaintext highlighter-rouge">FN=40</code>, and <code class="language-plaintext highlighter-rouge">TN=880</code>:</p>
+
+<ul>
+  <li>Precision = <code class="language-plaintext highlighter-rouge">60/80</code> = <strong>75%</strong>.</li>
+  <li>Recall = <code class="language-plaintext highlighter-rouge">60/100</code> = <strong>60%</strong>.</li>
+  <li>F1 = <code class="language-plaintext highlighter-rouge">120/180</code> ≈ <strong>66.7%</strong>.</li>
+  <li>Accuracy = <code class="language-plaintext highlighter-rouge">940/1000</code> = <strong>94%</strong>.</li>
+</ul>
+
+<p>A model that marks every product acceptable still gets <strong>90% accuracy</strong>, while detecting no defects. Its recall is zero; precision has a zero denominator, so report the metric library’s undefined-value convention explicitly. Raising a decision threshold typically trades recall for precision; tune it on validation data. For multiclass problems, state whether the reported result is per-class, macro, micro, or weighted. <a href="https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics">scikit-learn classification metric conventions</a>.</p>
+
+<p>Retrieval <a href="/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well">Precision@K and Recall@K</a> apply the same relevant-versus-selected idea to a ranked result set. Classification accuracy alone does not measure ranking, answer grounding, or generative quality.</p>
 
 <h2 id="13-business-and-adaptability-metrics">13. Business and adaptability metrics</h2>
 

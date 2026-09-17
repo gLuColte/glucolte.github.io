@@ -1,6 +1,14 @@
 ---
 title: Search Notes (legacy index)
 permalink: /study/aiSearches
+tag:
+  - semantic search
+  - lexical search
+  - hybrid search
+  - vector search
+  - metadata filtering
+  - reranking
+  - retrieval evaluation
 ---
 
 # Search Notes

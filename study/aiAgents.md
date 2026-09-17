@@ -1,6 +1,15 @@
 ---
 title: AI Agents
 permalink: /study/aiAgents
+tag:
+  - AI agents
+  - tool use
+  - agentic orchestration
+  - Model Context Protocol (MCP)
+  - multi-agent systems
+  - agent memory
+  - human approval
+  - agent evaluation
 ---
 
 # AI Agents

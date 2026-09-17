@@ -1,6 +1,14 @@
 ---
 title: LLM Notes (legacy index)
 permalink: /study/aiLLMs
+tag:
+  - large language models (LLMs)
+  - prompt engineering
+  - model providers
+  - retrieval-augmented generation (RAG)
+  - AI agents
+  - AI evaluation
+  - AWS AI services
 ---
 
 # LLM Notes

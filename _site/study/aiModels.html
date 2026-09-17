@@ -218,7 +218,75 @@
 
 <p>Primary examples: <a href="https://openai.com/index/learning-to-reason-with-llms/">OpenAI reasoning training and test-time compute</a>, the <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1 paper</a>, and <a href="https://ai.google.dev/gemini-api/docs/thinking">Gemini thinking controls</a>.</p>
 
-<h3 id="model-adaptation">3.1 Adapt the model only when the problem calls for it</h3>
+<h3 id="small-large-language-models">3.1 Small versus large language models</h3>
+
+<p><strong>SLM</strong> and <strong>LLM</strong> describe relative scale; there is no universal parameter-count boundary. Size does not define whether a model can generate text, use tools, or accept images.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Decision</th>
+      <th>Smaller language model</th>
+      <th>Larger language model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Workload fit</td>
+      <td>Narrow extraction, classification, routing, or domain tasks</td>
+      <td>Broad language coverage and difficult, varied tasks</td>
+    </tr>
+    <tr>
+      <td>Resource demand</td>
+      <td>Usually lower memory and compute; can suit local or edge deployment</td>
+      <td>Usually greater memory and compute requirements</td>
+    </tr>
+    <tr>
+      <td>Tradeoff</td>
+      <td>May need task tuning and escalation for difficult cases</td>
+      <td>Extra capability may not justify serving cost for simple tasks</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Benchmark the actual deployment: hardware, quantization, context size, and serving efficiency affect speed. A well-adapted small model can outperform a larger one on a narrow task; parameter count alone does not establish accuracy or safety. <a href="https://learn.microsoft.com/en-us/azure/aks/concepts-ai-ml-language-models">Microsoft’s small/large language-model overview</a>.</p>
+
+<h3 id="generation-embedding-multimodal">3.2 Generative, embedding, and multimodal models</h3>
+
+<p>These terms answer different questions: <strong>what output does the model produce</strong>, and <strong>which data types can it process</strong>?</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Role</th>
+      <th>Typical input → output</th>
+      <th>Use</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Generative model</strong></td>
+      <td>Prompt/context → new text, image, audio, or other content</td>
+      <td>Draft an answer, summarize a document, or synthesize an image.</td>
+    </tr>
+    <tr>
+      <td><strong>Embedding model</strong></td>
+      <td>Text/image/other supported input → numerical vector</td>
+      <td>Similarity search, clustering, and retrieval. The vector itself is not a written answer.</td>
+    </tr>
+    <tr>
+      <td><strong>Multimodal model</strong></td>
+      <td>More than one modality, such as text and images</td>
+      <td>Answer a question about a photograph, or map image/text into a shared embedding space.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>In RAG, an embedding model finds related evidence and a generative model writes the response from that evidence. A multimodal embedding model can retrieve an image from a text query without generating an image. <a href="https://aws.amazon.com/what-is/embeddings/">AWS embeddings overview</a> and <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/titan-multiemb-models.html">Titan Multimodal Embeddings</a>.</p>
+
+<p>Check <strong>input and output modalities separately</strong>: accepting images and returning text does not imply image generation. “Multimodal” does not guarantee support for every combination of text, images, audio, and video. AWS lists these separately in its <a href="https://docs.aws.amazon.com/nova/latest/nova2-userguide/what-is-nova-2.html">Nova model capability table</a>.</p>
+
+<h3 id="model-adaptation">3.3 Adapt the model only when the problem calls for it</h3>
 
 <p><span id="31-adapt-the-model-only-when-the-problem-calls-for-it"></span></p>
 
@@ -269,7 +337,9 @@
 
 <p>For AWS-specific customization capabilities and lifecycle decisions, see <a href="/study/infrastructureAWSAiServices#section-4-bedrock-sagemaker">AWS AI Services</a>.</p>
 
-<h3 id="training-data-evaluation-data-and-training-controls">Training data, evaluation data, and training controls</h3>
+<h3 id="training-data-splits">3.4 Training, validation, and test sets</h3>
+
+<p><span id="training-data-evaluation-data-and-training-controls"></span></p>
 
 <table>
   <thead>
@@ -287,13 +357,13 @@
     </tr>
     <tr>
       <td><strong>Validation set</strong></td>
-      <td>Tunes choices and detects overfitting during development</td>
-      <td>Never use it to update weights</td>
+      <td>Selects hyperparameters, checkpoints, thresholds, or early stopping</td>
+      <td>Does not directly update weights during that training run; it influences model selection</td>
     </tr>
     <tr>
       <td><strong>Test set</strong></td>
-      <td>Final unbiased measurement</td>
-      <td>Keep it held out until final comparison</td>
+      <td>Estimates performance after development choices are fixed</td>
+      <td>Keep it held out from training and tuning</td>
     </tr>
     <tr>
       <td><strong>Epoch</strong></td>
@@ -315,7 +385,57 @@
 
 <p>Use a representative, deduplicated, permissioned dataset. Check label quality, class/edge-case coverage, PII/licensing, and train/validation/test leakage before interpreting a good score.</p>
 
-<h3 id="make-a-customized-model-smaller-only-after-measuring-quality">Make a customized model smaller only after measuring quality</h3>
+<p>A <strong>separate fixed validation set is optional</strong>, depending on the training workflow. Cross-validation can rotate validation folds within the development data; some managed jobs create a split for you. A fixed training recipe may use a train/test split without tuning. Optional does <strong>not</strong> mean that repeated tuning against the test set is valid: once its results drive development, it is serving as validation data. Check each algorithm/API’s dataset requirements. <a href="https://developers.google.com/machine-learning/crash-course/overfitting/dividing-datasets">Google’s dataset-splitting guidance</a> and <a href="https://scikit-learn.org/stable/modules/cross_validation.html">scikit-learn cross-validation</a>.</p>
+
+<p>For example, split 1,000 independent examples into 700 training, 150 validation, and 150 test examples; choose the learning rate using validation, then report the locked model’s test result. These percentages are illustrative. Split time-series data chronologically and keep related records together when random splitting would leak information. Fit preprocessing on training data only.</p>
+
+<h3 id="regularization-reward">3.5 Regularization versus reward</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Concept</th>
+      <th>Question it answers</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Regularization</strong></td>
+      <td>How do we discourage overfitting or constrain updates?</td>
+      <td>L1/L2 penalties on weights, dropout, or early stopping.</td>
+    </tr>
+    <tr>
+      <td><strong>Reward</strong></td>
+      <td>Which outcomes should an RL policy prefer?</td>
+      <td>Score successful task completion, or use a reward model trained on human preferences.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>For a weight penalty, a simplified training objective is <code class="language-plaintext highlighter-rouge">minimize prediction_loss + λ × penalty</code>. L2 penalizes squared weight magnitudes; L1 penalizes absolute magnitudes and can encourage sparse weights. Stronger regularization can reduce variance but too much can cause underfitting. <a href="https://developers.google.com/machine-learning/crash-course/overfitting/regularization">Google’s regularization lesson</a>.</p>
+
+<p>The two can coexist: RL may <strong>maximize expected reward while penalizing excessive divergence from a reference policy</strong>. A negative reward is still an outcome signal; it is not automatically a technique for reducing overfitting. Improving a reward score also does not prove real-world quality if the model exploits flaws in the scoring rule. <a href="https://aws.amazon.com/blogs/machine-learning/improving-your-llms-with-rlhf-on-amazon-sagemaker/">AWS’s RLHF training walkthrough</a>.</p>
+
+<h3 id="rlhf">3.6 Reinforcement learning from human feedback (RLHF)</h3>
+
+<p>A common LLM alignment workflow is:</p>
+
+<ol>
+  <li>Begin with a pretrained model, often with supervised instruction fine-tuning.</li>
+  <li>Ask humans to compare candidate responses using a rubric such as helpfulness and safety.</li>
+  <li>Train a <strong>reward model</strong> to predict those preferences.</li>
+  <li>Use reinforcement learning to update the language model toward higher reward, usually constraining how far it moves from a reference model.</li>
+  <li>Evaluate on held-out tasks, safety cases, and relevant user groups.</li>
+</ol>
+
+<p>Human preferences supply the training signal; a person does not have to approve every token during ordinary inference. RLHF changes weights, whereas a human reviewing one production prediction may only correct that result. Feedback must enter a training workflow to change the model. Preference bias and reward exploitation remain risks. <a href="https://aws.amazon.com/what-is/reinforcement-learning-from-human-feedback/">AWS’s RLHF overview</a>.</p>
+
+<p><strong>Direct preference optimization (DPO)</strong> is a related approach that learns directly from preference pairs without the classic separate reward-model-and-RL loop. Human feedback does not always imply RLHF. <a href="https://aws.amazon.com/blogs/machine-learning/fine-tune-large-language-models-with-reinforcement-learning-from-human-or-ai-feedback/">AWS comparison of preference-training approaches</a>.</p>
+
+<h3 id="37-make-a-customized-model-smaller-only-after-measuring-quality">3.7 Make a customized model smaller only after measuring quality</h3>
+
+<p><span id="make-a-customized-model-smaller-only-after-measuring-quality"></span></p>
 
 <ul>
   <li><strong>Distillation</strong> trains a smaller <em>student</em> to approximate a stronger <em>teacher</em>. Choose it when the target is lower serving cost/latency while retaining enough task quality.</li>

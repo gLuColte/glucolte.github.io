@@ -1,11 +1,29 @@
 ---
 title: AWS AI Services
 permalink: /study/infrastructureAWSAiServices
+tag:
+  - Amazon Bedrock
+  - Amazon SageMaker AI
+  - Amazon Kendra
+  - Amazon Comprehend
+  - SageMaker Canvas
+  - SageMaker Ground Truth
+  - Amazon Augmented AI (A2I)
+  - SageMaker Model Monitor
+  - SageMaker Model Dashboard
+  - SageMaker Model Cards
+  - SageMaker Feature Store
+  - Amazon Mechanical Turk
+  - Amazon Rekognition
+  - AWS Audit Manager
+  - Amazon OpenSearch Service
 ---
 
 # AWS AI Services
 
 Use this page to choose AWS implementations for the architecture learned in the preceding pages. Service details were checked against AWS documentation on **5 September 2026**; check the exact model, API, Region, and account availability before implementation.
+
+The expanded SageMaker, human-review, search-analytics, recognition, and audit notes were checked on **17 September 2026**.
 
 **Part 7 of 7:** [Infrastructure and evaluation](/study/aiInfrastructure) → **AWS AI Services**. Continue optionally to [AWS GenAI Professional preparation](/study/aiGenAIProfessional) for exam-domain study and practice.
 
@@ -168,6 +186,8 @@ The decision is **managed model capabilities versus control over the ML lifecycl
 | Lifecycle need | SageMaker AI capability |
 |---|---|
 | Develop and prepare data | Studio, Data Wrangler, Processing. |
+| Build predictions through a visual interface | Canvas. |
+| Reuse features across training and inference | Feature Store. |
 | Label data / add human prediction review | Ground Truth / Amazon A2I. |
 | Start from a pretrained model | JumpStart. |
 | Customize with controlled code and compute | Training jobs; Automatic Model Tuning for hyperparameter trials. |
@@ -175,8 +195,61 @@ The decision is **managed model capabilities versus control over the ML lifecycl
 | Automate lifecycle stages | Pipelines. |
 | Serve online, intermittent, queued, or offline workloads | Real-time, serverless, asynchronous inference, or Batch Transform, subject to model/endpoint support. |
 | Assess bias/explanations and monitor drift | Clarify and Model Monitor, with task-appropriate checks. |
+| Inspect model governance and monitoring coverage | Model Dashboard. |
 
 Match endpoint scaling, cold starts, model loading, hardware requirements, and utilization to the workload. [SageMaker AI features](https://docs.aws.amazon.com/sagemaker/latest/dg/whatis-features.html) and [deployment options](https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html) describe the supported paths. The reason to customize a model is covered in [Models: adaptation choices](/study/aiModels#model-adaptation).
+
+### 4.1 SageMaker Canvas: a visual ML workflow {#sagemaker-canvas}
+
+**SageMaker Canvas** lets users prepare data, build and evaluate supported custom models, and generate predictions without writing training code. Typical tasks include classification, numeric prediction, and time-series forecasting. It also offers ready-to-use AI models and generative-AI capabilities.
+
+For example, a business analyst can import historical customer records, choose churn as the target, build a model, inspect its evaluation, and predict churn for new records. A visual interface does not remove responsibility for label quality, leakage, permissions, or evaluation. Choose Canvas for a supported visual workflow; use SageMaker's code-based tools when custom algorithms and training control are required. [SageMaker Canvas documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/canvas.html).
+
+### 4.2 Feature Store: reusable inputs for training and inference {#feature-store}
+
+A **feature** is a model input such as `purchases_last_30_days`. **SageMaker Feature Store** stores reusable feature records and metadata in feature groups, reducing repeated preparation and helping keep training and serving inputs consistent.
+
+| Store | Purpose | Example |
+|---|---|---|
+| **Online store** | Low-latency access to the latest feature records | Retrieve a customer's current purchase count for a live prediction. |
+| **Offline store** | Historical records in S3 for exploration, training, and batch inference | Build a dataset using features available at each historical prediction time. |
+
+Use either store or both. Records have identifiers and event times; pipelines can ingest batches or streaming updates. Historical training queries must avoid using future information. Sharing feature definitions helps reduce **training-serving skew**, but freshness and transformation logic still need controls. A feature store's main job is reusable ML inputs; a RAG vector index's main job is similarity retrieval. [Feature Store documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/feature-store.html).
+
+### 4.3 Ground Truth, Mechanical Turk, and A2I {#labeling-human-review}
+
+The distinction is **training-data labels**, **human workers**, and **reviewing predictions**:
+
+| Capability | Role | Example |
+|---|---|---|
+| **SageMaker Ground Truth** | Create labelled datasets with managed labelling workflows and supported task templates | Draw object bounding boxes or classify text for model training. |
+| **Amazon Mechanical Turk (MTurk)** | Public crowdsourcing workforce for Ground Truth and A2I, subject to the closure notice below | Distribute annotation tasks to external workers. |
+| **Amazon Augmented AI (Amazon A2I)** | Route selected predictions into human-review workflows | Send an uncertain document extraction for a person to inspect. |
+
+Ground Truth supports human labelling and, for supported tasks, **automated data labelling**: active learning uses human-labelled examples to train a model, automatically labels sufficiently confident examples, and sends other examples to humans. Label verification/adjustment workflows help improve existing annotations. [Ground Truth overview](https://docs.aws.amazon.com/sagemaker/latest/dg/sms.html) and [automated labelling](https://docs.aws.amazon.com/sagemaker/latest/dg/sms-automated-labeling.html).
+
+An A2I human-review workflow defines the task interface, worker instructions, and assigned work team. Built-in integrations include supported Textract document extraction and Rekognition image-moderation tasks; custom workflows can review other model outputs. Activation conditions can include uncertainty or sampling for quality checks. Review results can inform the application and later dataset curation; review alone does not retrain a model. [A2I human-review documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-use-augmented-ai-a2i-human-review-loops.html).
+
+**A2I availability, checked 17 September 2026:** the [current AWS notice](https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-use-augmented-ai-a2i-human-review-loops.html) states that A2I is no longer open to new customers; existing customers can continue using it.
+
+**Workforce** means the pool of people; a **work team** is the group assigned work. Options include a private workforce and vendor-managed workers. Exam material may also name the public MTurk workforce. **Lifecycle note, checked 17 September 2026:** AWS announces that Mechanical Turk will permanently close on **30 September 2026**. Retain the exam association, but consult the notice when selecting a workforce. Public-worker tasks must not contain confidential or personal data. [Workforce options](https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management.html) and [MTurk notice and restrictions](https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management-public.html).
+
+### 4.4 Model Cards, Model Monitor, and Model Dashboard {#model-governance}
+
+These are **SageMaker** capabilities. “Bedrock Model Monitor” and “Bedrock Model Dashboard” are not the names of these features.
+
+| Capability | Main question | What it provides |
+|---|---|---|
+| **Model Cards** | What is this model intended for, and what evidence supports its use? | Model documentation: intended uses, risk rating, training details, evaluation results, and limitations. |
+| **Model Monitor** | Has production data or model behaviour deviated? | Scheduled checks for data quality, model quality, bias drift, and feature-attribution drift. |
+| **Model Dashboard** | Which models need attention? | A centralized view of models, deployment information, model cards, and configured monitoring status/alerts. |
+| **Clarify** | Are there bias or explanation concerns? | Bias analysis and feature-attribution explanations, including supported production drift monitoring. |
+
+**A Model Card documents; Model Monitor measures; Model Dashboard summarizes.** A card is not the model artifact or automatic certification. Model-quality monitoring needs ground-truth outcomes to compare with predictions; an input-distribution change alone does not prove accuracy fell. Dashboard visibility does not automatically configure missing monitors. [Model Cards](https://docs.aws.amazon.com/sagemaker/latest/dg/model-cards.html), [Model Monitor](https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor.html), [Model Dashboard](https://docs.aws.amazon.com/sagemaker/latest/dg/model-dashboard.html), and [Clarify](https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-configure-processing-jobs.html).
+
+**Availability note, checked 17 September 2026:** AWS documentation states that Model Monitor and Clarify are no longer open to new customers; existing customers can continue using them. The comparison remains useful for exam terminology. For implementation, follow the [Model Monitor availability guidance](https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-availability-change.html) and [Clarify availability guidance](https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-availability-change.html).
+
+For Bedrock applications, use the relevant **model evaluation**, **CloudWatch metrics**, and **model invocation logging** capabilities to assess quality and operate the application. Those have different roles from SageMaker's lifecycle tools. See [Bedrock capabilities](#section-2-2-capabilities) and the [logging comparison](/study/aiGenAIProfessional#logging-boundary).
 
 ## 5. Retrieval: Knowledge Bases, OpenSearch, and Kendra {#section-8-retrieval-choice}
 
@@ -197,6 +270,19 @@ For Bedrock integration, `Retrieve` returns evidence for application-controlled 
 Use custom retrieval when required parsing, entitlement logic, ranking, query transformations, or ingestion guarantees exceed the managed path. Test missing ACL metadata and stale group membership explicitly. [OpenSearch hybrid search](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-configure-neural-search.html) and [Kendra user-context filtering](https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html) describe service-specific controls.
 
 Parsing, chunking, ANN indexes, reranking, and retrieval metrics are taught on [AI Knowledge Bases](/study/aiKnowledgebases).
+
+### 5.1 Kendra Search Analytics {#kendra-search-analytics}
+
+**Search Analytics** shows how people use a Kendra search application and where it fails them. View trends in the console or retrieve metrics using `GetSnapshots`.
+
+| Signal | Investigate |
+|---|---|
+| Frequent queries with zero results | Missing content, ingestion gaps, vocabulary, or access filters. |
+| Low click-through / high zero-click rate | Relevance or presentation problems; also check whether an instant answer already satisfied the query. |
+| Top queries and clicked documents | Demand, useful content, and opportunities to improve navigation. |
+| Query-volume trends | Adoption changes or application failures. |
+
+The application must send click feedback with `SubmitFeedback` to collect click-through data. Analytics supports diagnosis; it does not replace relevance-labelled retrieval evaluation or automatically fix ranking. Availability depends on index type and search API. [Kendra Search Analytics documentation](https://docs.aws.amazon.com/kendra/latest/dg/search-analytics.html).
 
 ## 6. Supporting services by architecture role {#section-9-supporting-services}
 
@@ -254,6 +340,18 @@ Durable workflow orchestration is covered by [Step Functions in section 3](#sect
 
 Keep sensitive payloads out of routine telemetry. Use the [shared trace design](/study/aiInfrastructure#section-11-observability) to connect operational signals to the model, retrieval, and tool decisions.
 
+### 6.5 AWS Audit Manager: organize audit evidence {#audit-manager}
+
+**AWS Audit Manager** collects and organizes evidence against controls in an assessment based on a standard or custom framework. Automated sources include supported CloudTrail activity, Config/Security Hub checks, and AWS configuration data; teams can add manual evidence and review material for assessment reports.
+
+For an AI application, configuration evidence might show that logging is enabled, while a manually supplied evaluation report and approval record explain the release decision. Evidence collection does not itself establish compliance or prove that a model is fair.
+
+- **CloudTrail:** records supported AWS API activity.
+- **Audit Manager:** organizes evidence about your use of AWS for assessment and review.
+- **AWS Artifact:** provides AWS's compliance reports and agreements.
+
+Sources: [Audit Manager overview](https://docs.aws.amazon.com/audit-manager/latest/userguide/what-is.html) and [evidence and assessment concepts](https://docs.aws.amazon.com/audit-manager/latest/userguide/concepts.html).
+
 ## 7. Other AI services: compact lookup {#section-12-service-map}
 
 <span id="section-12-2-language"></span>
@@ -264,7 +362,7 @@ Use a purpose-built API or packaged assistant when it already meets the task. Th
 
 | Service | Primary use |
 |---|---|
-| Comprehend | Text classification, entities, sentiment, and PII detection. |
+| Comprehend | Text classification, named entities, key phrases, sentiment, and PII detection. |
 | Comprehend Medical | Clinical entities, relationships, and PHI extraction. |
 | Textract | OCR and document structure; `AnalyzeDocument` handles forms/tables, `AnalyzeExpense` invoices/receipts. |
 | Transcribe / Polly | Speech to text / text to speech. |
@@ -275,6 +373,21 @@ Use a purpose-built API or packaged assistant when it already meets the task. Th
 | Connect | Contact-centre workflows and conversation assistance/analytics. |
 | Q Business | Managed organizational assistant with connected enterprise content. |
 | Q Developer | Coding and supported AWS development assistance. |
+
+### 7.1 Recognition: text entities versus computer vision {#recognition-extraction}
+
+“Recognition” needs an input type. **Named entity recognition (NER)** is an NLP task; **Amazon Rekognition** is the AWS computer-vision service.
+
+| Task | Service | Example |
+|---|---|---|
+| **Named entity recognition** | Comprehend | In “Maya joined Acme in Sydney,” identify a person, organization, and location. |
+| **Key phrase extraction** | Comprehend | Extract a noun phrase such as “the delayed delivery” from a customer message. |
+| **Object/scene recognition** | Rekognition | Detect a bicycle or a street scene in an image; supported detections include confidence scores and object locations. |
+| **Document text and structure** | Textract | Extract the text and table cells of a scanned invoice before downstream language analysis. |
+
+Comprehend entity detection assigns types to text spans. Key phrase extraction returns noun phrases and confidence scores; it does not require a predefined entity type and is not a generated summary. Use `DetectEntities` and `DetectKeyPhrases` for their respective tasks. [Comprehend entities](https://docs.aws.amazon.com/comprehend/latest/dg/how-entities.html) and [key phrases](https://docs.aws.amazon.com/comprehend/latest/dg/how-key-phrases.html).
+
+Rekognition analyzes visual content, with capabilities including labels, faces, image text, and moderation. A face detection is not automatically identification of a named person. For a scanned contract, OCR followed by Comprehend can extract named parties; detecting objects in a photograph is a different task. [Rekognition visual labels](https://docs.aws.amazon.com/rekognition/latest/dg/labels.html).
 
 ## 8. Continue to certification preparation {#section-13-practice-traps}
 

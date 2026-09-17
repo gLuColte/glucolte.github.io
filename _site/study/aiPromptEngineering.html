@@ -364,6 +364,39 @@ Output: {"category":"Feedback","reason":"The customer shares a positive opinion.
 
 <p>“Return JSON only” belongs in the prompt. Temperature adjusts sampling; a maximum-token setting limits output length. Neither supplies missing category definitions, guarantees correctness, or enforces a schema. Supported controls vary by model/API; see <a href="/study/aiFundamentals#section-6-1-temperature-top-p">AI Fundamentals: temperature and sampling</a> for the mechanics and <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html">inference parameter documentation</a> for parameter categories.</p>
 
+<h3 id="length-top-k-top-p">Response length versus top-k and top-p</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Control</th>
+      <th>What it changes</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Response length / maximum output tokens</strong></td>
+      <td>Upper bound on generated tokens</td>
+      <td>A 200-token cap can stop an answer before it is complete; it does not require exactly 200 tokens.</td>
+    </tr>
+    <tr>
+      <td><strong>Top-k</strong></td>
+      <td>Keeps a fixed count of the highest-probability next-token candidates</td>
+      <td><code class="language-plaintext highlighter-rouge">k=10</code> considers up to the ten highest-ranked candidates at each step.</td>
+    </tr>
+    <tr>
+      <td><strong>Top-p</strong></td>
+      <td>Keeps a variable-size candidate set reaching a cumulative probability threshold</td>
+      <td><code class="language-plaintext highlighter-rouge">p=0.9</code> retains the highest-probability candidates until their combined mass reaches at least 90%.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>With next-token probabilities <code class="language-plaintext highlighter-rouge">0.60, 0.25, 0.10, 0.05</code>, top-k of 2 keeps the first two; top-p of 0.9 needs the first three, totaling 0.95. Neither setting directly specifies response length. Ask for a short answer in the prompt and allow enough output tokens to finish it. Stop conditions and model/API limits can end generation earlier. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html">Bedrock inference parameters</a>.</p>
+
+<p>Supported controls and combinations vary by model; retrieval’s “top K documents” is a separate setting. See <a href="/study/aiFundamentals#how-top-k-and-top-p-differ--and-can-combine">the token-sampling walkthrough</a> for how these filters interact with temperature.</p>
+
 <h2 id="security">9. Security and trust boundaries</h2>
 
 <p><strong>Prompt engineering influences model behaviour. It is not an authorization or security boundary.</strong></p>

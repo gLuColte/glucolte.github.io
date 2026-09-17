@@ -1,6 +1,11 @@
 ---
 title: AI Evaluation (Merged)
 permalink: /study/aiEvaluation
+tag:
+  - AI evaluation
+  - observability
+  - production metrics
+  - release gates
 ---
 
 # AI Evaluation (Merged)

@@ -1,6 +1,14 @@
 ---
 title: GenAI Security (Merged)
 permalink: /study/aiSecurity
+tag:
+  - generative AI security
+  - identity and access management
+  - tenant isolation
+  - prompt injection
+  - data exfiltration
+  - data protection
+  - AWS security services
 ---
 
 # GenAI Security (Merged)

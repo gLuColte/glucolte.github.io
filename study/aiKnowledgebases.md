@@ -1,6 +1,16 @@
 ---
 title: AI Knowledge Bases and Retrieval
 permalink: /study/aiKnowledgebases
+tag:
+  - retrieval-augmented generation (RAG)
+  - embeddings
+  - vector search
+  - lexical search
+  - hybrid search
+  - HNSW
+  - IVF
+  - reranking
+  - retrieval evaluation
 ---
 
 # AI Knowledge Bases and Retrieval
@@ -312,6 +322,8 @@ Evaluate retrieval and generation separately. A polished answer may still be bas
 **Precision@5 = 3 / 5 = 60%** — *“Was the stuff I found actually relevant?”*
 
 **Recall@5 = 3 / 4 = 75%** — *“Did I find the relevant stuff?”*
+
+For the underlying TP/FP/FN definitions, F1, and why accuracy can mislead on imbalanced data, see [classification metrics](/study/aiInfrastructure#classification-metrics). Here, K is the number of retrieved results; it is unrelated to the model's next-token top-k sampling control. AWS-specific query and click trends are covered under [Kendra Search Analytics](/study/infrastructureAWSAiServices#kendra-search-analytics).
 
 MRR rewards placing the first useful result early; NDCG also accounts for graded relevance and ranking position. Use retrieval and answer metrics together, but never substitute one for the other:
 

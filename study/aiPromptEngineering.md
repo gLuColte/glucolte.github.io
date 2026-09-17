@@ -1,6 +1,15 @@
 ---
 title: AI Prompt Engineering
 permalink: /study/aiPromptEngineering
+tag:
+  - prompt engineering
+  - zero-shot and few-shot prompting
+  - chain-of-thought
+  - prompt templates
+  - inference configuration
+  - structured output
+  - prompt injection
+  - Amazon Bedrock Prompt management
 ---
 
 # AI Prompt Engineering
@@ -269,6 +278,18 @@ The lifecycle's **model request** has two separate parts:
 </figure>
 
 “Return JSON only” belongs in the prompt. Temperature adjusts sampling; a maximum-token setting limits output length. Neither supplies missing category definitions, guarantees correctness, or enforces a schema. Supported controls vary by model/API; see [AI Fundamentals: temperature and sampling](/study/aiFundamentals#section-6-1-temperature-top-p) for the mechanics and [inference parameter documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html) for parameter categories.
+
+### Response length versus top-k and top-p {#length-top-k-top-p}
+
+| Control | What it changes | Example |
+|---|---|---|
+| **Response length / maximum output tokens** | Upper bound on generated tokens | A 200-token cap can stop an answer before it is complete; it does not require exactly 200 tokens. |
+| **Top-k** | Keeps a fixed count of the highest-probability next-token candidates | `k=10` considers up to the ten highest-ranked candidates at each step. |
+| **Top-p** | Keeps a variable-size candidate set reaching a cumulative probability threshold | `p=0.9` retains the highest-probability candidates until their combined mass reaches at least 90%. |
+
+With next-token probabilities `0.60, 0.25, 0.10, 0.05`, top-k of 2 keeps the first two; top-p of 0.9 needs the first three, totaling 0.95. Neither setting directly specifies response length. Ask for a short answer in the prompt and allow enough output tokens to finish it. Stop conditions and model/API limits can end generation earlier. [Bedrock inference parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html).
+
+Supported controls and combinations vary by model; retrieval's “top K documents” is a separate setting. See [the token-sampling walkthrough](/study/aiFundamentals#how-top-k-and-top-p-differ--and-can-combine) for how these filters interact with temperature.
 
 ## 9. Security and trust boundaries {#security}
 

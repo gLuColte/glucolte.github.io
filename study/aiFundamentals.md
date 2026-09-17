@@ -1,6 +1,17 @@
 ---
 title: AI Fundamentals
 permalink: /study/aiFundamentals
+tag:
+  - large language models (LLMs)
+  - tokenization
+  - embeddings
+  - transformers
+  - logits and softmax
+  - temperature
+  - top-k and top-p
+  - autoregressive inference
+  - machine learning paradigms
+  - bias and variance
 ---
 
 # AI Fundamentals
@@ -696,14 +707,42 @@ For “한국어로 최근 트렌드를 요약하고 빨간 옷을 추천해 주
 
 <span id="143-compact-ml-concepts-for-exam-questions"></span>
 
-### 14.2 Related ML vocabulary
+### 14.2 How models learn {#learning-types}
+
+Training describes when weights change; the **learning method** describes where the teaching signal comes from.
+
+| Method | Teaching signal | Example |
+|---|---|---|
+| **Supervised learning** | Examples paired with target labels or values | Emails labelled spam/not spam; house attributes paired with sale prices. Classification predicts a category; regression predicts a number. |
+| **Unsupervised learning** | Unlabelled data, with an objective that discovers structure | Cluster customers by purchasing patterns without supplying customer-segment labels. |
+| **Self-supervised learning** | Targets constructed from the data itself | Hide a word and predict it, or use earlier tokens to predict the next token. Human annotators do not label every training example. |
+| **Reinforcement learning (RL)** | Rewards from actions and outcomes | Learn a policy that chooses actions to maximize expected cumulative reward. A reward can be delayed; it need not specify the correct action at every step. |
+
+LLM next-token pretraining is **self-supervised**: text supplies both the input and target. Instruction examples can then support supervised fine-tuning, followed by preference-based post-training. Self-supervision is often grouped with learning from unlabelled data, but its explicit prediction targets distinguish it from ordinary clustering. Sources: [Google's learning-method overview](https://developers.google.com/machine-learning/intro-to-ml/what-is-ml) and [self-supervised learning glossary](https://developers.google.com/machine-learning/glossary#self-supervised-learning).
+
+### 14.3 Bias, variance, and generalization {#bias-variance}
+
+| Concept | Meaning | Typical symptom | Possible response |
+|---|---|---|---|
+| **High bias** | Restrictive assumptions miss the underlying relationship | Underfitting: poor training and validation results | Improve features, increase suitable model capacity, or reduce excessive regularization. |
+| **High variance** | Learned predictions change too much with the training sample | Overfitting: strong training results but weak validation results | Add representative data, regularize, simplify the model, or use suitable ensembles. |
+
+For squared-error prediction, the classical decomposition is **expected error = bias² + variance + irreducible noise**. Reducing one component can increase another; compare held-out performance rather than maximizing training accuracy. A training/validation gap is a diagnostic clue, not proof: leakage, distribution shift, and label errors also need investigation. [scikit-learn's bias–variance example](https://scikit-learn.org/stable/auto_examples/ensemble/plot_bias_variance.html).
+
+**Statistical bias is different from unfair demographic bias.** A model can generalize well overall and still perform poorly for a particular group. Measure group outcomes under [responsible AI](/study/aiInfrastructure#responsible-ai).
+
+### 14.4 Related ML vocabulary
+
+<span id="142-related-ml-vocabulary"></span>
 
 | Concept | Recognition rule |
 |---|---|
 | **Overfitting** | Very high training performance but weak performance on unseen validation/test data; excessive complexity for the amount of training data increases the risk. |
 | **Underfitting** | Poor performance on both training and unseen data; often too simple or insufficiently trained. |
 | **GAN** | A **generator** creates synthetic samples; a **discriminator** learns to distinguish real from generated samples. Their adversarial feedback improves the generator. |
-| **Reinforcement learning** | An agent learns by acting in an environment to maximize cumulative reward. The reward function must reward desired outcomes and penalize unsafe or unproductive behaviour; refine it from observed failures. |
+| **Regularization** | Constrains learning to reduce overfitting; it is different from the reward signal that defines desired RL outcomes. |
+
+Continue to [training/validation/test sets](/study/aiModels#training-data-splits), [regularization versus reward](/study/aiModels#regularization-reward), and [reinforcement learning from human feedback](/study/aiModels#rlhf) to connect these concepts to model adaptation.
 
 For deeper treatment, see [AI Knowledge Bases](/study/aiKnowledgebases), [AI Agents](/study/aiAgents), and [AI Infrastructure and Evaluation](/study/aiInfrastructure).
 

@@ -1,6 +1,13 @@
 ---
 title: AI Providers (Merged)
 permalink: /study/aiProviders
+tag:
+  - model providers
+  - model families
+  - managed models
+  - open-weight models
+  - model hosting
+  - model portability
 ---
 
 # AI Providers (Merged)

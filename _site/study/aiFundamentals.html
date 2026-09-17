@@ -944,7 +944,78 @@ end
 
 <p><span id="143-compact-ml-concepts-for-exam-questions"></span></p>
 
-<h3 id="142-related-ml-vocabulary">14.2 Related ML vocabulary</h3>
+<h3 id="learning-types">14.2 How models learn</h3>
+
+<p>Training describes when weights change; the <strong>learning method</strong> describes where the teaching signal comes from.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Teaching signal</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Supervised learning</strong></td>
+      <td>Examples paired with target labels or values</td>
+      <td>Emails labelled spam/not spam; house attributes paired with sale prices. Classification predicts a category; regression predicts a number.</td>
+    </tr>
+    <tr>
+      <td><strong>Unsupervised learning</strong></td>
+      <td>Unlabelled data, with an objective that discovers structure</td>
+      <td>Cluster customers by purchasing patterns without supplying customer-segment labels.</td>
+    </tr>
+    <tr>
+      <td><strong>Self-supervised learning</strong></td>
+      <td>Targets constructed from the data itself</td>
+      <td>Hide a word and predict it, or use earlier tokens to predict the next token. Human annotators do not label every training example.</td>
+    </tr>
+    <tr>
+      <td><strong>Reinforcement learning (RL)</strong></td>
+      <td>Rewards from actions and outcomes</td>
+      <td>Learn a policy that chooses actions to maximize expected cumulative reward. A reward can be delayed; it need not specify the correct action at every step.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>LLM next-token pretraining is <strong>self-supervised</strong>: text supplies both the input and target. Instruction examples can then support supervised fine-tuning, followed by preference-based post-training. Self-supervision is often grouped with learning from unlabelled data, but its explicit prediction targets distinguish it from ordinary clustering. Sources: <a href="https://developers.google.com/machine-learning/intro-to-ml/what-is-ml">Google’s learning-method overview</a> and <a href="https://developers.google.com/machine-learning/glossary#self-supervised-learning">self-supervised learning glossary</a>.</p>
+
+<h3 id="bias-variance">14.3 Bias, variance, and generalization</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Concept</th>
+      <th>Meaning</th>
+      <th>Typical symptom</th>
+      <th>Possible response</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>High bias</strong></td>
+      <td>Restrictive assumptions miss the underlying relationship</td>
+      <td>Underfitting: poor training and validation results</td>
+      <td>Improve features, increase suitable model capacity, or reduce excessive regularization.</td>
+    </tr>
+    <tr>
+      <td><strong>High variance</strong></td>
+      <td>Learned predictions change too much with the training sample</td>
+      <td>Overfitting: strong training results but weak validation results</td>
+      <td>Add representative data, regularize, simplify the model, or use suitable ensembles.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>For squared-error prediction, the classical decomposition is <strong>expected error = bias² + variance + irreducible noise</strong>. Reducing one component can increase another; compare held-out performance rather than maximizing training accuracy. A training/validation gap is a diagnostic clue, not proof: leakage, distribution shift, and label errors also need investigation. <a href="https://scikit-learn.org/stable/auto_examples/ensemble/plot_bias_variance.html">scikit-learn’s bias–variance example</a>.</p>
+
+<p><strong>Statistical bias is different from unfair demographic bias.</strong> A model can generalize well overall and still perform poorly for a particular group. Measure group outcomes under <a href="/study/aiInfrastructure#responsible-ai">responsible AI</a>.</p>
+
+<h3 id="144-related-ml-vocabulary">14.4 Related ML vocabulary</h3>
+
+<p><span id="142-related-ml-vocabulary"></span></p>
 
 <table>
   <thead>
@@ -967,11 +1038,13 @@ end
       <td>A <strong>generator</strong> creates synthetic samples; a <strong>discriminator</strong> learns to distinguish real from generated samples. Their adversarial feedback improves the generator.</td>
     </tr>
     <tr>
-      <td><strong>Reinforcement learning</strong></td>
-      <td>An agent learns by acting in an environment to maximize cumulative reward. The reward function must reward desired outcomes and penalize unsafe or unproductive behaviour; refine it from observed failures.</td>
+      <td><strong>Regularization</strong></td>
+      <td>Constrains learning to reduce overfitting; it is different from the reward signal that defines desired RL outcomes.</td>
     </tr>
   </tbody>
 </table>
+
+<p>Continue to <a href="/study/aiModels#training-data-splits">training/validation/test sets</a>, <a href="/study/aiModels#regularization-reward">regularization versus reward</a>, and <a href="/study/aiModels#rlhf">reinforcement learning from human feedback</a> to connect these concepts to model adaptation.</p>
 
 <p>For deeper treatment, see <a href="/study/aiKnowledgebases">AI Knowledge Bases</a>, <a href="/study/aiAgents">AI Agents</a>, and <a href="/study/aiInfrastructure">AI Infrastructure and Evaluation</a>.</p>
 

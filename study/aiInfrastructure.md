@@ -1,6 +1,18 @@
 ---
 title: AI Infrastructure and Evaluation
 permalink: /study/aiInfrastructure
+tag:
+  - production AI
+  - AI security
+  - observability
+  - model evaluation
+  - model monitoring
+  - responsible AI
+  - data virtualization
+  - classification metrics
+  - reliability
+  - latency and cost
+  - release gates
 ---
 
 # AI Infrastructure and Evaluation
@@ -48,6 +60,36 @@ Keep ownership explicit:
 - **Security and data teams** own classification, retention, approved providers, and high-impact-action policy.
 
 A prototype becomes unsafe when it reaches production without those owners and controls. Conversely, do not centralize every feature before a repeated need exists. Measure adoption by completed business tasks, quality, risk, latency, and cost—not model-call volume.
+
+### 2.1 Data virtualization, ownership, and integrity {#data-virtualization}
+
+**Data virtualization** exposes a logical view across data sources without first requiring all their data to be copied into one central store. Consumers query that view while source systems remain responsible for their records. Implementations may still cache or materialize results. [AWS's data virtualization overview](https://aws.amazon.com/what-is/data-virtualization/).
+
+For an AI system, the architectural implication is that **shared access still needs explicit ownership and integrity controls**:
+
+- **Ownership:** identify the source owner and system of record, who approves access, and who resolves incorrect records.
+- **Integrity:** validate schemas, keys, joins, and transformations; retain lineage so a model input or answer can be traced to its source.
+- **Freshness and reproducibility:** define cache expiry and source timestamps; preserve a versioned snapshot when reproducing training or evaluation results requires the same data.
+- **Access:** enforce source entitlements through the logical view and any downstream caches, indexes, or exports.
+
+For example, a stock assistant can join warehouse and product views while each team owns its source records. An incorrect join can duplicate stock counts even when both sources are correct. Virtualization reduces unnecessary copies; it does not automatically repair data quality, transfer ownership, or provide consistent snapshots across independent systems. These are design responsibilities, consistent with AWS's [data ownership and governance architecture example](https://aws.amazon.com/blogs/big-data/how-novo-nordisk-built-a-modern-data-architecture-on-aws/).
+
+### 2.2 Responsible AI dimensions {#responsible-ai}
+
+AWS describes eight dimensions, often called pillars in study material. The examples below translate them into controls for this architecture. [AWS Responsible AI dimensions](https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/responsible-ai.html).
+
+| Dimension | Practical question | Example control |
+|---|---|---|
+| **Fairness** | Who experiences worse outcomes? | Evaluate error rates across relevant groups. |
+| **Explainability** | Can an output be understood and assessed? | Provide validated feature-attribution information. |
+| **Privacy and security** | Is data used appropriately and protected? | Minimize inputs and enforce access controls. |
+| **Safety** | Could outputs or actions cause harm? | Test harmful requests and escalation paths. |
+| **Controllability** | Can people steer or stop the system? | Human review, overrides, and rollback. |
+| **Veracity and robustness** | Does it remain correct under difficult inputs? | Grounding checks and adversarial evaluation. |
+| **Governance** | Who owns decisions and oversight? | Approval records, model documentation, and audits. |
+| **Transparency** | Do stakeholders know how AI is being used? | Disclose purpose, limitations, and data practices. |
+
+**Transparency concerns disclosure; explainability concerns understanding outputs.** Publishing a model card improves transparency but does not by itself explain every prediction. A fluent generated explanation is not proof of the model's actual decision process. AWS implementations include [Model Cards and Clarify](/study/infrastructureAWSAiServices#model-governance) and [Audit Manager](/study/infrastructureAWSAiServices#audit-manager).
 
 ## 3. Identity, authorization, and tenant isolation {#section-3-identity}
 
@@ -257,6 +299,35 @@ The evaluation suite composes specialist measurements; it does not duplicate the
 - [Knowledge bases](/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well) own retrieval, grounding, citation, and answer-quality metrics.
 - [AI Agents](/study/aiAgents#section-9-evaluation) own tool selection, action correctness, loop termination, and approval/escalation metrics.
 - This page owns cross-cutting test datasets, judge/human calibration, release gates, incident learning, and production signals.
+
+### 12.1 Precision, recall, F1, and accuracy {#classification-metrics}
+
+For binary classification, first define the **positive class**. If positive means a defective product, the confusion matrix is:
+
+| | Actually defective | Actually acceptable |
+|---|---|---|
+| **Predicted defective** | True positive (TP) | False positive (FP): false alarm |
+| **Predicted acceptable** | False negative (FN): missed defect | True negative (TN) |
+
+| Metric | Formula | Question |
+|---|---|---|
+| **Precision** | `TP / (TP + FP)` | Of the flagged products, how many were defective? |
+| **Recall** | `TP / (TP + FN)` | Of all defective products, how many did we catch? |
+| **F1** | `2 × precision × recall / (precision + recall)` = `2TP / (2TP + FP + FN)` | How well do we balance precision and recall? |
+| **Accuracy** | `(TP + TN) / (TP + TN + FP + FN)` | What fraction of all predictions were correct? |
+
+F1 is a **harmonic mean**, not an arithmetic average; it excludes true negatives. Accuracy includes true negatives and can hide missed positives when they are rare. Choose a metric according to the consequences of false alarms and missed cases. [Google's classification metrics](https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall).
+
+**Worked example:** among 1,000 products, 100 are defective. The model flags 80: 60 are defective and 20 are acceptable. Thus `TP=60`, `FP=20`, `FN=40`, and `TN=880`:
+
+- Precision = `60/80` = **75%**.
+- Recall = `60/100` = **60%**.
+- F1 = `120/180` ≈ **66.7%**.
+- Accuracy = `940/1000` = **94%**.
+
+A model that marks every product acceptable still gets **90% accuracy**, while detecting no defects. Its recall is zero; precision has a zero denominator, so report the metric library's undefined-value convention explicitly. Raising a decision threshold typically trades recall for precision; tune it on validation data. For multiclass problems, state whether the reported result is per-class, macro, micro, or weighted. [scikit-learn classification metric conventions](https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics).
+
+Retrieval [Precision@K and Recall@K](/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well) apply the same relevant-versus-selected idea to a ranked result set. Classification accuracy alone does not measure ranking, answer grounding, or generative quality.
 
 ## 13. Business and adaptability metrics
 

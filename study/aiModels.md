@@ -1,6 +1,18 @@
 ---
 title: AI Models and Providers
 permalink: /study/aiModels
+tag:
+  - model selection
+  - small and large language models
+  - multimodal models
+  - generative models
+  - embedding models
+  - reasoning models
+  - fine-tuning
+  - regularization
+  - reinforcement learning from human feedback (RLHF)
+  - training validation and test data
+  - model providers
 ---
 
 # AI Models and Providers
@@ -97,7 +109,33 @@ Reasoning effort, sampling controls, tool/schema support, and context/output lim
 
 Primary examples: [OpenAI reasoning training and test-time compute](https://openai.com/index/learning-to-reason-with-llms/), the [DeepSeek-R1 paper](https://arxiv.org/abs/2501.12948), and [Gemini thinking controls](https://ai.google.dev/gemini-api/docs/thinking).
 
-### 3.1 Adapt the model only when the problem calls for it {#model-adaptation}
+### 3.1 Small versus large language models {#small-large-language-models}
+
+**SLM** and **LLM** describe relative scale; there is no universal parameter-count boundary. Size does not define whether a model can generate text, use tools, or accept images.
+
+| Decision | Smaller language model | Larger language model |
+|---|---|---|
+| Workload fit | Narrow extraction, classification, routing, or domain tasks | Broad language coverage and difficult, varied tasks |
+| Resource demand | Usually lower memory and compute; can suit local or edge deployment | Usually greater memory and compute requirements |
+| Tradeoff | May need task tuning and escalation for difficult cases | Extra capability may not justify serving cost for simple tasks |
+
+Benchmark the actual deployment: hardware, quantization, context size, and serving efficiency affect speed. A well-adapted small model can outperform a larger one on a narrow task; parameter count alone does not establish accuracy or safety. [Microsoft's small/large language-model overview](https://learn.microsoft.com/en-us/azure/aks/concepts-ai-ml-language-models).
+
+### 3.2 Generative, embedding, and multimodal models {#generation-embedding-multimodal}
+
+These terms answer different questions: **what output does the model produce**, and **which data types can it process**?
+
+| Role | Typical input → output | Use |
+|---|---|---|
+| **Generative model** | Prompt/context → new text, image, audio, or other content | Draft an answer, summarize a document, or synthesize an image. |
+| **Embedding model** | Text/image/other supported input → numerical vector | Similarity search, clustering, and retrieval. The vector itself is not a written answer. |
+| **Multimodal model** | More than one modality, such as text and images | Answer a question about a photograph, or map image/text into a shared embedding space. |
+
+In RAG, an embedding model finds related evidence and a generative model writes the response from that evidence. A multimodal embedding model can retrieve an image from a text query without generating an image. [AWS embeddings overview](https://aws.amazon.com/what-is/embeddings/) and [Titan Multimodal Embeddings](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-multiemb-models.html).
+
+Check **input and output modalities separately**: accepting images and returning text does not imply image generation. “Multimodal” does not guarantee support for every combination of text, images, audio, and video. AWS lists these separately in its [Nova model capability table](https://docs.aws.amazon.com/nova/latest/nova2-userguide/what-is-nova-2.html).
+
+### 3.3 Adapt the model only when the problem calls for it {#model-adaptation}
 
 <span id="31-adapt-the-model-only-when-the-problem-calls-for-it"></span>
 
@@ -118,20 +156,53 @@ Choose according to what needs to change:
 
 For AWS-specific customization capabilities and lifecycle decisions, see [AWS AI Services](/study/infrastructureAWSAiServices#section-4-bedrock-sagemaker).
 
-### Training data, evaluation data, and training controls
+### 3.4 Training, validation, and test sets {#training-data-splits}
+
+<span id="training-data-evaluation-data-and-training-controls"></span>
 
 | Item | Purpose | Development rule |
 |---|---|---|
 | **Training set** | Updates model parameters | The examples the model learns from |
-| **Validation set** | Tunes choices and detects overfitting during development | Never use it to update weights |
-| **Test set** | Final unbiased measurement | Keep it held out until final comparison |
+| **Validation set** | Selects hyperparameters, checkpoints, thresholds, or early stopping | Does not directly update weights during that training run; it influences model selection |
+| **Test set** | Estimates performance after development choices are fixed | Keep it held out from training and tuning |
 | **Epoch** | One full pass through the training set | More epochs increase learning *and* overfitting/cost risk |
 | **Batch size** | Examples processed before one parameter update | A training-efficiency/stability control, not an inference setting |
 | **Learning rate** | Step size of each parameter update | Too high can destabilize training; too low learns slowly |
 
 Use a representative, deduplicated, permissioned dataset. Check label quality, class/edge-case coverage, PII/licensing, and train/validation/test leakage before interpreting a good score.
 
-### Make a customized model smaller only after measuring quality
+A **separate fixed validation set is optional**, depending on the training workflow. Cross-validation can rotate validation folds within the development data; some managed jobs create a split for you. A fixed training recipe may use a train/test split without tuning. Optional does **not** mean that repeated tuning against the test set is valid: once its results drive development, it is serving as validation data. Check each algorithm/API's dataset requirements. [Google's dataset-splitting guidance](https://developers.google.com/machine-learning/crash-course/overfitting/dividing-datasets) and [scikit-learn cross-validation](https://scikit-learn.org/stable/modules/cross_validation.html).
+
+For example, split 1,000 independent examples into 700 training, 150 validation, and 150 test examples; choose the learning rate using validation, then report the locked model's test result. These percentages are illustrative. Split time-series data chronologically and keep related records together when random splitting would leak information. Fit preprocessing on training data only.
+
+### 3.5 Regularization versus reward {#regularization-reward}
+
+| Concept | Question it answers | Example |
+|---|---|---|
+| **Regularization** | How do we discourage overfitting or constrain updates? | L1/L2 penalties on weights, dropout, or early stopping. |
+| **Reward** | Which outcomes should an RL policy prefer? | Score successful task completion, or use a reward model trained on human preferences. |
+
+For a weight penalty, a simplified training objective is `minimize prediction_loss + λ × penalty`. L2 penalizes squared weight magnitudes; L1 penalizes absolute magnitudes and can encourage sparse weights. Stronger regularization can reduce variance but too much can cause underfitting. [Google's regularization lesson](https://developers.google.com/machine-learning/crash-course/overfitting/regularization).
+
+The two can coexist: RL may **maximize expected reward while penalizing excessive divergence from a reference policy**. A negative reward is still an outcome signal; it is not automatically a technique for reducing overfitting. Improving a reward score also does not prove real-world quality if the model exploits flaws in the scoring rule. [AWS's RLHF training walkthrough](https://aws.amazon.com/blogs/machine-learning/improving-your-llms-with-rlhf-on-amazon-sagemaker/).
+
+### 3.6 Reinforcement learning from human feedback (RLHF) {#rlhf}
+
+A common LLM alignment workflow is:
+
+1. Begin with a pretrained model, often with supervised instruction fine-tuning.
+2. Ask humans to compare candidate responses using a rubric such as helpfulness and safety.
+3. Train a **reward model** to predict those preferences.
+4. Use reinforcement learning to update the language model toward higher reward, usually constraining how far it moves from a reference model.
+5. Evaluate on held-out tasks, safety cases, and relevant user groups.
+
+Human preferences supply the training signal; a person does not have to approve every token during ordinary inference. RLHF changes weights, whereas a human reviewing one production prediction may only correct that result. Feedback must enter a training workflow to change the model. Preference bias and reward exploitation remain risks. [AWS's RLHF overview](https://aws.amazon.com/what-is/reinforcement-learning-from-human-feedback/).
+
+**Direct preference optimization (DPO)** is a related approach that learns directly from preference pairs without the classic separate reward-model-and-RL loop. Human feedback does not always imply RLHF. [AWS comparison of preference-training approaches](https://aws.amazon.com/blogs/machine-learning/fine-tune-large-language-models-with-reinforcement-learning-from-human-or-ai-feedback/).
+
+### 3.7 Make a customized model smaller only after measuring quality
+
+<span id="make-a-customized-model-smaller-only-after-measuring-quality"></span>
 
 - **Distillation** trains a smaller *student* to approximate a stronger *teacher*. Choose it when the target is lower serving cost/latency while retaining enough task quality.
 - **Quantization** stores or computes weights with lower precision. It usually reduces memory and can improve throughput, but can reduce quality or hardware compatibility.
