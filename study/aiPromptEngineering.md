@@ -8,6 +8,7 @@ tag:
   - prompt templates
   - inference configuration
   - structured output
+  - JSON Schema
   - prompt injection
   - Amazon Bedrock Prompt management
 ---
@@ -144,6 +145,28 @@ An expected response is:
 ```
 
 This is **specification refinement**. We made the requirement testable; now we need to check whether the model follows it.
+
+### Enforce the output contract with JSON Schema {#json-schema}
+
+When another system requires exact fields and types, configure **schema-constrained structured output** on a supporting model/API. Writing “return JSON” in the prompt only requests a format; JSON Schema defines the contract that constrained generation enforces.
+
+For the ticket example, the schema is:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "category": {"type": "string", "enum": ["Urgent", "General Inquiry", "Feedback", "Unclear"]},
+    "reason": {"type": "string"}
+  },
+  "required": ["category", "reason"],
+  "additionalProperties": false
+}
+```
+
+The same technique fits email orders that must become database records: define customer, items, quantities, and shipping-address fields together. Regex over free-form prose is fragile; separate prompts add calls and assembly work; fine-tuning may improve formatting but does not enforce a schema.
+
+**Valid structure is not valid business data.** Check extracted facts, product IDs, quantities, and authorization before writing to a database. Define how missing information is represented instead of forcing invented values, and handle refusals, truncation, and API errors. Bedrock supports a subset of JSON Schema through its structured-output configuration; verify model/API support. [Bedrock structured outputs](https://docs.aws.amazon.com/bedrock/latest/userguide/structured-output.html).
 
 ## 4. Choose examples to solve a pattern problem {#shots}
 

@@ -6,6 +6,7 @@ tag:
   - AI security
   - observability
   - model evaluation
+  - golden dataset
   - model monitoring
   - responsible AI
   - data virtualization
@@ -303,7 +304,20 @@ The evaluation suite composes specialist measurements; it does not duplicate the
 - [AI Agents](/study/aiAgents#section-9-evaluation) own tool selection, action correctness, loop termination, and approval/escalation metrics.
 - This page owns cross-cutting test datasets, judge/human calibration, release gates, incident learning, and production signals.
 
-### 12.1 Precision, recall, F1, and accuracy {#classification-metrics}
+### 12.1 Golden datasets and reference answers {#golden-dataset}
+
+A **golden dataset**, also called a ground-truth or reference evaluation dataset, contains representative inputs with expert-validated expected answers or outcomes. For example, 200 customer questions paired with reviewed reference answers let a team compare prompt versions and detect regressions under the same conditions.
+
+| Dataset role | What it is used for |
+|---|---|
+| Training data | Learn or fine-tune model weights. |
+| Validation data | Select configurations, hyperparameters, or prompt variants during development. |
+| Held-out test data | Assess the chosen system on examples not used to tune it. |
+| Golden/reference dataset | Supply trusted expected results; it can support development evaluation or a separately held-out test suite. |
+
+“Golden” describes the quality of the reference, not a rule that evaluation happens only after deployment. “Test corpus” is a broader valid term, but does not specifically imply expert-reviewed question–answer pairs. Keep final test cases separate from tuning examples; version the references and rubric, cover difficult/no-answer cases, and review stale answers. For open-ended generation, score factual support and required content rather than demanding an exact wording match. See [Bedrock evaluation datasets and ground-truth responses](https://docs.aws.amazon.com/bedrock/latest/userguide/model-evaluation-prompt-datasets.html).
+
+### 12.2 Precision, recall, F1, and accuracy {#classification-metrics}
 
 For binary classification, first define the **positive class**. If positive means a defective product, the confusion matrix is:
 

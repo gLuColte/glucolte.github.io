@@ -346,6 +346,8 @@ Temperature is applied at every generated-token step. It changes the shape of th
 
 Continue the France request with these illustrative **relative logits**. For `T > 0`, temperature divides each logit by `T`: a lower `T` increases the separation between scores. If an API accepts `T = 0`, it usually selects greedy decoding rather than literally dividing by zero. Greedy decoding chooses a highest-scoring token; it is not an absolute reproducibility guarantee across serving implementations. [Generation strategies](https://huggingface.co/docs/transformers/main/en/generation_strategies).
 
+**Apply the setting to the task:** standardized wording, such as a lease template, calls for low temperature (for example, `0.0–0.3` where supported); brainstorming may benefit from higher temperature (for example, `0.8–1.0`). There is no universal `0.5` default that suits every task. Low temperature reduces variation but does not guarantee identical text, correct legal language, or an exact structure. Use approved templates and [schema constraints](/study/aiPromptEngineering#json-schema) where appropriate; maximum output tokens controls length. [Bedrock inference parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html).
+
 | Token | Raw logit | `÷ 1.2` | `÷ 0.9` | `÷ 0.5` | `÷ 0.1` |
 |---|---:|---:|---:|---:|---:|
 | `" Paris"` | -0.693 | -0.578 | -0.770 | -1.386 | -6.930 |

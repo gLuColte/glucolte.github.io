@@ -17,6 +17,13 @@ tag:
   - Amazon Rekognition
   - AWS Audit Manager
   - Amazon OpenSearch Service
+  - Amazon Q Business
+  - AWS Glue Data Quality
+  - Amazon Bedrock Data Automation
+  - prompt caching
+  - intelligent prompt routing
+  - asynchronous inference
+  - PII redaction
 ---
 
 # AWS AI Services
@@ -89,6 +96,29 @@ Use the cloud-neutral [serving and caching rules](/study/aiInfrastructure#101-se
 | [Customization and import](https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html) | Adapt or import supported models; verify the technique and deployment path for the selected model. |
 
 Knowledge Bases and agent capabilities have their own sections below. Guardrails filter model interactions; [IAM and application authorization](#section-9-1-entry) still decide which resources and actions a caller may use.
+
+### 2.3 Routing, caching, and capacity solve different cost problems {#routing-caching-capacity}
+
+| Workload clue | Capability | What changes |
+|---|---|---|
+| Many simple questions, fewer difficult ones | **Intelligent Prompt Routing** | Select a cheaper or stronger supported model for each prompt according to predicted response quality. |
+| Same long policy prefix, different questions | **Prompt caching** | Reuse processing of the shared prefix while generating a new answer. |
+| Equivalent questions with reusable answers | Application result/semantic cache | Return an authorized, current cached answer and avoid a model call. |
+| Predictable sustained token demand | **Provisioned Throughput** | Reserve model capacity at an hourly cost; measure utilization and commitment economics. |
+
+Intelligent Prompt Routing uses supported models within the same family. For a support bot with 60% routine questions and 40% complex questions, evaluate whether the cheaper route meets the simple-query rubric while the stronger route preserves complex-answer quality. Verify the supported model pair and Region; do not assume a named Haiku/Sonnet version is supported merely because both models are available in Bedrock. Savings and quality are workload-dependent. [Intelligent Prompt Routing documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-routing.html).
+
+Prompt caching fits a **5,000-token policy reused ahead of different customer questions**. Keep the reusable prefix stable and follow the model's cache checkpoint, minimum-length, and expiry rules. Cache reads can still be billed; cache writes and uncached input/output have their own applicable rates. This is reduced repeated processing, not “pay once forever.” ElastiCache or CloudFront response caching addresses a different reusable unit. [Prompt caching documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html).
+
+For predictable busy days and quiet nights, compare provisioned capacity plus on-demand with on-demand alone using **input/output token rates**, utilization, and billing terms. Sending night traffic to on-demand does not stop charges for an existing provisioned resource. Billing continues until deletion; committed capacity cannot simply be switched off each night. A daily create/delete strategy also needs eligible no-commitment support and provisioning lead time. High request count alone does not establish a saving. [Provisioned Throughput billing and commitments](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html).
+
+### 2.4 Data Automation: documents to structured fields {#data-automation}
+
+**Amazon Bedrock Data Automation (BDA)** turns supported unstructured documents and other media into useful output. Standard output provides document representations; custom **blueprints** define fields to extract or infer, such as contract parties, dates, obligations, and payment terms. Configure the project, blueprint, S3 input/output, and permissions instead of assembling every parser and extraction step yourself. [BDA overview](https://docs.aws.amazon.com/bedrock/latest/userguide/bda.html).
+
+Use **Textract** when OCR, forms, tables, or its supported document-analysis features meet the need. Prefer BDA when managed semantic extraction into a task-specific structure is decisive. Textract is more than raw OCR, but a Textract-only response is not automatically a complete contract-analysis workflow. Validate extracted fields before database ingestion; BDA output in S3 is not itself a database write.
+
+File support depends on the API: the asynchronous document path supports PDF, TIFF, JPEG, PNG, and DOCX; the synchronous path has different limits and does not support DOCX. Do not generalize this to every Word format or unlimited file sizes. [BDA input requirements](https://docs.aws.amazon.com/bedrock/latest/userguide/bda-limits.html).
 
 ## 3. Amazon Bedrock AgentCore {#section-3-agentcore}
 
@@ -202,13 +232,27 @@ The decision is **managed model capabilities versus control over the ML lifecycl
 
 Match endpoint scaling, cold starts, model loading, hardware requirements, and utilization to the workload. [SageMaker AI features](https://docs.aws.amazon.com/sagemaker/latest/dg/whatis-features.html) and [deployment options](https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html) describe the supported paths. The reason to customize a model is covered in [Models: adaptation choices](/study/aiModels#model-adaptation).
 
-### 4.1 SageMaker Canvas: a visual ML workflow {#sagemaker-canvas}
+### 4.1 Choose hosting by hardware control and delivery mode {#sagemaker-inference-options}
+
+For a fine-tuned open-weight LLM that needs **selected GPU instance types and custom endpoint scaling policies**, choose **SageMaker AI real-time endpoints**. SageMaker manages serving infrastructure while the team configures the supported instance family, model/container, and scaling policy. Direct EC2 hosting offers more host-level control with more operational work. [Real-time inference](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints.html).
+
+Bedrock **Custom Model Import does support compatible customized open models**, including supported Llama architectures. The reason it loses the GPU-selection scenario is that Bedrock abstracts serving infrastructure; it is not that custom import is impossible. Comprehend and Textract provide specialized analysis APIs, not arbitrary LLM hosting. [Custom Model Import](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html).
+
+| Delivery requirement | SageMaker option | Decisive boundary |
+|---|---|---|
+| Low-latency synchronous response with selected serving instances | Real-time inference | Provision and scale endpoint capacity for the latency target. |
+| Unpredictable arrivals; each video takes 10–30 minutes; callers can wait | **Asynchronous Inference** | Managed request queue, S3 input/output, up to 1 GB payloads and one-hour processing; configure scaling to zero. |
+| Known dataset to process as a job | **Batch Transform** | Job-based offline inference without a persistent endpoint; jobs can be scheduled or triggered on demand. |
+
+For asynchronous inference, the **service queues requests; S3 holds payloads and results**. Configure both scale-in to zero and scale-out when work arrives with no running instances. Cold starts add delay, and storage/monitoring charges can remain when endpoint compute is zero. Batch Transform is not restricted to nightly schedules, but asynchronous inference directly supplies the arrival-driven queue/endpoint pattern. A conventional Lambda invocation's 15-minute limit cannot cover a 30-minute inference task. [Asynchronous inference](https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference.html), [autoscaling](https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference-autoscale.html), and [Batch Transform](https://docs.aws.amazon.com/sagemaker/latest/dg/batch-transform.html).
+
+### 4.2 SageMaker Canvas: a visual ML workflow {#sagemaker-canvas}
 
 **SageMaker Canvas** lets users prepare data, build and evaluate supported custom models, and generate predictions without writing training code. Typical tasks include classification, numeric prediction, and time-series forecasting. It also offers ready-to-use AI models and generative-AI capabilities.
 
 For example, a business analyst can import historical customer records, choose churn as the target, build a model, inspect its evaluation, and predict churn for new records. A visual interface does not remove responsibility for label quality, leakage, permissions, or evaluation. Choose Canvas for a supported visual workflow; use SageMaker's code-based tools when custom algorithms and training control are required. [SageMaker Canvas documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/canvas.html).
 
-### 4.2 Feature Store: reusable inputs for training and inference {#feature-store}
+### 4.3 Feature Store: reusable inputs for training and inference {#feature-store}
 
 A **feature** is a model input such as `purchases_last_30_days`. **SageMaker Feature Store** stores reusable feature records and metadata in feature groups, reducing repeated preparation and helping keep training and serving inputs consistent.
 
@@ -219,7 +263,7 @@ A **feature** is a model input such as `purchases_last_30_days`. **SageMaker Fea
 
 Use either store or both. Records have identifiers and event times; pipelines can ingest batches or streaming updates. Historical training queries must avoid using future information. Sharing feature definitions helps reduce **training-serving skew**, but freshness and transformation logic still need controls. A feature store's main job is reusable ML inputs; a RAG vector index's main job is similarity retrieval. [Feature Store documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/feature-store.html).
 
-### 4.3 Ground Truth, Mechanical Turk, and A2I {#labeling-human-review}
+### 4.4 Ground Truth, Mechanical Turk, and A2I {#labeling-human-review}
 
 The distinction is **training-data labels**, **human workers**, and **reviewing predictions**:
 
@@ -237,7 +281,7 @@ An A2I human-review workflow defines the task interface, worker instructions, an
 
 **Workforce** means the pool of people; a **work team** is the group assigned work. Options include a private workforce and vendor-managed workers. Exam material may also name the public MTurk workforce. **Lifecycle note, checked 17 September 2026:** AWS announces that Mechanical Turk will permanently close on **30 September 2026**. Retain the exam association, but consult the notice when selecting a workforce. Public-worker tasks must not contain confidential or personal data. [Workforce options](https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management.html) and [MTurk notice and restrictions](https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management-public.html).
 
-### 4.4 Model Cards, Model Monitor, and Model Dashboard {#model-governance}
+### 4.5 Model Cards, Model Monitor, and Model Dashboard {#model-governance}
 
 These are **SageMaker** capabilities. “Bedrock Model Monitor” and “Bedrock Model Dashboard” are not the names of these features.
 
@@ -265,6 +309,7 @@ For Bedrock applications, use the relevant **model evaluation**, **CloudWatch me
 | **Bedrock Knowledge Bases** | Supported managed ingestion and retrieval meet the RAG workload. | Configure sources, parsing/chunking, embeddings, store, filters, sync, and evaluation. |
 | **OpenSearch Service** | Direct index design, lexical/vector/hybrid ranking, filters, facets, and query control matter. | Own the ingestion and query pipeline around search; compare managed domains with Serverless feature/cost constraints. |
 | **Kendra** | Enterprise connectors, organizational search, and supported document-ACL integration dominate. | Verify connector/index/API support, ACL ingestion, and user/group synchronization. |
+| **Q Business** | A packaged enterprise assistant with conversational answers, citations, and connectors is the requirement in an exam scenario. | Configure identity, permissions, and sources; account for the availability notice in [section 7](#section-12-service-map). |
 
 These operate at different levels. Knowledge Bases can use supported stores or retrievers; a custom application can query OpenSearch or Kendra and then invoke a model. Do not create multiple copies of a corpus without explicit ownership and freshness requirements.
 
@@ -276,7 +321,15 @@ Use custom retrieval when required parsing, entitlement logic, ranking, query tr
 
 Parsing, chunking, ANN indexes, reranking, and retrieval metrics are taught on [AI Knowledge Bases](/study/aiKnowledgebases).
 
-### 5.1 Kendra Search Analytics {#kendra-search-analytics}
+### 5.1 Assistant, retriever, or vector index? {#assistant-retriever-vector-store}
+
+For employee questions over **SharePoint, Confluence, and S3**, “conversational answers with citations and minimal application development” points to **Q Business** among those exam choices. Knowledge Bases supplies managed RAG capabilities for an application; OpenSearch supplies search/index capabilities. Kendra can return answer passages as well as ranked documents and can serve as a RAG retriever, but is not by itself the packaged generative assistant described here. [Q Business overview](https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/what-is.html) and [Kendra query responses](https://docs.aws.amazon.com/kendra/latest/dg/query-responses-types.html).
+
+For **similar-product or article recommendations**, Bedrock embeddings represent meaning; **OpenSearch Service** indexes vectors and performs k-NN retrieval. Existing search integration plus keyword/vector **hybrid search** strengthens that choice. Kinesis transports records; Athena analyzes data; ordinary S3 Intelligent-Tiering manages object storage cost. They do not provide this search index. Amazon S3 Vectors is a separate vector capability, so avoid the blanket claim that S3 has no vector search. [OpenSearch vector search](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/knn.html) and [S3 Vectors](https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-vectors.html).
+
+RDS PostgreSQL and Aurora PostgreSQL can use supported **pgvector** versions; relational joins and existing transactional data can make them appropriate. Millions of embeddings alone do not prove OpenSearch is faster or cheaper. Choose it here for the combined search requirements, then benchmark latency, recall, filtering, and cost. [RDS PostgreSQL extensions](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.PostgreSQL.CommonDBATasks.Extensions.html).
+
+### 5.2 Kendra Search Analytics {#kendra-search-analytics}
 
 **Search Analytics** shows how people use a Kendra search application and where it fails them. View trends in the console or retrieve metrics using `GetSnapshots`.
 
@@ -331,6 +384,17 @@ Durable workflow orchestration is covered by [Step Functions in section 3](#sect
 | Glue | Data preparation, catalogue, lineage, and quality workflows feeding ingestion/evaluation. |
 | Macie | Discover sensitive data in S3 and trigger a findings-response workflow. |
 
+#### Validate records before inference {#data-quality}
+
+**AWS Glue Data Quality** evaluates declarative rules over pipeline data. Required patient fields, valid dates, and accepted medical codes are data-quality requirements; Guardrails content policy and CloudWatch pipeline health answer different questions.
+
+- Use DQDL rules such as `ColumnExists` and `IsComplete` for required columns and non-null values.
+- Use type/format rules and `CustomSql` where needed for actual date validity; a matching date pattern alone does not establish a valid calendar date.
+- Use allowed values or reference-data checks for valid codes; the team supplies and maintains the authoritative code set.
+- Configure pipeline failure or quarantine on failed rules before downstream inference. Evaluation results do not automatically block every consumer.
+
+Lambda can implement validation, but Glue Data Quality fits the requirement for a managed dataset-validation framework. For lightweight per-request whitespace/case normalization, use Lambda instead; preserve identifiers and meaningful punctuation. [DQDL rule reference](https://docs.aws.amazon.com/glue/latest/dg/dqdl-rule-types.html) and [Glue quality evaluation in ETL](https://docs.aws.amazon.com/glue/latest/dg/tutorial-data-quality.html).
+
 ### 6.4 Encryption, secrets, and operations {#section-9-4-operations}
 
 | Service | Role |
@@ -344,6 +408,12 @@ Durable workflow orchestration is covered by [Step Functions in section 3](#sect
 | Cost Explorer / Cost Anomaly Detection | Cost analysis / unusual-spend detection. |
 
 Keep sensitive payloads out of routine telemetry. Use the [shared trace design](/study/aiInfrastructure#section-11-observability) to connect operational signals to the model, retrieval, and tool decisions.
+
+#### Token alarms versus billing analysis {#token-monitoring}
+
+Use **CloudWatch** for Bedrock token-consumption dashboards and threshold alarms. For `bedrock-runtime`, metric names include **`InputTokenCount`**, **`OutputTokenCount`**, and **`Invocations`** in the `AWS/Bedrock` namespace. Use the appropriate model dimensions and `Sum` over the alarm period; feature-level attribution needs application instrumentation or supported application inference profiles. Cache token metrics matter when estimating spend. [Bedrock runtime metrics](https://docs.aws.amazon.com/bedrock/latest/userguide/monitoring-runtime-metrics.html).
+
+Token thresholds are operational cost signals, not exact dollar bills: models and token categories have different rates. Use **Cost Explorer** for billed-spend analysis/forecasting and **AWS Budgets** for budget alerts. X-Ray traces request paths; CloudTrail audits API activity. Neither replaces token metrics and alarms. [Application inference profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles.html) and [AWS cost management](https://docs.aws.amazon.com/cost-management/latest/userguide/what-is-costmanagement.html).
 
 ### 6.5 AWS Audit Manager: organize audit evidence {#audit-manager}
 
@@ -400,6 +470,21 @@ Comprehend entity detection assigns types to text spans. Key phrase extraction r
 Rekognition analyzes visual content, with capabilities including labels, faces, image text, and moderation. A face detection is not automatically identification of a named person. For a scanned contract, OCR followed by Comprehend can extract named parties; detecting objects in a photograph is a different task. [Rekognition visual labels](https://docs.aws.amazon.com/rekognition/latest/dg/labels.html).
 
 The core service remains available, but **Rekognition Streaming Events and Batch Image Content Moderation are closed to new customers**. Do not infer availability of those features from general Rekognition image/video support. [AWS services in maintenance](https://docs.aws.amazon.com/general/latest/gr/maintenance_services.html).
+
+### 7.2 Detect and redact before inference or logging {#pii-redaction}
+
+| Need | Service/control | Boundary |
+|---|---|---|
+| Locate names, phone numbers, and addresses in incoming text | **Comprehend PII detection** | Returns entity types, confidence, and offsets; application code can mask those spans before calling the FM. |
+| Block or mask supported sensitive information in model interactions | **Bedrock Guardrails** | Configure sensitive-information filters; the application must use the sanitized result. |
+| Discover sensitive objects already in S3 | **Macie** | Storage discovery/findings, not inline redaction before a log write. |
+| Read a scan / find workload vulnerabilities / audit API calls | Textract / Inspector / CloudTrail | These roles do not replace a text-redaction stage. |
+
+Comprehend supports real-time PII detection and asynchronous redaction jobs. Guardrails can independently detect and mask supported PII; it does not consume Comprehend offsets as an automatic log-cleaning integration. For “detect with Comprehend, redact with Guardrails,” explicitly wire and verify the application stages. [Comprehend PII](https://docs.aws.amazon.com/comprehend/latest/dg/how-pii.html) and [Guardrails sensitive-information filters](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-sensitive-filters.html).
+
+The safe application path is **raw text → detection/redaction → sanitized prompt or transcript → permitted destination**. Guardrails does not retroactively scrub logs, and invocation logging can retain original content. Check errors, traces, and logging configuration as well as the successful response path. [Invocation logging](https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html).
+
+Medical record numbers and other clinical identifiers require verified entity coverage; do not assume generic Comprehend detects every PHI type. Evaluate **Comprehend Medical `DetectPHI`** and custom patterns where needed. Redaction is one control, not a guarantee of complete detection or HIPAA compliance. [Comprehend Medical PHI detection](https://docs.aws.amazon.com/comprehend-medical/latest/dev/textanalysis-phi.html).
 
 ## 8. Continue to certification preparation {#section-13-practice-traps}
 

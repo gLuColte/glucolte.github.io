@@ -11,6 +11,11 @@ tag:
   - AI governance
   - model evaluation
   - serverless architecture
+  - AWS Step Functions
+  - AWS Glue Data Quality
+  - prompt caching
+  - intelligent prompt routing
+  - structured output
 ---
 
 # AWS AIP-C01 Architecture Decision Guide
@@ -159,6 +164,8 @@ The first major design question is not “Which compute service is best?” It i
 
 Think serverless for intermittent or variable traffic, event-driven work, short-lived stateless components, pay-per-use economics, managed orchestration, and low operational overhead. It is usually a strong fit for validation, request adaptation, lightweight tool handlers, and glue between managed services.
 
+**Query cleaning is application code:** use Lambda to trim extra whitespace, apply safe normalization, or implement bounded typo corrections before Bedrock. Comprehend detects entities, sentiment, and PII; it does not rewrite text into a normalized query. Preserve meaningful case, punctuation, medical codes, and identifiers. Glue fits dataset-oriented preparation; Textract fits scanned input.
+
 ### 3.2 ECS and Fargate container architecture
 
 Think containers for a long-running process, persistent service, custom runtime or native dependencies, workload outside conventional Lambda duration/resource limits, a complex MCP/tool server, or specialized runtime/network behavior. Fargate removes host management but still has task, service, scaling, image, and networking concerns.
@@ -205,6 +212,8 @@ Do not select Step Functions because the question is complicated. Select it when
 | `Timeout` / heartbeat | Bound work and detect stalled tasks. | Assuming a service's own timeout creates an end-to-end recovery design. |
 
 Choose the workflow type deliberately. **Standard Workflows** can run for up to one year and support `.sync` job runs and `.waitForTaskToken` callbacks. **Express Workflows** run for up to five minutes and support request-response integrations, but not `.sync`, callback task tokens, Distributed Map, or Activities. Their execution guarantees also differ: Standard is exactly-once unless retries are configured; asynchronous Express is at-least-once, and synchronous Express is at-most-once. Continue to make external side effects idempotent because configured retries, timeouts, and uncertain downstream outcomes can still repeat an operation. [Step Functions workflow types](https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html) and [service integration patterns](https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html).
+
+**Editorial approval example:** generate a draft, then enter a task using `.waitForTaskToken`. Pass the token to an approval service; the editor's authenticated decision returns through `SendTaskSuccess` with an approved/rejected result, and a `Choice` publishes or archives the draft. Use `SendTaskFailure` for a failed task, with a defined recovery path. Protect tokens and configure an approval deadline. The workflow waits durably without keeping Lambda running or polling every minute; the wait remains bounded by execution/task timeouts. SQS can carry the approval request, but does not itself own the branching workflow. [Callback task-token pattern](https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html#connect-wait-token).
 
 <figure class="aws-architecture" aria-labelledby="workflow-caption">
   <div class="aws-architecture__title">A controlled document workflow<span class="aws-architecture__subtitle">Step Functions owns progress; individual services perform bounded tasks.</span></div>
@@ -259,6 +268,12 @@ For work that can exceed the compute boundary or need not complete inside the cl
 | Agent + Step Functions | Dynamic diagnosis/planning feeds an auditable business process. | There is no need for either dynamic reasoning or durable workflow controls. |
 
 Agents are not a fringe topic in the current blueprint. It explicitly includes agentic systems, memory/state, MCP, Strands Agents, AWS Agent Squad, tool integration, and multi-agent coordination. The professional-level distinction is **where autonomy ends**: validate parameters, authorize each tool for the caller, constrain resources with IAM, make side effects idempotent, define stopping conditions, and trace tool activity.
+
+### 3.5 Route business events to the workflow {#business-events}
+
+For a fraud system that emits **“suspicious transaction detected,”** use **EventBridge** rules to select the event and target Lambda or Step Functions. That handler invokes Bedrock and stores the risk report in S3. EventBridge routes the event; the target performs the work. Configure retries, dead-letter handling, and idempotency for repeated delivery. [EventBridge rules and targets](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html).
+
+Kinesis fits continuous record streams and consumer processing; it is not the simplest answer when the decisive requirement is routing a discrete business event. SNS can also invoke Lambda and filter subscriptions, so it is a valid pub/sub building block; EventBridge fits the application-event bus requirement. A cron-triggered Lambda checks on a schedule instead of reacting to the event.
 
 ## 4. Add knowledge and prepare data {#rag-trade-offs}
 
@@ -329,10 +344,22 @@ Debug the first broken boundary. Do not tune the generation model to compensate 
 | Scanned PDF, forms, tables | Amazon Textract | Extract structured text/forms/tables before normalization, chunking, or inference. |
 | Audio | Amazon Transcribe | Convert speech to text for downstream analysis, retrieval, or summarization. |
 | Image/video analysis | Amazon Rekognition | Detect labels, faces, text, moderation signals, or video events when that specialized analysis is required. |
-| PII, entities, language, text preprocessing | Amazon Comprehend | Detect/extract from text before storage or model context; use requirements to distinguish it from runtime Guardrails. |
+| PII, entities, language detection | Amazon Comprehend | Detect/extract from text; application code applies any required transformation. |
+| Whitespace, case, and bounded typo normalization | AWS Lambda | Lightweight per-request preprocessing before Bedrock. |
+| Required fields, date validity, accepted codes | AWS Glue Data Quality | Evaluate explicit data rules and configure failure/quarantine before inference. |
+| Managed document parsing plus semantic field extraction | Amazon Bedrock Data Automation | Configure blueprints and S3 output for contracts or other supported documents. |
 | ETL, catalogue, lineage, data transformation | AWS Glue | Prepare/catalogue datasets and coordinate data-oriented transformations. |
 
 The service name is not the hard part. The exam decision is usually whether preprocessing is synchronous or event-driven, how failures and partial progress are handled, where sensitive data may be stored, and how updates/deletions propagate into every derived copy.
+
+### 4.3 Choose the level of managed knowledge capability {#knowledge-service-boundary}
+
+- **Ready-to-use employee assistant, enterprise connectors, conversational citations:** Q Business is the exam answer among Q Business, Kendra, Knowledge Bases, and OpenSearch. Check its [current availability and migration guidance](/study/infrastructureAWSAiServices#section-12-service-map) for new implementations.
+- **RAG inside your own application:** Bedrock Knowledge Bases manages retrieval/generation capabilities; the application still owns the user experience and authorization integration.
+- **Search results or answer passages:** Kendra is an enterprise retriever, not by itself the complete conversational assistant.
+- **Millions of embeddings plus existing keyword/vector search:** OpenSearch Service fits k-NN and hybrid retrieval. RDS/Aurora PostgreSQL with pgvector remains a valid alternative when relational requirements dominate.
+
+See the [assistant/retriever/vector-store comparison](/study/infrastructureAWSAiServices#assistant-retriever-vector-store), [data-quality rules](/study/infrastructureAWSAiServices#data-quality), and [Data Automation](/study/infrastructureAWSAiServices#data-automation) for implementation boundaries. Do not choose a stream or storage tier merely because it can carry embedding data.
 
 ## 5. Protect users, data, and actions {#security-controls}
 
@@ -381,6 +408,8 @@ Security and compliance are not a final box after the model. They shape identity
 | Stored-data retention | S3 Lifecycle/Object Lock where requirements call for it, log retention, database TTL/deletion workflows | Retention and immutable regulatory records are different requirements; apply the appropriate mechanism. |
 
 ### 5.1 Map common scenarios to controls
+
+**Before the model versus before the log:** incoming feedback that must be sanitized before inference calls for Comprehend detection plus redaction, or an appropriate pre-inference Guardrails stage. Conversation logging needs a sanitized transcript before the write. Macie discovery after storage is too late for that boundary, and Guardrails does not automatically rewrite logs. Verify clinical identifier coverage rather than assuming generic PII detection covers every medical record number. [AWS PII service comparison](/study/infrastructureAWSAiServices#pii-redaction).
 
 - **GDPR/privacy:** minimize data, establish lawful handling outside the architecture question, restrict purpose/access, define deletion across source, logs, indexes, caches, backups, and audit records, and validate Region/provider boundaries.
 - **European/geographic residency:** choose an approved in-Region or geographic profile and inspect every possible destination, logging location, retained inference copy, Guardrails tier, store, backup, and support process.
@@ -489,6 +518,22 @@ Once the functional architecture is correct, decide how requests consume capacit
 
 Bedrock batch inference accepts multiple prompts and places asynchronous output in S3; it is not supported for provisioned models. Provisioned Throughput supplies a fixed-cost higher throughput level and may have commitment terms. [Batch inference](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference.html), [Provisioned Throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html). For interactive streaming, confirm model support and propagate the stream through the application/API transport; API Gateway REST proxy integrations can support response streaming when configured with `STREAM`. [Bedrock streaming](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-api.html), [API Gateway response streaming](https://docs.aws.amazon.com/apigateway/latest/developerguide/response-transfer-mode.html).
 
+#### Custom model hosting and long-running inference {#hosting-decision}
+
+**Fine-tuned Llama + selected GPU instance type + custom endpoint autoscaling → SageMaker AI real-time endpoints.** Bedrock can import compatible custom models, but does not provide that hardware-selection boundary. For unpredictable 10–30-minute video jobs with no immediate-response requirement, use **SageMaker Asynchronous Inference with scaling to zero**. Batch Transform fits processing a known dataset as a job and can run on demand; it is not limited to schedules. [SageMaker inference options](/study/infrastructureAWSAiServices#sagemaker-inference-options).
+
+#### Match each optimization to the repeated work {#cost-patterns}
+
+| Clue | Exam choice | Qualification |
+|---|---|---|
+| Simple and complex questions currently use one expensive model | Bedrock Intelligent Prompt Routing | Use a supported model pair and evaluate both difficulty groups; caching optimizes reuse, not model selection. |
+| Same 5,000-token policy, different questions | Bedrock Prompt Caching | Cache the stable prefix; reads can still incur discounted charges and entries expire. |
+| Predictable high daytime demand, low overnight demand | Evaluate provisioned throughput plus on-demand | Only saves if token economics, supported capacity options, commitments, and provisioning lifecycle permit it. |
+| Standardized wording with minimal variation | Low temperature, where supported | Reduces randomness; no universal `0.5` default or guarantee of identical/correct text. |
+| Order extraction must satisfy a database schema | JSON Schema with supported structured output | Enforces structure; validate meaning and business rules before insertion. |
+
+For the day/night practice question, the intended pattern is **match capacity to utilization**. Switching invocation destinations does not stop provisioned billing, and 10,000 requests/hour alone does not prove a break-even point. See [routing, caching, and capacity](/study/infrastructureAWSAiServices#routing-caching-capacity), [temperature](/study/aiFundamentals#section-6-1-temperature-top-p), and [schema enforcement](/study/aiPromptEngineering#json-schema).
+
 ### 6.1 Observability: instrument the question {#observability}
 
 <figure class="aws-architecture" aria-labelledby="operations-caption">
@@ -523,6 +568,8 @@ Bedrock batch inference accepts multiple prompts and places asynchronous output 
 
 #### GenAI-specific measurements
 
+**Token thresholds → CloudWatch alarms.** Bedrock runtime metrics use `InputTokenCount`, `OutputTokenCount`, and `Invocations`; do not memorize `InputTokens`/`OutputTokens` as their CloudWatch names. Attribute features with application instrumentation or supported inference profiles. Cost Explorer serves billing analysis/forecasting; AWS Budgets serves budget alerts; traces and CloudTrail answer request-path and API-audit questions. [Token monitoring details](/study/infrastructureAWSAiServices#token-monitoring).
+
 | Layer | Useful measurements |
 |---|---|
 | Request/model | Input/output/cache tokens, time to first token, total latency, model latency, error/throttle rate, retries, cost per request. |
@@ -537,6 +584,8 @@ Correlate a request, workflow execution, retrieval query, model invocation, and 
 ### 6.2 Evaluation as a release decision {#evaluation}
 
 Traditional supervised-ML metrics are not the center of this exam. Evaluate the GenAI application and its production behavior.
+
+A curated set of **200 representative questions with expert-validated reference answers** is a **golden dataset / ground-truth evaluation set**. Use it to compare prompt/model changes and detect regressions before and after deployment. “Test corpus” is broader terminology; “golden” emphasizes trusted reference quality. Keep final held-out tests separate from examples used to tune prompts. [Dataset roles and golden sets](/study/aiInfrastructure#golden-dataset).
 
 | Change or component | Evaluation pattern | Decision logic |
 |---|---|---|
