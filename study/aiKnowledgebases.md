@@ -11,6 +11,8 @@ tag:
   - IVF
   - reranking
   - retrieval evaluation
+  - embedding migration
+  - context pruning
 ---
 
 # AI Knowledge Bases and Retrieval
@@ -111,6 +113,8 @@ Common strategies are deliberately different tools:
 
 Section-aware chunking is often a strong default for policies because the heading path becomes both context and retrieval metadata. It is not automatically best: tables, transcripts, and long narrative text may need another approach.
 
+**Implementation boundary:** parent substitution is a retriever feature, not a universal property of a hierarchical document. Bedrock vector retrieval and Neptune GraphRAG differ here. A lost table layout needs a parser change before any chunking adjustment. See [Knowledge Bases configuration layers](/study/infrastructureAWSAiServices#kb-internals).
+
 ### Embeddings: representing meaning as vectors
 
 During ingestion, an embedding model converts each prepared chunk's text to numbers. An **embedding** is a numerical representation useful for comparing semantic similarity—not a human-readable list of labels.
@@ -132,6 +136,21 @@ During ingestion, an embedding model converts each prepared chunk's text to numb
 </div>
 
 At query time, use a compatible model and its prescribed query/document encoding settings. Search compares vectors using a supported metric such as **cosine similarity**, **dot product**, or **Euclidean distance**. Match the metric and normalization to the model: these scores are not generally interchangeable. With unit-normalized vectors, dot product equals cosine similarity and squared Euclidean distance produces equivalent rankings. [Faiss metric guidance](https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances).
+
+### Changing the embedding space {#embedding-migration}
+
+A new visual style or vocabulary can reveal a domain coverage gap. First separate representation failure from missing ingestion, poor captions, incorrect filters, and low first-stage recall. Hybrid metadata matching can recover tagged items without changing the model. If the embedding model itself must adapt, use a supported customization path and evaluate held-out image–text or document–query pairs.
+
+```text
+New embedding version or dimension setting
+                  ↓
+Re-embed corpus → separate compatible index → evaluate recall + answers
+                  ↑                                  ↓
+        compatible query encoder            switch both together
+                                            retain rollback pair
+```
+
+Do not mix unrelated model versions or dimensions in one similarity space. Re-embedding only new documents leaves the old catalogue incompatible unless the system explicitly maintains separate indexes and routing. Lower dimensions reduce raw vector bytes but can reduce retrieval quality; corpus size alone does not determine the right dimension. [Titan customization and dimension controls](/study/infrastructureAWSAiServices#bedrock-customization).
 
 ## How Can We Retrieve Relevant Information?
 
@@ -240,6 +259,8 @@ Now that vector search has a job, we can ask how it scales. Start with a **brute
 </svg>
 </div>
 
+**Tune the stage that consumes resources:** `ef_search` changes query exploration; `ef_construction` changes graph-building effort; `m` changes connectivity and graph memory. More search effort can improve recall but adds latency. Shard distribution and available memory must support the index; adding shards without adding capacity can increase overhead. [OpenSearch HNSW controls](/study/infrastructureAWSAiServices#opensearch-hnsw-tuning).
+
 ## IVF: Find the Right Neighbourhood
 
 **IVF** means **Inverted File Index**. Its mental model is: **find the right neighbourhood first, then search the houses.** It divides vector space into partitions (clusters), then searches the most promising ones.
@@ -297,6 +318,8 @@ A typical dense-retrieval system uses a **bi-encoder** to encode queries and chu
   <strong>Ranking limit</strong>
   <span><strong>Reranking cannot recover a document that first-stage retrieval failed to retrieve.</strong> Improve recall before expecting reranking to fix missing evidence.</span>
 </aside>
+
+**Dynamic context pruning** keeps a broad candidate search, then drops low-relevance candidates after reranking and before prompt construction. Calibrate a score threshold and token budget against recall and answer quality; reranker scores are not universal probabilities. Summarizing every irrelevant chunk preserves noise in compressed form, while a recency-only window can discard an older but decisive source. [AWS reranking integration](/study/infrastructureAWSAiServices#kb-internals).
 
 ## Evaluation: Does the System Retrieve and Answer Well?
 

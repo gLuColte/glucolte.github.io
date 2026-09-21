@@ -14,6 +14,7 @@ tag:
   - reinforcement learning from human feedback (RLHF)
   - training validation and test data
   - model providers
+  - LoRA adapters
 ---
 
 # AI Models and Providers
@@ -160,6 +161,12 @@ Choose according to what needs to change:
 **Catastrophic forgetting** is a customization risk: aggressive or narrow training can degrade capabilities the base model previously had. Keep holdout tests for both the target task and important general/safety behaviours.
 
 For AWS-specific customization capabilities and lifecycle decisions, see [AWS AI Services](/study/infrastructureAWSAiServices#section-4-bedrock-sagemaker).
+
+#### Style examples versus adapter lifecycle {#style-and-adapters}
+
+A paired product-description → brand-caption dataset is supervised adaptation even when the desired change is **tone**, rather than a new factual domain. Continued pre-training uses a different learning objective over an unlabelled corpus. Fine-tuning can reduce repeated demonstration tokens, but training, serving, and evaluation costs still determine whether it pays off.
+
+With **LoRA**, store one frozen base and version the small learned updates separately. The deployable identity is the combination of base, adapter, tokenizer, and serving configuration. A registry records that identity and approval evidence; a compatible serving runtime loads and selects adapters. These are separate responsibilities. Multiple full fine-tuned checkpoints do not automatically become interchangeable adapters. See [AWS customization](/study/infrastructureAWSAiServices#bedrock-customization) and [adapter lifecycle](/study/infrastructureAWSAiServices#sagemaker-adapter-lifecycle).
 
 ### 3.4 Training, validation, and test sets {#training-data-splits}
 

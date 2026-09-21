@@ -14,6 +14,7 @@ tag:
   - reliability
   - latency and cost
   - release gates
+  - regression testing
 ---
 
 # AI Infrastructure and Evaluation
@@ -403,6 +404,19 @@ Use the business measures from [section 13](#13-business-and-adaptability-metric
   - a reproducible test case;
   - a control or recovery improvement;
   - an observable alert where possible.
+
+### Regression gates should test the actual failure {#constraint-regression}
+
+For property descriptions that invented amenities and omitted square footage, keep historical inputs and verified facts in a versioned golden set. Assert the required square-footage value and compare structured amenity claims with the source's allowed facts. Semantic similarity can remain high despite one critical invented fact. An exact string check also cannot detect every paraphrased hallucination; combine structured constraints with calibrated factuality evaluation.
+
+```text
+Candidate prompt version → generate on held-out inputs
+                         → required-field / source-fact assertions
+                         → factuality + quality evaluation
+                         → thresholds pass? → promote / reject
+```
+
+Run those gates before production promotion, then monitor/canary with rollback. Human creativity/persona comparisons need an expert rubric, and pre-deployment bias assessment needs the relevant protected-group metrics; a generic “quality” score does not answer every question. [AWS evaluation settings](/study/infrastructureAWSAiServices#bedrock-flows-evaluation) and [bias gates](/study/infrastructureAWSAiServices#sagemaker-training-bias).
 
 ## 16. Troubleshoot the layer that failed
 

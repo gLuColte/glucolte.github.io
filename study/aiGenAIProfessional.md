@@ -16,6 +16,10 @@ tag:
   - prompt caching
   - intelligent prompt routing
   - structured output
+  - SageMaker Pipelines
+  - AWS AppConfig
+  - GraphRAG
+  - agent tracing
 ---
 
 # AWS AIP-C01 Architecture Decision Guide
@@ -25,6 +29,8 @@ Prepare for **AWS Certified Generative AI Developer – Professional (AIP-C01)**
 **Blueprint checked: 17 September 2026.** The current guide has five domains: Foundation Model Integration, Data Management, and Compliance (31%); Implementation and Integration (26%); AI Safety, Security, and Governance (20%); Operational Efficiency and Optimization (12%); and Testing, Validation, and Troubleshooting (11%). It validates integration of foundation models into production applications and business workflows. [Current AIP-C01 exam guide](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html).
 
 > **The governing rule:** identify the decisive constraint first. Requirements beat defaults, rules of thumb, and fashionable architectures.
+
+Use **Northstar Assistant** as the running example while reading this guide. Northstar receives customer messages, protects PII, retrieves authorized company information, calls Bedrock, and measures the result. The [Northstar service map](/study/infrastructureAWSAiServices#northstar-map-caption) keeps each AWS service in the same story, so a new question changes one requirement or one boundary instead of changing the whole example.
 
 ## 1. How to think in this exam {#how-to-think}
 
@@ -275,6 +281,18 @@ For a fraud system that emits **“suspicious transaction detected,”** use **E
 
 Kinesis fits continuous record streams and consumer processing; it is not the simplest answer when the decisive requirement is routing a discrete business event. SNS can also invoke Lambda and filter subscriptions, so it is a valid pub/sub building block; EventBridge fits the application-event bus requirement. A cron-triggered Lambda checks on a schedule instead of reacting to the event.
 
+### 3.6 Read the API and configuration boundary {#service-internals}
+
+| Requirement | Inside the selected service | Defeat the runner-up |
+|---|---|---|
+| S3 upload starts a durable workflow | Enable S3 EventBridge delivery → rule → Step Functions target | Direct bucket notification cannot target a state machine. |
+| Upload bursts only under `final/` | Rule key-prefix filter → SQS → paced worker | Direct S3 notifications cannot target SQS FIFO; concurrency is not a token-rate budget. |
+| Bedrock tokens reach a WebSocket client early | Response stream → `post_to_connection`, using request-context connection ID | Buffering until completion loses streaming; storing an ID does not resume a model stream. |
+| Multi-model draft/check/branch in Bedrock console | Flows Prompt nodes + Condition node | A Step Functions solution misses the specified console; an agent adds unnecessary runtime discretion. |
+| Change model tiers or experiment split without code release | AppConfig configuration/variants + Lambda extension | Updates propagate through config deployment/polling; not instantaneous global mutation. |
+
+Read the [event and streaming controls](/study/infrastructureAWSAiServices#event-stream-controls), [Flows](/study/infrastructureAWSAiServices#bedrock-flows-evaluation), and [AppConfig](/study/infrastructureAWSAiServices#appconfig-routing) trees alongside the service-level decisions.
+
 ## 4. Add knowledge and prepare data {#rag-trade-offs}
 
 A model answers from its request context. When answers need private, current, or attributable evidence, the architecture needs two connected lifecycles: prepare searchable knowledge before requests arrive, then retrieve authorized evidence for each request. Choose retrieval architecture by the evidence contract, not by the word “RAG.”
@@ -361,6 +379,21 @@ The service name is not the hard part. The exam decision is usually whether prep
 
 See the [assistant/retriever/vector-store comparison](/study/infrastructureAWSAiServices#assistant-retriever-vector-store), [data-quality rules](/study/infrastructureAWSAiServices#data-quality), and [Data Automation](/study/infrastructureAWSAiServices#data-automation) for implementation boundaries. Do not choose a stream or storage tier merely because it can carry embedding data.
 
+### 4.4 Diagnose the configuration, not just the service {#data-configuration-decisions}
+
+| Symptom | Change | Avoid confusing it with |
+|---|---|---|
+| Image embeddings miss a verified new domain | Supported multimodal fine-tuning + re-embed corpus and query path | Metadata hybrid search can help retrieval, but does not train the encoder. |
+| Stale S3-backed KB after uploads | Buffered/coalesced `StartIngestionJob`; check completion and failures | One unpaced sync per object; a queue alone does not pace calls. |
+| PDF table columns become detached | Data-source advanced parser | Vector-store settings or semantic chunking after structure is lost. |
+| Child snippets lack context | Hierarchical vector parent substitution; GraphRAG instead needs self-contained chunks | Increasing GraphRAG parent size does not make it return parents. |
+| Too many irrelevant context tokens | Broad retrieval → rerank → calibrated pruning | Blindly lowering candidate count or summarizing every chunk. |
+| Small index, dimension cost concern | Evaluate Titan V2 at 256/512 against 1,024 | Lower dimensions do not guarantee equal quality or proportional total-bill savings. |
+| Empty reviews reach training | Glue `ColumnLength` + in-pipeline failure gate | `IsComplete` alone, independent reporting, or a late alarm. |
+| Mono speakers become confused | Transcribe diarization + labelled turns + verified roles | Channel identification or assuming `spk_0` always means Doctor. |
+
+Implementation details: [KB internals](/study/infrastructureAWSAiServices#kb-internals), [customization](/study/infrastructureAWSAiServices#bedrock-customization), [Glue gates](/study/infrastructureAWSAiServices#glue-quality-redaction), and [transcription](/study/infrastructureAWSAiServices#transcription-phi-pipeline).
+
 ## 5. Protect users, data, and actions {#security-controls}
 
 Security and compliance are not a final box after the model. They shape identity at entry, authorization before retrieval and tools, network paths between services, every stored copy, and the evidence retained for investigation.
@@ -419,6 +452,18 @@ Security and compliance are not a final box after the model. They shape identity
 - **Auditability:** correlate API audit events, application/workflow execution IDs, model invocations, retrieval sources, and tool outcomes without creating an uncontrolled sensitive-data lake.
 
 Bedrock interface endpoints provide private VPC connectivity without an internet gateway or NAT, but endpoint policies still need least-privilege design. [Bedrock PrivateLink documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-interface-endpoints.html). Guardrails can detect prompt attacks and PII, but documented gaps matter—for example, tool results are not automatically assessed by the prompt-attack filter, and PII masking does not rewrite Model Invocation Logs. [Prompt-attack filtering](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-prompt-attack.html), [sensitive-information filters](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-sensitive-filters.html).
+
+#### Scope, sanitize, and prove {#data-security-decisions}
+
+- **Classified chunks:** derive `vectorSearchConfiguration.filter` from authenticated groups in the backend; ingestion-time S3 access does not authorize subsequent vector retrieval.
+- **Pre-ingestion S3 discovery:** Macie targeted job, 100% eligible-object sampling, correct identifiers, and skipped/error review.
+- **Redaction inside ETL:** Glue Sensitive Data Detection masking; audit-only detection does not sanitize training text.
+- **Overnight clinical entity audit/redaction:** extract UTF-8 text → Comprehend Medical `StartPHIDetectionJob` → secure entity metadata and sanitized output → ingestion.
+- **Private, role-restricted inference:** `bedrock-runtime` interface endpoint + private DNS + network controls + role-scoped endpoint policy and IAM.
+- **Cited, versioned maintenance evidence:** explicit chunk source/version metadata + governed catalogue/artifact versions + relevant data-access audit events.
+- **Consistent team implementation:** versioned infrastructure constructs and runtime wrappers with tested redaction/logging defaults; publish reusable packages rather than rely only on checklists.
+
+See [KB filters](/study/infrastructureAWSAiServices#kb-internals), [source audits](/study/infrastructureAWSAiServices#source-audit), [PHI pipeline](/study/infrastructureAWSAiServices#transcription-phi-pipeline), [PrivateLink](/study/infrastructureAWSAiServices#private-inference), and [shared components](/study/infrastructureAWSAiServices#shared-ai-components).
 
 ### 5.2 CloudTrail versus Model Invocation Logging {#logging-boundary}
 
@@ -488,6 +533,10 @@ Use KMS and least privilege across each stored copy, but remember that encryptio
 | Global cross-Region inference | No geographic restriction exists and worldwide routing/capacity or eligible cost optimization is the priority. | Requests may be processed in supported commercial Regions worldwide. Reject it when geography is constrained. |
 
 Capacity, availability, cost, latency, regulatory requirements, model support, quotas, and data residency all matter. Cross-Region routing stays on the AWS network and is encrypted in transit, but private transport does not make a disallowed destination compliant. CloudTrail records the source-Region request and includes the inference Region for cross-Region calls; evaluate destination-specific retention as well. Inference profiles do not currently support Provisioned Throughput, so these can be competing architecture choices. [Cross-Region inference choices](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html), [geographic considerations](https://docs.aws.amazon.com/bedrock/latest/userguide/geographic-cross-region-inference.html), [regional availability modes](https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html).
+
+**US-only burst traffic:** choose a supported `us.` geographic profile from an eligible source Region; a `global.` profile cannot establish US-only processing. Inspect profile destinations, IAM/SCPs, and retained-data/log locations. An application inference profile can wrap a geographic system profile for attribution; tagging a single-Region model does not create regional failover. Cross-Region inference still has quotas and is not an unlimited-capacity guarantee.
+
+**Sub-2-second page budget:** reserve time for an approved generic fallback. If inference fails or approaches the remaining deadline, serve pre-generated safe content rather than letting retries exceed the response budget. Personalization cache/coalescing keys must include the relevant user/cohort, permissions, product version, and prompt/model configuration. A product-only generic cache is a deliberate degraded mode, not equivalent personalization. Queues fit background generation; they cannot guarantee live completion within a fixed page deadline.
 
 > Never sacrifice a compliance requirement for cost or capacity optimization.
 
@@ -581,6 +630,18 @@ For the day/night practice question, the intended pattern is **match capacity to
 
 Correlate a request, workflow execution, retrieval query, model invocation, and tool action with non-sensitive IDs. Metrics alert; logs explain local events; traces locate boundaries; evaluations establish whether the answer was good. No single telemetry product answers all four.
 
+#### Choose the observable artifact {#diagnostic-artifact}
+
+| Question | Inspect |
+|---|---|
+| Which prompt-chain call is slow? | Instrumented SDK-call spans, with named application stages; Lambda Active tracing alone is insufficient. |
+| Why did token cost grow? | Invocation logs → Logs Insights → `input.inputTokenCount` and `output.outputTokenCount`, correlated with prompt version. |
+| Why did the agent refuse a refund? | `InvokeAgent(enableTrace=true)` → `orchestrationTrace` observations, emitted rationale, and action sequence. |
+| How do I retain the agent decision trail? | Persist trace events from the response stream; CloudTrail and memory summaries are different artifacts. |
+| Why is the AgentCore trace dashboard incomplete? | Check resource-specific signal enablement, instrumentation/export, permissions, and Transaction Search. |
+
+See [invocation diagnostics](/study/infrastructureAWSAiServices#invocation-diagnostics) and [agent trace controls](/study/infrastructureAWSAiServices#agent-trace-controls). Trace explanations support diagnosis; deterministic tool checks enforce policy.
+
 ### 6.2 Evaluation as a release decision {#evaluation}
 
 Traditional supervised-ML metrics are not the center of this exam. Evaluate the GenAI application and its production behavior.
@@ -599,6 +660,17 @@ A curated set of **200 representative questions with expert-validated reference 
 | Production change | Quality/security gate + canary/monitoring + explicit rollback criteria | Define stop/rollback conditions before exposure and test rollback. |
 
 Amazon Bedrock evaluations support automatic model evaluations, judge-model evaluations, human-based model evaluations, and automated or human-based RAG evaluations, subject to the documented model, dataset, and Region support. They can evaluate supported Bedrock resources and supplied results from external models or RAG systems. [Bedrock evaluation options](https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html). Use automated judges as measurements, not unquestionable ground truth.
+
+#### Match the quality gate to the decision {#quality-gate-decisions}
+
+- **Ignores retrieved textbook:** RAG `Builtin.Faithfulness`, not Context Relevance.
+- **Pirate dialogue feels robotic:** private expert model comparison with creativity/persona rubrics, not token similarity alone.
+- **New prompt invents amenities:** pre-promotion source-fact/required-field assertions plus factuality evaluation; version templates and data.
+- **Weekly trained model is a potential release candidate:** SageMaker Pipelines evaluation ProcessingStep → PropertyFile → ConditionStep → Registry approval workflow, not immediate endpoint replacement.
+- **Weekly large-model versions or many personas:** LoRA artifacts + governed versions + compatible adapter serving; Registry alone does not implement hot-swapping.
+- **Bias must be checked before production:** Clarify processing report → threshold branch before deployment; production drift monitoring is later.
+
+Use [SageMaker lifecycle controls](/study/infrastructureAWSAiServices#sagemaker-adapter-lifecycle), [distributed training and bias gates](/study/infrastructureAWSAiServices#sagemaker-training-bias), and [constraint regression tests](/study/aiInfrastructure#constraint-regression).
 
 ## 7. Turn understanding into exam reflexes {#wording-reflex}
 
