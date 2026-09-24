@@ -73,7 +73,7 @@
   <span><strong>RAG ≠ Vector Database.</strong> A vector database is one component that may support semantic retrieval. RAG is the larger architecture: retrieve external evidence, place it in the model context, then generate an answer.</span>
 </aside>
 
-<p>Use a fictional Apple battery-service policy for the running example. Ingestion prepares that policy when it changes. The query path runs each time someone asks, “Can I replace my worn-out iPhone battery in Australia?” The application—not the LLM—finds permitted evidence and supplies it to the LLM.</p>
+<p>Use <strong>Northstar Device Care</strong> as the running example. Northstar has a knowledge base containing millions of policy chunks covering products, countries, warranty versions, and repair rules. We will repeatedly ask: <strong>“Can I replace my worn-out iPhone battery in Australia?”</strong> One policy might be about Apple battery service, but the important idea is the scale: the application must find a small, permitted shortlist before an expensive relevance judge and the LLM see anything. The application—not the LLM—finds permitted evidence and supplies it to the LLM.</p>
 
 <div class="rag-diagram" role="img" aria-label="RAG has two separate lifecycles: asynchronous ingestion and per-request query processing.">
 <svg viewBox="0 0 1120 555" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rag-lifecycle-title rag-lifecycle-desc">
@@ -162,6 +162,8 @@
 
 <p>Section-aware chunking is often a strong default for policies because the heading path becomes both context and retrieval metadata. It is not automatically best: tables, transcripts, and long narrative text may need another approach.</p>
 
+<p><strong>Implementation boundary:</strong> parent substitution is a retriever feature, not a universal property of a hierarchical document. Bedrock vector retrieval and Neptune GraphRAG differ here. A lost table layout needs a parser change before any chunking adjustment. See <a href="/study/infrastructureAWSAiServices#kb-internals">Knowledge Bases configuration layers</a>.</p>
+
 <h3 id="embeddings-representing-meaning-as-vectors">Embeddings: representing meaning as vectors</h3>
 
 <p>During ingestion, an embedding model converts each prepared chunk’s text to numbers. An <strong>embedding</strong> is a numerical representation useful for comparing semantic similarity—not a human-readable list of labels.</p>
@@ -183,6 +185,20 @@
 </div>
 
 <p>At query time, use a compatible model and its prescribed query/document encoding settings. Search compares vectors using a supported metric such as <strong>cosine similarity</strong>, <strong>dot product</strong>, or <strong>Euclidean distance</strong>. Match the metric and normalization to the model: these scores are not generally interchangeable. With unit-normalized vectors, dot product equals cosine similarity and squared Euclidean distance produces equivalent rankings. <a href="https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances">Faiss metric guidance</a>.</p>
+
+<h3 id="embedding-migration">Changing the embedding space</h3>
+
+<p>A new visual style or vocabulary can reveal a domain coverage gap. First separate representation failure from missing ingestion, poor captions, incorrect filters, and low first-stage recall. Hybrid metadata matching can recover tagged items without changing the model. If the embedding model itself must adapt, use a supported customization path and evaluate held-out image–text or document–query pairs.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>New embedding version or dimension setting
+                  ↓
+Re-embed corpus → separate compatible index → evaluate recall + answers
+                  ↑                                  ↓
+        compatible query encoder            switch both together
+                                            retain rollback pair
+</code></pre></div></div>
+
+<p>Do not mix unrelated model versions or dimensions in one similarity space. Re-embedding only new documents leaves the old catalogue incompatible unless the system explicitly maintains separate indexes and routing. Lower dimensions reduce raw vector bytes but can reduce retrieval quality; corpus size alone does not determine the right dimension. <a href="/study/infrastructureAWSAiServices#bedrock-customization">Titan customization and dimension controls</a>.</p>
 
 <h2 id="how-can-we-retrieve-relevant-information">How Can We Retrieve Relevant Information?</h2>
 
@@ -314,6 +330,8 @@ Vector candidates ──────┘
 </svg>
 </div>
 
+<p><strong>Tune the stage that consumes resources:</strong> <code class="language-plaintext highlighter-rouge">ef_search</code> changes query exploration; <code class="language-plaintext highlighter-rouge">ef_construction</code> changes graph-building effort; <code class="language-plaintext highlighter-rouge">m</code> changes connectivity and graph memory. More search effort can improve recall but adds latency. Shard distribution and available memory must support the index; adding shards without adding capacity can increase overhead. <a href="/study/infrastructureAWSAiServices#opensearch-hnsw-tuning">OpenSearch HNSW controls</a>.</p>
+
 <h2 id="ivf-find-the-right-neighbourhood">IVF: Find the Right Neighbourhood</h2>
 
 <p><strong>IVF</strong> means <strong>Inverted File Index</strong>. Its mental model is: <strong>find the right neighbourhood first, then search the houses.</strong> It divides vector space into partitions (clusters), then searches the most promising ones.</p>
@@ -353,15 +371,88 @@ Vector candidates ──────┘
 
 <p>For the battery policy, use <code class="language-plaintext highlighter-rouge">region=AU</code>, <code class="language-plaintext highlighter-rouge">product=iPhone</code>, and <code class="language-plaintext highlighter-rouge">status=current</code> to narrow results; verify the caller may access the policy; fuse lexical and semantic candidates; then send the best permitted excerpts, section paths, and citation IDs to the LLM.</p>
 
+<h3 id="worked-example-searching-millions-of-northstar-policies">Worked example: searching millions of Northstar policies</h3>
+
+<p>Imagine Northstar stores <strong>20 million policy chunks</strong>. A customer asks the battery question. We do not send all 20 million chunks to a reranker or to Bedrock. Each stage has a different job:</p>
+
+<figure class="aws-architecture" aria-labelledby="northstar-retrieval-caption">
+  <div class="aws-architecture__title">Northstar: find broadly, judge narrowly</div>
+  <div class="aws-flow">
+    <div class="aws-node aws-node--person"><strong>Question</strong><small>“Can I replace my worn-out iPhone battery in Australia?”</small></div>
+    <span class="aws-arrow" aria-hidden="true">→</span>
+    <div class="aws-node aws-node--security"><strong>Scope + access</strong><small>region=AU · product=iPhone · current policy · caller ACL</small></div>
+    <span class="aws-arrow" aria-hidden="true">→</span>
+    <div class="aws-node aws-node--storage"><strong>Fast retrieval</strong><small>BM25 + vector ANN + metadata<br />20M → Top 100 candidates</small></div>
+    <span class="aws-arrow" aria-hidden="true">→</span>
+    <div class="aws-node aws-node--operations"><strong>Reranker</strong><small>Reads question + each candidate together<br />Top 100 → Top 8</small></div>
+    <span class="aws-arrow" aria-hidden="true">→</span>
+    <div class="aws-node aws-node--ai"><strong>Bedrock answer</strong><small>Only the best permitted chunks enter context<br />Answer with citations</small></div>
+  </div>
+  <figcaption id="northstar-retrieval-caption">Retrieval optimizes recall and speed; reranking spends more computation on a small shortlist; generation receives only the final evidence.</figcaption>
+</figure>
+
+<table>
+  <thead>
+    <tr>
+      <th>Stage</th>
+      <th>What Northstar does</th>
+      <th>Why it exists</th>
+      <th>Typical trade-off</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Scope and authorization</strong></td>
+      <td>Applies trusted filters such as country, product, version, and caller permissions</td>
+      <td>Prevents irrelevant or forbidden chunks from becoming candidates</td>
+      <td>Narrowing too aggressively can remove the correct policy; authorization must come from trusted identity/ACL data</td>
+    </tr>
+    <tr>
+      <td><strong>2. First-stage retrieval</strong></td>
+      <td>Runs metadata filters, lexical/BM25 search for exact policy IDs and terms, vector ANN for meaning, or hybrid search</td>
+      <td>Searches millions of chunks quickly and protects recall</td>
+      <td>It is fast, but its ranking is approximate and may include noisy candidates</td>
+    </tr>
+    <tr>
+      <td><strong>3. Candidate Top-K</strong></td>
+      <td>Keeps, for example, the best 100 candidates after fusion</td>
+      <td>Makes the expensive next step affordable</td>
+      <td><code class="language-plaintext highlighter-rouge">K=5</code> may be too small and lose evidence; <code class="language-plaintext highlighter-rouge">K=1000</code> raises latency and cost</td>
+    </tr>
+    <tr>
+      <td><strong>4. Reranking</strong></td>
+      <td>Sends the question and each of the 100 candidates to a more expensive reranker</td>
+      <td>Judges the relationship between the exact question and each passage more deeply</td>
+      <td>Better relevance per candidate, but more compute, latency, and cost</td>
+    </tr>
+    <tr>
+      <td><strong>5. Context pruning</strong></td>
+      <td>Keeps the best 5–8 permitted chunks within the token budget</td>
+      <td>Prevents irrelevant text from reaching the generator</td>
+      <td>A threshold must be calibrated; reranker scores are not universal probabilities</td>
+    </tr>
+    <tr>
+      <td><strong>6. Generation</strong></td>
+      <td>Sends the final excerpts, metadata, and citation IDs to Bedrock</td>
+      <td>Produces a conversational answer grounded in selected evidence</td>
+      <td>The LLM cannot recover a policy that retrieval failed to find</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>The key distinction:</strong> first-stage retrieval is the <strong>fast librarian scanning the catalogue</strong>; reranking is the <strong>senior librarian reading the shortlisted books side by side</strong>. We do not ask the senior librarian to read all 20 million books because that would be too slow and expensive. We also do not ask the fast catalogue search to make the final judgment because it is optimized for recall and speed, not deep passage-level relevance.</p>
+
+<p>If the correct battery policy never appears in the Top 100, the reranker cannot recover it. If it appears at rank 73, reranking may move it into the final Top 8. If it is retrieved but the user is not authorized, it must be excluded before the passage reaches the reranker, model context, or answer.</p>
+
 <h2 id="reranking-find-broadly-judge-narrowly">Reranking: Find Broadly, Judge Narrowly</h2>
 
 <p>First-stage vector/BM25 retrieval is a <strong>fast candidate finder</strong>. A reranker is a more expensive <strong>relevance judge</strong> that takes a question and a small candidate set, then reorders it.</p>
 
-<div class="rag-diagram" role="img" aria-label="Reranking pipeline retrieves top 50 candidate chunks, reranks them, selects the best five, and sends those to the language model.">
+<div class="rag-diagram" role="img" aria-label="Northstar reranking pipeline retrieves top 100 candidate chunks, reranks them, selects the best eight, and sends those to the language model.">
 <svg viewBox="0 0 760 145" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rerank-title rerank-desc">
-  <title id="rerank-title">Reranking narrows retrieved candidates</title><desc id="rerank-desc">A query retrieves fifty candidates quickly; a reranker evaluates them more deeply, selects the best five, then the LLM receives those selected chunks.</desc>
+  <title id="rerank-title">Reranking narrows Northstar candidates</title><desc id="rerank-desc">Northstar retrieves one hundred candidates quickly; a reranker evaluates them more deeply, selects the best eight, then the LLM receives those selected chunks.</desc>
   <defs><marker id="rerank-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280" /></marker></defs>
-  <rect class="node data" x="20" y="31" width="120" height="52" rx="8" /><text class="label" x="80" y="61" text-anchor="middle">Query</text><rect class="node process" x="185" y="31" width="150" height="52" rx="8" /><text class="label" x="260" y="53" text-anchor="middle">Retrieve</text><text class="small" x="260" y="72" text-anchor="middle">Top 50</text><rect class="node rank" x="380" y="31" width="150" height="52" rx="8" /><text class="label" x="455" y="61" text-anchor="middle">Reranker</text><rect class="node store" x="575" y="31" width="165" height="52" rx="8" /><text class="label" x="657" y="53" text-anchor="middle">Best 5 → LLM</text><text class="small" x="657" y="72" text-anchor="middle">with citations</text><path class="line" d="M142 57H183 M337 57H378 M532 57H573" marker-end="url(#rerank-arrow)" />
+  <rect class="node data" x="20" y="31" width="120" height="52" rx="8" /><text class="label" x="80" y="61" text-anchor="middle">Question</text><rect class="node process" x="185" y="31" width="150" height="52" rx="8" /><text class="label" x="260" y="53" text-anchor="middle">Retrieve</text><text class="small" x="260" y="72" text-anchor="middle">Top 100</text><rect class="node rank" x="380" y="31" width="150" height="52" rx="8" /><text class="label" x="455" y="61" text-anchor="middle">Reranker</text><rect class="node store" x="575" y="31" width="165" height="52" rx="8" /><text class="label" x="657" y="53" text-anchor="middle">Best 8 → LLM</text><text class="small" x="657" y="72" text-anchor="middle">with citations</text><path class="line" d="M142 57H183 M337 57H378 M532 57H573" marker-end="url(#rerank-arrow)" />
 </svg>
 </div>
 
@@ -371,6 +462,8 @@ Vector candidates ──────┘
   <strong>Ranking limit</strong>
   <span><strong>Reranking cannot recover a document that first-stage retrieval failed to retrieve.</strong> Improve recall before expecting reranking to fix missing evidence.</span>
 </aside>
+
+<p><strong>Dynamic context pruning</strong> keeps a broad candidate search, then drops low-relevance candidates after reranking and before prompt construction. Calibrate a score threshold and token budget against recall and answer quality; reranker scores are not universal probabilities. Summarizing every irrelevant chunk preserves noise in compressed form, while a recency-only window can discard an older but decisive source. <a href="/study/infrastructureAWSAiServices#kb-internals">AWS reranking integration</a>.</p>
 
 <h2 id="evaluation-does-the-system-retrieve-and-answer-well">Evaluation: Does the System Retrieve and Answer Well?</h2>
 

@@ -64,7 +64,12 @@
     <article class="content">
       <h1 id="ai-models-and-providers">AI Models and Providers</h1>
 
-<p>Use this page to select a model and decide how to consume it. It merges model characteristics and provider choices because they are evaluated together, while keeping the distinction explicit.</p>
+<aside class="technique-callout">
+  <strong>Related reference</strong>
+  <span><a href="/study/modelGuidelines">Model Guidelines</a> covers workload-based model and effort choices, pricing, and plans.</span>
+</aside>
+
+<p>This page explains model characteristics, provider roles, hosting and portability.</p>
 
 <p><strong>Part 3 of 7:</strong> <a href="/study/aiPromptEngineering">Prompt engineering</a> → <strong>Models and providers</strong> → <a href="/study/aiKnowledgebases">Knowledge bases</a>. This page is about choosing or adapting a model; it does not re-teach retrieval, tool loops, or platform operations.</p>
 
@@ -340,6 +345,12 @@
 <p><strong>Catastrophic forgetting</strong> is a customization risk: aggressive or narrow training can degrade capabilities the base model previously had. Keep holdout tests for both the target task and important general/safety behaviours.</p>
 
 <p>For AWS-specific customization capabilities and lifecycle decisions, see <a href="/study/infrastructureAWSAiServices#section-4-bedrock-sagemaker">AWS AI Services</a>.</p>
+
+<h4 id="style-and-adapters">Style examples versus adapter lifecycle</h4>
+
+<p>A paired product-description → brand-caption dataset is supervised adaptation even when the desired change is <strong>tone</strong>, rather than a new factual domain. Continued pre-training uses a different learning objective over an unlabelled corpus. Fine-tuning can reduce repeated demonstration tokens, but training, serving, and evaluation costs still determine whether it pays off.</p>
+
+<p>With <strong>LoRA</strong>, store one frozen base and version the small learned updates separately. The deployable identity is the combination of base, adapter, tokenizer, and serving configuration. A registry records that identity and approval evidence; a compatible serving runtime loads and selects adapters. These are separate responsibilities. Multiple full fine-tuned checkpoints do not automatically become interchangeable adapters. See <a href="/study/infrastructureAWSAiServices#bedrock-customization">AWS customization</a> and <a href="/study/infrastructureAWSAiServices#sagemaker-adapter-lifecycle">adapter lifecycle</a>.</p>
 
 <h3 id="training-data-splits">3.4 Training, validation, and test sets</h3>
 

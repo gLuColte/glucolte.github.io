@@ -3,13 +3,9 @@ title: AI Providers (Merged)
 permalink: /study/aiProviders
 tag:
   - model providers
-  - model families
-  - managed models
-  - open-weight models
-  - model hosting
-  - model portability
+  - model selection
 ---
 
 # AI Providers (Merged)
 
-The provider material has been merged into [AI Models and Providers](/study/aiModels) so model selection, hosting, portability, and enterprise provider decisions can be studied together.
+For current workload, model, effort, pricing and plan guidance, see [Model Guidelines](/study/modelGuidelines). For model concepts, hosting and portability, see [AI Models and Providers](/study/aiModels).

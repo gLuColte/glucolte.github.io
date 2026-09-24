@@ -189,6 +189,27 @@ If no category fits or information is insufficient, return Unclear.
 
 <p>This is <strong>specification refinement</strong>. We made the requirement testable; now we need to check whether the model follows it.</p>
 
+<h3 id="json-schema">Enforce the output contract with JSON Schema</h3>
+
+<p>When another system requires exact fields and types, configure <strong>schema-constrained structured output</strong> on a supporting model/API. Writing “return JSON” in the prompt only requests a format; JSON Schema defines the contract that constrained generation enforces.</p>
+
+<p>For the ticket example, the schema is:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"properties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"category"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span><span class="w"> </span><span class="nl">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"Urgent"</span><span class="p">,</span><span class="w"> </span><span class="s2">"General Inquiry"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Feedback"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Unclear"</span><span class="p">]},</span><span class="w">
+    </span><span class="nl">"reason"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">}</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"category"</span><span class="p">,</span><span class="w"> </span><span class="s2">"reason"</span><span class="p">],</span><span class="w">
+  </span><span class="nl">"additionalProperties"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The same technique fits email orders that must become database records: define customer, items, quantities, and shipping-address fields together. Regex over free-form prose is fragile; separate prompts add calls and assembly work; fine-tuning may improve formatting but does not enforce a schema.</p>
+
+<p><strong>Valid structure is not valid business data.</strong> Check extracted facts, product IDs, quantities, and authorization before writing to a database. Define how missing information is represented instead of forcing invented values, and handle refusals, truncation, and API errors. Bedrock supports a subset of JSON Schema through its structured-output configuration; verify model/API support. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/structured-output.html">Bedrock structured outputs</a>.</p>
+
 <h2 id="shots">4. Choose examples to solve a pattern problem</h2>
 
 <p>A <strong>shot</strong> is an input → desired-output example inside the prompt. Examples demonstrate a pattern; they do not retrain the model or update its weights.</p>

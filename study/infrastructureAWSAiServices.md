@@ -413,6 +413,31 @@ A weekly 70B-model refresh need not store a full copy of frozen base weights for
 
 For a compatible endpoint, `CreateInferenceComponent` can link an adapter's S3 `ArtifactUrl` to `BaseInferenceComponentName`; `InvokeEndpoint` selects its `InferenceComponentName`. This lets many personas share a resident base instead of loading 50 complete models. Provision and warm enough capacity for the target latency; registration does not guarantee every adapter stays in GPU memory or every request completes instantly. Separate full fine-tunes cannot automatically become LoRA adapters. [Adapter inference components](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-adapt.html).
 
+#### Approved model package → live endpoint
+
+When a release pipeline must replace the model behind an existing endpoint, keep the **registry**, **hosting model**, **endpoint configuration**, and **live endpoint** as separate objects:
+
+```text
+DescribeModelPackage
+  └─ version 7 exists and ModelApprovalStatus = Approved?
+       ↓ yes
+CreateModel
+  └─ create a hosting model from ModelPackageName
+       ↓
+CreateEndpointConfig
+  └─ choose model, instance type, variants, traffic, and scaling settings
+       ↓
+UpdateEndpoint
+  └─ apply the new endpoint configuration to the existing endpoint
+       ↓
+Wait + DescribeEndpoint
+  └─ InService → serve traffic     Failed → stop and investigate
+```
+
+**Layman analogy:** the Model Registry is the inspected recipe, `CreateModel` puts the recipe in the kitchen, `CreateEndpointConfig` specifies the kitchen equipment and staffing, and `UpdateEndpoint` reopens the existing restaurant with that setup. An approved recipe is not automatically being served. The deployment pipeline must still create the hosting objects, apply them, and verify the endpoint status. [SageMaker model deployment](https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html) and [endpoint update API](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_UpdateEndpoint.html).
+
+**Recall test:** Which object records approval? Which object selects the GPU? Which call changes the live endpoint? The answers are **Model Package**, **Endpoint Config**, and **UpdateEndpoint**.
+
 In SageMaker Pipelines, evaluation commonly runs in a second **ProcessingStep**, with a **PropertyFile** for metrics and a **ConditionStep** to gate model registration. SDK versions differ in registration helpers (`RegisterModel` or registration through `ModelStep`). Set the desired approval state, such as `PendingManualApproval`, explicitly. Registering a release candidate is separate from deploying it; failed training artifacts are not automatically deleted. [Pipeline steps](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps-types.html) and [property files](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-propertyfile.html).
 
 ### 4.7 Distributed training and pre-deployment bias gates {#sagemaker-training-bias}

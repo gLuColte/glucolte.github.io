@@ -26,7 +26,7 @@ tag:
   <span><strong>RAG ≠ Vector Database.</strong> A vector database is one component that may support semantic retrieval. RAG is the larger architecture: retrieve external evidence, place it in the model context, then generate an answer.</span>
 </aside>
 
-Use a fictional Apple battery-service policy for the running example. Ingestion prepares that policy when it changes. The query path runs each time someone asks, “Can I replace my worn-out iPhone battery in Australia?” The application—not the LLM—finds permitted evidence and supplies it to the LLM.
+Use **Northstar Device Care** as the running example. Northstar has a knowledge base containing millions of policy chunks covering products, countries, warranty versions, and repair rules. We will repeatedly ask: **“Can I replace my worn-out iPhone battery in Australia?”** One policy might be about Apple battery service, but the important idea is the scale: the application must find a small, permitted shortlist before an expensive relevance judge and the LLM see anything. The application—not the LLM—finds permitted evidence and supplies it to the LLM.
 
 <div class="rag-diagram" role="img" aria-label="RAG has two separate lifecycles: asynchronous ingestion and per-request query processing.">
 <svg viewBox="0 0 1120 555" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rag-lifecycle-title rag-lifecycle-desc">
@@ -300,15 +300,48 @@ This is the retrieval layer’s final mental model. The LLM is downstream of ret
 
 For the battery policy, use `region=AU`, `product=iPhone`, and `status=current` to narrow results; verify the caller may access the policy; fuse lexical and semantic candidates; then send the best permitted excerpts, section paths, and citation IDs to the LLM.
 
+### Worked example: searching millions of Northstar policies
+
+Imagine Northstar stores **20 million policy chunks**. A customer asks the battery question. We do not send all 20 million chunks to a reranker or to Bedrock. Each stage has a different job:
+
+<figure class="aws-architecture" aria-labelledby="northstar-retrieval-caption">
+  <div class="aws-architecture__title">Northstar: find broadly, judge narrowly</div>
+  <div class="aws-flow">
+    <div class="aws-node aws-node--person"><strong>Question</strong><small>“Can I replace my worn-out iPhone battery in Australia?”</small></div>
+    <span class="aws-arrow" aria-hidden="true">→</span>
+    <div class="aws-node aws-node--security"><strong>Scope + access</strong><small>region=AU · product=iPhone · current policy · caller ACL</small></div>
+    <span class="aws-arrow" aria-hidden="true">→</span>
+    <div class="aws-node aws-node--storage"><strong>Fast retrieval</strong><small>BM25 + vector ANN + metadata<br>20M → Top 100 candidates</small></div>
+    <span class="aws-arrow" aria-hidden="true">→</span>
+    <div class="aws-node aws-node--operations"><strong>Reranker</strong><small>Reads question + each candidate together<br>Top 100 → Top 8</small></div>
+    <span class="aws-arrow" aria-hidden="true">→</span>
+    <div class="aws-node aws-node--ai"><strong>Bedrock answer</strong><small>Only the best permitted chunks enter context<br>Answer with citations</small></div>
+  </div>
+  <figcaption id="northstar-retrieval-caption">Retrieval optimizes recall and speed; reranking spends more computation on a small shortlist; generation receives only the final evidence.</figcaption>
+</figure>
+
+| Stage | What Northstar does | Why it exists | Typical trade-off |
+|---|---|---|---|
+| **1. Scope and authorization** | Applies trusted filters such as country, product, version, and caller permissions | Prevents irrelevant or forbidden chunks from becoming candidates | Narrowing too aggressively can remove the correct policy; authorization must come from trusted identity/ACL data |
+| **2. First-stage retrieval** | Runs metadata filters, lexical/BM25 search for exact policy IDs and terms, vector ANN for meaning, or hybrid search | Searches millions of chunks quickly and protects recall | It is fast, but its ranking is approximate and may include noisy candidates |
+| **3. Candidate Top-K** | Keeps, for example, the best 100 candidates after fusion | Makes the expensive next step affordable | `K=5` may be too small and lose evidence; `K=1000` raises latency and cost |
+| **4. Reranking** | Sends the question and each of the 100 candidates to a more expensive reranker | Judges the relationship between the exact question and each passage more deeply | Better relevance per candidate, but more compute, latency, and cost |
+| **5. Context pruning** | Keeps the best 5–8 permitted chunks within the token budget | Prevents irrelevant text from reaching the generator | A threshold must be calibrated; reranker scores are not universal probabilities |
+| **6. Generation** | Sends the final excerpts, metadata, and citation IDs to Bedrock | Produces a conversational answer grounded in selected evidence | The LLM cannot recover a policy that retrieval failed to find |
+
+**The key distinction:** first-stage retrieval is the **fast librarian scanning the catalogue**; reranking is the **senior librarian reading the shortlisted books side by side**. We do not ask the senior librarian to read all 20 million books because that would be too slow and expensive. We also do not ask the fast catalogue search to make the final judgment because it is optimized for recall and speed, not deep passage-level relevance.
+
+If the correct battery policy never appears in the Top 100, the reranker cannot recover it. If it appears at rank 73, reranking may move it into the final Top 8. If it is retrieved but the user is not authorized, it must be excluded before the passage reaches the reranker, model context, or answer.
+
 ## Reranking: Find Broadly, Judge Narrowly
 
 First-stage vector/BM25 retrieval is a **fast candidate finder**. A reranker is a more expensive **relevance judge** that takes a question and a small candidate set, then reorders it.
 
-<div class="rag-diagram" role="img" aria-label="Reranking pipeline retrieves top 50 candidate chunks, reranks them, selects the best five, and sends those to the language model.">
+<div class="rag-diagram" role="img" aria-label="Northstar reranking pipeline retrieves top 100 candidate chunks, reranks them, selects the best eight, and sends those to the language model.">
 <svg viewBox="0 0 760 145" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rerank-title rerank-desc">
-  <title id="rerank-title">Reranking narrows retrieved candidates</title><desc id="rerank-desc">A query retrieves fifty candidates quickly; a reranker evaluates them more deeply, selects the best five, then the LLM receives those selected chunks.</desc>
+  <title id="rerank-title">Reranking narrows Northstar candidates</title><desc id="rerank-desc">Northstar retrieves one hundred candidates quickly; a reranker evaluates them more deeply, selects the best eight, then the LLM receives those selected chunks.</desc>
   <defs><marker id="rerank-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#6b7280"/></marker></defs>
-  <rect class="node data" x="20" y="31" width="120" height="52" rx="8"/><text class="label" x="80" y="61" text-anchor="middle">Query</text><rect class="node process" x="185" y="31" width="150" height="52" rx="8"/><text class="label" x="260" y="53" text-anchor="middle">Retrieve</text><text class="small" x="260" y="72" text-anchor="middle">Top 50</text><rect class="node rank" x="380" y="31" width="150" height="52" rx="8"/><text class="label" x="455" y="61" text-anchor="middle">Reranker</text><rect class="node store" x="575" y="31" width="165" height="52" rx="8"/><text class="label" x="657" y="53" text-anchor="middle">Best 5 → LLM</text><text class="small" x="657" y="72" text-anchor="middle">with citations</text><path class="line" d="M142 57H183 M337 57H378 M532 57H573" marker-end="url(#rerank-arrow)"/>
+  <rect class="node data" x="20" y="31" width="120" height="52" rx="8"/><text class="label" x="80" y="61" text-anchor="middle">Question</text><rect class="node process" x="185" y="31" width="150" height="52" rx="8"/><text class="label" x="260" y="53" text-anchor="middle">Retrieve</text><text class="small" x="260" y="72" text-anchor="middle">Top 100</text><rect class="node rank" x="380" y="31" width="150" height="52" rx="8"/><text class="label" x="455" y="61" text-anchor="middle">Reranker</text><rect class="node store" x="575" y="31" width="165" height="52" rx="8"/><text class="label" x="657" y="53" text-anchor="middle">Best 8 → LLM</text><text class="small" x="657" y="72" text-anchor="middle">with citations</text><path class="line" d="M142 57H183 M337 57H378 M532 57H573" marker-end="url(#rerank-arrow)"/>
 </svg>
 </div>
 

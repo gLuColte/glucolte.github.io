@@ -12,6 +12,16 @@
 }
 
 /* Markdown-generated tables do not carry the study-table class. */
+.provider-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.provider-table-scroll table {
+  min-width: 720px;
+}
+
 .content table:not(.study-table) {
   width: 100%;
   border-collapse: collapse;
@@ -1682,6 +1692,15 @@
 
 .aws-control--security { border-top-color: var(--aws-red); }
 .aws-control--operations { border-top-color: #db2777; }
+/* Service maps contain text hierarchy rather than icon-and-label rows. */
+.aws-choice--text {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
 .aws-choice--compute { border-top-color: var(--aws-orange); }
 .aws-choice--workflow { border-top-color: var(--aws-pink); }
 .aws-choice--agent { border-top-color: var(--aws-purple); }

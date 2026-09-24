@@ -72,6 +72,8 @@
   <p><strong>The governing rule:</strong> identify the decisive constraint first. Requirements beat defaults, rules of thumb, and fashionable architectures.</p>
 </blockquote>
 
+<p>Use <strong>Northstar Assistant</strong> as the running example while reading this guide. Northstar receives customer messages, protects PII, retrieves authorized company information, calls Bedrock, and measures the result. The <a href="/study/infrastructureAWSAiServices#northstar-map-caption">Northstar service map</a> keeps each AWS service in the same story, so a new question changes one requirement or one boundary instead of changing the whole example.</p>
+
 <h2 id="how-to-think">1. How to think in this exam</h2>
 
 <p>The exam is mostly not asking:</p>
@@ -357,6 +359,8 @@
 
 <p>Think serverless for intermittent or variable traffic, event-driven work, short-lived stateless components, pay-per-use economics, managed orchestration, and low operational overhead. It is usually a strong fit for validation, request adaptation, lightweight tool handlers, and glue between managed services.</p>
 
+<p><strong>Query cleaning is application code:</strong> use Lambda to trim extra whitespace, apply safe normalization, or implement bounded typo corrections before Bedrock. Comprehend detects entities, sentiment, and PII; it does not rewrite text into a normalized query. Preserve meaningful case, punctuation, medical codes, and identifiers. Glue fits dataset-oriented preparation; Textract fits scanned input.</p>
+
 <h3 id="32-ecs-and-fargate-container-architecture">3.2 ECS and Fargate container architecture</h3>
 
 <p>Think containers for a long-running process, persistent service, custom runtime or native dependencies, workload outside conventional Lambda duration/resource limits, a complex MCP/tool server, or specialized runtime/network behavior. Fargate removes host management but still has task, service, scaling, image, and networking concerns.</p>
@@ -474,6 +478,8 @@
 
 <p>Choose the workflow type deliberately. <strong>Standard Workflows</strong> can run for up to one year and support <code class="language-plaintext highlighter-rouge">.sync</code> job runs and <code class="language-plaintext highlighter-rouge">.waitForTaskToken</code> callbacks. <strong>Express Workflows</strong> run for up to five minutes and support request-response integrations, but not <code class="language-plaintext highlighter-rouge">.sync</code>, callback task tokens, Distributed Map, or Activities. Their execution guarantees also differ: Standard is exactly-once unless retries are configured; asynchronous Express is at-least-once, and synchronous Express is at-most-once. Continue to make external side effects idempotent because configured retries, timeouts, and uncertain downstream outcomes can still repeat an operation. <a href="https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html">Step Functions workflow types</a> and <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html">service integration patterns</a>.</p>
 
+<p><strong>Editorial approval example:</strong> generate a draft, then enter a task using <code class="language-plaintext highlighter-rouge">.waitForTaskToken</code>. Pass the token to an approval service; the editor’s authenticated decision returns through <code class="language-plaintext highlighter-rouge">SendTaskSuccess</code> with an approved/rejected result, and a <code class="language-plaintext highlighter-rouge">Choice</code> publishes or archives the draft. Use <code class="language-plaintext highlighter-rouge">SendTaskFailure</code> for a failed task, with a defined recovery path. Protect tokens and configure an approval deadline. The workflow waits durably without keeping Lambda running or polling every minute; the wait remains bounded by execution/task timeouts. SQS can carry the approval request, but does not itself own the branching workflow. <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html#connect-wait-token">Callback task-token pattern</a>.</p>
+
 <figure class="aws-architecture" aria-labelledby="workflow-caption">
   <div class="aws-architecture__title">A controlled document workflow<span class="aws-architecture__subtitle">Step Functions owns progress; individual services perform bounded tasks.</span></div>
   <div class="aws-flow">
@@ -552,6 +558,53 @@
 </table>
 
 <p>Agents are not a fringe topic in the current blueprint. It explicitly includes agentic systems, memory/state, MCP, Strands Agents, AWS Agent Squad, tool integration, and multi-agent coordination. The professional-level distinction is <strong>where autonomy ends</strong>: validate parameters, authorize each tool for the caller, constrain resources with IAM, make side effects idempotent, define stopping conditions, and trace tool activity.</p>
+
+<h3 id="business-events">3.5 Route business events to the workflow</h3>
+
+<p>For a fraud system that emits <strong>“suspicious transaction detected,”</strong> use <strong>EventBridge</strong> rules to select the event and target Lambda or Step Functions. That handler invokes Bedrock and stores the risk report in S3. EventBridge routes the event; the target performs the work. Configure retries, dead-letter handling, and idempotency for repeated delivery. <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html">EventBridge rules and targets</a>.</p>
+
+<p>Kinesis fits continuous record streams and consumer processing; it is not the simplest answer when the decisive requirement is routing a discrete business event. SNS can also invoke Lambda and filter subscriptions, so it is a valid pub/sub building block; EventBridge fits the application-event bus requirement. A cron-triggered Lambda checks on a schedule instead of reacting to the event.</p>
+
+<h3 id="service-internals">3.6 Read the API and configuration boundary</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Requirement</th>
+      <th>Inside the selected service</th>
+      <th>Defeat the runner-up</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>S3 upload starts a durable workflow</td>
+      <td>Enable S3 EventBridge delivery → rule → Step Functions target</td>
+      <td>Direct bucket notification cannot target a state machine.</td>
+    </tr>
+    <tr>
+      <td>Upload bursts only under <code class="language-plaintext highlighter-rouge">final/</code></td>
+      <td>Rule key-prefix filter → SQS → paced worker</td>
+      <td>Direct S3 notifications cannot target SQS FIFO; concurrency is not a token-rate budget.</td>
+    </tr>
+    <tr>
+      <td>Bedrock tokens reach a WebSocket client early</td>
+      <td>Response stream → <code class="language-plaintext highlighter-rouge">post_to_connection</code>, using request-context connection ID</td>
+      <td>Buffering until completion loses streaming; storing an ID does not resume a model stream.</td>
+    </tr>
+    <tr>
+      <td>Multi-model draft/check/branch in Bedrock console</td>
+      <td>Flows Prompt nodes + Condition node</td>
+      <td>A Step Functions solution misses the specified console; an agent adds unnecessary runtime discretion.</td>
+    </tr>
+    <tr>
+      <td>Change model tiers or experiment split without code release</td>
+      <td>AppConfig configuration/variants + Lambda extension</td>
+      <td>Updates propagate through config deployment/polling; not instantaneous global mutation.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Read the <a href="/study/infrastructureAWSAiServices#event-stream-controls">event and streaming controls</a>, <a href="/study/infrastructureAWSAiServices#bedrock-flows-evaluation">Flows</a>, and <a href="/study/infrastructureAWSAiServices#appconfig-routing">AppConfig</a> trees alongside the service-level decisions.</p>
 
 <h2 id="rag-trade-offs">4. Add knowledge and prepare data</h2>
 
@@ -699,9 +752,24 @@
       <td>Detect labels, faces, text, moderation signals, or video events when that specialized analysis is required.</td>
     </tr>
     <tr>
-      <td>PII, entities, language, text preprocessing</td>
+      <td>PII, entities, language detection</td>
       <td>Amazon Comprehend</td>
-      <td>Detect/extract from text before storage or model context; use requirements to distinguish it from runtime Guardrails.</td>
+      <td>Detect/extract from text; application code applies any required transformation.</td>
+    </tr>
+    <tr>
+      <td>Whitespace, case, and bounded typo normalization</td>
+      <td>AWS Lambda</td>
+      <td>Lightweight per-request preprocessing before Bedrock.</td>
+    </tr>
+    <tr>
+      <td>Required fields, date validity, accepted codes</td>
+      <td>AWS Glue Data Quality</td>
+      <td>Evaluate explicit data rules and configure failure/quarantine before inference.</td>
+    </tr>
+    <tr>
+      <td>Managed document parsing plus semantic field extraction</td>
+      <td>Amazon Bedrock Data Automation</td>
+      <td>Configure blueprints and S3 output for contracts or other supported documents.</td>
     </tr>
     <tr>
       <td>ETL, catalogue, lineage, data transformation</td>
@@ -712,6 +780,73 @@
 </table>
 
 <p>The service name is not the hard part. The exam decision is usually whether preprocessing is synchronous or event-driven, how failures and partial progress are handled, where sensitive data may be stored, and how updates/deletions propagate into every derived copy.</p>
+
+<h3 id="knowledge-service-boundary">4.3 Choose the level of managed knowledge capability</h3>
+
+<ul>
+  <li><strong>Ready-to-use employee assistant, enterprise connectors, conversational citations:</strong> Q Business is the exam answer among Q Business, Kendra, Knowledge Bases, and OpenSearch. Check its <a href="/study/infrastructureAWSAiServices#section-12-service-map">current availability and migration guidance</a> for new implementations.</li>
+  <li><strong>RAG inside your own application:</strong> Bedrock Knowledge Bases manages retrieval/generation capabilities; the application still owns the user experience and authorization integration.</li>
+  <li><strong>Search results or answer passages:</strong> Kendra is an enterprise retriever, not by itself the complete conversational assistant.</li>
+  <li><strong>Millions of embeddings plus existing keyword/vector search:</strong> OpenSearch Service fits k-NN and hybrid retrieval. RDS/Aurora PostgreSQL with pgvector remains a valid alternative when relational requirements dominate.</li>
+</ul>
+
+<p>See the <a href="/study/infrastructureAWSAiServices#assistant-retriever-vector-store">assistant/retriever/vector-store comparison</a>, <a href="/study/infrastructureAWSAiServices#data-quality">data-quality rules</a>, and <a href="/study/infrastructureAWSAiServices#data-automation">Data Automation</a> for implementation boundaries. Do not choose a stream or storage tier merely because it can carry embedding data.</p>
+
+<h3 id="data-configuration-decisions">4.4 Diagnose the configuration, not just the service</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Symptom</th>
+      <th>Change</th>
+      <th>Avoid confusing it with</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Image embeddings miss a verified new domain</td>
+      <td>Supported multimodal fine-tuning + re-embed corpus and query path</td>
+      <td>Metadata hybrid search can help retrieval, but does not train the encoder.</td>
+    </tr>
+    <tr>
+      <td>Stale S3-backed KB after uploads</td>
+      <td>Buffered/coalesced <code class="language-plaintext highlighter-rouge">StartIngestionJob</code>; check completion and failures</td>
+      <td>One unpaced sync per object; a queue alone does not pace calls.</td>
+    </tr>
+    <tr>
+      <td>PDF table columns become detached</td>
+      <td>Data-source advanced parser</td>
+      <td>Vector-store settings or semantic chunking after structure is lost.</td>
+    </tr>
+    <tr>
+      <td>Child snippets lack context</td>
+      <td>Hierarchical vector parent substitution; GraphRAG instead needs self-contained chunks</td>
+      <td>Increasing GraphRAG parent size does not make it return parents.</td>
+    </tr>
+    <tr>
+      <td>Too many irrelevant context tokens</td>
+      <td>Broad retrieval → rerank → calibrated pruning</td>
+      <td>Blindly lowering candidate count or summarizing every chunk.</td>
+    </tr>
+    <tr>
+      <td>Small index, dimension cost concern</td>
+      <td>Evaluate Titan V2 at 256/512 against 1,024</td>
+      <td>Lower dimensions do not guarantee equal quality or proportional total-bill savings.</td>
+    </tr>
+    <tr>
+      <td>Empty reviews reach training</td>
+      <td>Glue <code class="language-plaintext highlighter-rouge">ColumnLength</code> + in-pipeline failure gate</td>
+      <td><code class="language-plaintext highlighter-rouge">IsComplete</code> alone, independent reporting, or a late alarm.</td>
+    </tr>
+    <tr>
+      <td>Mono speakers become confused</td>
+      <td>Transcribe diarization + labelled turns + verified roles</td>
+      <td>Channel identification or assuming <code class="language-plaintext highlighter-rouge">spk_0</code> always means Doctor.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Implementation details: <a href="/study/infrastructureAWSAiServices#kb-internals">KB internals</a>, <a href="/study/infrastructureAWSAiServices#bedrock-customization">customization</a>, <a href="/study/infrastructureAWSAiServices#glue-quality-redaction">Glue gates</a>, and <a href="/study/infrastructureAWSAiServices#transcription-phi-pipeline">transcription</a>.</p>
 
 <h2 id="security-controls">5. Protect users, data, and actions</h2>
 
@@ -822,6 +957,8 @@
 
 <h3 id="51-map-common-scenarios-to-controls">5.1 Map common scenarios to controls</h3>
 
+<p><strong>Before the model versus before the log:</strong> incoming feedback that must be sanitized before inference calls for Comprehend detection plus redaction, or an appropriate pre-inference Guardrails stage. Conversation logging needs a sanitized transcript before the write. Macie discovery after storage is too late for that boundary, and Guardrails does not automatically rewrite logs. Verify clinical identifier coverage rather than assuming generic PII detection covers every medical record number. <a href="/study/infrastructureAWSAiServices#pii-redaction">AWS PII service comparison</a>.</p>
+
 <ul>
   <li><strong>GDPR/privacy:</strong> minimize data, establish lawful handling outside the architecture question, restrict purpose/access, define deletion across source, logs, indexes, caches, backups, and audit records, and validate Region/provider boundaries.</li>
   <li><strong>European/geographic residency:</strong> choose an approved in-Region or geographic profile and inspect every possible destination, logging location, retained inference copy, Guardrails tier, store, backup, and support process.</li>
@@ -832,6 +969,20 @@
 </ul>
 
 <p>Bedrock interface endpoints provide private VPC connectivity without an internet gateway or NAT, but endpoint policies still need least-privilege design. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-interface-endpoints.html">Bedrock PrivateLink documentation</a>. Guardrails can detect prompt attacks and PII, but documented gaps matter—for example, tool results are not automatically assessed by the prompt-attack filter, and PII masking does not rewrite Model Invocation Logs. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-prompt-attack.html">Prompt-attack filtering</a>, <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-sensitive-filters.html">sensitive-information filters</a>.</p>
+
+<h4 id="data-security-decisions">Scope, sanitize, and prove</h4>
+
+<ul>
+  <li><strong>Classified chunks:</strong> derive <code class="language-plaintext highlighter-rouge">vectorSearchConfiguration.filter</code> from authenticated groups in the backend; ingestion-time S3 access does not authorize subsequent vector retrieval.</li>
+  <li><strong>Pre-ingestion S3 discovery:</strong> Macie targeted job, 100% eligible-object sampling, correct identifiers, and skipped/error review.</li>
+  <li><strong>Redaction inside ETL:</strong> Glue Sensitive Data Detection masking; audit-only detection does not sanitize training text.</li>
+  <li><strong>Overnight clinical entity audit/redaction:</strong> extract UTF-8 text → Comprehend Medical <code class="language-plaintext highlighter-rouge">StartPHIDetectionJob</code> → secure entity metadata and sanitized output → ingestion.</li>
+  <li><strong>Private, role-restricted inference:</strong> <code class="language-plaintext highlighter-rouge">bedrock-runtime</code> interface endpoint + private DNS + network controls + role-scoped endpoint policy and IAM.</li>
+  <li><strong>Cited, versioned maintenance evidence:</strong> explicit chunk source/version metadata + governed catalogue/artifact versions + relevant data-access audit events.</li>
+  <li><strong>Consistent team implementation:</strong> versioned infrastructure constructs and runtime wrappers with tested redaction/logging defaults; publish reusable packages rather than rely only on checklists.</li>
+</ul>
+
+<p>See <a href="/study/infrastructureAWSAiServices#kb-internals">KB filters</a>, <a href="/study/infrastructureAWSAiServices#source-audit">source audits</a>, <a href="/study/infrastructureAWSAiServices#transcription-phi-pipeline">PHI pipeline</a>, <a href="/study/infrastructureAWSAiServices#private-inference">PrivateLink</a>, and <a href="/study/infrastructureAWSAiServices#shared-ai-components">shared components</a>.</p>
 
 <h3 id="logging-boundary">5.2 CloudTrail versus Model Invocation Logging</h3>
 
@@ -1002,6 +1153,10 @@
 
 <p>Capacity, availability, cost, latency, regulatory requirements, model support, quotas, and data residency all matter. Cross-Region routing stays on the AWS network and is encrypted in transit, but private transport does not make a disallowed destination compliant. CloudTrail records the source-Region request and includes the inference Region for cross-Region calls; evaluate destination-specific retention as well. Inference profiles do not currently support Provisioned Throughput, so these can be competing architecture choices. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html">Cross-Region inference choices</a>, <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/geographic-cross-region-inference.html">geographic considerations</a>, <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html">regional availability modes</a>.</p>
 
+<p><strong>US-only burst traffic:</strong> choose a supported <code class="language-plaintext highlighter-rouge">us.</code> geographic profile from an eligible source Region; a <code class="language-plaintext highlighter-rouge">global.</code> profile cannot establish US-only processing. Inspect profile destinations, IAM/SCPs, and retained-data/log locations. An application inference profile can wrap a geographic system profile for attribution; tagging a single-Region model does not create regional failover. Cross-Region inference still has quotas and is not an unlimited-capacity guarantee.</p>
+
+<p><strong>Sub-2-second page budget:</strong> reserve time for an approved generic fallback. If inference fails or approaches the remaining deadline, serve pre-generated safe content rather than letting retries exceed the response budget. Personalization cache/coalescing keys must include the relevant user/cohort, permissions, product version, and prompt/model configuration. A product-only generic cache is a deliberate degraded mode, not equivalent personalization. Queues fit background generation; they cannot guarantee live completion within a fixed page deadline.</p>
+
 <blockquote>
   <p>Never sacrifice a compliance requirement for cost or capacity optimization.</p>
 </blockquote>
@@ -1068,6 +1223,51 @@
 
 <p>Bedrock batch inference accepts multiple prompts and places asynchronous output in S3; it is not supported for provisioned models. Provisioned Throughput supplies a fixed-cost higher throughput level and may have commitment terms. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference.html">Batch inference</a>, <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html">Provisioned Throughput</a>. For interactive streaming, confirm model support and propagate the stream through the application/API transport; API Gateway REST proxy integrations can support response streaming when configured with <code class="language-plaintext highlighter-rouge">STREAM</code>. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-api.html">Bedrock streaming</a>, <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/response-transfer-mode.html">API Gateway response streaming</a>.</p>
 
+<h4 id="hosting-decision">Custom model hosting and long-running inference</h4>
+
+<p><strong>Fine-tuned Llama + selected GPU instance type + custom endpoint autoscaling → SageMaker AI real-time endpoints.</strong> Bedrock can import compatible custom models, but does not provide that hardware-selection boundary. For unpredictable 10–30-minute video jobs with no immediate-response requirement, use <strong>SageMaker Asynchronous Inference with scaling to zero</strong>. Batch Transform fits processing a known dataset as a job and can run on demand; it is not limited to schedules. <a href="/study/infrastructureAWSAiServices#sagemaker-inference-options">SageMaker inference options</a>.</p>
+
+<h4 id="cost-patterns">Match each optimization to the repeated work</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Clue</th>
+      <th>Exam choice</th>
+      <th>Qualification</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Simple and complex questions currently use one expensive model</td>
+      <td>Bedrock Intelligent Prompt Routing</td>
+      <td>Use a supported model pair and evaluate both difficulty groups; caching optimizes reuse, not model selection.</td>
+    </tr>
+    <tr>
+      <td>Same 5,000-token policy, different questions</td>
+      <td>Bedrock Prompt Caching</td>
+      <td>Cache the stable prefix; reads can still incur discounted charges and entries expire.</td>
+    </tr>
+    <tr>
+      <td>Predictable high daytime demand, low overnight demand</td>
+      <td>Evaluate provisioned throughput plus on-demand</td>
+      <td>Only saves if token economics, supported capacity options, commitments, and provisioning lifecycle permit it.</td>
+    </tr>
+    <tr>
+      <td>Standardized wording with minimal variation</td>
+      <td>Low temperature, where supported</td>
+      <td>Reduces randomness; no universal <code class="language-plaintext highlighter-rouge">0.5</code> default or guarantee of identical/correct text.</td>
+    </tr>
+    <tr>
+      <td>Order extraction must satisfy a database schema</td>
+      <td>JSON Schema with supported structured output</td>
+      <td>Enforces structure; validate meaning and business rules before insertion.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>For the day/night practice question, the intended pattern is <strong>match capacity to utilization</strong>. Switching invocation destinations does not stop provisioned billing, and 10,000 requests/hour alone does not prove a break-even point. See <a href="/study/infrastructureAWSAiServices#routing-caching-capacity">routing, caching, and capacity</a>, <a href="/study/aiFundamentals#section-6-1-temperature-top-p">temperature</a>, and <a href="/study/aiPromptEngineering#json-schema">schema enforcement</a>.</p>
+
 <h3 id="observability">6.1 Observability: instrument the question</h3>
 
 <figure class="aws-architecture" aria-labelledby="operations-caption">
@@ -1128,6 +1328,8 @@
 
 <h4 id="genai-specific-measurements">GenAI-specific measurements</h4>
 
+<p><strong>Token thresholds → CloudWatch alarms.</strong> Bedrock runtime metrics use <code class="language-plaintext highlighter-rouge">InputTokenCount</code>, <code class="language-plaintext highlighter-rouge">OutputTokenCount</code>, and <code class="language-plaintext highlighter-rouge">Invocations</code>; do not memorize <code class="language-plaintext highlighter-rouge">InputTokens</code>/<code class="language-plaintext highlighter-rouge">OutputTokens</code> as their CloudWatch names. Attribute features with application instrumentation or supported inference profiles. Cost Explorer serves billing analysis/forecasting; AWS Budgets serves budget alerts; traces and CloudTrail answer request-path and API-audit questions. <a href="/study/infrastructureAWSAiServices#token-monitoring">Token monitoring details</a>.</p>
+
 <table>
   <thead>
     <tr>
@@ -1165,9 +1367,46 @@
 
 <p>Correlate a request, workflow execution, retrieval query, model invocation, and tool action with non-sensitive IDs. Metrics alert; logs explain local events; traces locate boundaries; evaluations establish whether the answer was good. No single telemetry product answers all four.</p>
 
+<h4 id="diagnostic-artifact">Choose the observable artifact</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Question</th>
+      <th>Inspect</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Which prompt-chain call is slow?</td>
+      <td>Instrumented SDK-call spans, with named application stages; Lambda Active tracing alone is insufficient.</td>
+    </tr>
+    <tr>
+      <td>Why did token cost grow?</td>
+      <td>Invocation logs → Logs Insights → <code class="language-plaintext highlighter-rouge">input.inputTokenCount</code> and <code class="language-plaintext highlighter-rouge">output.outputTokenCount</code>, correlated with prompt version.</td>
+    </tr>
+    <tr>
+      <td>Why did the agent refuse a refund?</td>
+      <td><code class="language-plaintext highlighter-rouge">InvokeAgent(enableTrace=true)</code> → <code class="language-plaintext highlighter-rouge">orchestrationTrace</code> observations, emitted rationale, and action sequence.</td>
+    </tr>
+    <tr>
+      <td>How do I retain the agent decision trail?</td>
+      <td>Persist trace events from the response stream; CloudTrail and memory summaries are different artifacts.</td>
+    </tr>
+    <tr>
+      <td>Why is the AgentCore trace dashboard incomplete?</td>
+      <td>Check resource-specific signal enablement, instrumentation/export, permissions, and Transaction Search.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>See <a href="/study/infrastructureAWSAiServices#invocation-diagnostics">invocation diagnostics</a> and <a href="/study/infrastructureAWSAiServices#agent-trace-controls">agent trace controls</a>. Trace explanations support diagnosis; deterministic tool checks enforce policy.</p>
+
 <h3 id="evaluation">6.2 Evaluation as a release decision</h3>
 
 <p>Traditional supervised-ML metrics are not the center of this exam. Evaluate the GenAI application and its production behavior.</p>
+
+<p>A curated set of <strong>200 representative questions with expert-validated reference answers</strong> is a <strong>golden dataset / ground-truth evaluation set</strong>. Use it to compare prompt/model changes and detect regressions before and after deployment. “Test corpus” is broader terminology; “golden” emphasizes trusted reference quality. Keep final held-out tests separate from examples used to tune prompts. <a href="/study/aiInfrastructure#golden-dataset">Dataset roles and golden sets</a>.</p>
 
 <table>
   <thead>
@@ -1222,6 +1461,19 @@
 </table>
 
 <p>Amazon Bedrock evaluations support automatic model evaluations, judge-model evaluations, human-based model evaluations, and automated or human-based RAG evaluations, subject to the documented model, dataset, and Region support. They can evaluate supported Bedrock resources and supplied results from external models or RAG systems. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html">Bedrock evaluation options</a>. Use automated judges as measurements, not unquestionable ground truth.</p>
+
+<h4 id="quality-gate-decisions">Match the quality gate to the decision</h4>
+
+<ul>
+  <li><strong>Ignores retrieved textbook:</strong> RAG <code class="language-plaintext highlighter-rouge">Builtin.Faithfulness</code>, not Context Relevance.</li>
+  <li><strong>Pirate dialogue feels robotic:</strong> private expert model comparison with creativity/persona rubrics, not token similarity alone.</li>
+  <li><strong>New prompt invents amenities:</strong> pre-promotion source-fact/required-field assertions plus factuality evaluation; version templates and data.</li>
+  <li><strong>Weekly trained model is a potential release candidate:</strong> SageMaker Pipelines evaluation ProcessingStep → PropertyFile → ConditionStep → Registry approval workflow, not immediate endpoint replacement.</li>
+  <li><strong>Weekly large-model versions or many personas:</strong> LoRA artifacts + governed versions + compatible adapter serving; Registry alone does not implement hot-swapping.</li>
+  <li><strong>Bias must be checked before production:</strong> Clarify processing report → threshold branch before deployment; production drift monitoring is later.</li>
+</ul>
+
+<p>Use <a href="/study/infrastructureAWSAiServices#sagemaker-adapter-lifecycle">SageMaker lifecycle controls</a>, <a href="/study/infrastructureAWSAiServices#sagemaker-training-bias">distributed training and bias gates</a>, and <a href="/study/aiInfrastructure#constraint-regression">constraint regression tests</a>.</p>
 
 <h2 id="wording-reflex">7. Turn understanding into exam reflexes</h2>
 

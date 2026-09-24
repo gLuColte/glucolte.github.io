@@ -65,6 +65,12 @@ Think of this page as your **mental compass** — quick reminders on *how to thi
       AWS GenAI Professional Preparation
     </div>
   </a>
+  <a href="{{ '/study/modelGuidelines' | relative_url }}" class="study-tile system-design">
+    <div class="study-tile-title">
+      <span class="study-tile-icon">🧭</span>
+      Model Guidelines
+    </div>
+  </a>
 </div>
 
 ---

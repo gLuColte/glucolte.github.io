@@ -413,6 +413,8 @@ App --> User: Completed response
 
 <p>Continue the France request with these illustrative <strong>relative logits</strong>. For <code class="language-plaintext highlighter-rouge">T &gt; 0</code>, temperature divides each logit by <code class="language-plaintext highlighter-rouge">T</code>: a lower <code class="language-plaintext highlighter-rouge">T</code> increases the separation between scores. If an API accepts <code class="language-plaintext highlighter-rouge">T = 0</code>, it usually selects greedy decoding rather than literally dividing by zero. Greedy decoding chooses a highest-scoring token; it is not an absolute reproducibility guarantee across serving implementations. <a href="https://huggingface.co/docs/transformers/main/en/generation_strategies">Generation strategies</a>.</p>
 
+<p><strong>Apply the setting to the task:</strong> standardized wording, such as a lease template, calls for low temperature (for example, <code class="language-plaintext highlighter-rouge">0.0–0.3</code> where supported); brainstorming may benefit from higher temperature (for example, <code class="language-plaintext highlighter-rouge">0.8–1.0</code>). There is no universal <code class="language-plaintext highlighter-rouge">0.5</code> default that suits every task. Low temperature reduces variation but does not guarantee identical text, correct legal language, or an exact structure. Use approved templates and <a href="/study/aiPromptEngineering#json-schema">schema constraints</a> where appropriate; maximum output tokens controls length. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html">Bedrock inference parameters</a>.</p>
+
 <table>
   <thead>
     <tr>

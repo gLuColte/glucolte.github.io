@@ -525,7 +525,40 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
   <li>This page owns cross-cutting test datasets, judge/human calibration, release gates, incident learning, and production signals.</li>
 </ul>
 
-<h3 id="classification-metrics">12.1 Precision, recall, F1, and accuracy</h3>
+<h3 id="golden-dataset">12.1 Golden datasets and reference answers</h3>
+
+<p>A <strong>golden dataset</strong>, also called a ground-truth or reference evaluation dataset, contains representative inputs with expert-validated expected answers or outcomes. For example, 200 customer questions paired with reviewed reference answers let a team compare prompt versions and detect regressions under the same conditions.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Dataset role</th>
+      <th>What it is used for</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Training data</td>
+      <td>Learn or fine-tune model weights.</td>
+    </tr>
+    <tr>
+      <td>Validation data</td>
+      <td>Select configurations, hyperparameters, or prompt variants during development.</td>
+    </tr>
+    <tr>
+      <td>Held-out test data</td>
+      <td>Assess the chosen system on examples not used to tune it.</td>
+    </tr>
+    <tr>
+      <td>Golden/reference dataset</td>
+      <td>Supply trusted expected results; it can support development evaluation or a separately held-out test suite.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>“Golden” describes the quality of the reference, not a rule that evaluation happens only after deployment. “Test corpus” is a broader valid term, but does not specifically imply expert-reviewed question–answer pairs. Keep final test cases separate from tuning examples; version the references and rubric, cover difficult/no-answer cases, and review stale answers. For open-ended generation, score factual support and required content rather than demanding an exact wording match. See <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-evaluation-prompt-datasets.html">Bedrock evaluation datasets and ground-truth responses</a>.</p>
+
+<h3 id="classification-metrics">12.2 Precision, recall, F1, and accuracy</h3>
 
 <p>For binary classification, first define the <strong>positive class</strong>. If positive means a defective product, the confusion matrix is:</p>
 
@@ -694,6 +727,18 @@ versioned evaluation suite → compare baseline and slices → deploy or reject
     </ul>
   </li>
 </ul>
+
+<h3 id="constraint-regression">Regression gates should test the actual failure</h3>
+
+<p>For property descriptions that invented amenities and omitted square footage, keep historical inputs and verified facts in a versioned golden set. Assert the required square-footage value and compare structured amenity claims with the source’s allowed facts. Semantic similarity can remain high despite one critical invented fact. An exact string check also cannot detect every paraphrased hallucination; combine structured constraints with calibrated factuality evaluation.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Candidate prompt version → generate on held-out inputs
+                         → required-field / source-fact assertions
+                         → factuality + quality evaluation
+                         → thresholds pass? → promote / reject
+</code></pre></div></div>
+
+<p>Run those gates before production promotion, then monitor/canary with rollback. Human creativity/persona comparisons need an expert rubric, and pre-deployment bias assessment needs the relevant protected-group metrics; a generic “quality” score does not answer every question. <a href="/study/infrastructureAWSAiServices#bedrock-flows-evaluation">AWS evaluation settings</a> and <a href="/study/infrastructureAWSAiServices#sagemaker-training-bias">bias gates</a>.</p>
 
 <h2 id="16-troubleshoot-the-layer-that-failed">16. Troubleshoot the layer that failed</h2>
 

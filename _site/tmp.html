@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AIP-C01 — merged mistake review · glucolte</title>
+  <meta name="description" content="notes • principles • systems">
+  <link rel="stylesheet" href="/assets/style.css">
+  
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>AIP-C01 — merged mistake review | glucolte</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="AIP-C01 — merged mistake review" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="notes • principles • systems" />
+<meta property="og:description" content="notes • principles • systems" />
+<link rel="canonical" href="http://localhost:4000/tmp.html" />
+<meta property="og:url" content="http://localhost:4000/tmp.html" />
+<meta property="og:site_name" content="glucolte" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="AIP-C01 — merged mistake review" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AIP-C01 — merged mistake review","url":"http://localhost:4000/tmp.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <a class="brand" href="/">glucolte</a>
+  <nav class="nav">
+    <a href="/principles">principles</a>
+    <a href="/rules">rules</a>
+    <a href="/stretches">stretches</a>
+    <a href="/study/">study</a>
+    <a href="/projects/">projects</a>
+    <a href="/setup/">setup</a>
+  </nav>
+  <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+    <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+</header>
+
+
+  <main class="container">
+    <article class="content">
+      <h1 id="aip-c01--merged-mistake-review">AIP-C01 — merged mistake review</h1>
+
+<p>Review of <strong>both supplied Attempt 1 result sets</strong>: 20 Foundations questions + 44 Practice Exam 2 questions = <strong>64 questions</strong>. Repeated concepts are grouped, while each question keeps its own selection and correction.</p>
+
+<ul>
+  <li><strong>F08</strong> means Foundations Question 8; <strong>E2-Q08</strong> would mean Practice Exam 2 Question 8.</li>
+  <li>“Your selection” follows the pasted result. For choose-two questions, the row preserves the part you got right.</li>
+  <li><strong>Intended answer</strong> means the practice exam’s preferred choice. Notes qualify obsolete, unsupported, or overly absolute explanations. Technical details checked against linked AWS documentation on <strong>20 September 2026</strong>.</li>
+  <li>This is a working review file, without Jekyll front matter. The permanent lessons are integrated into the study pages linked below.</li>
+</ul>
+
+<h2 id="how-to-use-this-review">How to use this review</h2>
+
+<p>Cover the correction column and answer: <strong>What is the decisive requirement? Which subfeature/API implements it? What boundary makes my original choice insufficient?</strong> Then read the correction and explain the caveat aloud.</p>
+
+<p>The repeated gaps are specific: confusing discovery with redaction; configuration with runtime enforcement; a successful job with a passed quality gate; metrics with invocation/agent traces; and a valid architecture with the least-effort option under the stated constraint.</p>
+
+<h2 id="start-here-aws-service--capability--exam-pattern">Start here: AWS service → capability → exam pattern</h2>
+
+<p>Use this section first. Begin with the <strong>service</strong>, identify the capability inside it, then choose the API, setting, or boundary that matches the requirement. The question tables later in this file are the detailed correction log.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>AWS GenAI application
+├── Amazon SageMaker AI
+│   ├── Train: Training jobs, GPU/EFA, SMDDP, LoRA
+│   ├── Qualify: Pipelines, Clarify, Model Registry
+│   └── Serve: Real-time, asynchronous, batch, inference components
+├── Amazon Bedrock
+│   ├── Models: InvokeModel, streaming, temperature, prompt caching
+│   ├── RAG: Knowledge Bases, parsing, chunking, Retrieve, reranking
+│   ├── Agents: action groups, enableTrace, AgentCore telemetry
+│   └── Release: Prompt Management, Prompt Flows, evaluations, Guardrails
+├── Search and vector stores
+│   ├── OpenSearch Service: vectors, k-NN/HNSW, hybrid search, reranking
+│   └── Kendra / Q Business: enterprise search versus packaged assistant
+├── Data and privacy
+│   ├── Glue: Data Quality, Sensitive Data Detection, Data Catalog
+│   ├── Comprehend / Comprehend Medical: text entities, PII, PHI offsets
+│   ├── Textract / Data Automation: document extraction and structure
+│   └── Macie: S3 sensitive-data discovery
+├── Workflow and delivery
+│   ├── EventBridge, S3 events, SQS, Lambda
+│   ├── Step Functions: callbacks and Standard workflows
+│   └── Transcribe: diarization, transcripts, output events
+└── Platform controls
+    ├── AppConfig / API Gateway: runtime model routing and experiments
+    ├── PrivateLink: private Bedrock runtime path + endpoint policy
+    └── CloudWatch / X-Ray / CloudTrail: metrics, spans, audit events
+</code></pre></div></div>
+
+<h3 id="1-sagemaker-ai--model-lifecycle-and-serving">1. SageMaker AI — model lifecycle and serving</h3>
+
+<p><strong>Think:</strong> SageMaker is where you control the model lifecycle and serving infrastructure.</p>
+
+<p><strong>Layman analogy:</strong> SageMaker is the workshop, factory line, and warehouse for your model—you choose the machinery, train the product, inspect it, and decide which version goes onto the shelf.</p>
+
+<ul>
+  <li><strong>Train:</strong> distributed GPU training uses EFA and SMDDP; weekly adaptation usually points to <strong>LoRA</strong> rather than full-model copies (<strong>E2-Q12, E2-Q49</strong>).</li>
+  <li><strong>Qualify:</strong> SageMaker Pipelines connect <code class="language-plaintext highlighter-rouge">ProcessingStep → TrainingStep → evaluation PropertyFile → ConditionStep → RegisterModel</code>. Clarify supplies pre-deployment bias reports (<strong>E2-Q43, E2-Q58</strong>).</li>
+  <li><strong>Serve:</strong> choose <strong>real-time</strong> for interactive GPU endpoints (<strong>F08, F64, E2-Q49</strong>), <strong>asynchronous</strong> for queued long-running work and scale-to-zero (<strong>F22</strong>), and <strong>inference components/adapters</strong> for many personas sharing one base (<strong>E2-Q47</strong>).</li>
+  <li><strong>Boundary to remember:</strong> Model Registry versions and approves artifacts; the endpoint or inference component serves them. Registry alone does not hot-swap production.</li>
+</ul>
+
+<p><strong>Critical deployment chain:</strong></p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>DescribeModelPackage(version 7)
+  → confirm Approved
+CreateModel(ModelPackageName)
+  → create hosting model
+CreateEndpointConfig
+  → choose model, GPU instance, variants, traffic, scaling
+UpdateEndpoint
+  → apply config to the existing endpoint
+Wait + DescribeEndpoint
+  → InService or Failed
+</code></pre></div></div>
+
+<p><strong>Memory rule:</strong> the Registry is the approved recipe, <code class="language-plaintext highlighter-rouge">CreateModel</code> puts it in the kitchen, <code class="language-plaintext highlighter-rouge">CreateEndpointConfig</code> chooses the kitchen equipment, and <code class="language-plaintext highlighter-rouge">UpdateEndpoint</code> changes the live restaurant. Approval does not equal deployment.</p>
+
+<h3 id="2-amazon-bedrock--managed-foundation-model-features">2. Amazon Bedrock — managed foundation-model features</h3>
+
+<p><strong>Think:</strong> Bedrock supplies managed model access and GenAI building blocks; it hides the underlying inference fleet.</p>
+
+<p><strong>Layman analogy:</strong> Bedrock is a managed restaurant: you order a model capability from a menu and receive the result, while AWS runs the kitchen and hides the ovens and staff scheduling.</p>
+
+<ul>
+  <li><strong>Generation controls:</strong> <code class="language-plaintext highlighter-rouge">InvokeModel</code>, response streaming, low temperature for repeatability, prompt caching for repeated prefixes, and Provisioned Throughput when sustained capacity is the requirement (<strong>F25, F51, F79, E2-Q07</strong>).</li>
+  <li><strong>Model routing:</strong> Intelligent Prompt Routing selects a smaller or larger supported model; Cross-Region Inference profiles spread on-demand traffic (<strong>F34, E2-Q29, E2-Q41, E2-Q69</strong>).</li>
+  <li><strong>Knowledge Bases:</strong> ingestion/parser/chunking/embeddings are configured before retrieval; <code class="language-plaintext highlighter-rouge">Retrieve</code> uses query-time filters, reranking, and <code class="language-plaintext highlighter-rouge">numberOfResults</code>; <code class="language-plaintext highlighter-rouge">RetrieveAndGenerate</code> adds grounded generation (<strong>F16, F56, F62, E2-Q02, E2-Q06, E2-Q14, E2-Q20, E2-Q22, E2-Q30, E2-Q36, E2-Q37, E2-Q67</strong>).</li>
+  <li><strong>Agents and flows:</strong> <code class="language-plaintext highlighter-rouge">InvokeAgent(enableTrace=true)</code> exposes trace events; Prompt Flows provide fixed visual chains with Prompt and Condition nodes (<strong>E2-Q42, E2-Q60, E2-Q74</strong>).</li>
+  <li><strong>Safety and evaluation:</strong> Guardrails filter supported model interactions; Bedrock evaluations distinguish Faithfulness, Correctness, Completeness, and human comparison (<strong>F40, F42, E2-Q05, E2-Q09</strong>).</li>
+  <li><strong>Boundary to remember:</strong> Bedrock manages the model runtime. If the requirement says “choose the GPU instance, endpoint autoscaling, or custom serving fleet,” move to SageMaker.</li>
+</ul>
+
+<h3 id="3-opensearch-service--vector-retrieval-engine">3. OpenSearch Service — vector retrieval engine</h3>
+
+<p><strong>Think:</strong> OpenSearch is the searchable index, not the embedding model and not the generator.</p>
+
+<p><strong>Layman analogy:</strong> OpenSearch is a super-powered library catalogue. Embeddings are the catalogue cards, k-NN finds nearby meanings, and Bedrock is the librarian who turns the selected books into an answer.</p>
+
+<ul>
+  <li>Store embeddings and run low-latency k-NN/vector or hybrid keyword + vector queries (<strong>F56, F62</strong>).</li>
+  <li>For large HNSW indexes, tune <code class="language-plaintext highlighter-rouge">ef_search</code>, <code class="language-plaintext highlighter-rouge">ef_construction</code>, and <code class="language-plaintext highlighter-rouge">m</code>, then distribute graphs across adequate shards and memory-optimized nodes (<strong>E2-Q70</strong>).</li>
+  <li>Reranking happens after broad retrieval and before prompt construction; the application applies relevance thresholds and token budgets (<strong>E2-Q37</strong>).</li>
+  <li><strong>Boundary to remember:</strong> Kinesis transports data, S3 stores objects, and OpenSearch indexes/searches vectors. None of those roles are interchangeable.</li>
+</ul>
+
+<h3 id="4-data-privacy-and-governance-services">4. Data, privacy, and governance services</h3>
+
+<p><strong>Think:</strong> identify the stage first: extract → validate → detect → redact → authorize → audit.</p>
+
+<p><strong>Layman analogy:</strong> Treat the data pipeline like airport security: first read the luggage tag, check that the contents are valid, identify dangerous items, remove or mask them, decide who may enter, and keep an inspection record.</p>
+
+<ul>
+  <li><strong>Glue Data Quality:</strong> declarative field/format/completeness rules that can fail an ETL/training gate (<strong>F28, E2-Q26</strong>).</li>
+  <li><strong>Glue Sensitive Data Detection:</strong> in-ETL redaction/masking; audit-only and hashing modes do not satisfy a redaction requirement (<strong>E2-Q50</strong>).</li>
+  <li><strong>Glue Data Catalog:</strong> governed dataset metadata and registration; attach manual/version metadata to retrieved chunks for citations (<strong>E2-Q52</strong>).</li>
+  <li><strong>Comprehend / Comprehend Medical:</strong> text entity detection with offsets; Medical’s asynchronous <code class="language-plaintext highlighter-rouge">StartPHIDetectionJob</code> fits overnight clinical PHI processing (<strong>F40, F42, E2-Q62</strong>).</li>
+  <li><strong>Textract / Bedrock Data Automation:</strong> extract document text/structure before semantic processing, especially PDFs and tables (<strong>F68, E2-Q67, E2-Q62</strong>).</li>
+  <li><strong>Macie:</strong> discover sensitive data in S3 at scale; it does not perform complete per-document redaction (<strong>E2-Q15</strong>).</li>
+  <li><strong>Boundary to remember:</strong> detection is not redaction; source-bucket permissions do not automatically protect already-indexed vector chunks; CloudTrail audits API identity while Streams generally captures changes, not reads.</li>
+</ul>
+
+<h3 id="5-eventbridge-sqs-lambda-step-functions-and-transcribe">5. EventBridge, SQS, Lambda, Step Functions, and Transcribe</h3>
+
+<p><strong>Think:</strong> route → buffer → execute → wait, depending on the workflow.</p>
+
+<p><strong>Layman analogy:</strong> This is a mailroom: EventBridge sorts envelopes, SQS puts them in a queue, Lambda is the clerk processing them, and Step Functions is the checklist that remembers what still needs approval.</p>
+
+<ul>
+  <li><strong>EventBridge:</strong> route discrete S3/business events to Step Functions, SQS, Lambda, or other targets (<strong>F74, E2-Q19, E2-Q46</strong>).</li>
+  <li><strong>SQS:</strong> buffer bursts and let a worker pace Bedrock calls; it does not itself orchestrate approval branches (<strong>E2-Q06, E2-Q46, F18</strong>).</li>
+  <li><strong>Step Functions Standard:</strong> use <code class="language-plaintext highlighter-rouge">.waitForTaskToken</code> for human approval and Standard workflows for long-running video pipelines (<strong>F18, E2-Q19</strong>).</li>
+  <li><strong>Lambda:</strong> lightweight preprocessing, event workers, and WebSocket streaming; never busy-wait on multi-minute jobs (<strong>F63, E2-Q07, E2-Q21</strong>).</li>
+  <li><strong>Transcribe:</strong> diarization separates speakers in mono audio; channel identification requires separate audio channels (<strong>E2-Q17, E2-Q21</strong>).</li>
+  <li><strong>Boundary to remember:</strong> a queue smooths throughput, while a state machine persists workflow state. Neither turns a synchronous page request into a guaranteed low-latency response.</li>
+</ul>
+
+<h3 id="6-appconfig-networking-and-observability">6. AppConfig, networking, and observability</h3>
+
+<p><strong>Think:</strong> configuration, network identity, and evidence are separate controls.</p>
+
+<p><strong>Layman analogy:</strong> Think of an office building: AppConfig changes the instructions on the noticeboard, PrivateLink is the private hallway, IAM is the badge check, and observability is the CCTV and visitor log.</p>
+
+<ul>
+  <li><strong>AppConfig / API Gateway stage variables:</strong> externalize model IDs, tier routing, or experiment percentages; use the Lambda extension/local cache (<strong>E2-Q44, E2-Q56</strong>).</li>
+  <li><strong>PrivateLink:</strong> use the <code class="language-plaintext highlighter-rouge">bedrock-runtime</code> interface endpoint for inference; private DNS/security groups control the network path, while the endpoint policy scopes IAM principals/actions (<strong>E2-Q34, E2-Q64</strong>).</li>
+  <li><strong>CloudWatch Logs Insights:</strong> investigate per-request token fields; <strong>metrics</strong> alert on trends; <strong>X-Ray/ADOT</strong> isolates model-call latency; <strong>CloudTrail</strong> records audited API identity (<strong>F52, E2-Q16, E2-Q35, E2-Q71, E2-Q73</strong>).</li>
+  <li><strong>Agent traces:</strong> <code class="language-plaintext highlighter-rouge">InvokeAgent</code> with <code class="language-plaintext highlighter-rouge">enableTrace=true</code> and persisted stream parts show orchestration observations/actions; AgentCore signal availability depends on explicit enablement and Transaction Search (<strong>E2-Q35, E2-Q42, E2-Q74</strong>).</li>
+  <li><strong>Boundary to remember:</strong> a metric tells you that something changed; logs and traces help explain which request or step changed; audit events establish who called the API.</li>
+</ul>
+
+<h2 id="detailed-service-diagrams-reference">Detailed service diagrams (reference)</h2>
+
+<p>Use these after the service-first section above. They show the same hierarchy at API/setting level and render directly in Markdown without a diagram plugin. The AWS study page also contains visual cards and detailed service trees.</p>
+
+<h3 id="sagemaker-ai-learn--qualify--serve">SageMaker AI: learn → qualify → serve</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SageMaker AI
+├── TRAIN
+│   ├── Training job + GPU/EFA + SMDDP → distributed gradient work
+│   └── LoRA → frozen base + small learned adapter
+├── QUALIFY
+│   ├── Pipelines
+│   │   └── ProcessingStep → TrainingStep → evaluation ProcessingStep
+│   │       └── PropertyFile → ConditionStep → register / reject
+│   ├── Clarify processing → bias report in S3 → threshold gate
+│   └── Model Registry → artifact versions + metrics + approval
+└── SERVE
+    ├── Real-time → GPU choice + target tracking → interactive response
+    ├── Asynchronous → managed queue + S3 I/O + scale-to-zero
+    ├── Batch Transform → known dataset as a job
+    └── Adapter inference components
+        ├── CreateInferenceComponent(BaseInferenceComponentName, ArtifactUrl)
+        └── InvokeEndpoint(InferenceComponentName)
+</code></pre></div></div>
+
+<p><strong>Remember:</strong> Registry records the approved version. The endpoint/runtime serves it. One does not automatically perform the other’s job.</p>
+
+<h3 id="bedrock-knowledge-bases-ingestion-is-not-retrieval">Bedrock Knowledge Bases: ingestion is not retrieval</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>S3 source + document.metadata.json
+              ↓
+Data-source ingestion configuration
+├── parser → preserve tables / visual structure
+├── chunking → boundaries and parent/child sizes
+└── embedding model + dimension → compatible index
+              ↑
+bedrock-agent: StartIngestionJob / GetIngestionJob
+              ↓
+bedrock-agent-runtime: Retrieve
+└── retrievalConfiguration.vectorSearchConfiguration
+    ├── filter → trusted user's permitted documents
+    ├── numberOfResults → candidate count
+    └── rerankingConfiguration → refine candidate ranking
+              ↓
+RetrieveAndGenerate → grounded response + citations
+
+Hierarchical vector retrieval: child match → parent context
+Neptune GraphRAG:             child match → child context
+</code></pre></div></div>
+
+<p><strong>Remember:</strong> an S3 policy does not automatically authorize an indexed chunk. A parser repairs source structure; changing vector index settings does not.</p>
+
+<h3 id="events-and-runtime-delivery">Events and runtime delivery</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>S3 object created
+├── EventBridge rule → Step Functions Standard → durable pipeline
+├── EventBridge prefix rule → SQS → paced Lambda → Bedrock
+└── Transcribe start → transcript in output S3 → text consumer
+
+Bedrock response stream → Lambda → post_to_connection(connectionId)
+Human decision wait    → .waitForTaskToken → SendTaskSuccess → Choice
+Runtime model mapping → AppConfig deployment → Lambda extension cache
+</code></pre></div></div>
+
+<p><strong>Remember:</strong> event bus routes; queue buffers; worker paces; state machine persists progress. Streaming still has execution and transport limits.</p>
+
+<h3 id="privacy-and-governance">Privacy and governance</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>What must happen BEFORE the next boundary?
+├── Discover sensitive stored objects → Macie job + coverage review
+├── Check required/empty fields       → Glue Data Quality + fail gate
+├── Redact in an existing ETL job     → Glue Sensitive Data Detection
+├── Locate generic text PII          → Comprehend → mask offsets
+├── Batch clinical PHI               → Comprehend Medical StartPHIDetectionJob
+└── Filter model interactions        → Guardrails policy + sanitized result
+
+Private inference path
+EC2 role → bedrock-runtime interface endpoint
+           ├── private DNS + security group = network path
+           └── endpoint policy + IAM        = identity/action boundary
+</code></pre></div></div>
+
+<p><strong>Remember:</strong> detection is not redaction, redaction is not complete compliance, and logging originals can undo a well-designed prompt boundary.</p>
+
+<h3 id="observability-and-evaluation">Observability and evaluation</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CloudWatch metrics          → Is usage/latency changing?
+Invocation logs + Insights  → Which request used more tokens?
+Instrumented SDK spans      → Which model call took the time?
+CloudTrail data/API events  → Who called the audited operation?
+InvokeAgent(enableTrace)    → Which observation/action/explanation occurred?
+AgentCore telemetry        → Signal enablement + instrumentation + Transaction Search
+
+Question ──→ retrieved context ──→ generated answer
+               │                    ├── Faithfulness → support in context
+               │                    ├── Correctness  → answer accuracy
+               │                    └── Completeness → question coverage
+               └── ContextRelevance → passage relevance to question
+</code></pre></div></div>
+
+<p><strong>Remember:</strong> similarity can miss a fabricated fact; generation metrics cannot repair a failed retriever; a trace rationale is not a security control.</p>
+
+<h2 id="model-adaptation-hosting-and-lifecycle">Model adaptation, hosting, and lifecycle</h2>
+
+<p>Permanent notes: <a href="/study/infrastructureAWSAiServices">AWS service details</a>. Section: <code class="language-plaintext highlighter-rouge">sagemaker-adapter-lifecycle</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Question / scenario</th>
+      <th>Your selection</th>
+      <th>Correction</th>
+      <th>Why / caveat to remember</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>F08</strong> — Custom fine-tuned LLM needs GPU and scaling control</td>
+      <td>Bedrock</td>
+      <td><strong>SageMaker AI real-time endpoints</strong></td>
+      <td>Choose the supported GPU instance family and endpoint autoscaling policy. Bedrock abstracts that serving infrastructure.</td>
+    </tr>
+    <tr>
+      <td><strong>F64</strong> — Fine-tuned Llama needs a controlled production endpoint</td>
+      <td>Bedrock Custom Model Import</td>
+      <td><strong>SageMaker AI real-time endpoints</strong></td>
+      <td>Custom Model Import does support compatible open models. The deciding requirement is GPU/endpoint control, not whether Bedrock accepts custom weights.</td>
+    </tr>
+    <tr>
+      <td><strong>F22</strong> — Videos arrive unpredictably and take 10–30 minutes</td>
+      <td>Batch Transform</td>
+      <td><strong>SageMaker Asynchronous Inference with scale-to-zero</strong></td>
+      <td>Managed request queue, S3 input/output, up to one-hour processing. Configure scale-out from zero. Batch Transform can run on demand but is a dataset job; idle storage/monitoring costs can remain.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q04</strong> — Specific brand tone without repeating demonstrations</td>
+      <td>Fine-tuning configured as continued pre-training</td>
+      <td><strong>Supervised fine-tuning on supported model-specific JSONL pairs</strong></td>
+      <td>Input→desired caption is supervised behaviour adaptation. Continued pre-training uses an unlabelled corpus. Captions alone need meaningful paired inputs; 1,000 records does not guarantee quality. The named Titan Text model is an exam example, subject to current availability.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q12</strong> — Weekly 70B versions create huge artifacts and slow rollback</td>
+      <td>LoRA in versioned S3 prefixes + full endpoint update</td>
+      <td><strong>LoRA + Model Registry governance + compatible adapter serving</strong></td>
+      <td>You correctly identified LoRA. The missing part was serving lightweight versions without repeatedly replacing the whole endpoint. Registry tracks versions/approval; the serving runtime performs adapter selection. Record the exact base model dependency.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q43</strong> — Train, evaluate, retain only qualified release candidates</td>
+      <td>Pipeline with an EvaluationStep and immediate endpoint update</td>
+      <td><strong>ProcessingStep → TrainingStep → evaluation ProcessingStep/PropertyFile → ConditionStep → model registration</strong></td>
+      <td>A candidate is not an immediate production release. Register metrics/artifacts with an explicit approval state. SDK registration helpers vary; failed artifacts do not automatically disappear from S3.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q47</strong> — Fifty NPC personas share one base and mostly sit idle</td>
+      <td>Multi-adapter endpoint but S3-only download on every request</td>
+      <td><strong>Resident base + registered adapter inference components + per-request selection</strong></td>
+      <td>Use CreateInferenceComponent with BaseInferenceComponentName/ArtifactUrl, then InvokeEndpoint with InferenceComponentName. Warm and size capacity; registration alone does not guarantee all adapters are resident. Full fine-tunes must first be trained as compatible adapters.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q49</strong> — Huge distributed training plus variable interactive serving</td>
+      <td>Serverless Inference for training; real-time autoscaling was correct</td>
+      <td><strong>EFA-enabled GPU training/SMDDP + real-time endpoint target tracking</strong></td>
+      <td>Training parallelism synchronizes gradients; inference replicas handle concurrent requests. Serverless Inference does not train models or provide GPUs. A 175B model has no credible guaranteed sub-millisecond end-to-end generation SLA; the answer identifies service categories, not proof the stated SLA is attainable.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="retrieval-representation-parsing-chunking-and-search">Retrieval: representation, parsing, chunking, and search</h2>
+
+<p>Permanent notes: <a href="/study/infrastructureAWSAiServices">AWS service details</a>. Section: <code class="language-plaintext highlighter-rouge">kb-internals</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Question / scenario</th>
+      <th>Your selection</th>
+      <th>Correction</th>
+      <th>Why / caveat to remember</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>F16</strong> — Enterprise assistant over SharePoint, Confluence, and S3</td>
+      <td>Kendra</td>
+      <td><strong>Q Business among the supplied options</strong></td>
+      <td>Packaged conversational answers/citations and connectors are the clue. Kendra can return answer passages and serve RAG, but is not the packaged assistant. Keep current Q Business availability/migration notices separate from the exam association.</td>
+    </tr>
+    <tr>
+      <td><strong>F56</strong> — Store product embeddings and perform low-latency k-NN</td>
+      <td>Kinesis Data Streams</td>
+      <td><strong>OpenSearch Service</strong></td>
+      <td>Embeddings need a searchable index. Kinesis ingests/transports records; Athena analyzes; ordinary S3 Intelligent-Tiering controls object storage cost. S3 Vectors is a separate capability.</td>
+    </tr>
+    <tr>
+      <td><strong>F62</strong> — Millions of article vectors plus existing keyword search</td>
+      <td>RDS PostgreSQL</td>
+      <td><strong>OpenSearch Service for the combined search requirement</strong></td>
+      <td>RDS and Aurora PostgreSQL can support pgvector. They are not categorically invalid or slower. Existing lexical/vector/hybrid search requirements distinguish this scenario.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q02</strong> — New abstract art lacks useful embedding representation</td>
+      <td>Hybrid metadata search; re-embedding was correctly selected</td>
+      <td><strong>Fine-tune Titan Multimodal Embeddings G1 with image/caption pairs AND re-embed the catalogue</strong></td>
+      <td>You kept the required reindex step. Add supported encoder customization when the diagnosed issue is representation. Hybrid search can improve recall but does not train visual semantics. Switch the compatible query encoder too; keep a rollback index.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q06</strong> — S3 articles arrive but Knowledge Base results stay stale</td>
+      <td>One direct StartIngestionJob call for every object event</td>
+      <td><strong>S3 events → SQS → paced/coalescing worker → StartIngestionJob</strong></td>
+      <td>The classic API quota is 0.1 requests/sec, with concurrent-job limits. SQS buffers but does not pace by itself. Track job state, retries, and changes during a running sync. Throttled requests are not inherently silent loss; a later incremental sync can catch changes. Scheduler and Step Functions are also valid building blocks under suitable freshness requirements.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q14</strong> — Neptune GraphRAG returns correct relations but tiny excerpts</td>
+      <td>Increase hierarchical parent size</td>
+      <td><strong>Rebuild ingestion with larger self-contained chunks</strong></td>
+      <td>GraphRAG returns child chunks without parent substitution. Strategy changes require recreating the data source/re-ingesting, not simply editing and resyncing. Default or semantic chunking is not automatically large enough; measure the resulting context.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q22</strong> — Reduce handbook vector cost while preserving measured quality</td>
+      <td>Keep only 500 documents + cache with Titan G1</td>
+      <td><strong>Test Titan Text Embeddings V2 at 256 dimensions, then migrate compatible index/query paths</strong></td>
+      <td>Retain corpus coverage. V2 supports 256/512/1,024; text G1 is 1,536 dimensions, contrary to the question. Raw vector bytes fall 75% versus 1,024 at equal precision; total cost and quality do not necessarily fall proportionally.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q30</strong> — Straightforward S3 product-catalog RAG with Claude</td>
+      <td>Kendra + Lambda glue</td>
+      <td><strong>Bedrock Knowledge Bases + supported vector store + RetrieveAndGenerate</strong></td>
+      <td>Managed ingestion/retrieval/generation reduces integration work. Kendra is a valid RAG retriever; the question does not establish a universal cost comparison. OpenSearch Serverless has real index compute/storage costs and configuration-dependent capacity floors.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q36</strong> — Small sub-clause matches need larger main-clause context</td>
+      <td>Set numberOfResults to the total child count</td>
+      <td><strong>HIERARCHICAL with larger parent/smaller child; retrieve children and substitute parents</strong></td>
+      <td>numberOfResults controls candidate count, not a guarantee of full-document context. Returned parent results can be fewer after deduplication. Do not memorize the explanation’s 8,192-token ceiling as universal; verify model/API/store limits.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q37</strong> — Thirty retrieved chunks make prompts expensive and noisy</td>
+      <td>Cut top-k to 5 plus recency window</td>
+      <td><strong>Rerank broad candidates, then prune by calibrated relevance and token budget</strong></td>
+      <td>Standalone Rerank exposes relevanceScore; thresholding belongs in application logic. Static truncation can remove decisive evidence. Reranking also has errors/cost, so “strictly maintaining relevance” requires evaluation rather than a guarantee.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q67</strong> — PDF table flattening destroys code/cost column relationships</td>
+      <td>Parent-child chunks built from individual cells and headers</td>
+      <td><strong>Supported FM advanced parser in the data-source ingestion configuration</strong></td>
+      <td>Fix the first failing layer: parsing comes before chunking, embedding, and indexing. Configure the source parser, not OpenSearch. BDA is another supported managed parsing path.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q70</strong> — Fifty million HNSW vectors cause latency and memory pressure</td>
+      <td>HNSW tuning was correct; IVF + S3 Intelligent-Tiering was not</td>
+      <td><strong>Tune engine-supported ANN controls AND rebalance/reindex across suitable shards and memory capacity</strong></td>
+      <td>ef_search affects query effort; ef_construction affects graph build; m affects connectivity. More shards need sufficient node memory and can add overhead. Preserve availability. Intelligent-Tiering is not a hot OpenSearch vector engine; zero replicas raises risk but does not guarantee permanent loss on every failure.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="data-preparation-privacy-and-source-governance">Data preparation, privacy, and source governance</h2>
+
+<p>Permanent notes: <a href="/study/infrastructureAWSAiServices">AWS service details</a>. Section: <code class="language-plaintext highlighter-rouge">source-audit</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Question / scenario</th>
+      <th>Your selection</th>
+      <th>Correction</th>
+      <th>Why / caveat to remember</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>F28</strong> — Required patient fields, dates, and codes need validation</td>
+      <td>Custom Lambda framework</td>
+      <td><strong>Glue Data Quality with explicit rules and a pipeline gate</strong></td>
+      <td>Use completeness/type/format/reference checks. The team supplies code sets and the fail/quarantine policy. Guardrails checks content safety, not structured record correctness.</td>
+    </tr>
+    <tr>
+      <td><strong>F40</strong> — Redact incoming text before it reaches an FM</td>
+      <td>Macie</td>
+      <td><strong>Comprehend PII detection + application redaction</strong></td>
+      <td>Macie discovers sensitive S3 objects; Comprehend returns text entities/offsets. Textract extracts text; Inspector scans vulnerabilities. A detector is not a guarantee every identifier is removed.</td>
+    </tr>
+    <tr>
+      <td><strong>F42</strong> — Sanitize conversation transcripts before logging</td>
+      <td>Macie scanning stored logs</td>
+      <td><strong>Intended answer: Comprehend detection plus configured Guardrails/application masking before the write</strong></td>
+      <td>No automatic Comprehend-offset-to-Guardrails log scrubber exists. Guardrails can independently mask supported PII. Medical IDs need verified coverage/clinical detection. Invocation logs and traces can still contain originals unless designed appropriately.</td>
+    </tr>
+    <tr>
+      <td><strong>F63</strong> — Normalize typos, whitespace, and case per request</td>
+      <td>Comprehend</td>
+      <td><strong>Lambda preprocessing</strong></td>
+      <td>Comprehend analyzes entities/sentiment; application code transforms text. Preserve meaningful punctuation, identifiers, and case. Glue is dataset-oriented; Textract is for scanned inputs.</td>
+    </tr>
+    <tr>
+      <td><strong>F68</strong> — Managed extraction of contract fields from varied documents</td>
+      <td>Textract alone</td>
+      <td><strong>Bedrock Data Automation with custom blueprint and S3 output</strong></td>
+      <td>BDA handles task-specific extraction; Textract also supports structured document analysis but is not a complete semantic contract workflow alone. Verify file/API limits, including DOCX support; database ingestion still needs validation/integration.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q15</strong> — Comprehensive pre-ingestion S3 CCN/SSN audit</td>
+      <td>Macie automated discovery sampling</td>
+      <td><strong>Targeted Macie discovery job, 100% eligible-object sampling, correct managed identifiers, findings review</strong></td>
+      <td>100% is not a guarantee over unsupported, inaccessible, oversized, or image-only documents. Review coverage/error results. Athena can be useful for a broader audit, though unnecessary for basic findings review. Exported S3 results can be retained beyond 90 days. Encryption at rest and readable sensitive content are different concepts.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q17</strong> — Doctor/patient attribution fails in one mono recording</td>
+      <td>Channel Identification with two channel definitions</td>
+      <td><strong>ShowSpeakerLabels=true and MaxSpeakerLabels=2; carry labelled utterances into prompt</strong></td>
+      <td>Mono audio has no separate doctor/patient channels. Diarization labels speakers, not professional roles. Verify the role mapping; spk_0 is not always Doctor. Do not discard labels when extracting the transcript.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q20</strong> — Junior engineers must never retrieve confidential chunks</td>
+      <td>Static classification filter in data-source settings</td>
+      <td><strong>Ingest classification metadata; inject a server-derived Retrieve vectorSearchConfiguration.filter per authenticated user</strong></td>
+      <td>Filters belong to query configuration, not static ingestion settings. Prevent bypass through direct KB/index access. S3 source policies do not carry into vector queries. Post-filtering after retrieval does not meet a requirement to prevent retrieval itself.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q21</strong> — Meeting MP3s must become text for a text-only FM</td>
+      <td>Transcribe completion EventBridge rule + second Lambda</td>
+      <td><strong>Intended simplest path: Transcribe output S3 object event → text extraction → Bedrock</strong></td>
+      <td>Your EventBridge completion design is technically valid, not a fundamental mistake. The question prefers existing S3 event wiring. OutputBucketName/OutputKey and prefix filters prevent loops; monitor failures separately. No busy-wait in Lambda, and no universal ban on audio-capable Bedrock models.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q26</strong> — 15% NULL/empty reviews must block training</td>
+      <td>Standalone Data Catalog quality evaluation</td>
+      <td><strong>ColumnLength review_text &gt; 0 + configured in-ETL failure threshold</strong></td>
+      <td>ColumnLength treats NULL as zero length; IsComplete can miss empty CSV strings. Trim whitespace too. A quality score or alert does not block training unless the workflow gates on it; verify supported DQDL threshold syntax.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q50</strong> — Redact names, CCNs, SSNs inside an existing Glue ETL job</td>
+      <td>Separate DataBrew profiling/masking job</td>
+      <td><strong>Glue Sensitive Data Detection transform with redaction/masking output</strong></td>
+      <td>DataBrew can mask, but is a separate workflow. Audit-only modes leave original values. Current detection API uses REDACT with redactText; UI labels can differ. Hashing is pseudonymization, not one-way encryption or guaranteed anonymity.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q52</strong> — Every answer needs manual/version, catalogue, and access audit</td>
+      <td>Kendra relevance tuning + query/response logs</td>
+      <td><strong>Glue Data Catalog + explicit source/version chunk metadata + relevant CloudTrail data events</strong></td>
+      <td>Catalogue metadata versions do not version PDF bytes; preserve immutable/versioned source artifacts. Source reads and vector retrieval are different access paths. Object tags do not automatically become KB metadata. CloudTrail needs configuration/retention; Streams records changes rather than reads.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q62</strong> — Overnight clinical-document PHI locations and redaction</td>
+      <td>Agent wrapping Macie scans</td>
+      <td><strong>Extract UTF-8 English text → Comprehend Medical StartPHIDetectionJob → secure entity audit + redaction → clean ingestion</strong></td>
+      <td>PDF/image extraction can use Textract; Word needs a parser. Use entity offsets against the unchanged extracted text. MRNs/SSNs can both map to ID; returned Category is not a separate HIPAA-category field. Secure entity text if retained. Neither KB ingestion nor a reasoning agent automatically sanitizes the source.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="events-workflows-streaming-and-developer-tools">Events, workflows, streaming, and developer tools</h2>
+
+<p>Permanent notes: <a href="/study/infrastructureAWSAiServices">AWS service details</a>. Section: <code class="language-plaintext highlighter-rouge">event-stream-controls</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Question / scenario</th>
+      <th>Your selection</th>
+      <th>Correction</th>
+      <th>Why / caveat to remember</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>F18</strong> — Editor approval can take hours or days</td>
+      <td>Minute-by-minute Lambda polling</td>
+      <td><strong>Step Functions Standard .waitForTaskToken callback</strong></td>
+      <td>Return the token via SendTaskSuccess with approved/rejected data, then Choice publishes/archives. Configure timeouts and token protection. A waiting Lambda has a 15-minute execution limit; SQS alone does not implement the workflow.</td>
+    </tr>
+    <tr>
+      <td><strong>F74</strong> — Suspicious transaction should launch a risk report</td>
+      <td>Kinesis Data Streams</td>
+      <td><strong>EventBridge → Lambda/Step Functions → Bedrock → S3</strong></td>
+      <td>Route a discrete business event with rules. Streams fit continuous record processing; SNS can also trigger Lambda, but is a different integration pattern. Add idempotency/retries.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q07</strong> — Twenty-second Bedrock stream must reach WebSocket caller early</td>
+      <td>Stream to client but first store connectionId for continuation</td>
+      <td><strong>Use requestContext.connectionId and post_to_connection incrementally</strong></td>
+      <td>Your streaming core was right; the extra DB write is unnecessary for this single invocation. Connection persistence is useful for separate workers but cannot resume a model stream. Set Lambda timeout appropriately and respect the 29-second route integration limit; use async dispatch for longer work.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q19</strong> — S3 video upload starts Standard workflow with minimal glue</td>
+      <td>Direct S3 notification to state-machine ARN</td>
+      <td><strong>Enable bucket EventBridge delivery; Object Created rule → Step Functions</strong></td>
+      <td>Direct bucket notification destinations do not include Step Functions. SQS does not make a dormant state machine start polling; an integration such as Pipes can start executions. CloudTrail can supply events but native S3 events are simpler here.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q25</strong> — Java upgrade, security review, and GitHub issue implementation</td>
+      <td>Transform + review + IDE /dev assumed to fetch issue context automatically</td>
+      <td><strong>Transform + review + installed/authorized GitHub development integration</strong></td>
+      <td>Match the capability and execution surface. GitHub feature label or /q dev consumes authorized issue/repository context; a URL is not permission. Current GitHub integration is preview and IDE lifecycle is changing. Review proposed code and tests.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q46</strong> — Only final/ uploads; bursts must not overload inference</td>
+      <td>Direct S3 notification → SQS FIFO</td>
+      <td><strong>EventBridge prefix rule → SQS → controlled Lambda worker</strong></td>
+      <td>Direct S3 → FIFO is unsupported; EventBridge can target FIFO. Match the literal object key (usually final/, not /final). Pace requests/tokens and configure idempotency/DLQ. SNS has retries, but is not the worker-paced backlog requested.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q60</strong> — Draft/check/branch via visual Bedrock console</td>
+      <td>Step Functions; Prompt nodes were correct</td>
+      <td><strong>Bedrock Flows Prompt nodes AND Condition node</strong></td>
+      <td>Step Functions can implement the logic but misses the requested interface. Retain the draft as well as the classifier result for the downstream polish/sanitize prompt. Explicitly handle unknown outputs; self-classification alone does not guarantee safety.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="model-routing-networking-and-latency-budgets">Model routing, networking, and latency budgets</h2>
+
+<p>Permanent notes: <a href="/study/infrastructureAWSAiServices">AWS service details</a>. Section: <code class="language-plaintext highlighter-rouge">appconfig-routing</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Question / scenario</th>
+      <th>Your selection</th>
+      <th>Correction</th>
+      <th>Why / caveat to remember</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>F25</strong> — Standardized lease language with minimal variation</td>
+      <td>Temperature exactly 0.5</td>
+      <td><strong>Low temperature, e.g. 0–0.3 where supported</strong></td>
+      <td>Temperature adjusts randomness, not response length or legal correctness. Zero is not an absolute reproducibility guarantee. Approved templates and schema/business validation handle stricter requirements.</td>
+    </tr>
+    <tr>
+      <td><strong>F34</strong> — Simple and difficult prompts all use an expensive model</td>
+      <td>Semantic cache</td>
+      <td><strong>Bedrock Intelligent Prompt Routing with a supported model pair</strong></td>
+      <td>Routing chooses compute based on predicted response quality; caching reuses answers/context. Semantic caches can match paraphrases, not just identical text. Verify model-family/version support and measured quality; no universal saving percentage.</td>
+    </tr>
+    <tr>
+      <td><strong>F51</strong> — Predictable busy days and quiet nights</td>
+      <td>On-demand 24/7</td>
+      <td><strong>Intended answer: provisioned during sustained peaks plus on-demand off-peak</strong></td>
+      <td>This is conditional, not proven cheapest from request count alone. Existing provisioned resources keep billing; commitments may prevent daily deletion. Evaluate token rates, utilization, eligibility, and provisioning lead time.</td>
+    </tr>
+    <tr>
+      <td><strong>F55</strong> — Order extraction must match database JSON fields/types</td>
+      <td>Separate prompt per field</td>
+      <td><strong>JSON Schema + supported constrained structured output</strong></td>
+      <td>One schema defines required fields/types. Fine-tuning or regex is not equivalent enforcement. Handle missing data, refusal/truncation, and validate facts/business rules before writes.</td>
+    </tr>
+    <tr>
+      <td><strong>F79</strong> — Same 5,000-token policy with different customer questions</td>
+      <td>ElastiCache response caching</td>
+      <td><strong>Bedrock Prompt Caching</strong></td>
+      <td>Cache the reusable prefix, not the complete answer. Reads may still be charged and cache entries expire. Response caching and CloudFront do not inherently reuse internal prompt-prefix computation.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q29</strong> — US-only data; regional throttling; no DIY failover</td>
+      <td>Global inference profile</td>
+      <td><strong>Supported US geographic system profile from an eligible source Region</strong></td>
+      <td>Global routing violates the geographic constraint. Validate destinations, IAM/SCPs, retention, and logs. Application inference profiles can wrap a system profile; tagging a regional model alone does not broaden capacity. Do not memorize one universal exception type for invalid source Regions.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q34</strong> — Bedrock-only proprietary model; reserved capacity and private traffic</td>
+      <td>Batch inference plus S3 policy</td>
+      <td><strong>Supported Provisioned Throughput + bedrock-runtime PrivateLink</strong></td>
+      <td>Capacity and network privacy are independent controls. Use private DNS/endpoint ENIs, not a gateway-style route-table entry. Size by tokens and latency measurements. Model access does not grant exportable weights for SageMaker.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q41</strong> — Unpredictable conversational spikes exceed regional quota</td>
+      <td>Backoff then smaller same-Region model fallback</td>
+      <td><strong>Supported cross-Region inference profile</strong></td>
+      <td>Backoff remains useful for transient errors but does not add capacity. Profiles retain quotas; no fixed guaranteed throughput multiplier. Serving fallback can help if evaluated, but the option adds custom logic and possible quality degradation. Lambda concurrency is not tokens per minute.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q44</strong> — Change free/premium model IDs without code redeploy</td>
+      <td>CloudFormation update; AppConfig was correct</td>
+      <td><strong>AppConfig cached runtime mapping AND supported API Gateway stage variables</strong></td>
+      <td>Keep the AppConfig selection; add stageVariables in the REST API/Lambda proxy pattern. Stage config is not entitlement: derive tier from trusted identity. AppConfig propagates by configuration deployment/polling, not instantly; ALB cannot target a Bedrock ARN.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q56</strong> — Adjust 10% model experiment without app deployment</td>
+      <td>AppConfig live SDK fetch on every invocation</td>
+      <td><strong>AppConfig multi-variant flag + Lambda extension/local cache</strong></td>
+      <td>Your service choice was right; optimize retrieval and cohort evaluation. Use a stable session/user context. Direct SDK integration can work but adds overhead if every request hits the service. AppConfig still deploys configuration and polls; CloudWatch Evidently is no longer supported.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q64</strong> — Private inference path must allow only the application role</td>
+      <td>bedrock control-plane endpoint with inference policy</td>
+      <td><strong>bedrock-runtime interface endpoint + role/action/resource-scoped endpoint policy</strong></td>
+      <td>Use IAM permissions and endpoint security groups too. Security groups identify network sources, not IAM roles. Restricting this endpoint does not automatically block all other routes to Bedrock.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q69</strong> — Flash-sale personalized pages must finish within two seconds</td>
+      <td>Product-only response cache and API Gateway throttling</td>
+      <td><strong>Cross-Region inference AND approved generic fallback before deadline</strong></td>
+      <td>Product-only caching loses personalization; use scoped keys for personalized entries. A generic description is acceptable as an explicit fallback if approved. Reserve a latency budget for it. Queues help background generation, not guaranteed synchronous completion; bounded retries may fit some budgets but must not exceed the deadline.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="evaluation-observability-and-release-controls">Evaluation, observability, and release controls</h2>
+
+<p>Permanent notes: <a href="/study/infrastructureAWSAiServices">AWS service details</a>. Section: <code class="language-plaintext highlighter-rouge">invocation-diagnostics</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Question / scenario</th>
+      <th>Your selection</th>
+      <th>Correction</th>
+      <th>Why / caveat to remember</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>F32</strong> — Two hundred expert-reviewed question/reference pairs</td>
+      <td>Test corpus</td>
+      <td><strong>Golden dataset / ground-truth evaluation set</strong></td>
+      <td>Test corpus is a valid broad term; golden emphasizes trusted reference quality. Use before and after deployment. Separate tuning/validation examples from final held-out tests.</td>
+    </tr>
+    <tr>
+      <td><strong>F52</strong> — Token-consumption thresholds and notifications</td>
+      <td>Cost Explorer</td>
+      <td><strong>CloudWatch metrics, dashboards, alarms</strong></td>
+      <td>Runtime metrics include InputTokenCount, OutputTokenCount, Invocations. Add feature attribution where needed. Cost Explorer analyzes/forecasts billing; AWS Budgets provides budget alerts.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q05</strong> — History tutor invents facts despite good retrieved textbook passages</td>
+      <td>Context Relevance in retrieve-only evaluation</td>
+      <td><strong>Retrieve-and-generate Builtin.Faithfulness</strong></td>
+      <td>Judge answer support against retrieved evidence. Context Relevance assesses retrieval; Completeness assesses question coverage. Correctness and faithfulness can diverge. Do not generalize reference-answer requirements across all evaluation modes.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q09</strong> — Narrative designers must compare creativity/persona</td>
+      <td>SageMaker endpoints + A2I sample of live traffic</td>
+      <td><strong>Bedrock human model comparison + private work team + custom Likert rubrics</strong></td>
+      <td>A systematic held-out comparison directly fits. A2I is configurable, but requires constructing a different review workflow. ROUGE/BERTScore do not establish creative quality; do not evaluate generalization only against training examples.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q16</strong> — Which of three Bedrock calls is slow?</td>
+      <td>Lambda Active tracing alone</td>
+      <td><strong>Active tracing + supported SDK instrumentation, e.g. X-Ray patch_all at initialization</strong></td>
+      <td>Instrument outgoing calls and name application stages. Targeted patching or carefully scoped manual spans can also work. Active tracing does not automatically give full downstream timing. Capture stream consumption separately where needed; prefer OpenTelemetry for new instrumentation.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q35</strong> — What telemetry exists by default across AgentCore?</td>
+      <td>Everything logged/traced automatically; no setup</td>
+      <td><strong>Know resource defaults, explicit signal enablement, instrumentation, and Transaction Search</strong></td>
+      <td>Current docs differ from the old answer: Gateway has service metrics AND spans, with logs explicitly enabled; Runtime/Memory rich signals require enablement. Transaction Search enables the documented trace dashboard, not the existence of ordinary CloudWatch metrics. Disabling ADOT alone does not configure another exporter.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q42</strong> — Why did the agent refuse a &gt;30-day refund?</td>
+      <td>Inspect only modelInvocationInput</td>
+      <td><strong>enableTrace=true → orchestrationTrace observations + rationale + action sequence</strong></td>
+      <td>The prompt shows instructions, while tool observations and emitted explanations show the decision path. Verify policy enforcement in code; a rationale is not proof of the model’s complete internal thought process.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q58</strong> — Bias must block deployment and produce an audit report</td>
+      <td>Custom Lambda bias calculations</td>
+      <td><strong>Clarify processing job → S3 report → Step Functions Choice threshold gate</strong></td>
+      <td>Held-out protected-group metrics belong before production. A successful job does not mean acceptable bias; parse metrics explicitly. Use supported facets/metrics and current availability guidance. Custom analysis can work but adds implementation effort.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q63</strong> — Prompt change invented amenities and omitted square footage</td>
+      <td>Semantic similarity; pre-promotion factual evaluation was correct</td>
+      <td><strong>Constraint assertions in CodeBuild AND versioned pre-promotion factual evaluation</strong></td>
+      <td>Keep the correct evaluation gate. Add checks for exact required facts and unsupported amenity claims. High similarity can conceal one critical error. Structured extraction/assertions and calibrated judging complement each other; no regex guarantees arbitrary prose has no hallucinations.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q71</strong> — Teams either log raw PII or disable observability</td>
+      <td>Config monitors InvokeModel and terminates IAM sessions</td>
+      <td><strong>Versioned CDK constructs + runtime wrappers distributed via CodeArtifact</strong></td>
+      <td>CDK provisions infrastructure; runtime libraries handle model calls/redaction. Config checks configuration, not every invocation payload. Log filters do not erase ingested raw content. Publish tested upgrades with policy checks rather than force-edit every repository.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q73</strong> — Steady request count but higher bill after prompt update</td>
+      <td>Custom output-token metric filter + alarm</td>
+      <td><strong>Model Invocation Logging → CloudWatch Logs Insights before/after token analysis</strong></td>
+      <td>Metrics alert; logs investigate per-request input/output counts. Include prompt-version correlation. Logging must already exist to inspect historical requests; S3/Athena is valid for other reporting needs. Dual destinations do not inherently double every cost.</td>
+    </tr>
+    <tr>
+      <td><strong>E2-Q74</strong> — Persist claim agent orchestration evidence</td>
+      <td>enableTrace plus model invocation logging</td>
+      <td><strong>InvokeAgent(enableTrace=true) → consume and persist each trace event/TracePart</strong></td>
+      <td>Model invocation logs, CloudTrail, and GetAgentMemory are not substitutes for the structured agent stream. Trace fields/stages are optional. Restrict sensitive payloads and retain action/evidence/approval records, not just a generated explanation.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="source-backed-corrections-to-memorize-carefully">Source-backed corrections to memorize carefully</h2>
+
+<p>The supplied answer explanations are useful for the exam pattern, but these points should not become false rules:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Practice shortcut</th>
+      <th>Accurate rule / source</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Bedrock cannot import custom Llama</td>
+      <td>Compatible custom models can be imported; hardware selection remains abstracted. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html">Custom import</a>.</td>
+    </tr>
+    <tr>
+      <td>Titan G1 Text has 1,024 dimensions</td>
+      <td>G1 Text has 1,536; V2 supports 1,024/512/256. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/titan-embedding-models.html">Titan text embeddings</a>.</td>
+    </tr>
+    <tr>
+      <td>Just change GraphRAG parent size</td>
+      <td>GraphRAG does not substitute parent chunks. Rebuild self-contained chunks. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-build-graphs.html">GraphRAG</a>.</td>
+    </tr>
+    <tr>
+      <td>Change connected-source chunking and resync</td>
+      <td>Changing strategy requires recreating the data source and re-ingestion. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/kb-data-source-customize-ingestion.html">Ingestion restrictions</a>.</td>
+    </tr>
+    <tr>
+      <td>Registry hot-swaps models</td>
+      <td>Registry governs artifacts; compatible inference components/runtime serve adapters. <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-adapt.html">Adapter serving</a>.</td>
+    </tr>
+    <tr>
+      <td>AppConfig changes are instantly global</td>
+      <td>Configuration deployment and per-environment polling govern propagation. <a href="https://docs.aws.amazon.com/appconfig/latest/userguide/appconfig-integration-lambda-extensions-how-it-works.html">Extension behaviour</a>.</td>
+    </tr>
+    <tr>
+      <td>Gateway only has default metrics</td>
+      <td>Current AgentCore table lists metrics and spans, with logs explicitly enabled. <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-service-provided.html">Signal table</a>.</td>
+    </tr>
+    <tr>
+      <td>Macie 100% guarantees every file is analyzed</td>
+      <td>It selects all eligible objects; inspect exclusions, limits, and failures. <a href="https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-scope.html">Sampling scope</a>.</td>
+    </tr>
+    <tr>
+      <td>PrivateLink needs a gateway-style route entry</td>
+      <td>Interface endpoints use ENIs/private DNS; pick the right API endpoint. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-interface-endpoints.html">Bedrock endpoints</a>.</td>
+    </tr>
+    <tr>
+      <td>Cached prefix is free after first use</td>
+      <td>Cache-read/write rates and expiry are model-specific. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html">Prompt caching</a>.</td>
+    </tr>
+    <tr>
+      <td>Switching to on-demand stops provisioned billing</td>
+      <td>Provisioned billing continues until deletion, subject to commitments. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html">Provisioned Throughput</a>.</td>
+    </tr>
+    <tr>
+      <td>Logging or generated reasoning proves compliance</td>
+      <td>Collect the appropriate API, source, action, approval, and evaluation evidence with access/retention controls. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/trace-events.html">Agent trace fields</a>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="quick-self-test">Quick self-test</h2>
+
+<ol>
+  <li>Which exact flag produces Bedrock agent orchestration events, and where do you capture them?</li>
+  <li>Which service stores release approval, and which API selects a LoRA adapter for inference?</li>
+  <li>Does your change act at ingestion, retrieval, generation, or evaluation?</li>
+  <li>Does the proposed privacy control discover, detect, redact, authorize, or audit?</li>
+  <li>Does the quality failure actually stop training/deployment, or merely emit a notification?</li>
+  <li>Does a cache key preserve personalization and authorization? What fallback is permitted?</li>
+  <li>Have you confused data-parallel training with inference replica scaling?</li>
+  <li>Which settings must change together when an embedding model or dimension changes?</li>
+  <li>Does your latency budget include queueing, cold starts, stream consumption, and fallback time?</li>
+  <li>Is the rejected option impossible, valid but more work, or only wrong under an assumption in the question?</li>
+</ol>
+
+<h2 id="coverage-checklist">Coverage checklist</h2>
+
+<ul>
+  <li>Foundations: 8, 16, 18, 22, 25, 28, 32, 34, 40, 42, 51, 52, 55, 56, 62, 63, 64, 68, 74, 79.</li>
+  <li>Practice Exam 2: 2, 4, 5, 6, 7, 9, 12, 14, 15, 16, 17, 19, 20, 21, 22, 25, 26, 29, 30, 34, 35, 36, 37, 41, 42, 43, 44, 46, 47, 49, 50, 52, 56, 58, 60, 62, 63, 64, 67, 69, 70, 71, 73, 74.</li>
+  <li>Every supplied question is represented once; repeated concepts retain their individual question references.</li>
+</ul>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 glucolte • </span>
+    <a href="https://github.com/gLuColte/glucolte.github.io">source</a>
+  </footer>
+
+  <script>
+    // Dark mode functionality
+    function initDarkMode() {
+      const toggle = document.getElementById('dark-mode-toggle');
+      const body = document.body;
+      
+      // Check for saved theme preference or default to light mode
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+      
+      // Toggle dark mode
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const currentTheme = body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    }
+    
+    // Initialize dark mode immediately to prevent flash
+    initDarkMode();
+  </script>
+</body>
+</html>

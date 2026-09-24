@@ -19,7 +19,12 @@ tag:
 
 # AI Models and Providers
 
-Use this page to select a model and decide how to consume it. It merges model characteristics and provider choices because they are evaluated together, while keeping the distinction explicit.
+<aside class="technique-callout">
+  <strong>Related reference</strong>
+  <span><a href="/study/modelGuidelines">Model Guidelines</a> covers workload-based model and effort choices, pricing, and plans.</span>
+</aside>
+
+This page explains model characteristics, provider roles, hosting and portability.
 
 **Part 3 of 7:** [Prompt engineering](/study/aiPromptEngineering) → **Models and providers** → [Knowledge bases](/study/aiKnowledgebases). This page is about choosing or adapting a model; it does not re-teach retrieval, tool loops, or platform operations.
 
