@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Search Notes (legacy index) · glucolte</title>
+  <title>Model Guidelines · glucolte</title>
   <meta name="description" content="notes • principles • systems">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/study.css">
@@ -13,20 +13,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Search Notes (legacy index) | glucolte</title>
+<title>Model Guidelines | glucolte</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="Search Notes (legacy index)" />
+<meta property="og:title" content="Model Guidelines" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="http://localhost:4000/study/aiSearches" />
-<meta property="og:url" content="http://localhost:4000/study/aiSearches" />
+<link rel="canonical" href="http://localhost:4000/study/aiModelGuidelines" />
+<meta property="og:url" content="http://localhost:4000/study/aiModelGuidelines" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Search Notes (legacy index)" />
+<meta property="twitter:title" content="Model Guidelines" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Search Notes (legacy index)","url":"http://localhost:4000/study/aiSearches"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"Model Guidelines","url":"http://localhost:4000/study/aiModelGuidelines"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -62,9 +62,408 @@
 
   <main class="container">
     <article class="content">
-      <h1 id="search-notes">Search Notes</h1>
+      <h1 id="model-guidelines">Model Guidelines</h1>
 
-<p>Search is now treated as part of the retrieval system rather than as a separate, shallow page. See the <a href="/study/aiKnowledgebases">AI knowledge bases page</a> for semantic, lexical, hybrid, vector, filtering, reranking, and retrieval-evaluation notes.</p>
+<p><strong>Last verified: 24 September 2026.</strong> Prices are <strong>USD</strong>. Check the model picker and usage dashboard before a long session; access varies by account, client and rollout. For model theory and hosting, see <a href="/study/aiModels">AI Models and Providers</a>.</p>
+
+<h2 id="1-openai--codex-workload-guide">1. OpenAI / Codex Workload Guide</h2>
+
+<div class="provider-table-scroll">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Workload</th>
+        <th>Input</th>
+        <th>Expected output</th>
+        <th>Suggested model</th>
+        <th>Effort</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Document reading</td>
+        <td>Documents / PDFs</td>
+        <td>Find, summarize, explain, compare</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Document deep analysis</td>
+        <td>Documents / PDFs</td>
+        <td>Infer, investigate, resolve contradictions</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Document + web</td>
+        <td>Documents + current sites</td>
+        <td>Verify, cross-reference, synthesize</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Document + web deep analysis</td>
+        <td>Documents + web</td>
+        <td>Investigate complex/conflicting evidence</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Document writing</td>
+        <td>Notes / sources / draft</td>
+        <td>Draft, rewrite, polish, structure</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Analytical writing</td>
+        <td>Sources + ambiguous problem</td>
+        <td>Determine approach, analyze, write</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Code analysis · ~100K LOC</td>
+        <td>Local repository</td>
+        <td>Locate code, architecture, flows</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Code analysis · ~500K LOC</td>
+        <td>Local repository</td>
+        <td>Cross-module architecture/dependencies</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>Medium–High</td>
+      </tr>
+      <tr>
+        <td>Code analysis · ~1M+ LOC</td>
+        <td>Local repository</td>
+        <td>System-level and cross-module understanding</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Development · ~100K LOC</td>
+        <td>Repository + requirement</td>
+        <td>Implement, test, validate</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>Medium–High</td>
+      </tr>
+      <tr>
+        <td>Development · ~500K LOC</td>
+        <td>Repository + requirement</td>
+        <td>Multi-module change, test, debug</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Development · ~1M+ LOC</td>
+        <td>Repository + complex task</td>
+        <td>Investigate, design, implement, validate</td>
+        <td><strong>GPT-6 Sol</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Hard agentic development</td>
+        <td>Large repo + ambiguous problem</td>
+        <td>Autonomous investigation → design → implementation → validation</td>
+        <td><strong>GPT-6 Astra</strong></td>
+        <td>High; Max when justified</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<blockquote>
+  <p><strong>Medium = execute a reasonably clear task. High = determine what the answer or solution should be, then execute it.</strong> Repository size increases navigation work but does not by itself justify the most expensive model. For code: repository → search/index → relevant files → dependencies → context → reason → act. <a href="https://learn.chatgpt.com/docs/models">OpenAI model guidance</a>.</p>
+</blockquote>
+
+<h2 id="2-claude-workload-guide">2. Claude Workload Guide</h2>
+
+<div class="provider-table-scroll">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Workload</th>
+        <th>Input</th>
+        <th>Expected output</th>
+        <th>Suggested model</th>
+        <th>Effort</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Document reading</td>
+        <td>Documents / PDFs</td>
+        <td>Find, summarize, explain, compare</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Document deep analysis</td>
+        <td>Documents / PDFs</td>
+        <td>Infer, investigate, resolve contradictions</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Document + web</td>
+        <td>Documents + current sites</td>
+        <td>Verify, cross-reference, synthesize</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Document + web deep analysis</td>
+        <td>Documents + web</td>
+        <td>Investigate complex/conflicting evidence</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Document writing</td>
+        <td>Notes / sources / draft</td>
+        <td>Draft, rewrite, polish, structure</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Analytical writing</td>
+        <td>Sources + ambiguous problem</td>
+        <td>Determine approach, analyze, write</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Code analysis · ~100K LOC</td>
+        <td>Local repository</td>
+        <td>Locate code, architecture, flows</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Code analysis · ~500K LOC</td>
+        <td>Local repository</td>
+        <td>Cross-module architecture/dependencies</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>Medium–High</td>
+      </tr>
+      <tr>
+        <td>Code analysis · ~1M+ LOC</td>
+        <td>Local repository</td>
+        <td>System-level and cross-module understanding</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Development · ~100K LOC</td>
+        <td>Repository + requirement</td>
+        <td>Implement, test, validate</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>Medium–High</td>
+      </tr>
+      <tr>
+        <td>Development · ~500K LOC</td>
+        <td>Repository + requirement</td>
+        <td>Multi-module change, test, debug</td>
+        <td><strong>Claude Sonnet 5</strong></td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Development · ~1M+ LOC</td>
+        <td>Repository + complex task</td>
+        <td>Investigate, design, implement, validate</td>
+        <td><strong>Claude Opus 5.5</strong></td>
+        <td>Medium; High for difficult dependencies</td>
+      </tr>
+      <tr>
+        <td>Hard agentic development</td>
+        <td>Large repo + ambiguous problem</td>
+        <td>Autonomous investigation → design → implementation → validation</td>
+        <td><strong>Claude Opus 5.5</strong></td>
+        <td>Medium → High</td>
+      </tr>
+      <tr>
+        <td>Frontier escalation</td>
+        <td>Long-horizon task that Opus 5.5 at higher effort could not solve</td>
+        <td>Reinvestigate, resolve, validate</td>
+        <td><strong>Claude Fable 5.1</strong></td>
+        <td>High default; tune to task</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<p>Claude’s adaptive thinking and model-specific effort controls are not identical to OpenAI’s. Sonnet 5, Opus 5.5 and Fable 5.1 support effort; Haiku 4.5 does not use the same control. Use the setting your Claude client exposes. These model choices are personal cost-conscious defaults, not a provider equivalence claim. <a href="https://platform.claude.com/docs/en/models/overview">Claude model lineup</a> · <a href="https://platform.claude.com/docs/en/build-with-claude/effort">Claude effort</a> · <a href="https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence">Anthropic cost guidance</a>.</p>
+
+<blockquote>
+  <p><strong>Optional delegation prompt:</strong> “If this task has substantial independent tracks, delegate repository search, dependency mapping or test triage to bounded subagents. Use GPT-6 Luna for simple Codex scans, GPT-6 Sol Medium for harder Codex analysis, or Claude Sonnet 5 Medium for Claude workers. Have the lead agent integrate and verify their findings. Keep a single dependent change with one agent.” Subagents add token usage; use them when parallel work or isolated context helps. <a href="https://learn.chatgpt.com/docs/agent-configuration/subagents">Codex subagents</a> · <a href="https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence">Anthropic delegation guidance</a>.</p>
+</blockquote>
+
+<h2 id="3-models--pricing">3. Models &amp; Pricing</h2>
+
+<p><strong>First-party Standard API text prices per 1M tokens, USD.</strong> Cached means a prompt-cache <strong>read</strong>. Output includes billed reasoning/thinking tokens. Relative cost compares uncached input and output rates with GPT-6 Sol = 1×; it does not compare quality, tokenizers or subscriptions. <a href="https://developers.openai.com/api/docs/pricing">OpenAI API pricing</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude API pricing</a>.</p>
+
+<div class="provider-table-scroll">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Provider</th>
+        <th>Model / API ID</th>
+        <th style="text-align: right">Input</th>
+        <th style="text-align: right">Cached input</th>
+        <th style="text-align: right">Output</th>
+        <th>Reasoning / effort</th>
+        <th style="text-align: right">Relative cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>OpenAI</td>
+        <td>GPT-6 Luna <code class="language-plaintext highlighter-rouge">gpt-6-luna</code></td>
+        <td style="text-align: right">$0.10</td>
+        <td style="text-align: right">$0.01</td>
+        <td style="text-align: right">$0.50</td>
+        <td>none–max; focused work</td>
+        <td style="text-align: right">0.05×</td>
+      </tr>
+      <tr>
+        <td>OpenAI</td>
+        <td>GPT-6 Sol <code class="language-plaintext highlighter-rouge">gpt-6-sol</code></td>
+        <td style="text-align: right">$2</td>
+        <td style="text-align: right">$0.20</td>
+        <td style="text-align: right">$10</td>
+        <td>none–max; general work</td>
+        <td style="text-align: right">1×</td>
+      </tr>
+      <tr>
+        <td>OpenAI</td>
+        <td>GPT-6 Astra <code class="language-plaintext highlighter-rouge">gpt-6-astra</code></td>
+        <td style="text-align: right">$10</td>
+        <td style="text-align: right">$1</td>
+        <td style="text-align: right">$50</td>
+        <td>low–max; hardest work</td>
+        <td style="text-align: right">5×</td>
+      </tr>
+      <tr>
+        <td>Claude</td>
+        <td>Haiku 4.5 <code class="language-plaintext highlighter-rouge">claude-haiku-4-5</code></td>
+        <td style="text-align: right">$1</td>
+        <td style="text-align: right">$0.10</td>
+        <td style="text-align: right">$5</td>
+        <td>No effort control; fast work</td>
+        <td style="text-align: right">0.5×</td>
+      </tr>
+      <tr>
+        <td>Claude</td>
+        <td>Sonnet 5 <code class="language-plaintext highlighter-rouge">claude-sonnet-5</code></td>
+        <td style="text-align: right">$2</td>
+        <td style="text-align: right">$0.20</td>
+        <td style="text-align: right">$10</td>
+        <td>Adaptive; general work</td>
+        <td style="text-align: right">1×</td>
+      </tr>
+      <tr>
+        <td>Claude</td>
+        <td>Opus 5.5 <code class="language-plaintext highlighter-rouge">claude-opus-5-5</code></td>
+        <td style="text-align: right">$4</td>
+        <td style="text-align: right">$0.20</td>
+        <td style="text-align: right">$20</td>
+        <td>Adaptive; Medium default</td>
+        <td style="text-align: right">2×*</td>
+      </tr>
+      <tr>
+        <td>Claude</td>
+        <td>Fable 5.1 <code class="language-plaintext highlighter-rouge">claude-fable-5-1</code></td>
+        <td style="text-align: right">$10</td>
+        <td style="text-align: right">$0.25</td>
+        <td style="text-align: right">$50</td>
+        <td>Adaptive; frontier work</td>
+        <td style="text-align: right">5×*</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<p>*Cached-read ratios differ. Cache <strong>writes</strong> cost extra: GPT-6 and Claude 5-minute writes are 1.25× input; Claude 1-hour writes are 2× input. OpenAI GPT-6 prompts over 272K input tokens have higher rates for the whole request. Anthropic says its newer tokenizer can produce about 30% more tokens for the same text, depending on content. Tools, web search, regional processing and speed tiers may add cost. <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude pricing</a>.</p>
+
+<h2 id="4-plans--usage">4. Plans &amp; Usage</h2>
+
+<div class="provider-table-scroll">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Provider</th>
+        <th>Plan</th>
+        <th style="text-align: right">Price / month</th>
+        <th>Model access</th>
+        <th>Usage allowance</th>
+        <th>Coding / agent usage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>OpenAI</td>
+        <td>Plus</td>
+        <td style="text-align: right">$20</td>
+        <td>GPT-6 Sol/Luna in Work/Codex; Astra access varies by rollout/client</td>
+        <td>Variable five-hour usage; Sol <strong>15–150</strong> estimated local messages</td>
+        <td>A few focused sessions/week; optional ChatGPT credits</td>
+      </tr>
+      <tr>
+        <td>OpenAI</td>
+        <td>Pro 5x</td>
+        <td style="text-align: right">$100</td>
+        <td>Plus models and Pro features</td>
+        <td>~5× Plus; Sol <strong>70–700</strong> estimated local messages/five hours</td>
+        <td>Frequent sessions; optional credits</td>
+      </tr>
+      <tr>
+        <td>OpenAI</td>
+        <td>Pro 20x</td>
+        <td style="text-align: right">$200</td>
+        <td>Pro features; <strong>new sign-ups/upgrades paused</strong> as of 10 Sep 2026</td>
+        <td>~20× Plus; Sol <strong>300–3,000</strong> estimated local messages/five hours</td>
+        <td>Existing heavy-use subscribers</td>
+      </tr>
+      <tr>
+        <td>Claude</td>
+        <td>Pro</td>
+        <td style="text-align: right">$20</td>
+        <td>Current models; <strong>Fable 5.1 requires paid usage credits</strong></td>
+        <td>Variable five-hour and weekly limits</td>
+        <td>Claude Code shares allowance with Claude</td>
+      </tr>
+      <tr>
+        <td>Claude</td>
+        <td>Max 5x</td>
+        <td style="text-align: right">$100</td>
+        <td>Current models; Fable included within a 50% weekly cap</td>
+        <td>5× Pro per-session usage; weekly cap</td>
+        <td>Frequent Claude Code / research</td>
+      </tr>
+      <tr>
+        <td>Claude</td>
+        <td>Max 20x</td>
+        <td style="text-align: right">$200</td>
+        <td>Same model access as Max 5x</td>
+        <td>20× Pro per-session usage; weekly cap</td>
+        <td>Daily intensive Claude Code</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<p><strong>Billing boundary:</strong> ChatGPT Work and Codex share included usage; extra <strong>ChatGPT credits</strong> have a separate token rate card. API-key use is separately billed in <strong>API dollars</strong>. Claude chat and Claude Code share plan limits; optional <strong>usage credits</strong> after the limit use standard API rates. An <code class="language-plaintext highlighter-rouge">ANTHROPIC_API_KEY</code> in Claude Code can switch the session to API billing. These systems have no trustworthy plan-to-token conversion. Check live usage before upgrading. <a href="https://learn.chatgpt.com/docs/pricing">OpenAI plans, limits and credit rates</a> · <a href="https://help.openai.com/en/articles/7242622-why-did-my-chatgpt-plus-or-chatgpt-pro-renewal-transaction-fail">OpenAI Pro $200 pause</a> · <a href="https://support.claude.com/en/articles/8325606-what-is-the-pro-plan">Claude Pro</a> · <a href="https://support.claude.com/en/articles/11049741-what-is-the-max-plan">Claude Max</a> · <a href="https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan">Fable plan rules</a> · <a href="https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan">Claude Code billing</a>.</p>
 
     </article>
   </main>

@@ -601,10 +601,32 @@
       <td>AppConfig configuration/variants + Lambda extension</td>
       <td>Updates propagate through config deployment/polling; not instantaneous global mutation.</td>
     </tr>
+    <tr>
+      <td>Headless on-premises server needs temporary AWS API credentials</td>
+      <td>IAM Roles Anywhere: trusted CA → X.509 certificate → temporary role credentials</td>
+      <td>AD Connector serves directory integration/interactive sign-in use cases; it is not this credential-exchange path. <a href="https://docs.aws.amazon.com/rolesanywhere/latest/userguide/introduction.html">IAM Roles Anywhere</a>.</td>
+    </tr>
+    <tr>
+      <td>API Gateway must immediately acknowledge an event</td>
+      <td>Return a valid proxy response from synchronous Lambda, or use an appropriate direct AWS service integration such as EventBridge <code class="language-plaintext highlighter-rouge">PutEvents</code></td>
+      <td>Asynchronous Lambda invocation acknowledges acceptance, not a completed business result. REST/payload-v1 proxy integrations require <code class="language-plaintext highlighter-rouge">statusCode</code> and <code class="language-plaintext highlighter-rouge">body</code>; HTTP API payload-v2 can infer a response from valid JSON. <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html">Lambda response formats</a> · <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-aws-services-reference.html">AWS integrations</a>.</td>
+    </tr>
+    <tr>
+      <td>Claims assistant must collect different fields by claim type</td>
+      <td>Comprehend or another classifier extracts intent/entities; Step Functions keeps state, <code class="language-plaintext highlighter-rouge">Choice</code> branches, and each clarification turn requests one missing field</td>
+      <td>The classifier is probabilistic; validate entities and do not ask the LLM to own a deterministic branch or the authoritative claim record. <a href="https://docs.aws.amazon.com/step-functions/latest/dg/state-choice.html">Choice state</a>.</td>
+    </tr>
+    <tr>
+      <td>Team needs a visual prompt → Knowledge Base → Lambda chain</td>
+      <td>Bedrock Flows with Prompt, Knowledge Base, Lambda, and Condition nodes</td>
+      <td>A prompt alone cannot orchestrate typed steps and branches. Flows can also call Agent nodes when agent behavior is actually needed. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/flows-nodes.html">Flow nodes</a>.</td>
+    </tr>
   </tbody>
 </table>
 
 <p>Read the <a href="/study/infrastructureAWSAiServices#event-stream-controls">event and streaming controls</a>, <a href="/study/infrastructureAWSAiServices#bedrock-flows-evaluation">Flows</a>, and <a href="/study/infrastructureAWSAiServices#appconfig-routing">AppConfig</a> trees alongside the service-level decisions.</p>
+
+<p><strong>IDE task:</strong> Amazon Q Developer can review code for security/quality issues, use inline chat for a narrow retry-logic edit, and generate unit tests for selected methods. Review the diff and run tests. Current IDE agentic chat replaced the legacy <code class="language-plaintext highlighter-rouge">/review</code> and <code class="language-plaintext highlighter-rouge">/test</code> commands, so learn the capability rather than memorizing obsolete slash syntax. <a href="https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/q-in-IDE-chat.html">Q Developer IDE guide</a>.</p>
 
 <h2 id="rag-trade-offs">4. Add knowledge and prepare data</h2>
 
@@ -779,6 +801,10 @@
   </tbody>
 </table>
 
+<p><strong>Image and table boundary:</strong> Rekognition labels identify objects/scenes, but a natural-language visual search may need a multimodal model to describe the relation between them before embedding. Textract <code class="language-plaintext highlighter-rouge">LAYOUT</code> preserves reading order and structural elements; <code class="language-plaintext highlighter-rouge">TABLES</code> returns cells, merged cells, and column headers. If OCR still breaks a financial grid, validate a table reconstruction step (potentially a small model using Converse) against the source image before final KPI extraction. Textract Queries target questions about document content; assess image-condition judgments with a multimodal model or a fit-for-purpose vision system. <a href="https://docs.aws.amazon.com/textract/latest/dg/how-it-works-tables.html">Textract tables</a> · <a href="https://docs.aws.amazon.com/textract/latest/dg/how-it-works-analyzing.html">Textract analysis</a>.</p>
+
+<p><strong>Data Automation path:</strong> configure a project, optionally with custom-output blueprints defining extracted fields; an S3 event can trigger Lambda to call <code class="language-plaintext highlighter-rouge">InvokeDataAutomationAsync</code> with the input S3 URI, project ARN, and output destination. Track the returned invocation until completion. A blueprint is not mandatory for standard output. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/bda-projects.html">Projects</a> · <a href="https://docs.aws.amazon.com/bedrock/latest/APIReference/API_data-automation-runtime_InvokeDataAutomationAsync.html">Async API</a>.</p>
+
 <p>The service name is not the hard part. The exam decision is usually whether preprocessing is synchronous or event-driven, how failures and partial progress are handled, where sensitive data may be stored, and how updates/deletions propagate into every derived copy.</p>
 
 <h3 id="knowledge-service-boundary">4.3 Choose the level of managed knowledge capability</h3>
@@ -845,6 +871,8 @@
     </tr>
   </tbody>
 </table>
+
+<p><strong>Glue row-level gate:</strong> In Glue Studio’s Evaluate Data Quality transform, select <strong>Original data</strong> and <strong>Add new columns to indicate data quality errors</strong> to produce <code class="language-plaintext highlighter-rouge">rowLevelOutcomes</code> with <code class="language-plaintext highlighter-rouge">DataQualityRulesPass</code>, <code class="language-plaintext highlighter-rouge">DataQualityRulesFail</code>, <code class="language-plaintext highlighter-rouge">DataQualityRulesSkip</code>, and <code class="language-plaintext highlighter-rouge">DataQualityEvaluationResult</code>. A Conditional Router can send passing rows to the training bucket and failing rows to quarantine. A rule that only evaluates the whole dataset may be skipped at row level. <strong>Fail job when quality fails</strong> stops the job; use it when no target should receive data, not when good and bad records must be separated. A router can send one row to multiple groups if conditions overlap, so make pass/fail conditions exclusive. <a href="https://docs.aws.amazon.com/glue/latest/dg/tutorial-data-quality.html">Glue quality output</a> · <a href="https://docs.aws.amazon.com/glue/latest/dg/transforms-conditional-router.html">Conditional Router</a>.</p>
 
 <p>Implementation details: <a href="/study/infrastructureAWSAiServices#kb-internals">KB internals</a>, <a href="/study/infrastructureAWSAiServices#bedrock-customization">customization</a>, <a href="/study/infrastructureAWSAiServices#glue-quality-redaction">Glue gates</a>, and <a href="/study/infrastructureAWSAiServices#transcription-phi-pipeline">transcription</a>.</p>
 
@@ -969,6 +997,33 @@
 </ul>
 
 <p>Bedrock interface endpoints provide private VPC connectivity without an internet gateway or NAT, but endpoint policies still need least-privilege design. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-interface-endpoints.html">Bedrock PrivateLink documentation</a>. Guardrails can detect prompt attacks and PII, but documented gaps matter—for example, tool results are not automatically assessed by the prompt-attack filter, and PII masking does not rewrite Model Invocation Logs. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-prompt-attack.html">Prompt-attack filtering</a>, <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-sensitive-filters.html">sensitive-information filters</a>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Missed boundary</th>
+      <th>Correct architecture</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>User asks for a database fact</td>
+      <td>Let a model propose read-only SQL only against an allowlisted schema; parse/validate the query, apply row/column authorization, run it with a restricted role, and ground the answer in returned rows. SQL queries make the <strong>data retrieval</strong> deterministic, not the model’s SQL generation or final wording. Guardrails content/word filters are an additional safety layer, not SQL authorization.</td>
+    </tr>
+    <tr>
+      <td>Reviewer must decide after a guardrail flags output</td>
+      <td>Configure detect mode (<code class="language-plaintext highlighter-rouge">NONE</code>) or a separate detect-only check, inspect findings, and start a <strong>Standard</strong> Step Functions callback workflow. The approval service (optionally A2I with an appropriate custom integration) returns the task token; approve → reinvoke/generate a releasable answer, reject → controlled response. Persist a job/session ID and deliver the eventual result by polling/WebSocket; a pending review cannot truthfully complete the original synchronous response. Block mode prevents this branch from inspecting and releasing the blocked output. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-harmful-content-handling-options.html">Detect mode</a> · <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html#connect-wait-token">Step Functions callback</a></td>
+    </tr>
+    <tr>
+      <td>One central account owns a provisioned model used by development accounts</td>
+      <td>Cross-account IAM role assumption can scope <code class="language-plaintext highlighter-rouge">bedrock:InvokeModel</code> to its ARN. Bedrock organization guardrail enforcement can cover selected accounts/OUs, but requires supported policies, cross-account guardrail access, and permissions in member accounts. Check CloudTrail in <strong>each relevant account</strong>; central-account logs alone do not prove every caller/action was captured. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-enforcements.html">Guardrail enforcement</a></td>
+    </tr>
+    <tr>
+      <td>Agent queries a sensitive lake table</td>
+      <td>Lake Formation Data Filters restrict columns/rows through integrated query engines such as Athena. Remove direct S3 read paths for the agent role: Lake Formation filters do <strong>not</strong> block principals that independently hold S3 API access. <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/managing-filters.html">Data filters</a> · <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/access-control-underlying-data.html">Underlying S3 access</a></td>
+    </tr>
+  </tbody>
+</table>
 
 <h4 id="data-security-decisions">Scope, sanitize, and prove</h4>
 
@@ -1241,12 +1296,17 @@
     <tr>
       <td>Simple and complex questions currently use one expensive model</td>
       <td>Bedrock Intelligent Prompt Routing</td>
-      <td>Use a supported model pair and evaluate both difficulty groups; caching optimizes reuse, not model selection.</td>
+      <td>Configure <strong>exactly two supported models in the same model family</strong>; Nova plus Claude is not a valid pair. Evaluate both difficulty groups. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-routing.html">Routing rules</a>.</td>
     </tr>
     <tr>
       <td>Same 5,000-token policy, different questions</td>
       <td>Bedrock Prompt Caching</td>
-      <td>Cache the stable prefix; reads can still incur discounted charges and entries expire.</td>
+      <td>Cache the stable identical prefix within the model’s TTL; verify cache hits and read/write billing. Support and TTL vary by model; reuse is not guaranteed. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html">Caching</a>.</td>
+    </tr>
+    <tr>
+      <td>A video transcript includes dialogue and irrelevant scene descriptions</td>
+      <td>Prune known-irrelevant descriptions before expensive inference</td>
+      <td>Keep the dialogue and any scene facts the task needs; measure token reduction and answer quality.</td>
     </tr>
     <tr>
       <td>Predictable high daytime demand, low overnight demand</td>
@@ -1387,11 +1447,15 @@
     </tr>
     <tr>
       <td>Why did the agent refuse a refund?</td>
-      <td><code class="language-plaintext highlighter-rouge">InvokeAgent(enableTrace=true)</code> → <code class="language-plaintext highlighter-rouge">orchestrationTrace</code> observations, emitted rationale, and action sequence.</td>
+      <td><code class="language-plaintext highlighter-rouge">InvokeAgent(enableTrace=true)</code> → trace events for preprocessing, orchestration, postprocessing, action inputs/outputs, and emitted rationale. This is an observable trace, not guaranteed access to every hidden model thought.</td>
     </tr>
     <tr>
       <td>How do I retain the agent decision trail?</td>
       <td>Persist trace events from the response stream; CloudTrail and memory summaries are different artifacts.</td>
+    </tr>
+    <tr>
+      <td>Which source supports an agent answer?</td>
+      <td>Inspect Knowledge Base citation objects and their source locations/text chunks when the agent used a KB; citations establish provenance, then verify the claim against the cited passage. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/agents-test.html">Agent trace and citations</a>.</td>
     </tr>
     <tr>
       <td>Why is the AgentCore trace dashboard incomplete?</td>
@@ -1461,6 +1525,8 @@
 </table>
 
 <p>Amazon Bedrock evaluations support automatic model evaluations, judge-model evaluations, human-based model evaluations, and automated or human-based RAG evaluations, subject to the documented model, dataset, and Region support. They can evaluate supported Bedrock resources and supplied results from external models or RAG systems. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html">Bedrock evaluation options</a>. Use automated judges as measurements, not unquestionable ground truth.</p>
+
+<p>For a sourced financial summary, <strong>faithfulness</strong> asks whether each material claim is supported by the supplied source; <strong>answer relevance</strong> asks whether the response addresses the question. Use a judge with an explicit rubric and calibrated human examples for claim-level checks. Reference-answer correctness/accuracy answers a different question and does not by itself test source support. Bedrock currently documents <code class="language-plaintext highlighter-rouge">Builtin.Faithfulness</code>, <code class="language-plaintext highlighter-rouge">Builtin.Relevance</code>, and <code class="language-plaintext highlighter-rouge">Builtin.Correctness</code> for supported judge evaluations; choose by the defect being measured. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-evaluation-metrics.html">Bedrock judge metrics</a>.</p>
 
 <h4 id="quality-gate-decisions">Match the quality gate to the decision</h4>
 

@@ -22,6 +22,56 @@
   min-width: 720px;
 }
 
+.agent-implementation-table {
+  max-width: 100%;
+}
+
+.agent-implementation-table table {
+  table-layout: fixed;
+}
+
+.agent-implementation-table col:nth-child(1) { width: 18%; }
+.agent-implementation-table col:nth-child(2) { width: 34%; }
+.agent-implementation-table col:nth-child(3) { width: 48%; }
+
+.agent-implementation-table pre {
+  margin: 0;
+  padding: 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+@media (max-width: 760px) {
+  .agent-implementation-table table,
+  .agent-implementation-table tbody,
+  .agent-implementation-table tr,
+  .agent-implementation-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .agent-implementation-table colgroup,
+  .agent-implementation-table thead {
+    display: none;
+  }
+
+  .agent-implementation-table tr {
+    margin-bottom: 16px;
+  }
+
+  .agent-implementation-table td:nth-child(2)::before,
+  .agent-implementation-table td:nth-child(3)::before {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .agent-implementation-table td:nth-child(2)::before { content: 'Control path'; }
+  .agent-implementation-table td:nth-child(3)::before { content: 'Illustrative pseudocode'; }
+}
+
 .content table:not(.study-table) {
   width: 100%;
   border-collapse: collapse;

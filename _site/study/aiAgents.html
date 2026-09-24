@@ -64,294 +64,473 @@
     <article class="content">
       <h1 id="ai-agents">AI Agents</h1>
 
-<p>Use this page to understand systems in which a model chooses tools or next steps. The safest default is a deterministic workflow with narrowly bounded model decisions.</p>
+<p>An agent is a <strong>program that coordinates the work</strong>: it asks an AI model what to do, runs allowed tools, saves progress, and decides whether to continue. The model suggests actions; the program decides what can actually run.</p>
 
-<p><strong>Part 5 of 7:</strong> <a href="/study/aiKnowledgebases">Knowledge bases</a> → <strong>AI Agents</strong> → <a href="/study/aiInfrastructure">Infrastructure and evaluation</a>. The preceding page explains retrieval; this page focuses on runtime decisions and side effects. An agent can change retrieval queries and context, so the integrated system still needs evaluation.</p>
+<p><strong>Part 5 of 7:</strong> <a href="/study/aiKnowledgebases">Knowledge bases</a> → <strong>AI Agents</strong> → <a href="/study/aiInfrastructure">Infrastructure and evaluation</a>.</p>
 
-<h2 id="section-1-boundaries">1. LLM, tool use, workflow, and agent</h2>
+<h2 id="section-1-boundaries">1. Read the architecture</h2>
 
-<ul>
-  <li><strong>LLM</strong>: produces a probabilistic response from supplied context.</li>
-  <li><strong>LLM + tool</strong>: proposes a typed operation; the application validates and executes it.</li>
-  <li><strong>Workflow</strong>: code defines states, transitions, retries, and approvals; a model may perform individual steps.</li>
-  <li><strong>Agent</strong>: a controller repeatedly asks a model what action to take, observes the result, updates state, and decides whether to continue.</li>
-  <li>A single function call is tool use, not necessarily an agent.</li>
-  <li>“Agentic” means the model has meaningful runtime discretion over action or sequence.</li>
-</ul>
-
-<p>These are working definitions for LLM applications; usage of “agent” varies. The workflow-versus-agent distinction follows <a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic’s architecture guidance</a>.</p>
+<p>Read the diagram <strong>left to right</strong> for who does the work and <strong>top to bottom</strong> for when it happens. The central <strong>Agent Layer</strong> runs the sequence: load saved progress → gather useful information → ask the model → run a tool → save what happened → ask the model again → return a result. The model can be called several times; the agent program runs the sequence.</p>
 
 <div class="image-wrapper">
-  <img src="./assets/ai_agent_architecture.png" alt="AI agent architecture" class="modal-trigger" data-caption="Bounded agent controller, model, state, tools, and approval" />
-  <div class="diagram-caption" data-snippet-id="agent-architecture-snippet">
-    🧭 Bounded agent tool sequence
-  </div>
-  <script type="text/plain" id="agent-architecture-snippet">
-@startuml
-title Bounded agent tool loop
-actor User
-participant "Agent Controller" as Agent
-participant Model
-database "Durable State" as State
-participant "Policy / Approval" as Policy
-participant Tool
-User -> Agent: Task + identity
-Agent -> State: Load task state
-loop Within step/time/cost limits
-  Agent -> Model: Goal + permitted tools + observations
-  Model --> Agent: Proposed action or final answer
-  Agent -> Policy: Validate schema, authorization, risk
-  alt Approved tool call
-    Policy --> Agent: Allow
-    Agent -> Tool: Execute with idempotency key
-    Tool --> Agent: Bounded observation
-    Agent -> State: Persist transition and result
-  else Rejected or approval required
-    Policy --> Agent: Reject / request approval
-  end
-end
-Agent --> User: Result, partial result, or escalation
-@enduml
-  </script>
+  <img src="./assets/ai_agent_architecture.png" alt="Sequence diagram with Client, Agent, Retrieval and Memory, Tool, and AI Model Provider lanes. The agent loads configuration and state, builds context, calls the model, uses tools, saves results, and calls the model again." class="modal-trigger" data-caption="Agent runtime across the five lanes: client, controller, retrieval and memory, tools, and model" />
 </div>
-
-<h2 id="section-2-orchestration">2. Deterministic versus agentic orchestration</h2>
-
-<ul>
-  <li>Prefer deterministic workflows when:
-    <ul>
-      <li>business steps and transitions are known;</li>
-      <li>auditability and repeatability matter;</li>
-      <li>operations have financial, legal, or irreversible effects;</li>
-      <li>reliable retries and compensation are required;</li>
-      <li>strict latency and cost bounds exist.</li>
-    </ul>
-  </li>
-  <li>Consider an agent when:
-    <ul>
-      <li>input is open-ended;</li>
-      <li>useful tools cannot be selected using stable rules;</li>
-      <li>the path depends on observations discovered at runtime;</li>
-      <li>partial success and human escalation are acceptable.</li>
-    </ul>
-  </li>
-  <li>Strong hybrid pattern:
-    <ul>
-      <li>deterministic outer state machine;</li>
-      <li>model chooses among a small set of allowed next steps;</li>
-      <li>application validates every transition;</li>
-      <li>high-impact branches require approval.</li>
-    </ul>
-  </li>
-  <li>Avoid agents for simple classification, fixed API composition, known approval processes, or deterministic calculations.</li>
-</ul>
-
-<h2 id="section-3-tools">3. Tool design and execution boundary</h2>
-
-<ul>
-  <li>A tool needs:
-    <ul>
-      <li>narrow purpose and descriptive name;</li>
-      <li>typed input/output schema;</li>
-      <li>clear error categories;</li>
-      <li>timeout and payload limits;</li>
-      <li>least-privilege credentials;</li>
-      <li>idempotency and audit behaviour;</li>
-      <li>risk classification: read, reversible write, irreversible action.</li>
-    </ul>
-  </li>
-  <li>The controller must validate:
-    <ul>
-      <li>authenticated user and tenant;</li>
-      <li>permission for the exact resource and action;</li>
-      <li>required/allowed fields and enum values;</li>
-      <li>domain invariants such as account status and transaction limits;</li>
-      <li>freshness of data used for the decision;</li>
-      <li>whether human approval is required.</li>
-    </ul>
-  </li>
-  <li>Tool descriptions are part of the prompt and can be misunderstood.</li>
-  <li>Do not expose broad tools such as unrestricted shell, SQL, HTTP, email, or file access when narrow domain operations are possible.</li>
-  <li>Return bounded, structured observations; large raw responses increase cost and prompt-injection exposure.</li>
-</ul>
-
-<h2 id="section-4-planning">4. Planning and execution loops</h2>
-
-<ul>
-  <li><strong>Direct action</strong>: model selects one tool, observes once, then answers.</li>
-  <li><strong>Plan then execute</strong>: model proposes a plan; controller validates and executes steps.</li>
-  <li><strong>ReAct-style loop</strong>: model alternates between action selection and observations.</li>
-  <li><strong>State machine agent</strong>: code constrains legal states while the model chooses permitted transitions.</li>
-  <li><strong>Reflection/critique</strong>: another model pass checks work:
-    <ul>
-      <li>can catch omissions;</li>
-      <li>is still probabilistic and correlated with the original model;</li>
-      <li>does not replace tests or business validation.</li>
-    </ul>
-  </li>
-  <li>Every loop needs hard budgets:
-    <ul>
-      <li>maximum steps and repeated actions;</li>
-      <li>wall-clock deadline;</li>
-      <li>input/output tokens;</li>
-      <li>tool calls and parallelism;</li>
-      <li>monetary spend;</li>
-      <li>maximum observation size.</li>
-    </ul>
-  </li>
-  <li>Termination outcomes should be explicit: completed, partial, needs approval, needs user input, failed safely, or budget exhausted.</li>
-</ul>
-
-<h2 id="section-5-memory">5. State and memory</h2>
-
-<ul>
-  <li><strong>Conversation state</strong>: recent messages needed for the current interaction.</li>
-  <li><strong>Task state</strong>: goal, plan, current step, tool results, errors, and approvals.</li>
-  <li><strong>Working memory</strong>: temporary summaries or facts selected for the current reasoning loop.</li>
-  <li><strong>Long-term memory</strong>: durable preferences, facts, or past outcomes retrieved later.</li>
-  <li>Durable memory requires:
-    <ul>
-      <li>source/provenance;</li>
-      <li>owner and tenant;</li>
-      <li>confidence and timestamp;</li>
-      <li>retention and deletion;</li>
-      <li>user correction;</li>
-      <li>access control;</li>
-      <li>versioning and conflict rules.</li>
-    </ul>
-  </li>
-  <li>A vector store is a retrieval mechanism, not inherently trustworthy memory.</li>
-  <li>Do not save model inferences as user facts without validation or clear labelling.</li>
-  <li>Persist state before and after side effects so retries can determine what occurred.</li>
-</ul>
-
-<p>Business systems remain authoritative for orders, balances, entitlements, and asset state; agent memory never replaces them. Apply the <a href="#section-3-tools">tool execution boundary</a> to memory writes as well.</p>
-
-<h2 id="section-6-mcp">6. MCP</h2>
-
-<ul>
-  <li>The Model Context Protocol standardizes how clients discover and use tools, resources, and prompts from servers.</li>
-  <li>MCP improves interoperability and defines authorization mechanisms for applicable transports; it does not make a server trustworthy or replace application authorization.</li>
-  <li>Treat an MCP server as:
-    <ul>
-      <li>a local process dependency (stdio) or HTTP service dependency, local or remote (Streamable HTTP);</li>
-      <li>a software supply-chain dependency;</li>
-      <li>a source of untrusted content;</li>
-      <li>a holder of potentially powerful credentials.</li>
-    </ul>
-  </li>
-  <li>Controls:
-    <ul>
-      <li>use appropriate HTTP authentication/authorization, or local process and OS permission controls for stdio;</li>
-      <li>allowlist servers and capabilities;</li>
-      <li>expose only required tools/resources;</li>
-      <li>keep credentials outside model-visible context;</li>
-      <li>validate tool arguments and returned content;</li>
-      <li>apply network egress restrictions;</li>
-      <li>pin/review versions and audit calls.</li>
-    </ul>
-  </li>
-  <li>A malicious resource may tell the model to ignore policy or exfiltrate data; instruction hierarchy alone is not an adequate defence.</li>
-</ul>
-
-<p>The transport distinction matters: a local stdio server is not automatically a network service. See the <a href="https://modelcontextprotocol.io/specification/2025-11-25/basic/transports">MCP transport specification</a> and <a href="https://modelcontextprotocol.io/docs/2025-11-25/tutorials/security/security_best_practices">security guidance</a>.</p>
-
-<h2 id="section-7-multi-agent">7. Multi-agent systems</h2>
-
-<ul>
-  <li>Multiple agents are justified only when separate roles, permissions, models, contexts, or parallel work create measurable value.</li>
-  <li>Possible patterns:
-    <ul>
-      <li>coordinator delegates bounded specialist tasks;</li>
-      <li>independent workers run safe read-only research in parallel;</li>
-      <li>reviewer checks an output against a separate rubric;</li>
-      <li>handoff routes work between different trust domains.</li>
-    </ul>
-  </li>
-  <li>Added costs:
-    <ul>
-      <li>duplicated work and context;</li>
-      <li>inconsistent plans;</li>
-      <li>more failure and retry paths;</li>
-      <li>larger attack surface;</li>
-      <li>difficult attribution and debugging;</li>
-      <li>latency and token multiplication.</li>
-    </ul>
-  </li>
-  <li>Do not create multiple personas when one workflow with clear functions is sufficient.</li>
-</ul>
-
-<h2 id="section-8-failures">8. Failure modes and controls</h2>
-
-<p>The earlier sections define tool validation, loop budgets, and memory controls. Handle failures that span those components explicitly:</p>
 
 <table>
   <thead>
     <tr>
-      <th>Failure</th>
-      <th>Recovery behaviour</th>
+      <th>Diagram lane</th>
+      <th>Owns</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Duplicate side effect after a timeout</td>
-      <td>Reconcile the durable execution record and idempotency key before retrying.</td>
+      <td><strong>Client / Interface</strong></td>
+      <td>Triggers the task and receives its result or status; it may be a UI, CLI, API, or event source.</td>
     </tr>
     <tr>
-      <td>Partially completed task</td>
-      <td>Record completed steps; run defined compensation or escalate with the remaining work.</td>
+      <td><strong>Agent Layer</strong></td>
+      <td>Chooses the steps, gathers information for the model, checks proposed actions, calls tools/models, and stops when done.</td>
     </tr>
     <tr>
-      <td>Conflicting state updates</td>
-      <td>Version transitions and use conditional/transactional writes; reconstruct from event history if needed.</td>
+      <td><strong>Retrieval / Memory</strong></td>
+      <td>Supplies searchable documents and saved conversation/task progress.</td>
     </tr>
     <tr>
-      <td>Repeated state/action pair or exhausted budget</td>
-      <td>Terminate with a partial result or escalation, with the stop reason recorded.</td>
+      <td><strong>Tool Layer</strong></td>
+      <td>Runs limited operations such as APIs, database queries, file access, and tests.</td>
     </tr>
     <tr>
-      <td>Malicious tool observation</td>
-      <td>Reject unsafe actions at the tool boundary and preserve the observation for controlled investigation.</td>
+      <td><strong>AI Model Provider</strong></td>
+      <td>Generates a response or proposes an action for each individual model call.</td>
     </tr>
   </tbody>
 </table>
 
-<p>For the full threat model and platform response, see <a href="/study/aiInfrastructure#section-6-security">Infrastructure security</a>.</p>
+<h2 id="2-client--interface">2. Client / Interface</h2>
 
-<h2 id="section-9-evaluation">9. Evaluation and observability</h2>
+<p>This is the <strong>entry and return point</strong>, not necessarily a screen. A person might start the agent from a web app or CLI; another system might trigger it through an API, queue message, or scheduled event. The result can be shown to a person, returned to the caller, saved as a file, or published as an event.</p>
 
-<p>Evaluate the <strong>agent loop alongside retrieval and final-answer quality</strong>. A valid tool sequence can still retrieve poor evidence or produce an unsupported answer. Reuse the <a href="/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well">RAG measurements</a> in end-to-end agent tests; apply the <a href="/study/aiInfrastructure#section-12-evaluation">shared release gates</a>.</p>
+<table>
+  <thead>
+    <tr>
+      <th>Entry / return concern</th>
+      <th>What it does</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Trigger</td>
+      <td>Accept a task from a UI, CLI, API, event, or scheduled job.</td>
+    </tr>
+    <tr>
+      <td>Identity</td>
+      <td>Pass a trusted user or workload identity when access is restricted. The agent program and tool backend check permissions before sensitive actions.</td>
+    </tr>
+    <tr>
+      <td>Long-running task</td>
+      <td>Save a run ID so the caller can poll or receive a completion event; show progress where a UI exists.</td>
+    </tr>
+    <tr>
+      <td>Return or approval</td>
+      <td>Deliver the result to the caller or destination. If approval is needed, collect an authenticated decision before the action runs.</td>
+    </tr>
+  </tbody>
+</table>
 
-<ul>
-  <li>Offline scenarios should test:
-    <ul>
-      <li>correct tool selection;</li>
-      <li>argument validity and semantic correctness;</li>
-      <li>permission denial;</li>
-      <li>tool timeout/error recovery;</li>
-      <li>loop termination;</li>
-      <li>prompt-injection resistance;</li>
-      <li>task completion within budget.</li>
-    </ul>
-  </li>
-</ul>
+<h2 id="section-2-orchestration">3. Agent Layer</h2>
 
-<p>Record proposed action, policy/approval decision, execution result, state transition, and stop reason as spans in the <a href="/study/aiInfrastructure#section-11-observability">shared request trace</a>.</p>
+<p>The <strong>Agent Layer is the coordinator in the middle of the diagram</strong>. It receives a task, asks the model for help, sends approved actions to tools, remembers the results, and returns an answer. Three separate design questions apply here:</p>
 
-<ul>
-  <li>Key metrics:
-    <ul>
-      <li>task completion rate;</li>
-      <li>tool success and invalid-argument rate;</li>
-      <li>average/p95 steps per task;</li>
-      <li>approval and escalation rate;</li>
-      <li>duplicate-action incidents;</li>
-      <li>cost and latency per completed task.</li>
-    </ul>
-  </li>
-</ul>
+<table>
+  <thead>
+    <tr>
+      <th>Question</th>
+      <th>What it asks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Control pattern</strong></td>
+      <td>Are the steps fixed by the application, chosen by the model as work unfolds, or a mix?</td>
+    </tr>
+    <tr>
+      <td><strong>Implementation</strong></td>
+      <td>Do you write the model/tool loop yourself, use a library, or configure a managed loop?</td>
+    </tr>
+    <tr>
+      <td><strong>Hosting</strong></td>
+      <td>Where does that program run: your server/Lambda, a managed runtime, or a managed harness?</td>
+    </tr>
+  </tbody>
+</table>
 
-<p>Continue to <a href="/study/aiInfrastructure">AI Infrastructure and Evaluation</a> for the platform controls, tracing, and release process that operate around an agent.</p>
+<p>These are <strong>not three types of agent</strong>. A fixed workflow may use an AI model without being an agent. Strands or LangChain can implement an agent loop, while AgentCore Runtime can host the resulting program.</p>
+
+<h3 id="section-4-planning">Choose the control mode</h3>
+
+<p>The <strong>Agent Runtime</strong> in the diagram runs the steps. Choose a mode based on whether those steps are known in advance or must be discovered while working.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Pattern</th>
+      <th>How it works</th>
+      <th>Is it an agent?</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Fixed workflow</strong></td>
+      <td><strong>Application code</strong> sets the order: check order → check policy → get approval → issue refund.</td>
+      <td>Usually no. A model can help with one step, but the program chooses the path.</td>
+    </tr>
+    <tr>
+      <td><strong>One model/tool call</strong></td>
+      <td>Model suggests one action; application code checks it and calls the tool once.</td>
+      <td>Usually no. There is no continuing loop.</td>
+    </tr>
+    <tr>
+      <td><strong>Agent loop</strong></td>
+      <td>Model suggests an action, sees the result, then suggests the next one; application code checks each action.</td>
+      <td>Yes. Use when the next step depends on what the investigation finds.</td>
+    </tr>
+    <tr>
+      <td><strong>Hybrid</strong></td>
+      <td>Application code sets mandatory checkpoints; the model chooses how to investigate between them.</td>
+      <td>An agent operates inside a fixed outer workflow.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>“Application code” means ordinary program logic written by a developer</strong>, such as “if the refund exceeds $100, request approval.” An API call may carry out one step, such as looking up an order or issuing the refund. The API call does not decide the order of the steps.</p>
+
+<p>For “<strong>Why was my refund rejected?</strong>”, an agent may inspect the order, payment, and policy in whichever order the evidence suggests. Before it issues a new refund, application code checks that the order belongs to the user and applies the approval rule. Those required checks come from the business task; a prompt saying “check everything” does not enforce them.</p>
+
+<h3 id="what-the-controller-enforces">What the controller enforces</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Responsibility</th>
+      <th>Diagram connection</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Configuration</td>
+      <td>Agent Configuration supplies model choice, instructions, allowed tools, permissions, and budgets.</td>
+    </tr>
+    <tr>
+      <td>Context</td>
+      <td>Context Builder selects the saved progress and relevant documents to send to the model.</td>
+    </tr>
+    <tr>
+      <td>Action gate</td>
+      <td>Runtime checks the tool’s expected input, the user’s permission, business rules, and approval before a tool runs.</td>
+    </tr>
+    <tr>
+      <td>Loop and stop</td>
+      <td>Runtime limits steps, time, model usage, tool calls, and spending; it returns a clear completed, partial, approval-needed, or failed status.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Give the model narrow tools such as “look up order” or “request refund” instead of unrestricted shell, SQL, HTTP, or payment access. A second model review may spot a missed step, but tests and permission checks still decide whether the action is allowed. <a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic’s workflow and agent distinction</a>.</p>
+
+<h3 id="choose-how-to-build-the-loop">Choose how to build the loop</h3>
+
+<p>The <strong>loop</strong> is the repeated “ask model → run approved tool → give result back to model” sequence in the diagram. Repeated model calls alone can still be a fixed workflow. In an <strong>agent loop</strong>, the model can choose the next allowed tool after seeing the previous result. A provider SDK sends model requests; an internal business API such as <code class="language-plaintext highlighter-rouge">internal_api.get_order()</code> supplies order data. The examples answer “Why was my refund rejected?” They omit setup and tool definitions; the handwritten loop is conceptual, while the framework calls follow their documented API shapes.</p>
+
+<div class="agent-implementation-table">
+<table>
+  <colgroup><col /><col /><col /></colgroup>
+  <thead><tr><th>Approach</th><th>Control path</th><th>Example code shape</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Direct model call</strong></td>
+      <td><strong>App → provider SDK/API → model.</strong><br />No loop. Your application chooses the input and makes one request.<br /><strong>Useful for:</strong> one clear task with little setup.</td>
+      <td><pre><code># App fetches the facts itself.
+order = internal_api.get_order(id)
+# One model call; no tool loop.
+return model_api.generate(
+  "Explain the rejection", order)</code></pre></td>
+    </tr>
+    <tr>
+      <td><strong>Build your own agent</strong></td>
+      <td><strong>App loop → provider SDK/API → model.</strong><br />Your application code handles model responses, tools, repetition, and stopping rules.<br /><strong>Useful for:</strong> full control over unusual rules.</td>
+      <td><pre><code># Your code owns the loop and limit.
+for step in range(5):
+  reply = model_api.generate(
+    messages, tools=allowed_tools)
+  # Implement this mapping for your model API.
+  # E.g. end_turn=final; tool_use=tool call.
+  state = classify_stop(reply)
+  if state == "final":
+    return extract_text(reply)
+  if state != "tool_use":
+    raise ModelStopped(state)
+  # Keep the model's tool request in history.
+  messages.append(reply.message)
+  for requested in reply.tool_calls:
+    call = validate(requested)
+    check_access(caller, call)
+    result = run_tool(call)
+    # Model sees each result next turn.
+    messages.append(tool_result(call, result))
+raise StepLimitReached()</code></pre></td>
+    </tr>
+    <tr>
+      <td><strong>Use an agent SDK</strong></td>
+      <td><strong>App → agent SDK loop → model API and tools.</strong><br />A library supplies the loop; you provide a model and an authorized order-lookup tool. The model chooses when to call it.<br /><strong>Useful for:</strong> model-led tool use without writing the loop. See <a href="https://strandsagents.com/docs/user-guide/sdk/agents/agent-loop/">Strands</a>, <a href="https://docs.langchain.com/oss/python/langchain/agents">LangChain</a>, and the <a href="https://openai.github.io/openai-agents-python/">OpenAI Agents SDK</a>.</td>
+      <td><pre><code># Strands: get_order is an @tool;
+# its body checks caller access.
+agent = Agent(model=model,
+              tools=[get_order])
+result = agent(question,
+               limits={"turns": 5})
+
+# LangChain: an alternative agent SDK.
+agent = create_agent(model=model,
+                     tools=[get_order])
+result = agent.invoke({"messages": [
+  {"role": "user", "content": question}
+]})</code></pre></td>
+    </tr>
+    <tr>
+      <td><strong>Define a graph</strong></td>
+      <td><strong>App → graph → model API and/or agent SDK.</strong><br />A graph library runs steps and branches you specify. <a href="https://docs.langchain.com/oss/python/langgraph/overview">LangGraph</a> can call a model or agent within a step.<br /><strong>Useful for:</strong> required order, branches, and saved progress.</td>
+      <td><pre><code># LangGraph: define mandatory nodes.
+builder = StateGraph(RefundState)
+builder.add_node("verify", verify_user)
+# This node may invoke an agent SDK.
+builder.add_node("investigate", investigate)
+builder.add_node("respond", explain)
+builder.add_edge(START, "verify")
+builder.add_edge("verify", "investigate")
+builder.add_edge("investigate", "respond")
+builder.add_edge("respond", END)
+graph = builder.compile()
+return graph.invoke({"question": question})</code></pre></td>
+    </tr>
+    <tr>
+      <td><strong>Configure a managed harness</strong></td>
+      <td><strong>App → managed harness → model API and tools.</strong><br /><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-vs-runtime.html">AgentCore Harness</a> supplies and runs the loop; you configure model, tools, and limits.<br /><strong>Useful for:</strong> less loop and hosting code to maintain.</td>
+      <td><pre><code># Deploy harness with model, order tool,
+# permissions, and maxIterations=5.
+client = boto3.client("bedrock-agentcore")
+# AWS runs the loop and streams events.
+return client.invoke_harness(
+  harnessArn=HARNESS_ARN,
+  runtimeSessionId=SESSION_ID,
+  messages=[{"role": "user",
+    "content": [{"text": question}]}])</code></pre></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>How does each stop?</strong> <code class="language-plaintext highlighter-rouge">reply.final</code> was only a placeholder; your code must interpret the actual model response.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Controller</th>
+      <th>Completion check</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Your own loop</strong></td>
+      <td>Map the provider’s status to final, tool request, or error/limit. For example, <a href="https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html">Bedrock Converse</a> uses <code class="language-plaintext highlighter-rouge">stopReason</code>: <code class="language-plaintext highlighter-rouge">end_turn</code> finishes the model turn; <code class="language-plaintext highlighter-rouge">tool_use</code> means run the requested tool and call again. HTTP 200 only means the API request succeeded.</td>
+    </tr>
+    <tr>
+      <td><strong>Strands / LangChain</strong></td>
+      <td>The SDK checks whether the model requested a tool or returned an answer, then repeats or returns. <a href="https://strandsagents.com/docs/user-guide/sdk/agents/lifecycle-controls/">Strands</a> also returns a stop reason for normal completion, limits, cancellation, or errors; <a href="https://docs.langchain.com/oss/python/langchain/agents">LangChain</a> returns when its agent run completes.</td>
+    </tr>
+    <tr>
+      <td><strong>LangGraph</strong></td>
+      <td>Your defined route normally reaches <code class="language-plaintext highlighter-rouge">END</code>. A node containing an agent has its own tool/answer loop; the <a href="https://docs.langchain.com/oss/python/langgraph/overview">graph</a> does not infer that the business task is complete.</td>
+    </tr>
+    <tr>
+      <td><strong>AgentCore Harness</strong></td>
+      <td>The service runs the loop and reports <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html"><code class="language-plaintext highlighter-rouge">messageStop.stopReason</code></a>, including <code class="language-plaintext highlighter-rouge">end_turn</code>, tool use, and exhausted limits.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>These signals say <strong>execution stopped</strong>, not that the answer is correct. Permissions, required checkpoints, and validation remain application responsibilities.</p>
+
+<p>These are <strong>choices you can compose, not five required wrappers</strong>: <code class="language-plaintext highlighter-rouge">app → Strands → model API</code>, <code class="language-plaintext highlighter-rouge">app → LangGraph → LangChain agent → model API</code>, and <code class="language-plaintext highlighter-rouge">app → AgentCore Runtime → your agent code → model API</code> are all possible.</p>
+
+<p><strong>LangGraph is a code-based graph runtime:</strong> you define nodes and connections in code; it executes them and manages state. Its tooling can visualize the graph, but the graph is not a drag-and-drop builder. LangChain’s <code class="language-plaintext highlighter-rouge">create_agent</code> uses LangGraph underneath. For a <strong>visual flow builder</strong>, see <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/flows.html">Bedrock Flows</a>.</p>
+
+<p><strong>Hosting is a separate choice.</strong> “You run it” means you deploy the program to a server or service and manage its updates and monitoring. <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-vs-runtime.html">AgentCore Runtime</a> can host code written by you or built with Strands/LangGraph; it does not supply the loop. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/flows.html">Bedrock Flows</a> is another option for building a <strong>known visual workflow</strong>, with model, Knowledge Base, Lambda, and Agent steps.</p>
+
+<p>Other agent SDKs include CrewAI and Google ADK. The model provider and retrieval store are separate from all these implementation choices. <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-frameworks/comparing-agentic-ai-frameworks.html">AWS framework comparison</a>.</p>
+
+<h3 id="section-7-multi-agent">Multi-agent: more than one controller</h3>
+
+<p>The diagram shows <strong>one</strong> Agent Runtime. A common extension puts a <strong>coordinator agent</strong> there that gives specific tasks to specialist agents, then checks and combines their results. Other designs use a fixed sequence or let specialists hand work to one another. Each agent may use its own model, information, tools, and saved progress.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Pattern</th>
+      <th>Use when</th>
+      <th>Example implementation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Coordinator → specialists</strong></td>
+      <td>Separate expertise/context helps, and one controller should own the final answer.</td>
+      <td>Strands <a href="https://strandsagents.com/docs/user-guide/sdk/multi-agent/agents-as-tools/">agents as tools</a> or LangChain <a href="https://docs.langchain.com/oss/python/langchain/multi-agent">subagents</a>.</td>
+    </tr>
+    <tr>
+      <td><strong>Defined agent graph</strong></td>
+      <td>Dependencies and handoffs are known and must be visible.</td>
+      <td>Strands <a href="https://strandsagents.com/docs/user-guide/sdk/multi-agent/graph/">Graph</a>, LangGraph, or <a href="/study/aiAWSServices#bedrock-flows-evaluation">Bedrock Flows</a> when its visual workflow fits.</td>
+    </tr>
+    <tr>
+      <td><strong>Dynamic handoff</strong></td>
+      <td>Specialists need to decide which specialist acts next.</td>
+      <td>Strands <a href="https://strandsagents.com/docs/user-guide/sdk/multi-agent/multi-agent-patterns/">Swarm</a>; set explicit limits and ownership.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Multiple agents add context duplication, latency, cost, failure paths, and permission boundaries. Start with one controller and add specialists when a measured task benefits from separation or safe parallel work.</p>
+
+<h2 id="section-5-memory">4. Retrieval / Memory Layer</h2>
+
+<p>The diagram contains <strong>two different stores</strong>. The Vector DB / Retrieval Index searches documents; Session Memory / Task State remembers the current work. The Context Builder selects useful information from both before each model call.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Store</th>
+      <th>Holds</th>
+      <th>Use / caution</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Vector / search index</strong></td>
+      <td>Document chunks, embeddings, text, and metadata</td>
+      <td>Retrieve relevant, authorized evidence. HNSW, hybrid search, filters, chunking, and evaluation belong in <a href="/study/aiKnowledgebases">Knowledge Bases and Retrieval</a>.</td>
+    </tr>
+    <tr>
+      <td><strong>Session / task state</strong></td>
+      <td>Recent messages, plan, completed steps, tool results, approvals, and stop reason</td>
+      <td>Save enough to resume and avoid repeating a change. <a href="https://docs.aws.amazon.com/memorydb/latest/devguide/vector-search-examples.html">MemoryDB</a> may fit fast conversation access; DynamoDB or another durable store may track progress and prevent duplicate writes. <a href="/study/aiAWSServices#section-9-3-data">AWS data/state options</a>.</td>
+    </tr>
+    <tr>
+      <td><strong>Long-term agent memory</strong></td>
+      <td>Validated preferences or prior outcomes for later sessions</td>
+      <td>Record source, owner, timestamp, correction, access, and deletion rules. A vector index can help retrieve memory but does not make it true.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Orders, balances, and entitlements remain in their <strong>authoritative business systems</strong>. An agent’s memory is a working record, not a replacement. Save progress around side effects so a retry can determine what already happened.</p>
+
+<h2 id="section-3-tools">5. Tool Layer</h2>
+
+<p>The arrows to “Read auth.py,” “Edit auth.py,” and “Run tests” cross from <strong>Agent Runtime</strong> into this layer. Tools execute with real credentials and can cause real side effects.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tool interface</th>
+      <th>Use when</th>
+      <th>Main check</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Direct function / SDK / API</strong></td>
+      <td>The agent needs a specific operation, such as <code class="language-plaintext highlighter-rouge">getOrder(id)</code> or <code class="language-plaintext highlighter-rouge">createTicket(details)</code>.</td>
+      <td>Check inputs, user permission, timeouts, retries, and whether repeating the call could duplicate a change.</td>
+    </tr>
+    <tr>
+      <td><strong>MCP server</strong></td>
+      <td>Several compatible AI clients need to discover and use the same tools through a standard interface.</td>
+      <td>Check server and user permissions; expose only needed tools; treat returned text as untrusted. MCP is a connection standard, not a safety guarantee. <a href="https://modelcontextprotocol.io/docs/2025-11-25/tutorials/security/security_best_practices">MCP security guidance</a>.</td>
+    </tr>
+    <tr>
+      <td><strong>File, terminal, browser, or code sandbox</strong></td>
+      <td>Investigation or development needs an environment to read, edit, or test.</td>
+      <td>Scope filesystem/network access, command execution, secrets, output size, and irreversible actions.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Each tool should have a clear name, defined inputs/outputs, useful errors, limited permissions, and a record of what it did. The agent program checks the <strong>specific resource and action</strong> before execution; a tool description or prompt is not authorization. <a href="https://strandsagents.com/docs/user-guide/sdk/tools/">Strands tool guidance</a>.</p>
+
+<h2 id="6-ai-model-provider-layer">6. AI Model Provider Layer</h2>
+
+<p>The model receives the assembled request and returns text or a proposed tool call. It does not own the saved task progress, invoke tools by itself, or enforce the application’s permission policy. On the next call, the agent program supplies updated information, including relevant tool results.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Decision</th>
+      <th>Reference</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Model type, provider, context, capabilities, and deployment</td>
+      <td><a href="/study/aiModels">AI Models and Providers</a></td>
+    </tr>
+    <tr>
+      <td>Personal workload, reasoning effort, pricing, and plan</td>
+      <td><a href="/study/aiModelGuidelines">Model Guidelines</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Use a model capable of the task and evaluate its <strong>tool choice, answer quality, latency, and cost</strong> in the complete agent workflow; a strong standalone answer does not prove a safe agent.</p>
+
+<h2 id="section-8-failures">7. Controls across the lanes</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Failure or question</th>
+      <th>Owner / response</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Tool times out after a possible write</td>
+      <td>Agent Runtime checks the saved record before retrying, so it does not repeat a payment or other change.</td>
+    </tr>
+    <tr>
+      <td>A step fails after partial progress</td>
+      <td>Runtime records completed work, undoes it where a safe undo step exists, or returns a partial result for review.</td>
+    </tr>
+    <tr>
+      <td>A tool response contains hostile instructions</td>
+      <td>Treat it as data; runtime keeps the tool and model within the configured policy.</td>
+    </tr>
+    <tr>
+      <td>Loop repeats or exhausts its budget</td>
+      <td>Runtime stops with an explicit reason instead of calling the model indefinitely.</td>
+    </tr>
+    <tr>
+      <td>Was the run good?</td>
+      <td>Trace model proposals, retrieval, policy decisions, tool outcomes, state transitions, and the final answer; evaluate task completion and cost per successful task.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="section-9-evaluation">Evaluation and observability</h3>
+
+<p>Test tool selection, argument validity, authorization denial, timeout recovery, prompt injection, termination, and answer grounding together. Reuse <a href="/study/aiKnowledgebases#evaluation-does-the-system-retrieve-and-answer-well">retrieval metrics</a> and the <a href="/study/aiInfrastructure#section-12-evaluation">shared release gates</a>. Tracing and evaluation span <strong>all five lanes</strong>; they are not a sixth lane in the diagram.</p>
+
+<p>Continue to <a href="/study/aiInfrastructure">AI Infrastructure and Evaluation</a> for platform security, observability, and release controls around these layers.</p>
 
     </article>
   </main>

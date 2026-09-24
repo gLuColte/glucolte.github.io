@@ -121,6 +121,8 @@
 
 <p>Before a question can retrieve anything, source material needs to become searchable. This is one continuous pipeline:</p>
 
+<p>A knowledge base is primarily useful for <strong>unstructured or semi-structured evidence</strong> such as documents, notes, manuals, and transcripts. For authoritative rows, amounts, dates, and transactions, query the governed database/API directly; use retrieval and generation only where interpretation of text is needed.</p>
+
 <p>For the vector-based implementation in this walkthrough: <strong>Raw file → Parse → Structure → Chunk → Embed → Store / Index</strong>. A lexical-only index does not require embedding.</p>
 
 <h3 id="parsing">Parsing</h3>
@@ -159,6 +161,33 @@
   <li><strong>Semantic:</strong> split where a topic changes.</li>
   <li><strong>Parent-child:</strong> retrieve a small child chunk, then provide its larger parent context.</li>
 </ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>Failure in a mock question</th>
+      <th>Better choice</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>A precise fact such as a torque value is buried in a broad chunk</td>
+      <td>Use smaller, context-focused chunks and preserve the heading/unit; test whether the fact enters retrieved candidates.</td>
+    </tr>
+    <tr>
+      <td>A clause is cut at an arbitrary token or sentence count</td>
+      <td>Use structural boundaries (headings/paragraphs) or semantic topic changes. Overlap helps but does not guarantee a complete idea.</td>
+    </tr>
+    <tr>
+      <td>A narrative article changes topic without clear headings</td>
+      <td>Evaluate semantic chunking; variable-length chunks can follow topic boundaries, but inspect resulting coherence and retrieval recall.</td>
+    </tr>
+    <tr>
+      <td>A retrieved child lacks the full clause</td>
+      <td>Parent-child retrieval can supply the parent at answer time; it does not repair poor boundaries in the indexed child.</td>
+    </tr>
+  </tbody>
+</table>
 
 <p>Section-aware chunking is often a strong default for policies because the heading path becomes both context and retrieval metadata. It is not automatically best: tables, transcripts, and long narrative text may need another approach.</p>
 
@@ -283,6 +312,42 @@ Vector candidates ──────┘
 </code></pre></div></div>
 
 <p><strong>Reciprocal Rank Fusion (RRF)</strong> is a simple option: a result earns more credit when it ranks highly in either list, without requiring the BM25 and vector score scales to match. Hybrid retrieval can also combine normalized scores; RRF is one fusion method. <a href="https://docs.opensearch.org/latest/search-plugins/search-pipelines/score-ranker-processor/">OpenSearch rank fusion</a>.</p>
+
+<h3 id="query-preparation-before-retrieval">Query preparation before retrieval</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Query problem</th>
+      <th>Transformation</th>
+      <th>Check</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Colloquial term versus clinical vocabulary, such as “arthritis” versus “osteoarthritis”</td>
+      <td>Expand with validated synonyms or related terms.</td>
+      <td>Keep original wording and evaluate false positives.</td>
+    </tr>
+    <tr>
+      <td>One question asks about side effects <strong>and</strong> interactions</td>
+      <td>Decompose into atomic retrieval queries, then combine authorized evidence.</td>
+      <td>Verify both sub-answers and citations; Bedrock Knowledge Bases also supports query decomposition where configured.</td>
+    </tr>
+    <tr>
+      <td>SKU, error code, or proprietary part name</td>
+      <td>Detect and preserve the exact identifier; use a keyword field, phrase query, or metadata filter alongside semantic search.</td>
+      <td>Do not assume embeddings distinguish near-identical codes.</td>
+    </tr>
+    <tr>
+      <td>Domain-specific named parts appear in documents but are not reliably extracted</td>
+      <td>Consider Amazon Comprehend Custom Entity Recognition; train with annotated examples or a plaintext entity list, then verify extracted entities before indexing/filtering.</td>
+      <td>A recognizer is probabilistic; it does not guarantee exact matches. Use exact fields for hard constraints.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html">Knowledge Base query decomposition</a> · <a href="https://docs.aws.amazon.com/comprehend/latest/dg/custom-entity-recognition.html">Comprehend custom entities</a>.</p>
 
 <h2 id="how-do-we-search-millions-of-vectors">How Do We Search Millions of Vectors?</h2>
 
@@ -443,6 +508,39 @@ Vector candidates ──────┘
 <p><strong>The key distinction:</strong> first-stage retrieval is the <strong>fast librarian scanning the catalogue</strong>; reranking is the <strong>senior librarian reading the shortlisted books side by side</strong>. We do not ask the senior librarian to read all 20 million books because that would be too slow and expensive. We also do not ask the fast catalogue search to make the final judgment because it is optimized for recall and speed, not deep passage-level relevance.</p>
 
 <p>If the correct battery policy never appears in the Top 100, the reranker cannot recover it. If it appears at rank 73, reranking may move it into the final Top 8. If it is retrieved but the user is not authorized, it must be excluded before the passage reaches the reranker, model context, or answer.</p>
+
+<h3 id="choose-and-maintain-the-vector-store">Choose and maintain the vector store</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Requirement or symptom</th>
+      <th>Choice and boundary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Transactions need atomic writes of business data, embeddings, and metadata, plus SQL filters and vector ranking</td>
+      <td>Aurora PostgreSQL with <code class="language-plaintext highlighter-rouge">pgvector</code> can keep them in one database transaction and query with <code class="language-plaintext highlighter-rouge">WHERE</code> plus vector-distance <code class="language-plaintext highlighter-rouge">ORDER BY</code>. A foreign key only checks a reference; it does not make separate writes atomic. Validate query plans and vector-index/filter behavior at scale. <a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.VectorDB.html">Aurora pgvector</a></td>
+    </tr>
+    <tr>
+      <td>Infrequent vector queries, little operations work, no continuously provisioned vector cluster</td>
+      <td>S3 Vectors offers managed vector buckets, indexes, metadata filters, and usage-based storage/request charges. It can reduce idle compute spend, but storage and requests still cost money; benchmark latency, features, and total bill for the workload. <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-vectors.html">S3 Vectors</a></td>
+    </tr>
+    <tr>
+      <td>OpenSearch index has many deleted documents after frequent updates</td>
+      <td>Lucene marks deletions until segments merge. A <strong>force merge</strong> can expunge them, but is resource-intensive; schedule it for suitable quiet/read-only indexes and measure the effect. EventBridge/Lambda can automate a measured maintenance trigger. ISM rollover addresses time-series index lifecycle, not this deletion problem. <a href="https://docs.opensearch.org/latest/api-reference/index-apis/force-merge/">Force Merge API</a> · <a href="https://docs.opensearch.org/latest/im-plugin/ism/index/">ISM</a></td>
+    </tr>
+    <tr>
+      <td>Tens of millions of vectors make full-scan exact k-NN too slow</td>
+      <td>Benchmark HNSW or another ANN index against exact-search recall and latency. ANN trades possible recall for speed; do not assume a fixed <code class="language-plaintext highlighter-rouge">O(log N)</code> bound or guaranteed millisecond latency. Pre-filtering helps only when a selective, valid filter exists. <a href="https://docs.opensearch.org/latest/vector-search/vector-search-techniques/approximate-knn/">OpenSearch HNSW</a></td>
+    </tr>
+    <tr>
+      <td>OpenSearch must generate embeddings at ingest and query time</td>
+      <td>A model connector plus ingest <code class="language-plaintext highlighter-rouge">text_embedding</code> processor and neural query can avoid custom middleware. Hybrid BM25/vector <strong>score fusion</strong> still needs a search pipeline (for example <code class="language-plaintext highlighter-rouge">normalization-processor</code>); the ingest pipeline does not blend query scores. <a href="https://docs.opensearch.org/latest/ingest-pipelines/processors/text-embedding/">Text embedding processor</a> · <a href="https://docs.opensearch.org/latest/vector-search/ai-search/hybrid-search/index/">Hybrid search</a></td>
+    </tr>
+  </tbody>
+</table>
 
 <h2 id="reranking-find-broadly-judge-narrowly">Reranking: Find Broadly, Judge Narrowly</h2>
 

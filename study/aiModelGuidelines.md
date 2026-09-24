@@ -1,6 +1,6 @@
 ---
 title: Model Guidelines
-permalink: /study/modelGuidelines
+permalink: /study/aiModelGuidelines
 tag:
   - model providers
   - model selection

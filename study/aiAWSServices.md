@@ -1,6 +1,6 @@
 ---
 title: AWS AI Services
-permalink: /study/infrastructureAWSAiServices
+permalink: /study/aiAWSServices
 tag:
   - Amazon Bedrock
   - Amazon SageMaker AI

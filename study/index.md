@@ -53,7 +53,7 @@ Think of this page as your **mental compass** — quick reminders on *how to thi
       AI Infrastructure and Evaluation
     </div>
   </a>
-  <a href="{{ '/study/infrastructureAWSAiServices' | relative_url }}" class="study-tile system-design">
+  <a href="{{ '/study/aiAWSServices' | relative_url }}" class="study-tile system-design">
     <div class="study-tile-title">
       <span class="study-tile-icon">7️⃣</span>
       AWS AI Services
@@ -65,7 +65,7 @@ Think of this page as your **mental compass** — quick reminders on *how to thi
       AWS GenAI Professional Preparation
     </div>
   </a>
-  <a href="{{ '/study/modelGuidelines' | relative_url }}" class="study-tile system-design">
+  <a href="{{ '/study/aiModelGuidelines' | relative_url }}" class="study-tile system-design">
     <div class="study-tile-title">
       <span class="study-tile-icon">🧭</span>
       Model Guidelines
@@ -102,7 +102,7 @@ The following are infrastructure and cloud services study pages:
 <div class="study-tiles">
 {% assign all_pages = site.pages | sort: "title" %}
 {% for p in all_pages %}
-  {% if p.url contains '/study/infrastructure' and p.url != '/study/infrastructureAWSAiServices' %}
+  {% if p.url contains '/study/infrastructure' %}
     <a href="{{ p.url | relative_url }}" class="study-tile system-design">
       <div class="study-tile-title">
         <span class="study-tile-icon">🏗️</span>
