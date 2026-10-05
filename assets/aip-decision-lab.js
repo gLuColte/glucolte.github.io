@@ -23,26 +23,319 @@
     facts: ['Supply facts or abstain', 'Verified context, an authorized source lookup, or an explicit no-answer result.', 'Only assert a fact when the supplied evidence supports it.', 'Do not ask the model to invent a refund date or treat an example as live data.'],
     test: ['Rerun held-out cases', 'Expected labels, source-supported reasons, and observed structured results.', 'Hold model/configuration fixed; check regressions, safety, cost, and repeated runs.', 'One repaired example is insufficient evidence that the change generalizes.']
   };
-  const choice = (label, reason, correct = false) => ({ label, reason, correct });
   const ragCases = [
-    {title: 'The exact policy never appears', domain: 'RAG · candidate recall', prompt: 'Northstar is asked about policy AU-BAT-1047. The current authorized source and exact identifier are correctly indexed. Semantic retrieval returns similar battery policies, but never this one. Which boundary should change first?', constraint: 'The required source is absent from the candidate set despite correct ingestion and scope.', delta: 'Preserve/search the literal ID through exact lookup or lexical/hybrid retrieval. Evaluate recall before adding another ranker.', options: [choice('Repair first-stage retrieval for the exact ID', 'The relevant source must enter the candidate set before downstream stages can use it.', true), choice('Only use a stronger reranker', 'It cannot rescore a policy it never receives.'), choice('Only improve the answer prompt', 'The generator still lacks the required policy.')], path: ['caller','authorize','search','rerank','context','generate','verify'], counter: 'If the correct policy is already in candidates but poorly ordered, reranking may be the right next change.', reading: '#cheat-sheet'},
-    {title: 'The parser loses the exception', domain: 'RAG · ingestion', prompt: 'The original policy table says replacement is free only under an active plan. Extracted text contains “replacement is free” but drops the qualifying column. Retrieved chunks reproduce this incomplete text. What should you fix?', constraint: 'The evidence was damaged before chunking and indexing.', delta: 'Repair table parsing/reconstruction, validate against the source, then rebuild affected chunks and index copies.', options: [choice('Fix extraction and re-index corrected evidence', 'The parser must preserve the condition before any downstream stage can use it.', true), choice('Increase embedding dimensions', 'A larger vector does not restore text lost by extraction.'), choice('Increase retrieval K without changing the index', 'More candidates from the same damaged text do not reconstruct the missing condition.')], path: ['parse','chunk','index','search','context','generate','verify'], counter: 'If extracted text preserves the condition but chunking splits it away, change the chunk/context strategy instead.', reading: '#building-the-searchable-knowledge-base'},
-    {title: 'A perfect match belongs to another tenant', domain: 'RAG · authorization', prompt: 'A private repair policy has the highest similarity score, but it belongs to another account. The user asks the assistant to include it anyway. Which rule governs context assembly?', constraint: 'Relevance does not establish permission to disclose the document.', delta: 'Derive scope from trusted identity, filter/authorize retrieved documents, and exclude unauthorized evidence before model context.', options: [choice('Exclude it through deterministic data authorization', 'Only permitted evidence may enter the model context.', true), choice('Include it and tell the model not to quote it', 'The sensitive data has already crossed the boundary.'), choice('Accept it because similarity is very high', 'Similarity measures relevance, not entitlement.')], path: ['caller','authorize','search','context','generate','verify'], counter: 'If the corpus is public and no data restriction applies, relevance can dominate selection. Tool/account authorization still applies.', reading: '#metadata-filtering'},
-    {title: 'Good evidence, unsupported answer', domain: 'RAG · faithfulness', prompt: 'The supplied source says battery replacement eligibility depends on the plan. The answer cites that source but claims everyone gets a free replacement. Retrieval returned the correct passage. What failed?', constraint: 'The generated claim is not supported by the supplied evidence.', delta: 'Evaluate faithfulness/citation entailment, refine evidence-use instructions or answer validation, and add this case to the regression set.', options: [choice('Test source support at the answer boundary', 'Faithfulness checks whether the passage actually supports the claim.', true), choice('Trust the answer because its citation is real', 'A valid source location can accompany an unsupported claim.'), choice('Assume candidate recall is the only problem', 'The relevant qualifying passage already reached generation.')], path: ['search','context','generate','verify'], counter: 'If the qualifying passage never reached context, diagnose retrieval/context assembly first.', reading: '#evaluation-does-the-system-retrieve-and-answer-well'}
+    {
+      "title": "Literal policy identifiers",
+      "domain": "RAG · candidate recall",
+      "prompt": "A Bedrock assistant uses an OpenSearch-backed RAG index for private repair policies. An authorized user asks about AU-BAT-1047. The current source, its literal identifier, and tenant metadata are correctly indexed. Semantic retrieval returns similar battery policies, but AU-BAT-1047 is absent from the candidates. Increasing candidate count has not reliably recovered it. The model answers from the other passages. Which change should the team evaluate first while preserving tenant access restrictions?",
+      "constraint": "Ingestion and authorization are verified; the required source is missing at candidate retrieval.",
+      "delta": "Add an exact-ID or lexical retrieval signal alongside vector search, retaining the trusted tenant filter. AU-BAT-1047 must enter the candidate set before a reranker or generator can use it. Measure candidate recall on literal-ID questions before tuning later stages.",
+      "options": [
+        {
+          "label": "Combine lexical/ID matching with vector retrieval while preserving trusted tenant filtering.",
+          "reason": "This targets candidate recall without admitting another tenant’s evidence.",
+          "correct": true
+        },
+        {
+          "label": "Use a stronger reranker on the current semantic candidate set.",
+          "reason": "Reranking can improve order, but the correct policy never enters the input set.",
+          "correct": false
+        },
+        {
+          "label": "Increase model capacity and instruct the generator to include the requested policy ID.",
+          "reason": "The generator still lacks the private policy text; including its ID does not supply the evidence.",
+          "correct": false
+        },
+        {
+          "label": "Broaden retrieval by removing the tenant filter before context assembly.",
+          "reason": "Authorization is already verified for the target source; removing the filter adds disclosure risk without addressing literal-ID retrieval.",
+          "correct": false
+        }
+      ],
+      "path": [
+        "caller",
+        "authorize",
+        "search",
+        "rerank",
+        "context",
+        "generate",
+        "verify"
+      ],
+      "counter": "If AU-BAT-1047 is present in candidates but consistently discarded by ranking, evaluate reranking rather than repairing first-stage recall.",
+      "reading": "#cheat-sheet"
+    },
+    {
+      "title": "Warranty tables and eligibility conditions",
+      "domain": "RAG · ingestion",
+      "prompt": "A RAG assistant indexes warranty tables from S3 PDFs. The original table pairs “replacement is free” with “active plan required.” Inspection shows that the parser retained the benefit but dropped the qualifying column. Indexed chunks and retrieved context reproduce that incomplete text, and the model faithfully summarizes it. Retrieval scores are high. Which corrective action should the team take first to address the unsupported unconditional benefit?",
+      "constraint": "The condition is already absent from extracted text, before chunking, embedding, or generation.",
+      "delta": "Repair table extraction/reconstruction, validate the condition against the original PDF, and rebuild the affected indexed evidence. Stronger embeddings and better ranking cannot recover a qualification that never entered the index. The observed generator behavior follows its damaged input, so source preservation is the first repair.",
+      "options": [
+        {
+          "label": "Repair table extraction, validate the reconstructed condition, and re-index the corrected evidence.",
+          "reason": "Restores the missing source condition at the first demonstrated failure boundary.",
+          "correct": true
+        },
+        {
+          "label": "Use larger embeddings and re-embed the existing extracted text.",
+          "reason": "A more capable embedding representation still encodes text from which the condition has been lost.",
+          "correct": false
+        },
+        {
+          "label": "Increase retrieval count and rerank passages from the existing index.",
+          "reason": "More or better-ranked copies of incomplete evidence do not restore the missing table column.",
+          "correct": false
+        },
+        {
+          "label": "Change chunk overlap and rebuild chunks from the same extracted text.",
+          "reason": "Chunk overlap helps when preserved text is split, but the condition is missing before chunking starts.",
+          "correct": false
+        }
+      ],
+      "path": [
+        "parse",
+        "chunk",
+        "index",
+        "search",
+        "context",
+        "generate",
+        "verify"
+      ],
+      "counter": "If extracted text includes the condition but chunking or context pruning separates it from the claim, repair that later boundary instead.",
+      "reading": "#building-the-searchable-knowledge-base"
+    },
+    {
+      "title": "Shared-index tenant access",
+      "domain": "RAG · authorization",
+      "prompt": "A multi-tenant Bedrock assistant retrieves repair documents through a shared index. The highest-scoring passage belongs to another customer. The signed-in user has no entitlement to it, but requests that the assistant use it because it appears to answer the question exactly. IAM permits the backend to query the shared index, and the passage has a valid source citation. Which design best enforces the user’s data-access boundary?",
+      "constraint": "Backend access to the shared index and semantic relevance do not establish this user’s document entitlement.",
+      "delta": "Derive permitted document scope from trusted identity and apply deterministic ACL/filter checks before unauthorized passages enter the model context. The backend role’s broad index access is not the caller’s permission to read every document. Citation validity and answer quality do not override that boundary.",
+      "options": [
+        {
+          "label": "Construct trusted tenant/ACL filters and verify document entitlement before assembling model context.",
+          "reason": "Checks the actual user’s permitted evidence before disclosure.",
+          "correct": true
+        },
+        {
+          "label": "Pass the passage to the model with an instruction to omit sensitive details.",
+          "reason": "Unauthorized data has already entered model context; a disclosure instruction does not enforce the data boundary.",
+          "correct": false
+        },
+        {
+          "label": "Use a similarity threshold and cite the source when returning its answer.",
+          "reason": "Similarity and a real citation establish neither entitlement nor permission to disclose the content.",
+          "correct": false
+        },
+        {
+          "label": "Rely on the backend IAM role’s shared-index permission as authorization for every returned document.",
+          "reason": "The role can query the index, but the caller still needs document-level authorization.",
+          "correct": false
+        }
+      ],
+      "path": [
+        "caller",
+        "authorize",
+        "search",
+        "context",
+        "generate",
+        "verify"
+      ],
+      "counter": "For a truly public corpus, document entitlement may not constrain retrieval; private tools and transactions still need caller-specific authorization.",
+      "reading": "#metadata-filtering"
+    },
+    {
+      "title": "Eligibility claims with source citations",
+      "domain": "RAG · faithfulness",
+      "prompt": "A warranty assistant retrieves the current policy containing both the replacement benefit and its plan-eligibility exception. Traces confirm the complete passage reaches Bedrock without truncation. The answer is valid JSON and cites that real policy, but says every customer receives a free replacement. Offline retrieval recall and precision already meet their targets. Which improvement should the team prioritize for this observed defect?",
+      "constraint": "Complete current evidence reached generation; the unsupported claim appears in the generated answer.",
+      "delta": "Evaluate claim support and citation entailment against the supplied passage, strengthen evidence-use behavior, and apply an answer-validation or fallback policy. A real citation only locates a source; it does not prove the source supports the answer. Add this case to the faithfulness regression set.",
+      "options": [
+        {
+          "label": "Evaluate answer faithfulness against the passage and test evidence-use/answer-validation changes.",
+          "reason": "Targets the unsupported claim despite successful retrieval and valid structure.",
+          "correct": true
+        },
+        {
+          "label": "Validate that the citation URL exists and treat successful resolution as source support.",
+          "reason": "The URL is real, but its passage does not support the universal claim.",
+          "correct": false
+        },
+        {
+          "label": "Increase retrieval count and rerank the added context before generation.",
+          "reason": "The required exception already reaches the model; retrieval coverage is not the first demonstrated defect.",
+          "correct": false
+        },
+        {
+          "label": "Tighten JSON field types and use schema validation as the quality gate.",
+          "reason": "The output already parses, and schema validity cannot establish that the eligibility claim follows from evidence.",
+          "correct": false
+        }
+      ],
+      "path": [
+        "search",
+        "context",
+        "generate",
+        "verify"
+      ],
+      "counter": "If the exception is absent from model context, investigate retrieval or context assembly before concluding that the generator misused complete evidence.",
+      "reading": "#evaluation-does-the-system-retrieve-and-answer-well"
+    }
   ];
   const promptCases = [
-    {title: 'The category policy is missing', domain: 'Prompt engineering · task specification', prompt: 'The prompt says “Classify this support ticket.” For “I was charged twice and cannot log in,” outputs alternate among Billing, Negative, and Urgent. Which addition resolves the ambiguity?', constraint: 'The task has no agreed category set or decision policy.', delta: 'Specify allowed labels, category definitions, overlap priority, and the fallback. Then evaluate representative tickets.', options: [choice('Define category rules and the required result', 'The model needs to know which classification task and label boundaries you intend.', true), choice('Only add “you are a senior support expert”', 'A persona does not define the missing category policy.'), choice('Only set temperature near zero', 'More consistent output can still follow the wrong classification task.')], path: ['task','policy','contract','test'], counter: 'If categories and rules are already clear but a specific pattern is misread, a representative example may help.', reading: '#worked-example'},
-    {title: 'Correct label, malformed JSON', domain: 'Prompt engineering · output contract', prompt: 'The classifier chooses Urgent correctly, but sometimes returns prose or invalid JSON. A downstream API requires exactly category and reason string fields. What should change?', constraint: 'The downstream structure must be machine-valid independently of category quality.', delta: 'Use supported structured output/schema constraints, and validate parsing, keys, types, values, and business meaning in code.', options: [choice('Enforce a schema and validate the result', 'This directly addresses the output contract while preserving semantic checks.', true), choice('Add more billing examples only', 'Classification examples do not reliably enforce JSON syntax or exact fields.'), choice('Accept anything that sounds correct', 'The API cannot consume malformed or contract-violating output.')], path: ['policy','contract','test'], counter: 'If JSON is valid but the category/reason is wrong, fix the decision rule or evidence use instead.', reading: '#json-schema'},
-    {title: 'One keyword overrides the policy', domain: 'Prompt engineering · few-shot boundaries', prompt: 'The policy marks incorrect charges as Urgent and invoice-download questions as General Inquiry. Nevertheless, “Where can I download an invoice?” is repeatedly Urgent. Which experiment targets the error?', constraint: 'The existing policy is clear, but the model overgeneralizes a billing keyword.', delta: 'Add a representative invoice-question boundary example, clarify that billing alone is not urgent, and retest existing plus unseen cases.', options: [choice('Clarify the boundary and add a matching example', 'This targets the observed policy misunderstanding.', true), choice('Make the prompt much longer on unrelated topics', 'Unrelated detail does not resolve the category boundary.'), choice('Retrain on the evaluation set immediately', 'First test a smaller targeted prompt change; held-out cases must remain separate.')], path: ['policy','examples','test'], counter: 'If the policy itself conflicts, resolve the conflict before adding demonstrations.', reading: '#shots'},
-    {title: 'The requested fact is absent', domain: 'Prompt engineering · knowledge boundary', prompt: 'A customer asks when a refund will arrive, but the ticket contains no refund status or date. A prompt-only assistant confidently invents “Friday.” What is the smallest safe system decision?', constraint: 'No supplied evidence supports a refund date.', delta: 'Use an explicit insufficient-information response, or retrieve status from an authorized authoritative API when that access is available.', options: [choice('Obtain verified status or use the no-answer fallback', 'Missing facts need evidence or abstention rather than more confident wording.', true), choice('Add an example with a Friday refund', 'An example is not this customer’s current transaction status.'), choice('Require an exact date through JSON Schema', 'Structure can force a date field without making the date true.')], path: ['task','facts','contract','test'], counter: 'If verified current status is supplied, test whether the prompt extracts it faithfully and meets the output contract.', reading: '#evaluation'}
+    {
+      "title": "Mixed-issue ticket classification",
+      "domain": "Prompt engineering · task specification",
+      "prompt": "A support classifier invokes a Bedrock model with “Classify this support ticket” and a required JSON result. For “I was charged twice and cannot log in,” responses contain valid JSON but alternate between Billing, Negative, and Urgent. The prompt has no agreed category definitions or rule for overlapping issues. The team wants to improve classification correctness before considering training. Which prompt change is the best first step?",
+      "constraint": "The output format is defined, but the classification labels and overlap decision policy are not.",
+      "delta": "Define the permitted labels, their meanings, overlap priority, and an insufficient-information fallback. Then test the rule on representative and held-out tickets. Temperature and a persona can affect behavior, but neither defines whether billing, sentiment, or urgency is the intended classification task.",
+      "options": [
+        {
+          "label": "Define category meanings, overlap priority, and the fallback, then evaluate the resulting policy.",
+          "reason": "Supplies the missing task decision rule rather than merely stabilizing an ambiguous task.",
+          "correct": true
+        },
+        {
+          "label": "Lower temperature and keep the existing task instructions and category policy.",
+          "reason": "A more stable result can still follow an undefined or unintended label scheme.",
+          "correct": false
+        },
+        {
+          "label": "Add a senior-support persona and retain the current classification instruction.",
+          "reason": "Expert-role wording does not define permitted labels or the overlap rule.",
+          "correct": false
+        },
+        {
+          "label": "Require the category field to be a string and reject malformed JSON.",
+          "reason": "The observed outputs already parse; valid structure does not define which category is correct.",
+          "correct": false
+        }
+      ],
+      "path": [
+        "task",
+        "policy",
+        "contract",
+        "test"
+      ],
+      "counter": "If the category policy is already clear but a particular boundary is misread, test a targeted clarification and representative few-shot example.",
+      "reading": "#worked-example"
+    },
+    {
+      "title": "Classifier-to-API integration",
+      "domain": "Prompt engineering · output contract",
+      "prompt": "A Bedrock support classifier consistently selects the correct label on a held-out set. A downstream API requires exactly category and reason string fields, with category drawn from an approved list. Some responses contain prose, extra keys, or malformed JSON, causing API failures. The selected model supports structured output. The team must retain semantic validation as well as parsing safety. Which change most directly addresses the failures?",
+      "constraint": "Category quality is adequate; the failure is the machine-consumable output contract.",
+      "delta": "Use the supported schema/structured-output mechanism and validate parsing, keys, types, permitted labels, and business meaning in application code. Schema enforcement targets the observed syntax and field failures. It complements the existing semantic tests rather than replacing them.",
+      "options": [
+        {
+          "label": "Use supported schema-constrained output and application validation for exact keys, types, labels, and meaning.",
+          "reason": "Addresses the integration contract while retaining classification-quality checks.",
+          "correct": true
+        },
+        {
+          "label": "Add more correctly labeled billing examples while leaving output enforcement unchanged.",
+          "reason": "Examples can help semantics, but do not directly enforce the exact machine contract causing the observed failures.",
+          "correct": false
+        },
+        {
+          "label": "Lower temperature and accept a response whenever the label sounds correct.",
+          "reason": "Lower sampling variability does not enforce required keys or make malformed JSON consumable.",
+          "correct": false
+        },
+        {
+          "label": "Ask a second model to reformat responses and send its output to the API without validation.",
+          "reason": "A formatting step can still produce contract violations; an unchecked model output is not a reliable API boundary.",
+          "correct": false
+        }
+      ],
+      "path": [
+        "policy",
+        "contract",
+        "test"
+      ],
+      "counter": "If outputs meet the schema but the labels or reasons are wrong, investigate task policy, examples, or evidence rather than treating parsing as the defect.",
+      "reading": "#json-schema"
+    },
+    {
+      "title": "Routine billing versus urgent billing",
+      "domain": "Prompt engineering · few-shot boundaries",
+      "prompt": "A classifier’s policy defines incorrect charges as Urgent and invoice-download questions as General Inquiry. Its few-shot prompt contains several urgent billing examples but no routine invoice example. Repeated tests label “Where can I download an invoice?” as Urgent despite valid JSON and clear policy text. The team wants a small controlled experiment, preserving the held-out test set and existing urgent-charge performance. Which change should it test first?",
+      "constraint": "The model overgeneralizes the demonstrated billing pattern despite an explicit category rule.",
+      "delta": "Clarify that billing terms alone do not imply urgency and add a representative invoice-download boundary example. Keep the model/configuration fixed and evaluate both the original urgent-charge cases and unseen invoice questions. This targets the demonstrated category boundary without using test cases as training data.",
+      "options": [
+        {
+          "label": "Clarify the billing/urgency boundary, add a representative invoice example, and retest held-out cohorts.",
+          "reason": "Targets the missing contrast while measuring regression on valid urgent-charge cases.",
+          "correct": true
+        },
+        {
+          "label": "Add more urgent billing examples with different wording and retain the current prompt boundary.",
+          "reason": "More examples of the overrepresented pattern can reinforce the shortcut instead of teaching the routine-invoice distinction.",
+          "correct": false
+        },
+        {
+          "label": "Increase model sampling variability and select whichever run returns General Inquiry.",
+          "reason": "Selecting a convenient run does not repair or evaluate the underlying category boundary.",
+          "correct": false
+        },
+        {
+          "label": "Fine-tune immediately on all held-out invoice questions and report accuracy on those same questions.",
+          "reason": "This contaminates the test set and bypasses the requested smaller controlled prompt experiment.",
+          "correct": false
+        }
+      ],
+      "path": [
+        "policy",
+        "examples",
+        "test"
+      ],
+      "counter": "If policy text and example labels conflict, fix the contradiction first; if an evaluated prompt still cannot meet the target, consider supported customization using separate training data.",
+      "reading": "#shots"
+    },
+    {
+      "title": "Refund status with incomplete ticket data",
+      "domain": "Prompt engineering · knowledge boundary",
+      "prompt": "A prompt-only Bedrock assistant answers customer refund questions. A ticket contains an order ID and a refund request but no verified status or arrival date. The model returns a well-formed JSON date of Friday based on a generic refund example. The application can access an authoritative status API if the customer is authorized. A response must not assert an unsupported date. Which design best meets this requirement?",
+      "constraint": "An example and an order identifier do not supply this customer’s current refund status.",
+      "delta": "Retrieve status from the authorized authoritative API and supply it as evidence; if a verified date is unavailable, return an explicit unknown/pending result. This addresses missing facts while keeping the response contract valid. Neither a forced date field nor more confident wording makes an invented date true.",
+      "options": [
+        {
+          "label": "Use an authorized status lookup and return a verified date or an explicit unknown/pending fallback.",
+          "reason": "Supplies current evidence or safely represents its absence.",
+          "correct": true
+        },
+        {
+          "label": "Add more refund examples with specific dates and require the model to choose a date.",
+          "reason": "Historical or illustrative examples are not this transaction’s verified status.",
+          "correct": false
+        },
+        {
+          "label": "Require a date-formatted JSON string for every answer and reject responses with no date.",
+          "reason": "A mandatory valid date can force a structurally correct invention when the fact is unavailable.",
+          "correct": false
+        },
+        {
+          "label": "Lower temperature and reuse the most frequent date from repeated model outputs.",
+          "reason": "Repeated agreement is not independent evidence of the customer’s refund timeline.",
+          "correct": false
+        }
+      ],
+      "path": [
+        "task",
+        "facts",
+        "contract",
+        "test"
+      ],
+      "counter": "If a verified date is already provided but misreported, test faithful extraction and output handling; if status access is unavailable, keep the unknown/pending fallback.",
+      "reading": "#evaluation"
+    }
   ];
   const topic = root.dataset.topic;
   if (topic !== 'rag' && topic !== 'prompt') return;
   const cases = topic === 'rag' ? ragCases : promptCases;
   {
-    root.querySelector('label[for="aip-case"]').textContent = 'Choose a quick problem';
+    root.querySelector('label[for="aip-case"]').textContent = 'Choose a scenario';
     root.querySelector('legend').textContent = 'Which change addresses the first failed boundary?';
-    root.querySelectorAll('.aip-lab__reason > strong')[1].textContent = 'Smallest useful change';
+    root.querySelectorAll('.aip-lab__reason > strong')[1].textContent = 'Why this answer fits';
     root.querySelector('.aip-lab__note').textContent = 'Illustrative exercises with predefined feedback, not live model outputs. Inspect the evidence and test the proposed change on representative held-out cases.';
   }
   let currentCase = 0;
@@ -76,7 +369,14 @@
     set('delta', item.delta);
     set('counterfactual', item.counter);
     set('path-label', item.path.includes('cache') ? 'Trace a cache miss (hits skip retrieval and generation)' : 'Trace the responsibility path');
-    if (!el('feedback').dataset.result) set('feedback', 'Design revealed. Compare the constraint and rejected alternatives, then inspect each step.');
+    el('alternatives').replaceChildren();
+    item.options.filter(option => !option.correct).forEach(option => {
+      const li = document.createElement('li');
+      const label = document.createElement('strong');
+      label.textContent = `${option.label}: `;
+      li.append(label, document.createTextNode(option.reason));
+      el('alternatives').append(li);
+    });
     el('reading').href = item.reading;
     el('path').replaceChildren();
     item.path.forEach((key, index) => {
@@ -103,7 +403,7 @@
     set('case-count', `${currentCase + 1} / ${cases.length}`);
     set('domain', item.domain);
     set('prompt', item.prompt);
-    set('feedback', 'Choose an answer, or reveal the design to explore it.');
+    set('feedback', '');
     el('feedback').removeAttribute('data-result');
     el('solution').hidden = true;
     el('reveal').setAttribute('aria-expanded', 'false');
@@ -119,9 +419,10 @@
       button.setAttribute('aria-pressed', 'false');
       button.addEventListener('click', () => {
         el('choices').querySelectorAll('button').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
-        set('feedback', `${option.correct ? 'Correct.' : 'Reconsider the constraint.'} ${option.reason}`);
+        set('feedback', option.correct ? 'Correct' : 'Incorrect');
         el('feedback').dataset.result = option.correct ? 'correct' : 'incorrect';
         if (option.correct) reveal();
+        else { el('solution').hidden = true; revealed = false; }
       });
       el('choices').append(button);
     });

@@ -39,7 +39,7 @@ For every scenario, complete this reasoning chain:
 
 <span id="scenarios"></span>
 
-Choose a domain, then a trap from the cheat sheet. **Learn the distinction** compares the named AWS services, explains when each fits, and identifies the misleading shortcut. **Try a question** applies that difference to a concrete requirement, with explanations for every answer and a service-specific flow.
+Choose a domain, then a trap from the cheat sheet. **Try a multiple-choice question** tests a scenario with competing requirements and four possible actions. A correct answer explains the deciding clue, the alternatives, what would change the decision, and the service flow. Open **Learn the distinction** to compare the named AWS services, see when each fits, and identify the misleading shortcut.
 
 {% include aip-domain-practice.html %}
 
