@@ -1,0 +1,64 @@
+<link rel="stylesheet" href="{{ '/assets/aip-decision-lab.css' | relative_url }}">
+<section id="aip-decision-lab" class="aip-lab" data-topic="{{ include.topic | default: 'rag' }}" aria-label="{{ include.title | default: 'Quick learning practice' }}">
+  <div class="aip-lab__header">
+    <span class="aip-lab__badge">QUICK INTERACTIVE PRACTICE</span>
+    <strong class="aip-lab__title">{{ include.title | default: 'Find the first failed boundary' }}</strong>
+    <p>Choose an answer <span aria-hidden="true">→</span> get feedback <span aria-hidden="true">→</span> inspect the flow.</p>
+  </div>
+  <div class="aip-lab__fallback">
+    <p>Identify the decisive requirement, choose the smallest useful change, and explain why the nearest alternative fails. Use the worked examples and references below to check your reasoning.</p>
+    <p>Enable JavaScript to try the scenarios and inspect each decision boundary.</p>
+  </div>
+  <div class="aip-lab__interactive" hidden>
+    <div class="aip-lab__toolbar">
+      <label for="aip-case">Change the requirement</label>
+      <select id="aip-case"></select>
+      <span id="aip-case-count" class="aip-lab__eyebrow"></span>
+    </div>
+    <div class="aip-lab__scenario">
+      <span id="aip-domain" class="aip-lab__eyebrow"></span>
+      <p id="aip-prompt"></p>
+      <fieldset class="aip-lab__answers">
+        <legend>Which design meets the decisive constraint?</legend>
+        <div id="aip-choices"></div>
+      </fieldset>
+      <p id="aip-feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+      <button id="aip-reveal" type="button" aria-controls="aip-solution" aria-expanded="false">Reveal and trace the design</button>
+    </div>
+    <div id="aip-solution" hidden>
+      <div class="aip-lab__reason">
+        <strong>Decisive constraint</strong>
+        <p id="aip-constraint"></p>
+        <strong>Change from the baseline</strong>
+        <p id="aip-delta"></p>
+      </div>
+      <div class="aip-lab__trace-head">
+        <strong id="aip-path-label">Trace the responsibility path</strong>
+        <span>Choose a step to inspect its boundary.</span>
+      </div>
+      <ol id="aip-path" class="aip-lab__path" aria-labelledby="aip-path-label"></ol>
+      <div id="aip-step-detail" class="aip-lab__detail" role="region" aria-label="Selected step" aria-live="polite" aria-atomic="true">
+        <strong id="aip-step-title"></strong>
+        <dl>
+          <dt>What passes here</dt><dd id="aip-step-data"></dd>
+          <dt>Control to enforce</dt><dd id="aip-step-control"></dd>
+          <dt>If this fails</dt><dd id="aip-step-failure"></dd>
+        </dl>
+      </div>
+      <div class="aip-lab__navigation">
+        <button id="aip-prev-step" type="button">← Previous step</button>
+        <span id="aip-step-count"></span>
+        <button id="aip-next-step" type="button">Next step →</button>
+      </div>
+      <p class="aip-lab__counterfactual"><strong>What would change the answer?</strong> <span id="aip-counterfactual"></span></p>
+      <a id="aip-reading" href="#serverless-vs-containers">Read the relevant decision rule →</a>
+      <p class="aip-lab__note">Original practice scenarios. Paths show responsibility and data flow; they simplify deployment topology. Identity, IAM, safety, and telemetry still apply at their relevant boundaries.</p>
+    </div>
+    <div class="aip-lab__case-nav">
+      <button id="aip-prev-case" type="button">← Previous scenario</button>
+      <button id="aip-retry" type="button">Try this scenario again</button>
+      <button id="aip-next-case" type="button">Next scenario →</button>
+    </div>
+  </div>
+</section>
+<script src="{{ '/assets/aip-decision-lab.js' | relative_url }}" defer></script>

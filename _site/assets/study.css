@@ -22,6 +22,11 @@
   min-width: 720px;
 }
 
+/* Keep the quick model choice readable without horizontal scrolling on phones. */
+.provider-table-scroll.model-choice-table table {
+  min-width: 0;
+}
+
 .agent-implementation-table {
   max-width: 100%;
 }

@@ -64,9 +64,161 @@
     <article class="content">
       <h1 id="model-guidelines">Model Guidelines</h1>
 
-<p><strong>Last verified: 24 September 2026.</strong> Prices are <strong>USD</strong>. Check the model picker and usage dashboard before a long session; access varies by account, client and rollout. For model theory and hosting, see <a href="/study/aiModels">AI Models and Providers</a>.</p>
+<p><strong>Which AI model and reasoning effort should I use for this task?</strong></p>
 
-<h2 id="1-openai--codex-workload-guide">1. OpenAI / Codex Workload Guide</h2>
+<p><strong>Last verified: 5 October 2026.</strong> Prices are <strong>USD</strong>. Model access varies by account, client and rollout. For model theory and hosting, see <a href="/study/aiModels">AI Models and Providers</a>.</p>
+
+<h2 id="1-how-to-choose">1. How to Choose</h2>
+
+<blockquote>
+  <p><strong>Start with the cheapest model and reasoning effort likely to solve the task. Escalate based on uncertainty and reasoning difficulty, not repository size alone.</strong></p>
+</blockquote>
+
+<p><strong>Scope × uncertainty → reasoning effort → model tier.</strong> Ask how much <em>relevant</em> context the model must understand and whether the solution path is known. Then choose:</p>
+
+<div class="provider-table-scroll model-choice-table">
+
+  <table>
+    <thead>
+      <tr>
+        <th>If the task is…</th>
+        <th>Start with…</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Cheap, bounded and obvious</td>
+        <td><strong>Luna · Medium</strong> / <strong>Haiku 4.5 · default</strong></td>
+      </tr>
+      <tr>
+        <td>Normal serious engineering</td>
+        <td><strong>GPT-6.1 Sol / Sonnet 5.5</strong> · Medium</td>
+      </tr>
+      <tr>
+        <td>Difficult investigation, architecture or debugging</td>
+        <td><strong>GPT-6.1 Sol / Opus 5.5</strong> · High</td>
+      </tr>
+      <tr>
+        <td>Exceptional ambiguity, cross-system complexity or long autonomous work; or High has fallen short</td>
+        <td><strong>Astra / Fable 5.1</strong> · High, then tune</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<ul>
+  <li><strong>Medium:</strong> The task and likely path are reasonably clear. Execute and verify.</li>
+  <li><strong>High:</strong> Investigate, compare alternatives or determine the solution before executing.</li>
+  <li><strong>Frontier / strongest model:</strong> Use for exceptional ambiguity, cross-system complexity, long autonomous work or insufficient results at High.</li>
+</ul>
+
+<p>Model tier and effort are separate choices: <strong>GPT-6.1 Sol High</strong> means Sol with High effort; <strong>Frontier</strong> names a model tier. Haiku 4.5 has no effort control, and effort levels are not equivalent across providers.</p>
+
+<h2 id="2-rule-of-thumb-scope--uncertainty">2. Rule of Thumb: Scope × Uncertainty</h2>
+
+<blockquote>
+  <p><strong>Known scope + known path → Medium.</strong></p>
+
+  <p><strong>Unknown scope OR unknown path → High.</strong></p>
+
+  <p><strong>Unknown scope + unknown path + cross-system complexity → consider Frontier.</strong></p>
+</blockquote>
+
+<p>The file and LOC bands below are <strong>rough rules of thumb, not empirical limits</strong>. “Relevant LOC” means code the model must inspect or change to solve the task, including dependencies it needs to trace. File counts and LOC are approximate signals of connected context, not a conversion to prompt tokens. Routine search to locate a known feature can stay at Medium; <strong>unknown scope</strong> means the model must discover which components or interactions explain the problem.</p>
+
+<div class="provider-table-scroll">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Approximate relevant scope</th>
+        <th>Clear path</th>
+        <th>Some investigation</th>
+        <th>Unknown solution</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1–5 files / under 5k relevant LOC</td>
+        <td>Medium</td>
+        <td>Medium</td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>5–20 files / about 5k–30k LOC</td>
+        <td>Medium</td>
+        <td>High</td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>20–50 files / about 30k–100k LOC</td>
+        <td>High</td>
+        <td>High</td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>50+ files / 100k+ relevant LOC</td>
+        <td>High</td>
+        <td>High</td>
+        <td>High; consider Frontier if cross-system</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<p>A 2-million-line monorepo with a clear feature touching four known files may need only <strong>Medium</strong>. A 40k-line service with an intermittent duplicate-order bug should start at <strong>High</strong> if the cause could be API logic, queues, workers, retries, concurrency or the database. Repository size affects navigation; it does not automatically require a frontier model. For code, search and index first, then inspect the relevant files, dependencies and tests.</p>
+
+<p>The mnemonic is a starting default. <strong>Substantial integration work can justify High even with a known path</strong>, which is why the larger scope bands suggest it. Repetitive, tightly specified edits across many files can still use Medium.</p>
+
+<p><strong>What to count for other work</strong></p>
+
+<p>LOC means <strong>lines of code</strong>. For documents and research, estimate the relevant material and the connections the model must understand:</p>
+
+<div class="provider-table-scroll">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th>Useful measure of scope</th>
+        <th>What raises reasoning effort?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Code</td>
+        <td>Relevant files, LOC, modules and dependencies</td>
+        <td>Discovering causes; tracing interactions across modules</td>
+      </tr>
+      <tr>
+        <td>Documents / PDFs</td>
+        <td>Relevant pages or sections; words for text volume</td>
+        <td>Dense concepts, tables, equations or conflicting passages</td>
+      </tr>
+      <tr>
+        <td>Research / web</td>
+        <td>Sources and claims that must be checked</td>
+        <td>Reconciling conflicting evidence; deciding what conclusion is justified</td>
+      </tr>
+      <tr>
+        <td>Ontology / domain model</td>
+        <td>Concepts, relationships, constraints and exceptions</td>
+        <td>Designing the relationships or resolving inconsistent definitions</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<p><strong>Count volume; judge connections and uncertainty.</strong> A file is only a container: one PDF can hold hundreds of pages. Document lines vary with formatting, so pages, sections or words are more useful rough measures. Tokens help estimate model context and API cost, but do not measure reasoning difficulty. The code bands above do not translate into document-page limits. <a href="https://platform.claude.com/docs/en/build-with-claude/token-counting">Token counting, including PDFs</a>.</p>
+
+<p>Summarizing a known chapter in a 300-page manual can use <strong>Medium</strong>. Explaining conflicting results in a five-page paper can need <strong>High</strong>. Mapping terms into an established ontology can use Medium; deciding its concepts, relationships and exceptions should start at High. These examples are task heuristics, not validated thresholds.</p>
+
+<h2 id="3-model--effort-mapping">3. Model &amp; Effort Mapping</h2>
+
+<p><strong>Pick the nearest scenario.</strong> Below, <strong>Sol = GPT-6.1 Sol</strong>, <strong>Sonnet = Sonnet 5.5</strong>, <strong>Opus = Opus 5.5</strong>; Haiku is 4.5 and Fable is 5.1. Model pairs are OpenAI / Anthropic starting choices.</p>
 
 <div class="provider-table-scroll">
 
@@ -82,232 +234,191 @@
     </thead>
     <tbody>
       <tr>
-        <td>Document reading</td>
-        <td>Documents / PDFs</td>
+        <td>Routine extraction / small edit</td>
+        <td>Specified fields or known files</td>
+        <td>Extract, classify, apply an obvious change</td>
+        <td>Luna / Haiku</td>
+        <td>Medium / default</td>
+      </tr>
+      <tr>
+        <td>Document / PDF reading</td>
+        <td>Selected pages or sections</td>
         <td>Find, summarize, explain, compare</td>
-        <td><strong>GPT-6 Sol</strong></td>
+        <td>Sol / Sonnet</td>
         <td>Medium</td>
       </tr>
       <tr>
         <td>Document deep analysis</td>
-        <td>Documents / PDFs</td>
-        <td>Infer, investigate, resolve contradictions</td>
-        <td><strong>GPT-6 Sol</strong></td>
+        <td>Dense papers or documents</td>
+        <td>Infer, trace arguments, resolve contradictions</td>
+        <td>Sol / Sonnet</td>
         <td>High</td>
       </tr>
       <tr>
         <td>Document + web</td>
-        <td>Documents + current sites</td>
+        <td>Documents + current sources</td>
         <td>Verify, cross-reference, synthesize</td>
-        <td><strong>GPT-6 Sol</strong></td>
+        <td>Sol / Sonnet</td>
         <td>Medium</td>
       </tr>
       <tr>
-        <td>Document + web deep analysis</td>
-        <td>Documents + web</td>
-        <td>Investigate complex/conflicting evidence</td>
-        <td><strong>GPT-6 Sol</strong></td>
+        <td>Investigative research</td>
+        <td>Open question + incomplete or conflicting sources</td>
+        <td>Determine what evidence supports; resolve competing explanations</td>
+        <td>Sol / Opus</td>
         <td>High</td>
       </tr>
       <tr>
         <td>Document writing</td>
-        <td>Notes / sources / draft</td>
+        <td>Notes, sources or draft</td>
         <td>Draft, rewrite, polish, structure</td>
-        <td><strong>GPT-6 Sol</strong></td>
+        <td>Sol / Sonnet</td>
         <td>Medium</td>
       </tr>
       <tr>
         <td>Analytical writing</td>
-        <td>Sources + ambiguous problem</td>
-        <td>Determine approach, analyze, write</td>
-        <td><strong>GPT-6 Sol</strong></td>
+        <td>Evidence + ambiguous question</td>
+        <td>Determine the argument, analyze, write</td>
+        <td>Sol / Sonnet</td>
         <td>High</td>
       </tr>
       <tr>
-        <td>Code analysis · ~100K LOC</td>
-        <td>Local repository</td>
-        <td>Locate code, architecture, flows</td>
-        <td><strong>GPT-6 Sol</strong></td>
+        <td>Code analysis: known scope</td>
+        <td>Relevant files + specific question</td>
+        <td>Locate code, explain architecture or flows</td>
+        <td>Sol / Sonnet</td>
         <td>Medium</td>
       </tr>
       <tr>
-        <td>Code analysis · ~500K LOC</td>
-        <td>Local repository</td>
-        <td>Cross-module architecture/dependencies</td>
-        <td><strong>GPT-6 Sol</strong></td>
-        <td>Medium–High</td>
-      </tr>
-      <tr>
-        <td>Code analysis · ~1M+ LOC</td>
-        <td>Local repository</td>
-        <td>System-level and cross-module understanding</td>
-        <td><strong>GPT-6 Sol</strong></td>
+        <td>Code investigation</td>
+        <td>Unfamiliar modules or unknown bug source</td>
+        <td>Discover scope, trace dependencies, diagnose</td>
+        <td>Sol / Opus</td>
         <td>High</td>
       </tr>
       <tr>
-        <td>Development · ~100K LOC</td>
-        <td>Repository + requirement</td>
+        <td>Development: clear path</td>
+        <td>Known files + defined requirement</td>
         <td>Implement, test, validate</td>
-        <td><strong>GPT-6 Sol</strong></td>
-        <td>Medium–High</td>
+        <td>Sol / Sonnet</td>
+        <td>Medium</td>
       </tr>
       <tr>
-        <td>Development · ~500K LOC</td>
-        <td>Repository + requirement</td>
-        <td>Multi-module change, test, debug</td>
-        <td><strong>GPT-6 Sol</strong></td>
+        <td>Architecture / ontology / complex change</td>
+        <td>Connected modules, concepts or systems</td>
+        <td>Compare designs, define relationships, implement and validate</td>
+        <td>Sol / Opus</td>
         <td>High</td>
       </tr>
       <tr>
-        <td>Development · ~1M+ LOC</td>
-        <td>Repository + complex task</td>
-        <td>Investigate, design, implement, validate</td>
-        <td><strong>GPT-6 Sol</strong></td>
-        <td>High</td>
-      </tr>
-      <tr>
-        <td>Hard agentic development</td>
-        <td>Large repo + ambiguous problem</td>
-        <td>Autonomous investigation → design → implementation → validation</td>
-        <td><strong>GPT-6 Astra</strong></td>
-        <td>High; Max when justified</td>
+        <td>Exceptional autonomous work</td>
+        <td>Substantial ambiguity across systems; lower tiers fall short</td>
+        <td>Investigate → design → execute → validate over many steps</td>
+        <td>Astra / Fable</td>
+        <td>High; tune upward if justified</td>
       </tr>
     </tbody>
   </table>
 
 </div>
 
-<blockquote>
-  <p><strong>Medium = execute a reasonably clear task. High = determine what the answer or solution should be, then execute it.</strong> Repository size increases navigation work but does not by itself justify the most expensive model. For code: repository → search/index → relevant files → dependencies → context → reason → act. <a href="https://learn.chatgpt.com/docs/models">OpenAI model guidance</a>.</p>
-</blockquote>
+<p>These are <strong>cost-conscious rules of thumb</strong>, not provider equivalence claims. Start at the listed setting, then adjust for relevant scope and uncertainty. Simple extraction can use the routine row; difficult document analysis can move from Sonnet High to Opus High. A large repository or long PDF alone does not require Frontier.</p>
 
-<h2 id="2-claude-workload-guide">2. Claude Workload Guide</h2>
+<p><strong>Escalate when the reasoning falls short:</strong> raise Medium to High on the same model when it misses dependencies or cannot choose a sound approach. Consider a stronger tier if High still fails, or start there for an exceptional task. Missing requirements, inaccessible files and broken tools need to be resolved directly; extra reasoning alone will not supply them.</p>
+
+<h2 id="4-provider-specific-reference">4. Provider-Specific Reference</h2>
+
+<h3 id="openai--codex">OpenAI / Codex</h3>
 
 <div class="provider-table-scroll">
 
   <table>
     <thead>
       <tr>
-        <th>Workload</th>
-        <th>Input</th>
-        <th>Expected output</th>
-        <th>Suggested model</th>
-        <th>Effort</th>
+        <th>Tier</th>
+        <th>Model / API ID</th>
+        <th>Best starting point</th>
+        <th>Effort notes</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td>Document reading</td>
-        <td>Documents / PDFs</td>
-        <td>Find, summarize, explain, compare</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>Medium</td>
+        <td>Efficient</td>
+        <td>GPT-6 Luna <code class="language-plaintext highlighter-rouge">gpt-6-luna</code></td>
+        <td>Focused, high-volume, well-bounded work</td>
+        <td>Medium default; <code class="language-plaintext highlighter-rouge">none</code>, low, high, xhigh and max also supported</td>
       </tr>
       <tr>
-        <td>Document deep analysis</td>
-        <td>Documents / PDFs</td>
-        <td>Infer, investigate, resolve contradictions</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>High</td>
+        <td>General</td>
+        <td>GPT-6.1 Sol <code class="language-plaintext highlighter-rouge">gpt-6.1-sol</code></td>
+        <td>Serious engineering and professional work</td>
+        <td>Medium default; supports low, medium, high, xhigh and max</td>
       </tr>
       <tr>
-        <td>Document + web</td>
-        <td>Documents + current sites</td>
-        <td>Verify, cross-reference, synthesize</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>Medium</td>
-      </tr>
-      <tr>
-        <td>Document + web deep analysis</td>
-        <td>Documents + web</td>
-        <td>Investigate complex/conflicting evidence</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>High</td>
-      </tr>
-      <tr>
-        <td>Document writing</td>
-        <td>Notes / sources / draft</td>
-        <td>Draft, rewrite, polish, structure</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>Medium</td>
-      </tr>
-      <tr>
-        <td>Analytical writing</td>
-        <td>Sources + ambiguous problem</td>
-        <td>Determine approach, analyze, write</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>High</td>
-      </tr>
-      <tr>
-        <td>Code analysis · ~100K LOC</td>
-        <td>Local repository</td>
-        <td>Locate code, architecture, flows</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>Medium</td>
-      </tr>
-      <tr>
-        <td>Code analysis · ~500K LOC</td>
-        <td>Local repository</td>
-        <td>Cross-module architecture/dependencies</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>Medium–High</td>
-      </tr>
-      <tr>
-        <td>Code analysis · ~1M+ LOC</td>
-        <td>Local repository</td>
-        <td>System-level and cross-module understanding</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>High</td>
-      </tr>
-      <tr>
-        <td>Development · ~100K LOC</td>
-        <td>Repository + requirement</td>
-        <td>Implement, test, validate</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>Medium–High</td>
-      </tr>
-      <tr>
-        <td>Development · ~500K LOC</td>
-        <td>Repository + requirement</td>
-        <td>Multi-module change, test, debug</td>
-        <td><strong>Claude Sonnet 5</strong></td>
-        <td>High</td>
-      </tr>
-      <tr>
-        <td>Development · ~1M+ LOC</td>
-        <td>Repository + complex task</td>
-        <td>Investigate, design, implement, validate</td>
-        <td><strong>Claude Opus 5.5</strong></td>
-        <td>Medium; High for difficult dependencies</td>
-      </tr>
-      <tr>
-        <td>Hard agentic development</td>
-        <td>Large repo + ambiguous problem</td>
-        <td>Autonomous investigation → design → implementation → validation</td>
-        <td><strong>Claude Opus 5.5</strong></td>
-        <td>Medium → High</td>
-      </tr>
-      <tr>
-        <td>Frontier escalation</td>
-        <td>Long-horizon task that Opus 5.5 at higher effort could not solve</td>
-        <td>Reinvestigate, resolve, validate</td>
-        <td><strong>Claude Fable 5.1</strong></td>
-        <td>High default; tune to task</td>
+        <td>Strongest</td>
+        <td>GPT-6 Astra <code class="language-plaintext highlighter-rouge">gpt-6-astra</code></td>
+        <td>Most demanding reasoning, coding and long workflows</td>
+        <td>Low through max; start at High for exceptional work</td>
       </tr>
     </tbody>
   </table>
 
 </div>
 
-<p>Claude’s adaptive thinking and model-specific effort controls are not identical to OpenAI’s. Sonnet 5, Opus 5.5 and Fable 5.1 support effort; Haiku 4.5 does not use the same control. Use the setting your Claude client exposes. These model choices are personal cost-conscious defaults, not a provider equivalence claim. <a href="https://platform.claude.com/docs/en/models/overview">Claude model lineup</a> · <a href="https://platform.claude.com/docs/en/build-with-claude/effort">Claude effort</a> · <a href="https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence">Anthropic cost guidance</a>.</p>
+<p>GPT-6.1 Sol replaces the older GPT-6 Sol recommendation here. OpenAI lists Luna for cost-sensitive work, Sol for a balance of intelligence and cost, and Astra for the most demanding work. These API models are current; app availability and exposed effort settings depend on the client and account. <a href="https://developers.openai.com/api/docs/models">OpenAI models</a> · <a href="https://developers.openai.com/api/docs/models/gpt-6.1-sol">GPT-6.1 Sol and effort</a> · <a href="https://learn.chatgpt.com/docs/models">Work / Codex availability</a>.</p>
+
+<h3 id="anthropic--claude">Anthropic / Claude</h3>
+
+<div class="provider-table-scroll">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tier</th>
+        <th>Model / API ID</th>
+        <th>Best starting point</th>
+        <th>Effort notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Efficient</td>
+        <td>Claude Haiku 4.5 <code class="language-plaintext highlighter-rouge">claude-haiku-4-5</code></td>
+        <td>Fast, bounded work</td>
+        <td>No API effort control</td>
+      </tr>
+      <tr>
+        <td>General</td>
+        <td>Claude Sonnet 5.5 <code class="language-plaintext highlighter-rouge">claude-sonnet-5-5</code></td>
+        <td>Well-specified coding and synthesis</td>
+        <td>API default High; set Medium explicitly for clear agentic work</td>
+      </tr>
+      <tr>
+        <td>Difficult</td>
+        <td>Claude Opus 5.5 <code class="language-plaintext highlighter-rouge">claude-opus-5-5</code></td>
+        <td>Investigation, architecture and long-running engineering</td>
+        <td>API default Medium; raise to High when needed</td>
+      </tr>
+      <tr>
+        <td>Strongest</td>
+        <td>Claude Fable 5.1 <code class="language-plaintext highlighter-rouge">claude-fable-5-1</code></td>
+        <td>Demanding reasoning and long-horizon agentic work</td>
+        <td>API default High; tune against results</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<p>Anthropic recommends Opus 5.5 for most workloads; this guide uses Sonnet 5.5 Medium as a cost-conscious starting point for well-specified engineering. Sonnet’s API default is High, so set Medium explicitly where the client allows. Sonnet, Opus and Fable support low, medium, high, xhigh and max; Haiku uses different thinking controls. <a href="https://platform.claude.com/docs/en/models/overview">Claude models and IDs</a> · <a href="https://platform.claude.com/docs/en/build-with-claude/effort">Claude effort</a> · <a href="https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence">Anthropic cost and intelligence guidance</a>.</p>
 
 <blockquote>
-  <p><strong>Optional delegation prompt:</strong> “If this task has substantial independent tracks, delegate repository search, dependency mapping or test triage to bounded subagents. Use GPT-6 Luna for simple Codex scans, GPT-6 Sol Medium for harder Codex analysis, or Claude Sonnet 5 Medium for Claude workers. Have the lead agent integrate and verify their findings. Keep a single dependent change with one agent.” Subagents add token usage; use them when parallel work or isolated context helps. <a href="https://learn.chatgpt.com/docs/agent-configuration/subagents">Codex subagents</a> · <a href="https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence">Anthropic delegation guidance</a>.</p>
+  <p><strong>Optional delegation:</strong> For substantial independent tracks, delegate bounded repository search, dependency mapping or test triage to smaller models; have the lead agent integrate and verify findings. Keep one dependent change with one agent. Subagents add token usage. <a href="https://learn.chatgpt.com/docs/agent-configuration/subagents">Codex subagents</a> · <a href="https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence">Anthropic guidance</a>.</p>
 </blockquote>
 
-<h2 id="3-models--pricing">3. Models &amp; Pricing</h2>
+<h2 id="5-pricing">5. Pricing</h2>
 
-<p><strong>First-party Standard API text prices per 1M tokens, USD.</strong> Cached means a prompt-cache <strong>read</strong>. Output includes billed reasoning/thinking tokens. Relative cost compares uncached input and output rates with GPT-6 Sol = 1×; it does not compare quality, tokenizers or subscriptions. <a href="https://developers.openai.com/api/docs/pricing">OpenAI API pricing</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude API pricing</a>.</p>
+<p><strong>First-party Standard API text prices per 1 million tokens, USD.</strong> OpenAI rates assume <strong>up to 272K input tokens</strong>. Claude base rates cover the full supported context window: 200K for Haiku 4.5, 1M for Sonnet 5.5, Opus 5.5 and Fable 5.1. Input is uncached; cached input is a cache <strong>read</strong>; output includes billed reasoning or thinking tokens. <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude pricing</a> · <a href="https://platform.claude.com/docs/en/models/overview">Claude context windows</a>.</p>
 
 <div class="provider-table-scroll">
 
@@ -318,9 +429,9 @@
         <th>Model / API ID</th>
         <th style="text-align: right">Input</th>
         <th style="text-align: right">Cached input</th>
+        <th style="text-align: right">Cache write*</th>
         <th style="text-align: right">Output</th>
-        <th>Reasoning / effort</th>
-        <th style="text-align: right">Relative cost</th>
+        <th style="text-align: right">Relative rates</th>
       </tr>
     </thead>
     <tbody>
@@ -329,17 +440,17 @@
         <td>GPT-6 Luna <code class="language-plaintext highlighter-rouge">gpt-6-luna</code></td>
         <td style="text-align: right">$0.10</td>
         <td style="text-align: right">$0.01</td>
+        <td style="text-align: right">$0.125</td>
         <td style="text-align: right">$0.50</td>
-        <td>none–max; focused work</td>
         <td style="text-align: right">0.05×</td>
       </tr>
       <tr>
         <td>OpenAI</td>
-        <td>GPT-6 Sol <code class="language-plaintext highlighter-rouge">gpt-6-sol</code></td>
+        <td>GPT-6.1 Sol <code class="language-plaintext highlighter-rouge">gpt-6.1-sol</code></td>
         <td style="text-align: right">$2</td>
-        <td style="text-align: right">$0.20</td>
+        <td style="text-align: right">$0.10</td>
+        <td style="text-align: right">$2.50</td>
         <td style="text-align: right">$10</td>
-        <td>none–max; general work</td>
         <td style="text-align: right">1×</td>
       </tr>
       <tr>
@@ -347,8 +458,8 @@
         <td>GPT-6 Astra <code class="language-plaintext highlighter-rouge">gpt-6-astra</code></td>
         <td style="text-align: right">$10</td>
         <td style="text-align: right">$1</td>
+        <td style="text-align: right">$12.50</td>
         <td style="text-align: right">$50</td>
-        <td>low–max; hardest work</td>
         <td style="text-align: right">5×</td>
       </tr>
       <tr>
@@ -356,17 +467,17 @@
         <td>Haiku 4.5 <code class="language-plaintext highlighter-rouge">claude-haiku-4-5</code></td>
         <td style="text-align: right">$1</td>
         <td style="text-align: right">$0.10</td>
+        <td style="text-align: right">$1.25</td>
         <td style="text-align: right">$5</td>
-        <td>No effort control; fast work</td>
         <td style="text-align: right">0.5×</td>
       </tr>
       <tr>
         <td>Claude</td>
-        <td>Sonnet 5 <code class="language-plaintext highlighter-rouge">claude-sonnet-5</code></td>
+        <td>Sonnet 5.5 <code class="language-plaintext highlighter-rouge">claude-sonnet-5-5</code></td>
         <td style="text-align: right">$2</td>
         <td style="text-align: right">$0.20</td>
+        <td style="text-align: right">$2.50</td>
         <td style="text-align: right">$10</td>
-        <td>Adaptive; general work</td>
         <td style="text-align: right">1×</td>
       </tr>
       <tr>
@@ -374,27 +485,37 @@
         <td>Opus 5.5 <code class="language-plaintext highlighter-rouge">claude-opus-5-5</code></td>
         <td style="text-align: right">$4</td>
         <td style="text-align: right">$0.20</td>
+        <td style="text-align: right">$5</td>
         <td style="text-align: right">$20</td>
-        <td>Adaptive; Medium default</td>
-        <td style="text-align: right">2×*</td>
+        <td style="text-align: right">2×</td>
       </tr>
       <tr>
         <td>Claude</td>
         <td>Fable 5.1 <code class="language-plaintext highlighter-rouge">claude-fable-5-1</code></td>
         <td style="text-align: right">$10</td>
         <td style="text-align: right">$0.25</td>
+        <td style="text-align: right">$12.50</td>
         <td style="text-align: right">$50</td>
-        <td>Adaptive; frontier work</td>
-        <td style="text-align: right">5×*</td>
+        <td style="text-align: right">5×</td>
       </tr>
     </tbody>
   </table>
 
 </div>
 
-<p>*Cached-read ratios differ. Cache <strong>writes</strong> cost extra: GPT-6 and Claude 5-minute writes are 1.25× input; Claude 1-hour writes are 2× input. OpenAI GPT-6 prompts over 272K input tokens have higher rates for the whole request. Anthropic says its newer tokenizer can produce about 30% more tokens for the same text, depending on content. Tools, web search, regional processing and speed tiers may add cost. <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude pricing</a>.</p>
+<p>*Cache-write rates above use OpenAI’s <strong>30-minute</strong> cache lifetime and Claude’s <strong>5-minute</strong> cache. Claude 1-hour writes cost 2× base input. <a href="https://developers.openai.com/api/docs/guides/prompt-caching">OpenAI caching</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing#prompt-caching">Claude caching prices</a>.</p>
 
-<h2 id="4-plans--usage">4. Plans &amp; Usage</h2>
+<ul>
+  <li><strong>Long context:</strong> OpenAI requests over 272K input tokens cost 2× input/cache rates and 1.5× output for the <strong>whole request</strong>. The listed Claude models have no long-context premium within their supported window.</li>
+  <li><strong>Other processing:</strong> Batch is discounted; OpenAI Flex is also discounted. Fast/Ultrafast, regional processing and server tools can change the bill. The table assumes Standard processing and excludes tool fees.</li>
+  <li><strong>Relative rates:</strong> Uncached input and output rates compared with GPT-6.1 Sol = 1×. Actual cost depends on cache use, token counts, effort and retries. Newer Claude models can tokenize the same text into about 30% more tokens than Haiku 4.5 or Sonnet 4.6, depending on content.</li>
+</ul>
+
+<p>Compare measured <strong>cost per solved task</strong>. <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing tiers</a> · <a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude pricing details</a>.</p>
+
+<h2 id="6-plans--usage">6. Plans &amp; Usage</h2>
+
+<p><strong>Choose the model first; choose a plan from your actual usage.</strong> Start with Plus / Pro for regular work; consider a higher plan when you repeatedly hit included limits. Check the model picker and live usage dashboard before upgrading. Prices below are US monthly list prices; regional pricing, taxes and annual discounts can differ.</p>
 
 <div class="provider-table-scroll">
 
@@ -404,9 +525,7 @@
         <th>Provider</th>
         <th>Plan</th>
         <th style="text-align: right">Price / month</th>
-        <th>Model access</th>
-        <th>Usage allowance</th>
-        <th>Coding / agent usage</th>
+        <th>Access and usage guide</th>
       </tr>
     </thead>
     <tbody>
@@ -414,56 +533,58 @@
         <td>OpenAI</td>
         <td>Plus</td>
         <td style="text-align: right">$20</td>
-        <td>GPT-6 Sol/Luna in Work/Codex; Astra access varies by rollout/client</td>
-        <td>Variable five-hour usage; Sol <strong>15–150</strong> estimated local messages</td>
-        <td>A few focused sessions/week; optional ChatGPT credits</td>
+        <td>GPT-6.1 Sol, Luna and available Astra access in Work/Codex; suited to a few focused sessions weekly; variable included limits and optional credits</td>
       </tr>
       <tr>
         <td>OpenAI</td>
-        <td>Pro 5x</td>
+        <td>Pro 100</td>
         <td style="text-align: right">$100</td>
-        <td>Plus models and Pro features</td>
-        <td>~5× Plus; Sol <strong>70–700</strong> estimated local messages/five hours</td>
-        <td>Frequent sessions; optional credits</td>
+        <td>More included usage than Plus for frequent work; optional credits</td>
       </tr>
       <tr>
         <td>OpenAI</td>
-        <td>Pro 20x</td>
+        <td>Pro 200</td>
         <td style="text-align: right">$200</td>
-        <td>Pro features; <strong>new sign-ups/upgrades paused</strong> as of 10 Sep 2026</td>
-        <td>~20× Plus; Sol <strong>300–3,000</strong> estimated local messages/five hours</td>
-        <td>Existing heavy-use subscribers</td>
+        <td>More included usage than Pro 100; new subscriptions available; some accounts temporarily retain a grandfathered allowance</td>
+      </tr>
+      <tr>
+        <td>OpenAI</td>
+        <td>Pro 500</td>
+        <td style="text-align: right">$500</td>
+        <td>Highest Pro included usage; Astra Ultrafast access</td>
       </tr>
       <tr>
         <td>Claude</td>
         <td>Pro</td>
         <td style="text-align: right">$20</td>
-        <td>Current models; <strong>Fable 5.1 requires paid usage credits</strong></td>
-        <td>Variable five-hour and weekly limits</td>
-        <td>Claude Code shares allowance with Claude</td>
+        <td>Claude Code shares the plan allowance; Fable 5.1 uses paid usage credits from the start</td>
       </tr>
       <tr>
         <td>Claude</td>
         <td>Max 5x</td>
         <td style="text-align: right">$100</td>
-        <td>Current models; Fable included within a 50% weekly cap</td>
-        <td>5× Pro per-session usage; weekly cap</td>
-        <td>Frequent Claude Code / research</td>
+        <td>5× Pro per-session allowance, plus a weekly cap; Fable can use up to 50% of the shared weekly allowance</td>
       </tr>
       <tr>
         <td>Claude</td>
         <td>Max 20x</td>
         <td style="text-align: right">$200</td>
-        <td>Same model access as Max 5x</td>
-        <td>20× Pro per-session usage; weekly cap</td>
-        <td>Daily intensive Claude Code</td>
+        <td>20× Pro per-session allowance, plus a weekly cap; same Fable allocation rule</td>
       </tr>
     </tbody>
   </table>
 
 </div>
 
-<p><strong>Billing boundary:</strong> ChatGPT Work and Codex share included usage; extra <strong>ChatGPT credits</strong> have a separate token rate card. API-key use is separately billed in <strong>API dollars</strong>. Claude chat and Claude Code share plan limits; optional <strong>usage credits</strong> after the limit use standard API rates. An <code class="language-plaintext highlighter-rouge">ANTHROPIC_API_KEY</code> in Claude Code can switch the session to API billing. These systems have no trustworthy plan-to-token conversion. Check live usage before upgrading. <a href="https://learn.chatgpt.com/docs/pricing">OpenAI plans, limits and credit rates</a> · <a href="https://help.openai.com/en/articles/7242622-why-did-my-chatgpt-plus-or-chatgpt-pro-renewal-transaction-fail">OpenAI Pro $200 pause</a> · <a href="https://support.claude.com/en/articles/8325606-what-is-the-pro-plan">Claude Pro</a> · <a href="https://support.claude.com/en/articles/11049741-what-is-the-max-plan">Claude Max</a> · <a href="https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan">Fable plan rules</a> · <a href="https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan">Claude Code billing</a>.</p>
+<p><strong>Usage and billing:</strong></p>
+
+<ul>
+  <li><strong>OpenAI:</strong> Work and Codex share included usage. Purchased ChatGPT credits have a separate rate card; API-key usage is billed separately in API dollars. Plus has variable five-hour usage and may have weekly limits. Pro currently has no five-hour limit, but other allowances apply.</li>
+  <li><strong>Claude:</strong> Chat and Claude Code share plan limits, with five-hour session resets and weekly limits. Optional usage credits use standard API rates. An <code class="language-plaintext highlighter-rouge">ANTHROPIC_API_KEY</code> in Claude Code can switch a session to API billing. Fable’s Max allocation is part of the shared weekly allowance; credits are needed after that allocation is exhausted.</li>
+  <li><strong>Planning:</strong> Published message ranges are illustrative, not fixed limits. Context, reasoning, tools, speed mode and caching affect usage; there is no reliable plan-to-token conversion.</li>
+</ul>
+
+<p><a href="https://learn.chatgpt.com/docs/pricing">OpenAI plans and usage</a> · <a href="https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers">OpenAI Pro tiers</a> · <a href="https://support.claude.com/en/articles/11049762-choose-a-claude-plan">Claude plans</a> · <a href="https://support.claude.com/en/articles/11049741-what-is-the-max-plan">Claude Max limits</a> · <a href="https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan">Fable plan rules</a> · <a href="https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan">Claude Code billing</a>.</p>
 
     </article>
   </main>

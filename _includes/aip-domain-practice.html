@@ -1,0 +1,62 @@
+<link rel="stylesheet" href="{{ '/assets/aip-decision-lab.css' | relative_url }}">
+<section id="aip-domain-practice" class="aip-lab aip-domains" aria-label="AIP-C01 practice by domain and exam trap">
+  <div class="aip-lab__header">
+    <span class="aip-lab__badge">DOMAIN STUDY + INTERACTIVE PRACTICE</span>
+    <strong class="aip-lab__title">Learn the trap. Choose the right AWS service.</strong>
+    <p>Pick a domain → compare the services → answer a focused question.</p>
+  </div>
+  <div class="aip-lab__fallback">
+    <p>The five domains cover model/data decisions (31%), integration (26%), security/governance (20%), optimization (12%), and evaluation/troubleshooting (11%). The references below explain the key service differences. Enable JavaScript for the domain trap lessons and questions.</p>
+  </div>
+  <div class="aip-lab__interactive" hidden>
+    <div id="aip-domains" class="aip-domains__selector" role="group" aria-label="Choose an exam domain"></div>
+    <div class="aip-domains__heading">
+      <strong id="aip-domain-title"></strong>
+      <span id="aip-domain-summary"></span>
+    </div>
+    <div class="aip-lab__toolbar">
+      <label for="aip-trap">Choose a trap</label>
+      <select id="aip-trap"></select>
+      <span id="aip-trap-count" class="aip-lab__eyebrow"></span>
+    </div>
+    <p id="aip-pdf-reference" class="aip-lab__note"></p>
+    <div class="aip-domains__services">
+      <strong>Key services and controls</strong>
+      <ul id="aip-key-services" aria-label="Services involved in this trap"></ul>
+    </div>
+    <div class="aip-domains__modes" role="group" aria-label="Study or practise this trap">
+      <button id="aip-learn-mode" type="button" aria-pressed="true" aria-controls="aip-trap-lesson">1. Learn the distinction</button>
+      <button id="aip-practice-mode" type="button" aria-pressed="false" aria-controls="aip-trap-question">2. Try a question</button>
+    </div>
+    <div id="aip-trap-lesson">
+      <p id="aip-trap-rule" class="aip-domains__rule"></p>
+      <div id="aip-comparisons" class="aip-domains__comparisons"></div>
+      <button id="aip-start-question" type="button">Apply this distinction →</button>
+    </div>
+    <div id="aip-trap-question" hidden>
+      <p id="aip-trap-prompt" class="aip-domains__prompt"></p>
+      <fieldset class="aip-lab__answers">
+        <legend id="aip-question-label">Which service or pattern meets this requirement?</legend>
+        <div id="aip-trap-choices"></div>
+      </fieldset>
+      <p id="aip-trap-feedback" role="status" aria-live="polite" aria-atomic="true">Choose an answer to see why it fits or fails.</p>
+      <button id="aip-show-answer" type="button" aria-expanded="false" aria-controls="aip-trap-explanation">Reveal the answer and exam trap</button>
+      <div id="aip-trap-explanation" class="aip-domains__explanation" hidden>
+        <strong>The deciding clue</strong><p id="aip-deciding-clue"></p>
+        <strong>Best answer for this requirement</strong><p id="aip-best-answer"></p>
+        <strong>Why the alternatives fail</strong><ul id="aip-rejected-options"></ul>
+        <strong id="aip-concrete-flow-label">Service responsibility / request path</strong>
+        <ol id="aip-concrete-flow" class="aip-domains__flow" aria-labelledby="aip-concrete-flow-label"></ol>
+        <p class="aip-lab__note">The flow highlights the relevant service responsibility. Add identity, authorization, safety, and telemetry at their required boundaries.</p>
+        <a id="aip-trap-reading" href="#how-to-think">Read the related guide →</a>
+      </div>
+    </div>
+    <div class="aip-lab__case-nav">
+      <button id="aip-prev-trap" type="button">← Previous trap</button>
+      <button id="aip-retry-trap" type="button">Try this question again</button>
+      <button id="aip-next-trap" type="button">Next trap →</button>
+    </div>
+    <p class="aip-lab__note">Topics follow the cheat sheet’s domain distinctions and trap review. Questions are original practice, not AWS exam questions. Service caveats are checked against AWS documentation; exam weights are not a promise of question counts.</p>
+  </div>
+</section>
+<script src="{{ '/assets/aip-domain-practice.js' | relative_url }}" defer></script>

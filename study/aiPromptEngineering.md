@@ -19,6 +19,8 @@ tag:
 
 **Part 2 of 7:** [Fundamentals](/study/aiFundamentals) → **Prompt engineering** → [Models](/study/aiModels).
 
+{% include aip-decision-lab.html topic="prompt" title="Fix the prompt, or fix the system?" %}
+
 ## 1. Big picture: specify, test, refine {#lifecycle}
 
 <figure class="prompt-diagram prompt-flow" aria-labelledby="lifecycle-caption">
@@ -324,7 +326,7 @@ Add that ticket to the evaluation set and check that the injected instruction ch
 
 ## 10. Map the concepts to AWS Bedrock {#bedrock}
 
-Use [Bedrock Prompt management, Flows, and evaluation](/study/infrastructureAWSAiServices#section-2-2-capabilities) to implement the template and testing lifecycle on AWS. The AWS page owns the service mapping.
+Use [Bedrock Prompt management, Flows, and evaluation](/study/aiAWSServices#section-2-2-capabilities) to implement the template and testing lifecycle on AWS. The AWS page owns the service mapping.
 
 ## 11. Check your understanding {#exam}
 

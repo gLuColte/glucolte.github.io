@@ -23,6 +23,8 @@ tag:
 
 **Part 4 of 7:** [Models and providers](/study/aiModels) → **Knowledge bases and retrieval** → [AI Agents](/study/aiAgents). This page owns the quality of evidence selection and RAG answers; agent-loop and platform-release metrics come later.
 
+{% include aip-decision-lab.html topic="rag" title="Find the first broken RAG boundary" %}
+
 <aside class="technique-callout">
   <strong>Keep this distinction</strong>
   <span><strong>RAG ≠ Vector Database.</strong> A vector database is one component that may support semantic retrieval. RAG is the larger architecture: retrieve external evidence, place it in the model context, then generate an answer.</span>
@@ -124,7 +126,7 @@ Common strategies are deliberately different tools:
 
 Section-aware chunking is often a strong default for policies because the heading path becomes both context and retrieval metadata. It is not automatically best: tables, transcripts, and long narrative text may need another approach.
 
-**Implementation boundary:** parent substitution is a retriever feature, not a universal property of a hierarchical document. Bedrock vector retrieval and Neptune GraphRAG differ here. A lost table layout needs a parser change before any chunking adjustment. See [Knowledge Bases configuration layers](/study/infrastructureAWSAiServices#kb-internals).
+**Implementation boundary:** parent substitution is a retriever feature, not a universal property of a hierarchical document. Bedrock vector retrieval and Neptune GraphRAG differ here. A lost table layout needs a parser change before any chunking adjustment. See [Knowledge Bases configuration layers](/study/aiAWSServices#kb-internals).
 
 ### Embeddings: representing meaning as vectors
 
@@ -161,7 +163,7 @@ Re-embed corpus → separate compatible index → evaluate recall + answers
                                             retain rollback pair
 ```
 
-Do not mix unrelated model versions or dimensions in one similarity space. Re-embedding only new documents leaves the old catalogue incompatible unless the system explicitly maintains separate indexes and routing. Lower dimensions reduce raw vector bytes but can reduce retrieval quality; corpus size alone does not determine the right dimension. [Titan customization and dimension controls](/study/infrastructureAWSAiServices#bedrock-customization).
+Do not mix unrelated model versions or dimensions in one similarity space. Re-embedding only new documents leaves the old catalogue incompatible unless the system explicitly maintains separate indexes and routing. Lower dimensions reduce raw vector bytes but can reduce retrieval quality; corpus size alone does not determine the right dimension. [Titan customization and dimension controls](/study/aiAWSServices#bedrock-customization).
 
 ## How Can We Retrieve Relevant Information?
 
@@ -281,7 +283,7 @@ Now that vector search has a job, we can ask how it scales. Start with a **brute
 </svg>
 </div>
 
-**Tune the stage that consumes resources:** `ef_search` changes query exploration; `ef_construction` changes graph-building effort; `m` changes connectivity and graph memory. More search effort can improve recall but adds latency. Shard distribution and available memory must support the index; adding shards without adding capacity can increase overhead. [OpenSearch HNSW controls](/study/infrastructureAWSAiServices#opensearch-hnsw-tuning).
+**Tune the stage that consumes resources:** `ef_search` changes query exploration; `ef_construction` changes graph-building effort; `m` changes connectivity and graph memory. More search effort can improve recall but adds latency. Shard distribution and available memory must support the index; adding shards without adding capacity can increase overhead. [OpenSearch HNSW controls](/study/aiAWSServices#opensearch-hnsw-tuning).
 
 ## IVF: Find the Right Neighbourhood
 
@@ -384,7 +386,7 @@ A typical dense-retrieval system uses a **bi-encoder** to encode queries and chu
   <span><strong>Reranking cannot recover a document that first-stage retrieval failed to retrieve.</strong> Improve recall before expecting reranking to fix missing evidence.</span>
 </aside>
 
-**Dynamic context pruning** keeps a broad candidate search, then drops low-relevance candidates after reranking and before prompt construction. Calibrate a score threshold and token budget against recall and answer quality; reranker scores are not universal probabilities. Summarizing every irrelevant chunk preserves noise in compressed form, while a recency-only window can discard an older but decisive source. [AWS reranking integration](/study/infrastructureAWSAiServices#kb-internals).
+**Dynamic context pruning** keeps a broad candidate search, then drops low-relevance candidates after reranking and before prompt construction. Calibrate a score threshold and token budget against recall and answer quality; reranker scores are not universal probabilities. Summarizing every irrelevant chunk preserves noise in compressed form, while a recency-only window can discard an older but decisive source. [AWS reranking integration](/study/aiAWSServices#kb-internals).
 
 ## Evaluation: Does the System Retrieve and Answer Well?
 
@@ -415,7 +417,7 @@ Evaluate retrieval and generation separately. A polished answer may still be bas
 
 **Recall@5 = 3 / 4 = 75%** — *“Did I find the relevant stuff?”*
 
-For the underlying TP/FP/FN definitions, F1, and why accuracy can mislead on imbalanced data, see [classification metrics](/study/aiInfrastructure#classification-metrics). Here, K is the number of retrieved results; it is unrelated to the model's next-token top-k sampling control. AWS-specific query and click trends are covered under [Kendra Search Analytics](/study/infrastructureAWSAiServices#kendra-search-analytics).
+For the underlying TP/FP/FN definitions, F1, and why accuracy can mislead on imbalanced data, see [classification metrics](/study/aiInfrastructure#classification-metrics). Here, K is the number of retrieved results; it is unrelated to the model's next-token top-k sampling control. AWS-specific query and click trends are covered under [Kendra Search Analytics](/study/aiAWSServices#kendra-search-analytics).
 
 MRR rewards placing the first useful result early; NDCG also accounts for graded relevance and ranking position. Use retrieval and answer metrics together, but never substitute one for the other:
 
@@ -438,4 +440,4 @@ Agent task/tool metrics belong on [AI Agents](/study/aiAgents#section-9-evaluati
 - The right document was retrieved but its exception was lost: inspect the parser and chunk boundary before changing the generation model.
 - The answer cites a real document that does not support its claim: inspect citation entailment and grounding, separately from retrieval recall.
 
-Continue to [AI Agents](/study/aiAgents) for using evidence during tool execution. For AWS implementations, see [AWS AI Services](/study/infrastructureAWSAiServices#section-8-retrieval-choice).
+Continue to [AI Agents](/study/aiAgents) for using evidence during tool execution. For AWS implementations, see [AWS AI Services](/study/aiAWSServices#section-8-retrieval-choice).
