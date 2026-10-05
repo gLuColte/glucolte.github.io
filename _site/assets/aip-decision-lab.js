@@ -341,6 +341,11 @@
   let currentCase = 0;
   let currentStep = 0;
   let revealed = false;
+  const displayedOptions = () => {
+    const options = cases[currentCase].options;
+    const offset = currentCase % options.length;
+    return options.slice(offset).concat(options.slice(0, offset)).map((option, position) => ({...option, letter: String.fromCharCode(65 + position)}));
+  };
   const set = (id, value) => { el(id).textContent = value; };
   cases.forEach((item, index) => {
     const option = document.createElement('option');
@@ -366,15 +371,20 @@
     revealed = true;
     const item = cases[currentCase];
     set('constraint', item.constraint);
+    const choices = displayedOptions();
+    const correct = choices.find(option => option.correct);
+    set('correct-option', `${correct.letter}. ${correct.label}`);
     set('delta', item.delta);
     set('counterfactual', item.counter);
     set('path-label', item.path.includes('cache') ? 'Trace a cache miss (hits skip retrieval and generation)' : 'Trace the responsibility path');
     el('alternatives').replaceChildren();
-    item.options.filter(option => !option.correct).forEach(option => {
+    choices.filter(option => !option.correct).forEach(option => {
       const li = document.createElement('li');
       const label = document.createElement('strong');
-      label.textContent = `${option.label}: `;
-      li.append(label, document.createTextNode(option.reason));
+      label.textContent = `${option.letter}. ${option.label}`;
+      const reason = document.createElement('p');
+      reason.textContent = option.reason;
+      li.append(label, reason);
       el('alternatives').append(li);
     });
     el('reading').href = item.reading;
@@ -410,12 +420,10 @@
     set('reveal', 'Reveal and trace the design');
     el('choices').replaceChildren();
     // Rotate alternatives so the correct position is not a learned shortcut.
-    const offset = currentCase % item.options.length;
-    const options = item.options.slice(offset).concat(item.options.slice(0, offset));
-    options.forEach(option => {
+    displayedOptions().forEach(option => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = option.label;
+      button.textContent = `${option.letter}. ${option.label}`;
       button.setAttribute('aria-pressed', 'false');
       button.addEventListener('click', () => {
         el('choices').querySelectorAll('button').forEach(other => other.setAttribute('aria-pressed', String(other === button)));

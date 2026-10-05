@@ -1670,6 +1670,12 @@
   let topicIndex = 0;
   let mode = 'practice';
   const current = () => domains[domainIndex].topics[topicIndex];
+  const displayedOptions = () => {
+    const item = current();
+    const offset = (domainIndex + topicIndex) % item.options.length;
+    const options = item.options.map((candidate, index) => ({candidate, index}));
+    return options.slice(offset).concat(options.slice(0, offset)).map((option, position) => ({...option, letter: String.fromCharCode(65 + position)}));
+  };
   const set = (id, value) => { el(id).textContent = value; };
   const paragraph = text => { const p = document.createElement('p'); p.textContent = text; return p; };
   function setMode(next) {
@@ -1682,15 +1688,18 @@
   function reveal() {
     const item = current();
     set('deciding-clue', item.clue);
+    const choices = displayedOptions();
+    const correct = choices.find(choice => choice.index === item.answer);
+    set('correct-choice', `${correct.letter}. ${correct.candidate.action}`);
     set('best-answer', item.why);
     set('answer-change', item.change);
     el('rejected-options').replaceChildren();
-    item.options.forEach((candidate, index) => {
+    choices.forEach(({candidate, index, letter}) => {
       if (index === item.answer) return;
       const li = document.createElement('li');
       const strong = document.createElement('strong');
-      strong.textContent = `${candidate.name}: `;
-      li.append(strong, document.createTextNode(candidate.wrong || candidate.trap));
+      strong.textContent = `${letter}. ${candidate.action}`;
+      li.append(strong, paragraph(candidate.wrong || candidate.trap));
       el('rejected-options').append(li);
     });
     el('concrete-flow').replaceChildren();
@@ -1753,12 +1762,9 @@
       el('comparisons').append(card);
     });
     el('trap-choices').replaceChildren();
-    const offset = (domainIndex + topicIndex) % item.options.length;
-    const order = item.options.map((candidate, index) => ({candidate, index}));
-    const rotated = order.slice(offset).concat(order.slice(0, offset));
-    rotated.forEach(({candidate, index}) => {
+    displayedOptions().forEach(({candidate, index, letter}) => {
       const button = document.createElement('button'); button.type = 'button';
-      button.textContent = candidate.action;
+      button.textContent = `${letter}. ${candidate.action}`;
       button.setAttribute('aria-pressed', 'false');
       button.addEventListener('click', () => {
         el('trap-choices').querySelectorAll('button').forEach(other => other.setAttribute('aria-pressed', String(other === button)));

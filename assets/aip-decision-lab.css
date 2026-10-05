@@ -60,6 +60,9 @@
 #aip-reveal { color: var(--lab-accent); border-color: var(--lab-accent); }
 .aip-lab__reason { margin-top: 20px; padding: 16px; border-left: 3px solid var(--lab-accent); background: var(--lab-soft); font-size: 14px; }
 .aip-lab__reason p:last-child { margin-bottom: 0; }
+.aip-lab__selected-answer { font-weight: 600; }
+.aip-lab__reason li p, .aip-domains__explanation li p { margin: 5px 0 12px; }
+.aip-lab #aip-alternatives, .aip-lab #aip-rejected-options { list-style: none; padding-left: 0; }
 .aip-lab__trace-head { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 22px 0 12px; font-size: 14px; }
 .aip-lab__trace-head span { color: var(--muted); }
 .aip-lab .aip-lab__path { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
