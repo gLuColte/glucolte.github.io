@@ -91,7 +91,7 @@
         <button type="button" id="gm-mental" aria-pressed="true">Mental Map</button>
         <button type="button" id="gm-study" aria-pressed="false">Study</button>
       </div>
-      <button type="button" id="gm-diagnose" aria-pressed="false">Diagnose backwards</button>
+      <button type="button" id="gm-diagnose" aria-pressed="false">Review / diagnose</button>
       <div class="gm-zoom" role="group" aria-label="Map zoom">
         <button type="button" id="gm-zoom-out" aria-label="Zoom out">−</button>
         <button type="button" id="gm-fit">Fit</button>
@@ -158,18 +158,22 @@
         <button type="button" id="gm-explore">Explore this layer in Study mode →</button>
       </aside>
       <div class="gm-trace" id="gm-trace" hidden="">
-          <div class="gm-trace-head"><strong>Diagnose backwards</strong><button id="gm-upstream" type="button">Check earlier cause →</button></div>
-          <p>Start with an observed failure. Follow the investigation from left to right: outcome → earlier checks → inputs. This is investigation order, not application execution order.</p>
-          <label for="gm-diagnostic-path">What went wrong? Choose a path or a symptom.</label>
+          <div class="gm-trace-head"><strong id="gm-trace-title">Review the path</strong><button id="gm-upstream" type="button">Check earlier cause →</button></div>
+          <p id="gm-direction-text">Follow the reasoning from inputs and task definition toward the result.</p>
+          <label for="gm-diagnostic-path">Choose a learning path or an observed problem.</label>
           <select id="gm-diagnostic-path"></select>
           <p id="gm-path-summary"></p>
           <div id="gm-trace-steps" class="gm-trace-steps" role="group" aria-label="Diagnostic checkpoints"></div>
           <div class="gm-checkpoint" aria-live="polite" aria-atomic="true">
             <strong id="gm-checkpoint-title"></strong>
+            <div class="gm-checkpoint-explanation">
+              <div><span>What this means</span><p id="gm-checkpoint-meaning"></p></div>
+              <div><span>What you might notice</span><p id="gm-checkpoint-symptom"></p></div>
+            </div>
             <div class="gm-checkpoint-grid">
               <div><span>Inspect the evidence</span><p id="gm-checkpoint-evidence"></p></div>
               <div><span>Deciding rule / trap</span><p id="gm-checkpoint-rule"></p></div>
-              <div><span>Architecture location</span><p id="gm-checkpoint-location"></p><button type="button" id="gm-checkpoint-open">Explore this concept in the map ↑</button></div>
+              <div><span>Architecture location</span><p id="gm-checkpoint-location"></p></div>
             </div>
           </div>
 

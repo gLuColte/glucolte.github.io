@@ -213,7 +213,7 @@
   sub('performance','evaluation','Safety / latency / cost','Assess critical cohorts, actual tool outcomes, first-token/total/queue latency, and tokens/cost per successful outcome.','Faster first text differs from lower total generation time.','The cheapest invocation can be expensive per successful task if it fails or retries.',{read:'#inference-modes'});
   sub('caching','evaluation','Repeated work / caching','Identify the reusable unit: exact scoped result, semantically equivalent answer, or supported identical prompt prefix.','Stable system prefix with new answers → prompt caching.','A prompt cache is not response reuse; response cache keys must include scope and version.',{capability:'Eligible Bedrock prompt caching; scoped application result caches where valid.',read:'#cost-patterns'});
   sub('rollout','evaluation','Release / rollout','Offline gates precede controlled exposure. Canary limits live exposure; A/B compares live outcomes; shadow compares isolated copied requests.','Candidate output must not reach users and writes must not occur → isolated shadow.','Hiding the candidate answer does not suppress production tool side effects.',{read:'#quality-gate-decisions'});
-  sub('diagnostics','evaluation','Diagnose backwards','Choose a RAG, prompt, fine-tuning, LoRA release, serving, workflow, or access/safety path. Start from the observed outcome and inspect upstream boundaries.','Find the first demonstrated inconsistency using versioned inputs, metrics, traces, and actual outputs.','Do not debug training loss for a routing defect, rerank an absent chunk, or use Guardrails as tenant authorization.');
+  sub('diagnostics','evaluation','Review / diagnose','Review a whole path forward to understand its responsibilities. Choose an observed symptom to investigate backwards through earlier boundaries.','Find the first demonstrated inconsistency using versioned inputs, metrics, traces, and actual outputs.','Do not debug training loss for a routing defect, rerank an absent chunk, or use Guardrails as tenant authorization.');
   sub('metrics','observability','CloudWatch metrics / alarms','Track token counts, latency distributions, throttles/errors, queue age, and emitted quality/outcome signals.','Operational threshold on InputTokenCount → metric alarm.','Cost Explorer analyzes billing and Budgets alerts; neither is this runtime metric alarm.',{capability:'CloudWatch metrics/alarms; configured custom application signals.'});
   sub('audit','observability','CloudTrail caller audit','Record required AWS API activity with the appropriate event coverage; correlate caller, time, and operation.','Who invoked or changed an AWS resource?','Caller audit events are not the complete model input/output record.',{capability:'AWS CloudTrail with required event coverage/selectors.'});
   sub('content-logs','observability','Invocation / application logging','Explicitly enable supported interaction-content logging where policy allows; protect destinations, retention, and sensitive inputs.','Need the actual prompt and answer rather than only the caller.','Logging is not enabled by assuming CloudTrail; logs can retain sensitive pre-masking input.',{capability:'Bedrock Model Invocation Logging to protected CloudWatch Logs / S3, plus scoped application/tool logs.'});
@@ -284,16 +284,16 @@
       step('model','Model','Compare outputs on the same verified context with the baseline and actual generation settings.','Only blame model capability after validating the input and output contract.'),
       step('response','Answer / validation','Compare individual claims and citations against supplied evidence and the user requirement.','A valid citation or JSON shape is not proof of faithfulness or correctness.')
     ],symptoms:[['index','Required chunk is absent from the index'],['candidates','Indexed, permitted chunk never enters candidates'],['reranker','Correct candidate is present but ordered badly'],['prompt','Correct evidence reaches the model; answer is wrong']]},
-    prompt:{title:'Prompt / model answer quality',summary:'Check task definition, instructions, actual context, and generation settings before deciding to fine-tune.',steps:[
-      step('select','Model / task fit','Compare baseline performance, supported modality, context budget, and task requirements.','A public benchmark or larger model is not proof of task fit.'),
+    prompt:{title:'Prompt / model answer quality',summary:'First define what a correct answer means. Choose a suitable model, supply clear instructions and relevant context, then generate and validate. Output checks verify both format and the original task rules; valid JSON alone is insufficient.',steps:[
       step('user-query','Task definition','Inspect label meanings, output requirements, ambiguity, and representative boundary cases.','A persona does not define missing business rules.'),
+      step('select','Model / task fit','Compare baseline performance, supported modality, context budget, and task requirements.','A public benchmark or larger model is not proof of task fit.'),
       step('system-instructions','Instructions','Check instruction priority, untrusted-source separation, refusal/escalation rules, and examples.','Prompt instructions cannot replace deterministic authorization.'),
       step('prompt-template','Template version','Compare the evaluated template/variables with the deployed version and rendered payload.','A saved prompt version is not necessarily the version actually invoked.'),
       step('retrieved-knowledge','Evidence','Verify the selected knowledge contains the required facts and qualifications.','Missing current facts usually require evidence, not style fine-tuning.'),
       step('conversation','History / state','Inspect included turns, authoritative state, permission scope, and trimming.','An inference API does not automatically retain every earlier turn.'),
       step('generation-config','Generation settings','Inspect actual token limits, stop sequences, sampling, template, and model/API settings.','Cut-off output differs from hallucination; low temperature is not a truth guarantee.'),
       step('response','Output contract','Check semantic correctness, factual support, schema, and actual business outcome separately.','Valid JSON can still encode an incorrect or unauthorized action.')
-    ],symptoms:[['user-query','Labels or decision boundaries are ambiguous'],['conversation','Model forgets a previous user fact'],['generation-config','Answer ends early or changes after deployment'],['retrieved-knowledge','Current private fact is missing from the answer']]},
+    ],symptoms:[['user-query','Labels or decision boundaries are ambiguous'],['conversation','Model forgets a previous user fact'],['generation-config','Answer ends early or changes after deployment'],['retrieved-knowledge','Current private fact is missing from the answer'],['response','JSON is valid, but the category or business decision is wrong']]},
     training:{title:'Fine-tuning / training quality',summary:'Work from held-out task behavior back through the artifact, training configuration, records, and adaptation choice. Loss is evidence, not the final goal.',steps:[
       step('select','Base model / baseline','Compare representative tasks with the untuned model and supported customization methods.','Fine-tuning is not automatically better than a suitable baseline.'),
       step('adapt','Adaptation choice','State whether the gap is instructions, changing facts, stable behavior, or domain adaptation.','Prompting, RAG, supervised tuning, and continued pre-training solve different gaps.'),
@@ -353,7 +353,154 @@
       step('content-logs','Observed exposure','Inspect safely scoped evidence of what reached users, tools, caches, and logs, with request/version identity.','Filtered output can coexist with sensitive pre-filter logs; protect every retained copy.')
     ],symptoms:[['tenant','Tenant A receives tenant B’s retrieved passage'],['content-logs','Masked answer is safe, but logs still contain PII'],['private-network','Private application still calls a public runtime path'],['governance','Deleted source content remains in derived copies']]}
   };
-  let diagnosticPath='rag', checkpointId=null, diagnosisChoice='rag|response';
+  const checkpointMeanings={
+    source:'The original document or business record is the authority for the fact the assistant needs.',
+    preprocess:'Preprocessing converts the original document, image, or audio into a usable representation without losing its meaning.',
+    parse:'Parsing extracts text and structure, including table relationships, headings, and exceptions, before chunking.',
+    chunk:'A chunk is a small searchable unit of a document. Its boundaries determine which facts and conditions stay together.',
+    metadata:'Metadata describes a chunk: its source, version, identifiers, and which callers may access it.',
+    embed:'A document embedding is a numeric representation used to find passages with related meaning.',
+    index:'The index is the searchable copy of your chunks, vectors, and metadata. It can differ from the original source.',
+    query:'The retrieval query carries the question, exact identifiers, and trusted access scope used to search the corpus.',
+    'query-embed':'A query embedding represents the question numerically so it can be compared with document embeddings.',
+    candidates:'Candidates are the passages the initial search actually returns. Only these passages are available to a downstream reranker.',
+    reranker:'A reranker changes the order of passages already found by search, so the most useful evidence is selected first.',
+    'best-context':'Context selection chooses which retrieved passages fit into the model request, including necessary conditions and source references.',
+    prompt:'The prompt is the actual assembled request: instructions, the user question, evidence, and any conversation history.',
+    model:'The model generates an answer from the context and settings it actually receives.',
+    response:'The delivered result must satisfy the user’s request and be checked against evidence or the authoritative business outcome.',
+    select:'Model selection means choosing a supported model that meets the actual task, quality, modality, latency, and cost requirements.',
+    'user-query':'Task definition states exactly what to decide or produce, including the meaning of labels and boundary cases.',
+    'system-instructions':'System instructions describe the task rules, authority boundaries, and how to handle insufficient or untrusted information.',
+    'prompt-template':'A prompt template is the reusable, versioned structure into which the application inserts task-specific inputs.',
+    'retrieved-knowledge':'Retrieved knowledge is the permitted source evidence included in the request to answer a question.',
+    conversation:'Conversation context is the relevant earlier discussion and application state explicitly supplied with the current request.',
+    'generation-config':'Generation settings control limits and behavior such as output length, stop sequences, and sampling. They do not establish factual truth.',
+    adapt:'Adaptation chooses what needs changing: instructions, retrieved facts, model behavior, or domain learning.',
+    datasets:'Dataset splits separate training examples, tuning/validation examples, and independent final tests. Lineage records where each version came from.',
+    'training-records':'A training record pairs an input with the expected output or label. A label is the answer the model is being taught to produce.',
+    'training-config':'Training configuration specifies how learning runs: supported method/base, data format, sequence length, learning rate, epochs, and batches.',
+    'fine-tuning':'Fine-tuning trains a supported model on task examples to change learned behavior; it is separate from supplying facts through RAG.',
+    'training-runs':'Learning curves show how training and, where available, validation error change as training progresses.',
+    checkpoint:'A checkpoint is a saved training artifact. Different checkpoints can generalize differently even within the same training run.',
+    'lifecycle-evaluate':'Held-out evaluation tests a candidate on representative examples it was not trained or tuned to memorize.',
+    registry:'Artifact registration and approval record which version may be released. They do not perform the live deployment.',
+    'deployment-check':'Live verification checks which model, adapter, prompt, and route actually serve a real application request.',
+    monitor:'Production monitoring connects real task outcomes and failures to the versions and user groups that produced them.',
+    'lora-rank':'LoRA rank controls the capacity of the small trainable adapter. Scaling and dropout also affect its training behavior.',
+    lora:'LoRA learns small adapter weights while the base model stays frozen. The adapter modifies that compatible base model’s behavior.',
+    'lora-artifact':'An unmerged LoRA adapter must be paired with the compatible base revision, tokenizer/template, and supported artifact format.',
+    'lora-serving':'Adapter serving loads the intended base and adapter and routes each authorized request to the right pair.',
+    quantization:'Quantization reduces the precision used to represent model weights. Its memory, speed, and quality effects depend on the serving setup.',
+    capacity:'Capacity is the amount of inference work the configured service or endpoint can handle under its quotas and routing rules.',
+    admission:'Admission controls which requests enter; queueing and worker pacing determine when accepted work reaches the model.',
+    caching:'Caching reuses a specific kind of compatible work: an answer, an embedding, or a supported prompt prefix.',
+    traces:'Stage timings measure where time was spent across queueing, initialization, retrieval, generation, and delivery.',
+    performance:'Performance should be judged by usable outcomes: latency experienced by users, successful tasks, and the cost of producing them.',
+    user:'The entry point establishes the caller, their permitted request, and whether they expect a live response or a durable background job.',
+    orchestration:'Orchestration determines who controls the next action: explicit workflow states, model-selected tools, or event-driven workers.',
+    'step-functions':'A durable workflow records progress through known steps, retries, timeouts, and approval waits.',
+    agents:'An agent chooses tools using the task and observations, within the allowed actions and execution limits.',
+    'tool-validation':'Tool validation checks arguments, caller permission, and business preconditions before an external action is allowed.',
+    mcp:'Tool execution is the actual API or business operation. A returned error and the business record must be checked separately.',
+    recovery:'Recovery reconciles uncertain results and retries. Idempotency prevents repeated delivery from repeating the same business action.',
+    authentication:'Authentication establishes who is calling. Effective roles and policies determine their allowed AWS actions.',
+    tenant:'Data and tool scope restrict the caller to the documents, records, and actions they are entitled to use.',
+    'private-network':'A private network path uses the intended endpoint, DNS, routing, and policies rather than an unintended public route.',
+    kms:'Encryption protects stored and transmitted copies; key policies determine who can use the encryption keys.',
+    guardrails:'Content safety checks address harmful content and untrusted instructions. They are separate from document or transaction authorization.',
+    pii:'PII handling detects sensitive personal information and applies the required verified masking, redaction, or retention rules.',
+    governance:'Governance controls permitted processing locations, permission ceilings, retention, and deletion across original and derived copies.',
+    'content-logs':'Exposure includes what reached users, tools, caches, and retained logs—not only the final answer shown on screen.'
+  };
+  const checkpointSymptoms={
+    rag:{
+      source:'The assistant gives an outdated policy, or the required fact is not present even in the current original document.',
+      preprocess:'A scan or transcript looks readable, but a table column, exception, speaker turn, or identifier has disappeared.',
+      parse:'The extracted text mixes table cells or drops headings, so the chunker receives an incomplete or misleading passage.',
+      chunk:'The answer is split from its exception or section heading. A retrieved fragment looks correct but changes meaning without its neighbours.',
+      metadata:'A passage has the wrong version or missing access tags; retrieval may return stale evidence or exclude permitted content.',
+      embed:'Known paraphrases do not find their relevant documents, or the index rejects vectors after an embedding configuration change.',
+      index:'The source contains the answer, but its corresponding current chunk is missing from the searchable index.',
+      query:'Searching for an exact equipment ID returns similar products, or trusted access filters unexpectedly exclude the required document.',
+      'query-embed':'Retrieval breaks or degrades after only the query embedding model or dimensions change; indexed documents still use the old settings.',
+      candidates:'The right passage exists in the index and is permitted for this caller, but the initial search never returns it.',
+      reranker:'The right passage was found, but less relevant passages rank above it. The answer may use the wrong evidence after selection.',
+      'best-context':'The right passage is retrieved and ranked well, but it or its exception is removed to fit the model’s context budget.',
+      prompt:'The needed evidence reaches the model, yet the answer ignores a condition, follows document instructions, or answers a different task.',
+      model:'The verified request is complete and clear, but this model repeatedly fails the task while a suitable baseline handles it.',
+      response:'The answer sounds plausible, but its claims are unsupported, its citations do not justify them, or it misses the requested result.'
+    },
+    prompt:{
+      select:'The model struggles with the task or modality even on clear representative inputs; prompt changes do not resolve the limitation.',
+      'user-query':'Similar examples receive inconsistent categories because nobody defined where one label ends and another begins.',
+      'system-instructions':'The assistant invents an answer when evidence is missing or treats instructions inside a retrieved document as authoritative.',
+      'prompt-template':'A tested prompt works offline, but the deployed application renders different instructions, variables, or examples.',
+      'retrieved-knowledge':'The answer misses a current private fact because the supplied passages never contained that fact or its qualifying condition.',
+      conversation:'The assistant forgets an earlier user fact because the relevant turn or application state was not included in the current request.',
+      'generation-config':'The answer ends mid-sentence, stops at an unexpected string, or changes after deployment despite apparently identical instructions.',
+      response:'The response fits the JSON schema but assigns the wrong category, invents a fact, or represents an invalid business action.'
+    },
+    training:{
+      select:'The tuned model does not outperform the original model on the real task, or the selected base does not support the needed method.',
+      adapt:'Weight changes fail to fix frequently changing facts or ambiguous instructions because those gaps required evidence or clearer task rules.',
+      datasets:'Evaluation looks excellent on familiar examples but collapses on genuinely new cases or an underrepresented user group.',
+      'training-records':'The tuned model learns inconsistent answers—for example, equivalent inputs are labeled “approve” in one record and “reject” in another.',
+      'training-config':'Training becomes unstable or the model ignores important parts of examples after a learning-rate, length, or format change.',
+      'fine-tuning':'The job fails, produces no usable artifact, or trains on a different dataset/configuration than the release was intended to use.',
+      'training-runs':'Training error keeps falling while validation error or unseen-task failures increase: the model fits training examples without improving generalization.',
+      checkpoint:'The last saved model performs worse on new examples than an earlier checkpoint or the original baseline.',
+      'lifecycle-evaluate':'Average scores improve, but a critical safety case, task type, or user group regresses on independent examples.',
+      registry:'The approved version does not match the artifact that passed evaluation, or the release lacks a clear compatible rollback target.',
+      'deployment-check':'The candidate passes offline tests, but production still behaves like the old model or uses different inference settings.',
+      monitor:'Quality falls after release for real users, particularly on inputs or cohorts unlike those in the evaluation set.'
+    },
+    adapters:{
+      select:'The adapter cannot be used with the chosen base model or runtime, even though the model family name looks similar.',
+      datasets:'The adapter learns the wrong task boundaries or fails a specialised cohort absent from its examples.',
+      'lora-rank':'Increasing rank makes the adapter larger or more expensive, but held-out quality stays flat or gets worse.',
+      lora:'The tuning job fails or produces an unexpected artifact; the assumed adapter-only training setup was not actually applied.',
+      'lora-artifact':'Loading fails, or the adapter produces poor output when paired with a different base revision, tokenizer, or prompt format.',
+      'lifecycle-evaluate':'The adapter passes one evaluation configuration but fails when combined with the actual base, template, or serving settings.',
+      registry:'The new adapter is marked approved, yet users still receive the previous adapter’s behaviour because approval did not load it.',
+      'lora-serving':'Requests behave like the unadapted base model or the wrong task adapter, despite a valid adapter artifact existing.',
+      'deployment-check':'A live smoke request does not match the approved base/adapter pair, or rollback restores only part of the previous configuration.',
+      monitor:'One adapter or tenant route degrades while overall endpoint health and average latency still look normal.'
+    },
+    serving:{
+      select:'The application meets latency or price targets but fails the task, or a more expensive model adds no measured useful quality.',
+      quantization:'The reduced-precision model fits memory but loses important task quality or shows no speed improvement on the target runtime.',
+      'deployment-check':'The endpoint responds, but its output or timing differs from the intended model/container/configuration tested before release.',
+      capacity:'Requests throttle or slow under load because demand exceeds available quota/capacity, or routing reaches an unapproved destination.',
+      admission:'Users see 429 errors or long waits during bursts; accepted work accumulates faster than model capacity can process it.',
+      caching:'Equivalent permitted work is repeated unnecessarily, or an incorrectly scoped cache returns stale or another tenant’s results.',
+      'generation-config':'Answers generate far more tokens than needed, making total latency and cost high even when the first token arrives quickly.',
+      traces:'The first token is fast but completion is slow, or total request time is high without evidence identifying which stage consumed it.',
+      response:'The model emits tokens incrementally, but the browser receives one late response because a transport hop buffers them.',
+      performance:'A cheap or fast invocation produces so many failed tasks or retries that users experience poor outcomes and higher total cost.'
+    },
+    workflow:{
+      user:'The system accepts a request without verified scope, or returns a live success message for work that is still only queued.',
+      orchestration:'A fixed approval process uses unpredictable model-selected actions, or a tool-selection task is forced into an unsuitable rigid sequence.',
+      'step-functions':'A long approval wait loses progress, retries restart completed work, or a callback resumes the wrong execution.',
+      agents:'The agent chooses an unsuitable tool, repeatedly loops, or attempts an action beyond the caller’s permitted scope.',
+      'tool-validation':'The tool arguments are valid JSON, but the refund amount, account, permission, or transaction precondition is invalid.',
+      mcp:'A tool times out or reports an error, but it is unclear whether the external business operation already completed.',
+      recovery:'A retry or duplicate message creates a second payment, ticket, or other write for the same original request.',
+      response:'The agent says the action succeeded, but the authoritative business record is unchanged or the durable job remains incomplete.'
+    },
+    security:{
+      authentication:'The caller is unauthenticated, the effective identity differs from expectations, or an applicable policy denies the attempted AWS action.',
+      tenant:'Tenant A receives tenant B’s passage or can request an action against a record it does not own.',
+      'private-network':'An application in private subnets still invokes the public service endpoint, or a direct route bypasses the intended endpoint policy.',
+      kms:'A required derived copy is unencrypted, or a supposedly authorised service cannot read it because key access is missing.',
+      guardrails:'A harmful response or injected document/tool instruction reaches the model or an external action without the required checks.',
+      pii:'Sensitive names or identifiers remain in an index, request, or result even though a detection job reported finding them.',
+      governance:'Deleted source content remains in caches or indexes, retained copies outlive policy, or processing occurs in an unapproved location.',
+      'content-logs':'The displayed answer masks personal information, but invocation logs, tool logs, or cached results still retain the original sensitive input.'
+    }
+  };
+  let diagnosticPath='rag', checkpointId=null, diagnosisChoice='rag|review', reviewing=true;
   const currentPath=()=>diagnosticPaths[diagnosticPath];
   const currentTrace=()=>currentPath().steps;
   const traceIndex = () => {
@@ -520,16 +667,20 @@
     el('diagnostic-path').value=diagnosisChoice;
     el('path-summary').textContent=currentPath().summary;
     el('trace-steps').replaceChildren();
-    [...steps].reverse().forEach((step,reversedIndex)=>{
-      const button=document.createElement('button');button.type='button';button.textContent=`${reversedIndex+1}. ${step.label}`;button.dataset.checkpoint=step.id;
+    el('trace-title').textContent=reviewing?'Review the path':'Diagnose backwards';
+    el('direction-text').textContent=reviewing?'Follow the reasoning from inputs and task definition toward the result. Each card explains the stage and a failure to watch for.':'Start at the observed failure and move toward earlier causes. The arrows show investigation order, opposite to the forward review.';
+    (reviewing?[...steps]:[...steps].reverse()).forEach(step=>{
+      const button=document.createElement('button');button.type='button';button.textContent=step.label;button.dataset.checkpoint=step.id;
       button.setAttribute('aria-pressed',String(step===item));button.addEventListener('click',()=>selectCheckpoint(step.id));el('trace-steps').append(button);
     });
-    el('upstream').disabled=index<=0;
-    el('checkpoint-title').textContent=item?`${steps.length-index} / ${steps.length} · ${item.label}`:'Select a checkpoint on this diagnostic path';
+    el('upstream').textContent=reviewing?'Next stage →':'Check earlier cause →';
+    el('upstream').disabled=reviewing?index<0||index>=steps.length-1:index<=0;
+    el('checkpoint-title').textContent=item?item.label:'Select a checkpoint on this diagnostic path';
+    el('checkpoint-meaning').textContent=item?checkpointMeanings[item.id]:'Choose a concept to understand what this boundary does.';
+    el('checkpoint-symptom').textContent=item?checkpointSymptoms[diagnosticPath][item.id]:'Choose the failure you observed to see what it means and where to investigate.';
     el('checkpoint-evidence').textContent=item?item.evidence:'Choose an observed failure, then inspect the boundary evidence.';
     el('checkpoint-rule').textContent=item?item.rule:'This route is a set of checks, not a claim that every application uses every stage.';
     el('checkpoint-location').textContent=item?lineage(item.id).slice(1).map(concept=>concept.title).join(' → '):'Keep the overall architecture visible while investigating.';
-    el('checkpoint-open').disabled=!item;
   }
   function selectCheckpoint(id){
     select(id);checkpointId=id;panelOpen=false;root.dataset.panelOpen='false';renderDiagnostic();
@@ -546,24 +697,24 @@
   }
   function setDiagnosticPath(id,entryId=null){
     diagnosticPath=id;diagnosing=true;mode='study';
-    const target=entryId&&currentTrace().some(step=>step.id===entryId)?entryId:currentTrace().at(-1).id;
-    diagnosisChoice=`${id}|${target}`;
+    reviewing=!entryId||entryId==='review';
+    const target=reviewing?currentTrace()[0].id:entryId;
+    diagnosisChoice=`${id}|${reviewing?'review':target}`;
     selectCheckpoint(target);
   }
   Object.entries(diagnosticPaths).forEach(([id,path])=>{
     const group=document.createElement('optgroup');group.label=path.title;
-    const overview=document.createElement('option');overview.value=`${id}|${path.steps.at(-1).id}`;overview.textContent=`${path.title} — review the whole path`;group.append(overview);
+    const overview=document.createElement('option');overview.value=`${id}|review`;overview.textContent=`${path.title} — review the whole path`;group.append(overview);
     path.symptoms.forEach(([entry,label])=>{const option=document.createElement('option');option.value=`${id}|${entry}`;option.textContent=`${path.title.split(' / ')[0]} — ${label}`;group.append(option);});
     el('diagnostic-path').append(group);
   });
   el('diagnostic-path').addEventListener('change',()=>{const [id,entry]=el('diagnostic-path').value.split('|');setDiagnosticPath(id,entry);});
-  el('checkpoint-open').addEventListener('click',()=>{const item=currentTrace()[traceIndex()];if(!item)return;select(item.id);checkpointId=item.id;renderDiagnostic();el('viewport').scrollIntoView({block:'start',behavior:'auto'});});
   el('mental').addEventListener('click',()=>{mode='mental';diagnosing=false;select('system');});
   el('close-panel').addEventListener('click',()=>{panelOpen=false;root.dataset.panelOpen='false';});
   el('study').addEventListener('click',()=>{mode='study';renderPanel();});
   el('explore').addEventListener('click',()=>{mode='study';renderPanel();});
   el('diagnose').addEventListener('click',()=>{if(diagnosing){diagnosing=false;renderPanel();}else {setDiagnosticPath(pathForSelection());el('trace').scrollIntoView({block:'start',behavior:'auto'});}});
-  el('upstream').addEventListener('click',()=>{const index=traceIndex();if(index>0)selectCheckpoint(currentTrace()[index-1].id);});
+  el('upstream').addEventListener('click',()=>{const index=traceIndex(),next=index+(reviewing?1:-1);if(index>=0&&next>=0&&next<currentTrace().length)selectCheckpoint(currentTrace()[next].id);});
   el('zoom-in').addEventListener('click',()=>{zoom=Math.min(1.75,zoom+0.25);geometry();panToSelected();});
   el('zoom-out').addEventListener('click',()=>{zoom=Math.max(0.75,zoom-0.25);geometry();panToSelected();});
   el('fit').addEventListener('click',()=>{zoom=window.matchMedia('(max-width:600px)').matches?1:Math.min(1,el('viewport').clientWidth/760);geometry();el('viewport').scrollTo({left:0,top:0});});

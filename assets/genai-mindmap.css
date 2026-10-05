@@ -158,3 +158,8 @@
 .gm-lifecycle { z-index:1; }
 .gm-node { z-index:3; }
 .gm-lane,.gm-edge-label { z-index:4; }
+
+.gm-checkpoint-explanation { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:14px 0; padding-bottom:10px; border-bottom:1px solid var(--line); }
+.gm-checkpoint-explanation span { color:var(--muted); font-size:11px; font-weight:700; }
+.gm-checkpoint-explanation p { margin:5px 0 8px; font-size:13px; }
+@media (max-width:900px) { .gm-checkpoint-explanation { grid-template-columns:1fr; gap:8px; } }
