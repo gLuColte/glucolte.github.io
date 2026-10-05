@@ -68,6 +68,119 @@
 
 <p><strong>Blueprint checked: 5 October 2026.</strong> The five domain weights are <strong>31% / 26% / 20% / 12% / 11%</strong>. The focus is integrating foundation models into production applications and workflows. Use the <a href="https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html">current AWS exam guide</a> as the authority; study shortcuts are starting hypotheses.</p>
 
+<h2 id="genai-mindmap">0. GenAI Mindmap</h2>
+
+<p>Start here. Locate the architecture layer, name the constraint, and check managed capabilities and supported extensions before taking custom ownership. Use <strong>Mental Map</strong> for the whole system; switch to <strong>Study</strong> to explore a layer and its exam traps.</p>
+
+<link rel="stylesheet" href="/assets/genai-mindmap.css" />
+
+<section id="genai-map" class="gm" aria-label="Connected GenAI architecture mindmap">
+  <div class="gm-header">
+    <span class="gm-eyebrow">ARCHITECTURE BEFORE SERVICES</span>
+    <strong class="gm-title">One system. Find the layer that owns the problem.</strong>
+    <p>Prepare knowledge → assemble context → invoke a model → validate the outcome.</p>
+  </div>
+  <div class="gm-fallback">
+    <p><strong>Data:</strong> Source → Preprocess → Ingestion → Knowledge store.</p>
+    <p><strong>Runtime:</strong> User/API → Retrieval → Prompt/context → Model → Response.</p>
+    <p>Model selection, customization, evaluation, deployment, and monitoring support inference. Orchestration, security, evaluation, and observability apply across the system. Enable JavaScript to explore the connected map.</p>
+  </div>
+  <div class="gm-interactive" hidden="">
+    <div class="gm-toolbar">
+      <div class="gm-modes" role="group" aria-label="Map detail level">
+        <button type="button" id="gm-mental" aria-pressed="true">Mental Map</button>
+        <button type="button" id="gm-study" aria-pressed="false">Study</button>
+      </div>
+      <button type="button" id="gm-diagnose" aria-pressed="false">Diagnose backwards</button>
+      <div class="gm-zoom" role="group" aria-label="Map zoom">
+        <button type="button" id="gm-zoom-out" aria-label="Zoom out">−</button>
+        <button type="button" id="gm-fit">Fit</button>
+        <button type="button" id="gm-zoom-in" aria-label="Zoom in">+</button>
+      </div>
+    </div>
+    <div class="gm-location" aria-live="polite" aria-atomic="true"><span>You are here</span><strong id="gm-location">Whole application</strong></div>
+    <div class="gm-workspace">
+      <div class="gm-map-column">
+        <div id="gm-viewport" class="gm-viewport" tabindex="0" aria-label="Connected map. Use node buttons or scroll to pan when zoomed.">
+          <div id="gm-canvas" class="gm-canvas">
+            <svg id="gm-connections" viewBox="0 0 1080 940" aria-hidden="true" focusable="false">
+              <defs>
+                <marker id="gm-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" /></marker>
+                <marker id="gm-active-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" /></marker>
+              </defs>
+              <rect class="gm-scope-frame" x="22" y="315" width="1016" height="375" rx="18" />
+              <g id="gm-edges"></g>
+              <path class="gm-scope-wire" d="M540 690 V750 M160 780 V750 H940 V780 M420 750 V780 M680 750 V780" />
+            </svg>
+            <span class="gm-lane gm-lane-data">KNOWLEDGE / DATA FLOW</span>
+            <span class="gm-lane gm-lane-runtime">RUNTIME / INFERENCE FLOW</span>
+            <span class="gm-lane gm-lane-controls">FOUR SUPPORTING PILLARS</span>
+            <span class="gm-edge-label gm-edge-dataset">Approved datasets</span>
+            <span class="gm-edge-label gm-edge-model">Deploy / invoke</span>
+            <div class="gm-lifecycle" id="gm-lifecycle" aria-label="Model lifecycle steps">
+              <div id="gm-lifecycle-steps" class="gm-lifecycle-steps" role="group" aria-label="Select, customize or train, evaluate, deploy, monitor"></div>
+            </div>
+            <div id="gm-nodes"></div>
+          </div>
+        </div>
+        <p class="gm-map-hint" id="gm-map-hint">Click a layer to keep its place highlighted while exploring. On narrow screens, scroll the map sideways or use Fit.</p>
+
+      </div>
+      <aside class="gm-panel" id="gm-panel" aria-label="Selected architecture concept">
+        <button type="button" id="gm-close-panel" class="gm-panel-close" aria-label="Close concept details">×</button>
+        <nav id="gm-breadcrumb" class="gm-breadcrumb" aria-label="Selected concept hierarchy"></nav>
+        <strong id="gm-detail-title" class="gm-detail-title">Whole application</strong>
+        <p id="gm-summary"></p>
+        <div id="gm-subtree" class="gm-subtree"></div>
+        <div id="gm-study-detail" hidden="">
+          <dl id="gm-reasoning" class="gm-reasoning"></dl>
+          <div class="gm-exam"><strong>Exam clue</strong><p id="gm-clue"></p><strong>Trap to avoid</strong><p id="gm-trap"></p></div>
+          <div id="gm-vectors" class="gm-vectors" hidden="">
+            <strong>Check the embedding contract</strong>
+            <div class="gm-vector-controls">
+              <label>Document vector<select id="gm-document-dim"><option value="256">256D</option><option value="512" selected="">512D</option><option value="1024">1024D</option></select></label>
+              <span aria-hidden="true">↔</span>
+              <label>Query vector<select id="gm-query-dim"><option value="256">256D</option><option value="512" selected="">512D</option><option value="1024">1024D</option></select></label>
+            </div>
+            <p id="gm-vector-result" role="status" aria-live="polite"></p>
+            <p>Matching dimensions are necessary; the embedding model and relevant configuration must also be compatible. Measure recall before trading quality for smaller vectors.</p>
+          </div>
+          <details class="gm-ownership" id="gm-ownership">
+            <summary>Managed or custom? Decide for this layer.</summary>
+            <p id="gm-ownership-context"></p>
+            <fieldset><legend>Does the managed capability meet the requirement?</legend><button type="button" data-gm-managed="yes" aria-pressed="false">Yes</button><button type="button" data-gm-managed="no" aria-pressed="false">No</button></fieldset>
+            <fieldset id="gm-extension-question" hidden=""><legend>Does a supported extension meet it?</legend><button type="button" data-gm-extension="yes" aria-pressed="false">Yes</button><button type="button" data-gm-extension="no" aria-pressed="false">No</button></fieldset>
+            <p id="gm-ownership-result" role="status" aria-live="polite">Custom requirement → managed support? → supported extension? → own only the remaining gap.</p>
+          </details>
+          <details class="gm-study-sources" id="gm-model-references" hidden=""><summary>Model lifecycle references</summary><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-analyze.html">Bedrock training/validation metrics</a> · <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/customizing-models-lora.html">LoRA</a> · <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-adapt.html">SageMaker adapter inference components</a></details>
+          <a id="gm-reading" href="#how-to-think">Continue in the guide →</a>
+        </div>
+        <button type="button" id="gm-explore">Explore this layer in Study mode →</button>
+      </aside>
+      <div class="gm-trace" id="gm-trace" hidden="">
+          <div class="gm-trace-head"><strong>Diagnose backwards</strong><button id="gm-upstream" type="button">Check earlier cause →</button></div>
+          <p>Start with an observed failure. Follow the investigation from left to right: outcome → earlier checks → inputs. This is investigation order, not application execution order.</p>
+          <label for="gm-diagnostic-path">What went wrong? Choose a path or a symptom.</label>
+          <select id="gm-diagnostic-path"></select>
+          <p id="gm-path-summary"></p>
+          <div id="gm-trace-steps" class="gm-trace-steps" role="group" aria-label="Diagnostic checkpoints"></div>
+          <div class="gm-checkpoint" aria-live="polite" aria-atomic="true">
+            <strong id="gm-checkpoint-title"></strong>
+            <div class="gm-checkpoint-grid">
+              <div><span>Inspect the evidence</span><p id="gm-checkpoint-evidence"></p></div>
+              <div><span>Deciding rule / trap</span><p id="gm-checkpoint-rule"></p></div>
+              <div><span>Architecture location</span><p id="gm-checkpoint-location"></p><button type="button" id="gm-checkpoint-open">Explore this concept in the map ↑</button></div>
+            </div>
+          </div>
+
+
+        </div>
+    </div>
+    <p class="gm-footnote">Solid arrows: data/request flow. Dashed arrows: lifecycle inputs and deployment. The central branch connects the application to its four supporting pillars. Detail stays attached to the highlighted layer.</p>
+  </div>
+</section>
+<script src="/assets/genai-mindmap.js" defer=""></script>
+
 <h2 id="how-to-think">1. Read the constraint before choosing the service</h2>
 
 <p>For every scenario, complete this reasoning chain:</p>

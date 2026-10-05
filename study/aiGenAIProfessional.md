@@ -21,6 +21,12 @@ Prepare for **AWS Certified Generative AI Developer – Professional (AIP-C01)**
 
 **Blueprint checked: 5 October 2026.** The five domain weights are **31% / 26% / 20% / 12% / 11%**. The focus is integrating foundation models into production applications and workflows. Use the [current AWS exam guide](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html) as the authority; study shortcuts are starting hypotheses.
 
+## 0. GenAI Mindmap {#genai-mindmap}
+
+Start here. Locate the architecture layer, name the constraint, and check managed capabilities and supported extensions before taking custom ownership. Use **Mental Map** for the whole system; switch to **Study** to explore a layer and its exam traps.
+
+{% include genai-mindmap.html %}
+
 ## 1. Read the constraint before choosing the service {#how-to-think}
 
 For every scenario, complete this reasoning chain:
