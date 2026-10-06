@@ -130,7 +130,8 @@
 .aip-panel-head>strong { font-size:14px; font-weight:600; line-height:1.4; }
 .aip-panel-head>p { margin:5px 0 0; font-size:12px; line-height:1.5; color:var(--muted); }
 [data-theme="dark"] .aip-panel-head { background:#27272a; }
-.aip-diagnostic-controls { display:grid; grid-template-columns:minmax(180px,1fr) minmax(240px,2fr); gap:16px; padding:0 20px; }
+.aip-diagnostic-controls { display:block; padding:0 20px 20px; border-top:1px solid var(--line); }
+.aip-diagnostic-controls>select { width:100%; }
 .aip-investigation { padding:0 20px 20px; }
 .aip-investigation h3 { font-size:18px; margin:16px 0; }
 .aip-investigation h4 { font-size:12px; color:var(--muted); margin:0 0 7px; text-transform:uppercase; letter-spacing:.04em; }
@@ -233,3 +234,10 @@
   .aip-recap-domain dt { padding:14px 0 5px; border:0; }
   .aip-recap-domain dd { padding:0 0 14px; }
 }
+
+/* Stage purpose stays above its related scenarios and investigation. */
+.aip-stage-explanation { padding-top:2px; }
+.aip-stage-explanation>.aip-boundary-content { padding:0; margin-top:20px; }
+.aip-investigation>.aip-boundary-content { padding:0; margin-top:20px; }
+.aip-requirement-checklist ul { margin:8px 0 20px; padding-left:20px; font-size:13px; line-height:1.6; }
+.aip-requirement-checklist li { margin:8px 0; }

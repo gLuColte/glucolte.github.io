@@ -14,6 +14,26 @@
     "read": "#how-to-think"
   },
   {
+    "id": "requirements",
+    "parent": "system",
+    "title": "Requirements",
+    "summary": "Define the business problem and the outcome the application must produce before selecting a model. Is the task summarization, classification, reasoning over supplied evidence, or proposing a tool action? Establish why a GenAI component fits, and keep exact business rules and action authority in deterministic controls.",
+    "questions": [
+      "What does success mean? Define the expected answer or action, difficult examples, and critical cohorts—not just fluent output.",
+      "What must the model work with? Identify input modalities, context size, and whether facts are supplied, private, or frequently changing.",
+      "What limits the solution? Record quality, safety, latency, cost, approved data locations, access scope, and any required approval."
+    ],
+    "decision": "Turn these requirements into representative held-out cases. Select then compares model/task fit. Clearer instructions or examples address task/format gaps; RAG supplies required evidence; supported customization is a candidate when stable behavior still fails evaluated prompting. Compare measured benefit and lifecycle cost rather than assuming a larger model is necessary.",
+    "constraint": "The chosen approach must satisfy the business outcome and every hard constraint, with measurable acceptance criteria.",
+    "managed": "Use a supported evaluated model and managed application capabilities when their contracts meet the requirements.",
+    "extension": "Check for a supported prompt, retrieval, or ingestion extension at the layer that needs to change.",
+    "ownership": "Own acceptance criteria, business authorization, and the unsupported gap; do not rebuild every layer because one requirement is custom.",
+    "capability": "Representative evaluation cases first; then suitable model inference, prompt/context, retrieval, or supported customization.",
+    "clue": "Changing facts → evidence; unclear task/format → instructions/examples; stable behavior still fails evaluated prompting → assess customization.",
+    "trap": "Model size and public benchmark rank do not prove workload fit. Identify whether the gap is task definition, evidence, model capability, or stable behavior before changing weights.",
+    "read": "#how-to-think"
+  },
+  {
     "id": "source",
     "parent": "system",
     "title": "Source",

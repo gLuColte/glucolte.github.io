@@ -1,0 +1,58 @@
+{
+  "evaluation": [
+    "rag:candidates",
+    "rag:reranker",
+    "rag:response",
+    "prompt:response",
+    "training:lifecycle-evaluate",
+    "adapters:lifecycle-evaluate",
+    "workflow:response",
+    "serving:performance"
+  ],
+  "observability": [
+    "serving:traces",
+    "serving:performance",
+    "workflow:mcp",
+    "workflow:recovery",
+    "security:content-logs",
+    "training:training-runs",
+    "training:monitor",
+    "adapters:monitor"
+  ],
+  "recall": [
+    "rag:candidates",
+    "rag:reranker"
+  ],
+  "quality": [
+    "rag:response",
+    "prompt:response"
+  ],
+  "evaluators": [
+    "training:lifecycle-evaluate",
+    "adapters:lifecycle-evaluate"
+  ],
+  "diagnostics": [
+    "rag:index",
+    "rag:candidates",
+    "rag:reranker",
+    "rag:prompt",
+    "prompt:response",
+    "workflow:response",
+    "training:lifecycle-evaluate",
+    "serving:performance"
+  ],
+  "rollout": [
+    "training:deployment-check",
+    "adapters:deployment-check"
+  ],
+  "metrics": [
+    "serving:capacity",
+    "serving:performance",
+    "training:training-runs"
+  ],
+  "audit": [
+    "security:authentication"
+  ],
+  "continued-pretraining": [],
+  "distillation": []
+}

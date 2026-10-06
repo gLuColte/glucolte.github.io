@@ -7,7 +7,7 @@
   const openAncestors=node=>{for(let parent=node;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;};
   function route(){
     const id=decodeURIComponent(location.hash.slice(1));
-    if(!id){scenario.value='';chooseScenario();return;}
+    if(!id){resetContext();return;}
     const alias={'map-adapt-prompt':'prompt','map-adapt-rag':'retrieval'}[id];
     if(alias){showBoundary(nodeById.get(alias).concept,alias);document.getElementById('map-'+alias).scrollIntoView({block:'center'});return;}
     if(id.startsWith('stage-')||id.startsWith('band-')){
@@ -32,11 +32,13 @@
   const traps=new Map(data.traps.flatMap(table=>table.rows.map(row=>[row.id,{...row,headings:table.headers}])));
   const plain=copy=>copy.replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/\*\*|`/g,'');
   const nodeById=new Map(data.nodes.map(item=>[item.id,item]));
-  const scenarioFamily=get('diagnostic-family'),scenario=get('diagnostic-scenario'),investigation=get('investigation');
-  let selectedMap=null,diagnosis=null;
+  const scenario=get('diagnostic-scenario'),investigation=get('investigation'),explanation=get('stage-explanation');
+  let selectedMap=null,diagnosis=null,context=null;
+  let availableScenarios=new Map();
   const make=(tag,copy,cls)=>{const node=document.createElement(tag);if(copy!==undefined)node.textContent=copy;if(cls)node.className=cls;return node;};
   function inherited(id,key){for(let item=concepts.get(id);item;item=concepts.get(item.parent))if(item[key])return item[key];return '';}
   const directOwners={
+    'requirements':['constraint'],
     'datasets':['data'],'training-records':['data'],'training-config':['adapt-finetune'],'training-runs':['adapt-finetune'],'fine-tuning':['adapt-finetune'],'lora-rank':['adapt-finetune'],'lora':['adapt-finetune'],'lora-artifact':['adapt-finetune'],
     'checkpoint':['evaluate'],'lifecycle-evaluate':['evaluate'],'registry':['deploy'],'deployment-check':['deploy'],'lora-serving':['deploy','model'],'select':['select'],'adapt':['adapt','prompt','retrieval'],'model-customization':['adapt'],'prompt-engineering':['prompt'],'rag':['retrieval'],'continued-pretraining':['adapt-pretrain'],'distillation':['adapt-distill'],'monitor':['monitor'],
     'source':['source'],'preprocess':['data-prepare'],'parse':['data-prepare','data-ingest'],'chunk':['data-ingest'],'metadata':['data-ingest','store'],'embed':['data-ingest'],'index':['data-ingest','store'],
@@ -52,10 +54,10 @@
     }return['constraint'];
   }
   function mapState(){
-    const suspects=diagnosis?owners(diagnosis.id):[];
+    const suspects=diagnosis?diagnosis.highlights:[];
     map.querySelectorAll('.map-link').forEach(node=>{
       node.classList.toggle('is-failed',suspects.includes(node.id.slice(4)));
-      node.classList.toggle('is-selected',!diagnosis&&node.id===`map-${selectedMap}`);
+      node.classList.toggle('is-selected',node.id===`map-${selectedMap}`&&!suspects.includes(selectedMap));
       const title=nodeById.get(node.id.slice(4)).title;
       node.setAttribute('aria-label',`${title}${suspects.includes(node.id.slice(4))?' — investigation point':''}: inspect decisions`);
     });
@@ -89,43 +91,76 @@
       if(step.id===id)item.setAttribute('aria-label',`${step.label}: investigation checkpoint`);flow.append(item);
     });wrap.append(flow);investigation.append(wrap);
   }
-  function chooseScenario(){
-    if(!scenario.value){diagnosis=null;selectedMap=null;get('boundary-content').hidden=true;get('inline-traps').replaceChildren();mapState();investigation.replaceChildren(make('p','Choose an observed situation, or select a responsibility in the map.'));return;}
-    const key=scenarioFamily.value,path=data.diagnostics.paths[key],step=path.steps.find(step=>step.id===scenario.value);if(!step)return;
-    diagnosis={key,id:step.id};selectedMap=null;
-    setBoundaryContent(step.id,owners(step.id),step.rule);
-    mapState();investigation.replaceChildren(make('h3',`${path.title} · ${step.label}`));
-    const situation=data.diagnostics.symptoms[key][step.id];
-    investigation.append(fieldBlock('Situation',situation));
-    const locations=make('p',undefined,'aip-highlight-locations');locations.append(make('span','Investigation points in the map: '));
-    owners(step.id).forEach((id,index)=>{if(index)locations.append(document.createTextNode(' · '));const link=make('a',nodeById.get(id).title+' ↑');link.href='#map-'+id;link.addEventListener('click',event=>{event.preventDefault();const target=document.getElementById('map-'+id);target.scrollIntoView({block:'center',inline:'center'});target.focus({preventScroll:true});});locations.append(link);});
-    investigation.append(locations);shortPath(path,step.id);
-    const grid=make('div',undefined,'aip-investigation-grid');
-    grid.append(fieldBlock('What this means',data.diagnostics.meanings[step.id]),fieldBlock('Inspect the evidence',step.evidence));
-    investigation.append(grid);
+  function resetContext(){
+    get('symptom-overlay').append(get('boundary-content'));
+    context=null;diagnosis=null;selectedMap=null;availableScenarios.clear();scenario.replaceChildren(make('option','Choose a situation'));
+    map.querySelector('.aip-diagnostic-controls').hidden=true;investigation.hidden=true;investigation.replaceChildren();
+    get('boundary-content').hidden=true;get('inline-traps').replaceChildren();
+    explanation.replaceChildren(make('p','Select a box in the map to study its purpose and related situations.'));mapState();
   }
-  function setFamily(){
-    scenario.replaceChildren(make('option','Choose an observed situation'));scenario.options[0].value='';
-    const key=scenarioFamily.value,path=data.diagnostics.paths[key];
-    const preferred=new Map(path.symptoms||[]);
-    path.steps.forEach(step=>{
-      const option=make('option',preferred.get(step.id)||`${step.label}: ${data.diagnostics.symptoms[key][step.id]}`);option.value=step.id;scenario.append(option);
-    });chooseScenario();
+  function isWithin(id,parent){
+    for(let item=concepts.get(id);item;item=concepts.get(item.parent))if(item.id===parent)return true;
+    return false;
+  }
+  function setSituations(conceptId,nodeId){
+    availableScenarios=new Map();scenario.replaceChildren(make('option','Choose a situation'));scenario.options[0].value='';
+    const add=(entry,group)=>{availableScenarios.set(entry.value,entry);const option=make('option',entry.title);option.value=entry.value;group.append(option);};
+    const wholeLayer=conceptId===nodeById.get(nodeId).concept;
+    const related=new Set(data.stageScenarioLinks?.[conceptId]||[]);
+    (data.stageScenarios||[]).filter(item=>wholeLayer&&item.node===nodeId).forEach(item=>add({...item,value:'design:'+item.id},scenario));
+    for(const [key,path] of Object.entries(data.diagnostics.paths)){
+      const preferred=new Map(path.symptoms||[]),group=make('optgroup');group.label=path.title;
+      path.steps.filter(step=>related.has(key+':'+step.id)||(wholeLayer&&owners(step.id).includes(nodeId))||isWithin(step.id,conceptId)).forEach(step=>{
+        add({value:key+':'+step.id,key,id:step.id,title:preferred.get(step.id)||data.diagnostics.symptoms[key][step.id],step,path},group);
+      });if(group.children.length)scenario.append(group);
+    }
+    get('scenario-label').textContent=`Situations at ${context.title}`;
+    map.querySelector('.aip-diagnostic-controls').hidden=availableScenarios.size===0;
+  }
+  function chooseScenario(){
+    if(!context)return;
+    get('symptom-overlay').append(get('boundary-content'));
+    investigation.replaceChildren();investigation.hidden=!scenario.value;
+    if(!scenario.value){
+      diagnosis=null;setBoundaryContent(context.conceptId,[context.nodeId],inherited(context.conceptId,'trap'));
+      explanation.append(get('boundary-content'));mapState();return;
+    }
+    const entry=availableScenarios.get(scenario.value);if(!entry)return;
+    const {step,path,key}=entry;
+    const id=step?step.id:entry.id;
+    const highlights=step?owners(id):entry.highlights;
+    diagnosis={id,highlights};mapState();
+    investigation.append(make('h3',entry.title));
+    investigation.append(fieldBlock('Situation',step?data.diagnostics.symptoms[key][id]:entry.situation));
+    const locations=make('p',undefined,'aip-highlight-locations');locations.append(make('span','Investigation points in the map: '));
+    highlights.forEach((id,index)=>{if(index)locations.append(document.createTextNode(' · '));const link=make('a',nodeById.get(id).title+' ↑');link.href='#map-'+id;link.addEventListener('click',event=>{event.preventDefault();const target=document.getElementById('map-'+id);target.scrollIntoView({block:'center',inline:'center'});target.focus({preventScroll:true});});locations.append(link);});
+    investigation.append(locations);if(path)shortPath(path,id);
+    const grid=make('div',undefined,'aip-investigation-grid');
+    grid.append(fieldBlock('What this means',step?data.diagnostics.meanings[id]:entry.meaning),fieldBlock('Inspect the evidence',step?step.evidence:entry.evidence));
+    investigation.append(grid);
+    if(step)setBoundaryContent(id,highlights,step.rule);
+    else{get('boundary-content').hidden=false;get('boundary-rule').textContent=entry.rule;renderInlineTraps(entry.traps);}
+    investigation.append(get('boundary-content'));
   }
   function showBoundary(conceptId,nodeId){
     const item=concepts.get(conceptId);if(!item)return;
-    diagnosis=null;scenario.value='';selectedMap=nodeId||owners(conceptId)[0];
-    setBoundaryContent(conceptId,[selectedMap],inherited(conceptId,'trap'));
-    mapState();investigation.replaceChildren(make('h3',`Decisions at ${item.title}`),make('p',item.summary));
+    diagnosis=null;selectedMap=nodeId||owners(conceptId)[0];
+    context={conceptId,nodeId:selectedMap,title:nodeId?nodeById.get(nodeId).title:item.title};
+    // Keep the selected stage above the situation; choosing a case never changes it.
+    const boundary=get('boundary-content');get('symptom-overlay').append(boundary);
+    explanation.replaceChildren(make('h3',`Decisions at ${context.title}`),fieldBlock('Purpose',item.summary));
     const children=data.concepts.filter(child=>child.parent===conceptId);
     if(children.length&&!['system','lifecycle'].includes(conceptId)){
       const hierarchy=make('nav',undefined,'aip-concept-links');hierarchy.setAttribute('aria-label','Related substeps');hierarchy.append(make('span','Substeps: '));
-      children.forEach(child=>{const link=make('a',child.title);link.href='#concept-'+child.id;link.dataset.concept=child.id;link.addEventListener('click',event=>{event.preventDefault();showBoundary(child.id);});hierarchy.append(link);});investigation.append(hierarchy);
+      children.forEach(child=>{const link=make('a',child.title);link.href='#concept-'+child.id;link.dataset.concept=child.id;link.addEventListener('click',event=>{event.preventDefault();showBoundary(child.id);});hierarchy.append(link);});explanation.append(hierarchy);
     }
-    const grid=make('div',undefined,'aip-investigation-grid');grid.append(fieldBlock('Constraint',inherited(conceptId,'constraint')));investigation.append(grid);
+    if(item.questions){const checklist=make('div',undefined,'aip-requirement-checklist');checklist.append(make('h4','Requirements to pin down'));const list=make('ul');item.questions.forEach(question=>list.append(make('li',question)));checklist.append(list);explanation.append(checklist);}
+    const grid=make('div',undefined,'aip-investigation-grid');
+    grid.append(fieldBlock(item.decision?'Decision to make':'Requirement to satisfy',item.decision||inherited(conceptId,'constraint')));explanation.append(grid);
     const reasoning=make('details',undefined,'aip-layer-reasoning');reasoning.append(make('summary','What is managed, what can be extended, and what must I own?'));
-    [['AWS manages','managed'],['Supported extension','extension'],['Custom ownership','ownership'],['Capabilities','capability'],['Exam clue','clue']].forEach(([label,key])=>{const copy=inherited(conceptId,key);if(copy)reasoning.append(fieldBlock(label,copy));});investigation.append(reasoning);
-    if(item.parent){const parent=make('a',`← ${concepts.get(item.parent).title}`);parent.href='#concept-'+item.parent;parent.addEventListener('click',event=>{event.preventDefault();showBoundary(item.parent);});investigation.append(parent);}
+    [['AWS manages','managed'],['Supported extension','extension'],['Custom ownership','ownership'],['Capabilities','capability'],['Exam clue','clue']].forEach(([label,key])=>{const copy=inherited(conceptId,key);if(copy)reasoning.append(fieldBlock(label,copy));});explanation.append(reasoning);
+    if(item.parent&&!['system','lifecycle'].includes(item.parent)){const parent=make('a',`← ${concepts.get(item.parent).title}`);parent.href='#concept-'+item.parent;parent.addEventListener('click',event=>{event.preventDefault();showBoundary(item.parent);});explanation.append(parent);}
+    setSituations(conceptId,selectedMap);chooseScenario();
   }
   map.querySelectorAll('.map-link').forEach(link=>link.addEventListener('click',event=>{
     event.preventDefault();showBoundary(link.dataset.concept,link.id.slice(4));
@@ -136,8 +171,8 @@
     map.querySelectorAll('.map-services').forEach(node=>node.setAttribute('aria-hidden',String(!enabled)));
     map.querySelectorAll('.map-principle').forEach(node=>node.setAttribute('aria-hidden',String(enabled)));
   });
-  scenarioFamily.addEventListener('change',setFamily);scenario.addEventListener('change',chooseScenario);
-  map.querySelector('.aip-map-mode').hidden=false;map.querySelector('.aip-diagnostic-controls').hidden=false;
-  map.querySelector('.aip-diagnostic-fallback').hidden=true;map.querySelector('.aip-map-fallback').hidden=true;investigation.hidden=false;setFamily();
+  scenario.addEventListener('change',chooseScenario);
+  map.querySelector('.aip-map-mode').hidden=false;
+  map.querySelector('.aip-diagnostic-fallback').hidden=true;map.querySelector('.aip-map-fallback').hidden=true;explanation.hidden=false;resetContext();
   route();
 })();

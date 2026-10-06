@@ -8,5 +8,5 @@
   {% include aip-diagnose-panel.html %}
   {% include aip-map-fallback.html %}
 </section>
-<script id="aip-study-data" type="application/json">{"nodes":{{ site.data.aip_map_nodes | jsonify }},"concepts":{{ site.data.aip_concepts | jsonify }},"diagnostics":{{ site.data.aip_diagnostics | jsonify }},"boundaryLinks":{{ site.data.aip_boundary_links | jsonify }},"traps":{{ site.data.aip_trap_tables | jsonify }}}</script>
+<script id="aip-study-data" type="application/json">{"nodes":{{ site.data.aip_map_nodes | jsonify }},"concepts":{{ site.data.aip_concepts | jsonify }},"diagnostics":{{ site.data.aip_diagnostics | jsonify }},"stageScenarios":{{ site.data.aip_stage_scenarios | jsonify }},"stageScenarioLinks":{{ site.data.aip_stage_scenario_links | jsonify }},"boundaryLinks":{{ site.data.aip_boundary_links | jsonify }},"traps":{{ site.data.aip_trap_tables | jsonify }}}</script>
 <script src="{{ '/assets/aip-study-flow.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>

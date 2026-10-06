@@ -1,0 +1,118 @@
+[
+  {
+    "id": "requirements-model-size",
+    "node": "constraint",
+    "title": "The team assumes it needs the largest model",
+    "situation": "A team needs concise summaries and reliable categories within a strict latency and token-cost budget. It proposes the largest available model before testing representative inputs.",
+    "meaning": "The requirement is measured task quality under constraints. Model size is a candidate characteristic, not an acceptance criterion.",
+    "evidence": "Compare supported candidates on the same held-out cases, including difficult inputs and critical cohorts. Check capability, context/output limits, quality, latency, and cost.",
+    "rule": "Choose by representative workload fit; public benchmark rank or model size alone is insufficient.",
+    "highlights": [
+      "constraint",
+      "select"
+    ],
+    "traps": [
+      "trap-1-1"
+    ]
+  },
+  {
+    "id": "requirements-evidence",
+    "node": "constraint",
+    "title": "Answers need current private facts",
+    "situation": "An assistant explains policies clearly but cannot answer questions about recently changed internal rules. The team proposes fine-tuning to make every future answer current.",
+    "meaning": "The missing requirement is access to fresh, permitted evidence. Changing weights alone does not supply a live authoritative source.",
+    "evidence": "Check source freshness, caller entitlement, whether the required fact reaches context, and whether citations support the answer.",
+    "rule": "Private/current/attributable knowledge → evaluate RAG. RAG and customization can combine when their requirements differ.",
+    "highlights": [
+      "constraint",
+      "retrieval",
+      "prompt"
+    ],
+    "traps": [
+      "trap-1-2"
+    ]
+  },
+  {
+    "id": "requirements-task",
+    "node": "constraint",
+    "title": "Format and task rules are unclear",
+    "situation": "Equivalent inputs receive different categories and inconsistent output shapes. The team has not defined category boundaries, supplied examples, or validated the business meaning of the result.",
+    "meaning": "Clarify what a correct answer means before treating the behavior as a model-capability or training defect.",
+    "evidence": "Review task definitions, governing instructions, representative examples, supported output constraints, and schema plus business assertions.",
+    "rule": "Task/format gaps → start with prompting and supported structured output. Valid JSON or low temperature is not proof of a correct decision.",
+    "highlights": [
+      "constraint",
+      "prompt"
+    ],
+    "traps": [
+      "trap-1-3"
+    ]
+  },
+  {
+    "id": "requirements-customize",
+    "node": "constraint",
+    "title": "Stable behavior still fails clear prompts",
+    "situation": "The team has clear task rules, correct evidence, and evaluated prompt examples. A suitable baseline still misses a required stable style or classification behavior across representative cases.",
+    "meaning": "Supported customization may fit an evaluated behavior gap. This differs from missing current evidence or ambiguous instructions.",
+    "evidence": "Check supervision quality, held-out improvement, safety/cohort regressions, lifecycle cost, and compatibility with the intended deployment.",
+    "rule": "Consider supported customization only for the measured gap; evaluate it against prompting/RAG baselines and verify deployment support.",
+    "highlights": [
+      "constraint",
+      "select",
+      "adapt-finetune"
+    ],
+    "traps": [
+      "trap-1-4"
+    ]
+  },
+  {
+    "id": "requirements-action",
+    "node": "constraint",
+    "title": "Fluent output hides an invalid business action",
+    "situation": "An assistant proposes a well-formed refund request for an account outside the caller’s scope. The team proposes a larger model instead of enforcing the business preconditions.",
+    "meaning": "Language quality does not establish authorization or valid transaction semantics. Identify the control requirement independently of model choice.",
+    "evidence": "Inspect the effective caller, permitted record/action scope, actual tool arguments, approval requirements, and authoritative business outcome.",
+    "rule": "Enforce deterministic authorization and action checks. A fluent answer or valid JSON is not a completed, permitted business action.",
+    "highlights": [
+      "constraint",
+      "orchestration",
+      "security"
+    ],
+    "traps": [
+      "trap-10-5",
+      "trap-5-2"
+    ]
+  },
+  {
+    "id": "pretraining-freshness",
+    "node": "adapt-pretrain",
+    "title": "Domain adaptation is mistaken for live knowledge",
+    "situation": "A domain-adapted model still gives an outdated policy after the original document changes. The team assumes continued pre-training should remove the need to retrieve current evidence.",
+    "meaning": "Domain adaptation changes eligible model behavior using suitable text; it is not a real-time source lookup.",
+    "evidence": "Compare the source/version and context supplied for this request. Evaluate the adapted model against the original baseline on representative held-out tasks.",
+    "rule": "Continued pre-training is model-specific and does not replace current evidence retrieval.",
+    "highlights": [
+      "adapt-pretrain",
+      "retrieval"
+    ],
+    "traps": [
+      "trap-1-2"
+    ]
+  },
+  {
+    "id": "distillation-quality",
+    "node": "adapt-distill",
+    "title": "The cheaper student loses a critical task",
+    "situation": "A smaller distilled student reduces serving cost but fails a critical cohort that the teacher handled correctly. Average quality remains acceptable.",
+    "meaning": "Lower cost is useful only when the student preserves the required task quality, including critical cohorts.",
+    "evidence": "Compare teacher/student outputs on the same held-out tasks; inspect cohort quality, safety, latency, and cost before promotion.",
+    "rule": "Do not promote an average improvement that violates a critical requirement. Distillation differs from quantization or adding an adapter.",
+    "highlights": [
+      "adapt-distill",
+      "evaluate"
+    ],
+    "traps": [
+      "trap-11-1"
+    ]
+  }
+]

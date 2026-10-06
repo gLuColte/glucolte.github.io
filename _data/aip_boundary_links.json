@@ -1,18 +1,9 @@
 {
   "nodes": {
     "constraint": [
-      "trap-2-1",
-      "trap-2-2",
-      "trap-2-3",
-      "trap-2-4",
-      "trap-2-5",
-      "trap-5-1",
-      "trap-5-2",
-      "trap-5-7",
-      "trap-7-1",
-      "trap-7-2",
-      "trap-7-3",
-      "trap-12-5"
+      "trap-1-1",
+      "trap-1-2",
+      "trap-1-4"
     ],
     "data": [
       "trap-4-1",
@@ -495,6 +486,7 @@
       "trap-12-14"
     ],
     "lora": [],
-    "lora-rank": []
+    "lora-rank": [],
+    "requirements": []
   }
 }
