@@ -17,13 +17,13 @@ tag:
 
 # AWS AIP-C01 Architecture Decision Guide
 
-Prepare for **AWS Certified Generative AI Developer – Professional (AIP-C01)** by learning to defend architecture decisions. Use **Northstar Assistant** throughout: a customer asks a question, the application retrieves permitted evidence, Bedrock generates a response, and controlled tools may act on it. Start with the [AI learning pages](/study/#ai) for concepts and the [AWS service reference](/study/aiAWSServices) for implementation details.
+Use this **AWS Certified Generative AI Developer – Professional (AIP-C01)** recap to practise defending architecture decisions before the exam. Use **Northstar Assistant** throughout: a customer asks a question, the application retrieves permitted evidence, Bedrock generates a response, and controlled tools may act on it. Start with the [AI learning pages](/study/#ai) for concepts and the [AWS service reference](/study/aiAWSServices) for implementation details.
 
-**Blueprint checked: 5 October 2026.** The five domain weights are **31% / 26% / 20% / 12% / 11%**. The focus is integrating foundation models into production applications and workflows. Use the [current AWS exam guide](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html) as the authority; study shortcuts are starting hypotheses.
+**Blueprint checked: 6 October 2026.** The five domain weights are **31% / 26% / 20% / 12% / 11%**. Focus on integrating foundation models into production applications, including customization deployment and lifecycle controls. Model development/training and advanced ML are outside the exam’s stated scope; the model diagnostics here provide supporting context. Use the [current AWS exam guide](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html) as the authority; study shortcuts are starting hypotheses.
 
 ## 0. GenAI Mindmap {#genai-mindmap}
 
-Start with the **requirements**, then compare models using approved representative data. The **model lifecycle** selects, optionally customizes, evaluates, deploys, and monitors the model. Prompt engineering and RAG shape the runtime context. The four supporting pillars apply throughout. Select a map box or diagnostic situation to reveal its decision boundaries and trap rows. Prompt → RAG → fine-tune is an escalation heuristic; study shortcuts are starting hypotheses.
+Start with the **requirements**, then compare models using approved representative data. The **model lifecycle** selects, optionally customizes, evaluates, deploys, and monitors the model. Prompt engineering and RAG shape the runtime context. The four supporting pillars apply throughout. Select a map box or diagnostic situation to reveal its decision boundary. Prompt → RAG → fine-tune is a starting heuristic, subject to the requirement and measured results.
 
 {% include genai-mindmap.html %}
 
@@ -33,7 +33,7 @@ For every scenario, complete this reasoning chain:
 
 1. **Hard constraint:** what must hold? Consider identity, data location, duration, approval, latency, recovery, and delivery mode.
 2. **Pattern:** bounded request, durable workflow, queue, event routing, agent, retrieval, stream, or batch?
-3. **Implementation:** which AWS services own those responsibilities?
+3. **Ownership:** does a managed capability fit? If not, is there a supported extension? Own only the layer that still needs custom behavior, then choose its AWS services.
 4. **Controls:** where do authorization, safety, encryption, audit, retention, and recovery apply?
 5. **Runner-up:** which requirement does the nearest alternative violate? What change would make it appropriate?
 
@@ -45,18 +45,13 @@ For every scenario, complete this reasoning chain:
 
 <span id="scenarios"></span>
 
-Choose a domain, then a trap from the cheat sheet. **Try a multiple-choice question** tests a scenario with competing requirements and four possible actions. A correct answer explains the deciding clue, the alternatives, what would change the decision, and the service flow. Open **Learn the distinction** to compare the named AWS services, see when each fits, and identify the misleading shortcut.
+Use the domain recap for quick recall, then test the boundary in a scenario. The practice questions are original, single-answer exercises; the real exam also includes multiple-response questions.
 
-[Practise decision boundaries in the mindmap](#aip-trap-practice)
+{% include aip-domain-recap.html %}
 
 {% include aip-domain-practice.html %}
 
-{% include aip-study-reference.html %}
-
 ### Select the model and manage the prompt {#model-prompt-decisions}
-
-[Open model and prompt choices in the full reference](#trap-1-1)
-
 
 Treat prompts, model IDs/configuration, retrieval settings, tools, and policies as versioned release inputs. Evaluate before promotion, implement required approval in the delivery workflow, and retain a tested rollback target. [Prompt Management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html), [Flows](https://docs.aws.amazon.com/bedrock/latest/userguide/flows.html), [Converse](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html).
 
@@ -67,10 +62,7 @@ Treat prompts, model IDs/configuration, retrieval settings, tools, and policies 
 <span id="requirement-matrix"></span>
 <span id="agent-step-functions-lambda"></span>
 
-[Open compute, orchestration, and recovery in the full reference](#trap-2-1)
-
-
-Strands supports custom single- and multi-agent patterns; AWS Agent Squad coordinates routing among specialized agents. Choose by the required coordination pattern and managed/custom boundary, then evaluate handoffs and outcomes. A framework label does not supply business authorization. [Orchestration comparison](/study/aiAWSServices#section-3-1-agentcore-boundary).
+Strands supports custom single- and multi-agent patterns; AWS Agent Squad coordinates routing among specialized agents. Choose by the required coordination pattern and managed/custom boundary, then evaluate handoffs and outcomes. AgentCore Runtime hosts an agent; the agent implementation or managed harness controls its loop. Neither supplies business authorization. Check customer eligibility for Agents Classic. [AgentCore and Agents Classic](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html), [orchestration comparison](/study/aiAWSServices#section-3-1-agentcore-boundary).
 
 ### Durable workflows and approval {#step-functions}
 
@@ -95,27 +87,18 @@ Implementation reference: [agents and AgentCore](/study/aiAWSServices#section-3-
 
 **Ingestion:** source → extract/validate/redact → chunk → embed → index with source/version/ACL metadata. **Request:** trusted identity → authorized corpus → candidates → optional rerank → context → generation → checked citations. These are different lifecycles.
 
-[Open retrieval and knowledge boundaries in the full reference](#trap-3-1)
-
-
 **Embedding dimensions:** Titan Text Embeddings V2 supports **1,024 / 512 / 256** output dimensions; G1 uses 1,536. Compare retrieval quality, storage, and latency on your corpus. More dimensions do not guarantee better domain accuracy, and similarity thresholds are not portable between models/datasets. [Titan embeddings](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-embedding-models.html).
 
 Use `Retrieve` to test retrieval separately from generation; use `RetrieveAndGenerate` when the managed combined path fits. A citation identifies a source, then verify it supports the claim. Knowledge Bases can support [custom Lambda transformation/chunking](https://docs.aws.amazon.com/bedrock/latest/userguide/kb-custom-transformation.html); see [retrieval configuration and limitations](/study/aiAWSServices#kb-internals).
 
 ### Prepare data before creating derived copies {#preprocessing}
 
-[Open data preparation gates in the full reference](#trap-4-1)
-
-
 <span id="knowledge-service-boundary"></span>
-**Assistant versus retriever versus store:** Q Business supplies a packaged enterprise assistant in an exam scenario; Kendra is an enterprise retriever; Knowledge Bases supplies RAG in your application; OpenSearch or Aurora/pgvector supplies search/vector storage according to requirements. Check availability/migration notices for new implementations. [Comparison](/study/aiAWSServices#assistant-retriever-vector-store).
+**Assistant versus retriever versus store:** Q Business supplies a packaged enterprise assistant for an eligible existing customer; Kendra is an enterprise retriever; Knowledge Bases supplies RAG in your application; OpenSearch or Aurora/pgvector supplies search/vector storage according to requirements. Check availability/migration notices for new implementations. [Comparison](/study/aiAWSServices#assistant-retriever-vector-store).
 
 Data details: [Data Automation](/study/aiAWSServices#data-automation), [Glue quality/redaction](/study/aiAWSServices#glue-quality-redaction), [transcription/PHI](/study/aiAWSServices#transcription-phi-pipeline), [source evidence](/study/aiAWSServices#source-audit).
 
 ## 5. Protect each boundary with the right control {#security-controls}
-
-[Open security and governance boundaries in the full reference](#trap-5-1)
-
 
 Use WAF where the selected entry-point integration supports it for request filtering/rate protection; it does not replace semantic prompt-attack checks. For responsible AI, evaluate fairness by cohort, document capabilities/limitations and intended use, preserve source/tool evidence, and escalate high-risk decisions to accountable humans. Traces expose emitted events and rationale, not guaranteed access to every hidden model thought. [Governance artifacts](/study/aiAWSServices#model-governance).
 
@@ -129,17 +112,11 @@ Lake Formation row/column filters apply through integrated query engines; they d
 <span id="observability"></span>
 <span id="diagnostic-artifact"></span>
 
-[Open telemetry responsibilities in the full reference](#trap-6-1)
-
-
 Invocation logging is disabled by default and can expose sensitive input/output, including pre-masking input. Protect supported CloudWatch/S3 destinations with access, encryption, retention, and delivery monitoring. Prefer non-sensitive correlation IDs; content capture is a deliberate policy decision. [Invocation logging](https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html), [CloudTrail integration](https://docs.aws.amazon.com/bedrock/latest/userguide/logging-using-cloudtrail.html), [agent trace controls](/study/aiAWSServices#agent-trace-controls).
 
 ### Retention and geographic processing {#retention-privacy}
 
 <span id="cross-region"></span>
-
-[Open residency decisions in the full reference](#trap-7-1)
-
 
 Cross-Region inference broadens the eligible compute pool; it does not independently fail over the source-Region application/endpoint. Check support, quotas, destinations, IAM/SCPs, and model handling. Private encrypted transport does not make an unapproved destination acceptable. Inference profiles currently do not support Provisioned Throughput. [Cross-Region inference](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html).
 
@@ -149,16 +126,10 @@ Inventory **source objects, chunks/vectors, application state, caches, invocatio
 
 Delivery, capacity, routing, and caching are different dimensions. A supported on-demand call may stream and use a cross-Region profile.
 
-[Open serving and optimization choices in the full reference](#trap-8-1)
-
-
 <span id="hosting-decision"></span>
 **Custom weights do not automatically mean SageMaker.** Bedrock supports eligible customization/import. SageMaker endpoints fit custom serving, chosen GPU instances, or endpoint scaling control. For arrival-driven long jobs, evaluate Asynchronous Inference; for a known dataset, Batch Transform. [Hosting choices](/study/aiAWSServices#sagemaker-inference-options), [Bedrock custom import](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html).
 
 ### Three different reusable units {#cost-patterns}
-
-[Open caching responsibilities in the full reference](#trap-9-1)
-
 
 Response-cache keys need **tenant/entitlement, corpus version, model/prompt/policy configuration, and expiry**. A cache must not bypass authorization or preserve deleted content. An embedding cache avoids re-embedding unchanged compatible text rather than caching the answer. [Caching and routing](/study/aiAWSServices#routing-caching-capacity).
 
@@ -170,34 +141,22 @@ Measure **tokens/cost per successful outcome**, first-token and total latency, c
 
 Use a versioned **golden dataset** of representative questions, expert-validated answers, source evidence, and tool outcomes. Keep final held-out tests separate from tuning examples. Compare with the accepted baseline by cohort, including language, tenant, rare IDs, safety cases, and side effects.
 
-[Open evaluation and troubleshooting in the full reference](#trap-10-1)
-
-
 ### Choose comparison, rollout, and validation deliberately {#quality-gate-decisions}
-
-[Open comparison, rollout, and validation in the full reference](#trap-11-1)
-
 
 Version changes, run quality/security gates, and promote only after critical checks pass. Confirmed failures become regression cases. Block a release that improves averages but breaks a critical cohort or repeats a business write.
 
-Supported Bedrock model/RAG evaluations offer automated, judge, and human approaches; verify the resource, dataset, metric, and Region contract. Faithfulness measures source support, relevance measures question alignment, and correctness measures against references. A grounding score is not a calibrated probability of truth. [Evaluation options](https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html), [judge metrics](https://docs.aws.amazon.com/bedrock/latest/userguide/model-evaluation-metrics.html).
+Supported Bedrock model/RAG evaluations offer automated, judge, and human approaches; verify the resource, dataset, metric, and Region contract. Faithfulness measures source support, relevance measures question alignment, and correctness measures against references. A grounding score is not a calibrated probability of truth. Bedrock contextual grounding checks require source, query, and response for supported use cases; conversational QA/chatbot use cases are not supported. [Grounding limitations](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-contextual-grounding-check.html). [Evaluation options](https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html), [judge metrics](https://docs.aws.amazon.com/bedrock/latest/userguide/model-evaluation-metrics.html).
 
 Lifecycle details: [SageMaker evaluation/approval](/study/aiAWSServices#sagemaker-adapter-lifecycle), [bias checks](/study/aiAWSServices#sagemaker-training-bias), [constraint regressions](/study/aiInfrastructure#constraint-regression).
 
-## 8. Keep configuration traps as a lookup {#wording-reflex}
+## 8. Check the exact contract {#wording-reflex}
 
 <span id="service-internals"></span>
 <span id="data-configuration-decisions"></span>
 
-<details class="architecture-reference" markdown="1">
-<summary>Open the API/configuration checks after practising the decisions</summary>
+After choosing the pattern, verify the model, Region, API, store, and integration contract. A supported service name does not prove a particular configuration works. Keep prompt/model/retrieval settings reproducible, and distinguish accepted requests from completed business outcomes.
 
-[Open api and configuration boundaries in the full reference](#trap-12-1)
-
-
-</details>
-
-## 9. Validate one connected implementation {#practice-project}
+## 9. Optional: validate one connected implementation {#practice-project}
 
 Build a synthetic two-tenant Northstar assistant with versioned manuals and a test work-order API:
 
@@ -219,6 +178,6 @@ Keep three artifacts: a decision record with rejected alternatives, a correlated
 | [4 — Operational Efficiency and Optimization](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01-domain4.html) | 12% | Tokens/caching, capacity economics, delivery latency, monitoring/tracing. |
 | [5 — Testing, Validation, and Troubleshooting](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01-domain5.html) | 11% | Retrieval/generation diagnosis, agent outcomes, evaluation, rollout/rollback. |
 
-You are ready when an unseen scenario lets you name **the constraint, pattern, services, controls, rejected runner-up, and requirement change that would reverse your answer**.
+For an unfamiliar scenario, practise naming **the constraint, pattern, services, controls, rejected runner-up, and requirement change that would reverse your answer**. Check your readiness with timed mixed practice, including multiple-response questions.
 
 Use the [in-scope services list](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/aip-01-in-scope-services.html) for breadth. In-scope is not a recommendation for a new deployment: consult [maintenance notices](https://docs.aws.amazon.com/general/latest/gr/maintenance_services.html) and the [service reference](/study/aiAWSServices#section-12-service-map). Recheck exact model, feature, Region, API, and account support near exam day.

@@ -206,3 +206,30 @@
 .aip-architecture .map-lifecycle-heading { fill:var(--map-model-heading); }
 .aip-architecture .map-knowledge-heading { fill:var(--map-data-heading); }
 .aip-architecture .map-inference-heading { fill:var(--map-inference-heading); }
+
+/* Five flat domain recaps: no filters, link catalogue, or nested reference view. */
+.aip-domain-recap { margin:24px 0 30px; }
+.aip-domain-recap>h3 { margin-bottom:8px; }
+.aip-domain-recap>p { color:var(--muted); font-size:13px; line-height:1.6; }
+.aip-recap-domain { border:1px solid var(--line); border-radius:9px; margin:10px 0; background:var(--card); scroll-margin-top:100px; }
+.aip-recap-domain>summary { cursor:pointer; padding:15px 18px; font-size:13px; line-height:1.6; }
+.aip-recap-domain>summary strong { font-weight:600; }
+.aip-recap-domain>summary span { display:block; margin:5px 0 0 17px; color:var(--muted); font-size:12px; }
+.aip-recap-domain[open]>summary { border-bottom:1px solid var(--line); }
+.aip-recap-domain>dl { display:grid; grid-template-columns:minmax(140px,1fr) minmax(0,3fr); margin:0; padding:0 18px; font-size:13px; line-height:1.65; }
+.aip-recap-domain dt,.aip-recap-domain dd { margin:0; padding:14px 0; border-bottom:1px solid var(--line); }
+.aip-recap-domain dt { padding-right:18px; font-weight:600; }
+.aip-recap-domain dt:last-of-type,.aip-recap-domain dd:last-of-type { border-bottom:0; }
+.aip-recap-domain dd p { margin:0; }
+.aip-recap-domain dd .aip-recap-trap { margin-top:7px; color:var(--muted); }
+.aip-recap-trap strong { color:var(--ink); font-weight:600; }
+.aip-recap-domain summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+.aip-map-fallback { margin:20px; }
+.aip-map-fallback details { padding:12px 0; border-top:1px solid var(--line); }
+.aip-map-fallback summary { cursor:pointer; font-size:13px; font-weight:600; }
+@media(max-width:600px) {
+  .aip-recap-domain>summary { padding:13px 14px; }
+  .aip-recap-domain>dl { display:block; padding:0 14px; }
+  .aip-recap-domain dt { padding:14px 0 5px; border:0; }
+  .aip-recap-domain dd { padding:0 0 14px; }
+}

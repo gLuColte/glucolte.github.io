@@ -6,6 +6,7 @@
   <div class="aip-stage-targets" aria-hidden="true">{% for stage in site.data.aip_stages %}<span id="stage-{{ stage.slug }}"></span>{% endfor %}<span id="band-security"></span><span id="band-observability"></span></div>
   <div class="aip-map-viewport" tabindex="0" aria-label="Architecture map; scroll to see the lifecycle and runtime">{% include aip-lifecycle-svg.html %}</div>
   {% include aip-diagnose-panel.html %}
+  {% include aip-map-fallback.html %}
 </section>
-<script id="aip-study-data" type="application/json">{"nodes":{{ site.data.aip_map_nodes | jsonify }},"concepts":{{ site.data.aip_concepts | jsonify }},"diagnostics":{{ site.data.aip_diagnostics | jsonify }},"boundaryLinks":{{ site.data.aip_boundary_links | jsonify }},"notes":{{ site.data.aip_map_notes | jsonify }}}</script>
+<script id="aip-study-data" type="application/json">{"nodes":{{ site.data.aip_map_nodes | jsonify }},"concepts":{{ site.data.aip_concepts | jsonify }},"diagnostics":{{ site.data.aip_diagnostics | jsonify }},"boundaryLinks":{{ site.data.aip_boundary_links | jsonify }},"traps":{{ site.data.aip_trap_tables | jsonify }}}</script>
 <script src="{{ '/assets/aip-study-flow.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>

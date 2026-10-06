@@ -139,7 +139,7 @@
         "cells": [
           "Model-selected tools based on observations",
           "Bedrock Agents or a framework such as Strands",
-          "Limit tools, caller scope, parameters, iterations, time, and tokens. AgentCore supplies runtime/memory/observability capabilities; it is not itself model reasoning."
+          "Limit tools, caller scope, parameters, iterations, time, and tokens. AgentCore Runtime hosts an agent; the agent implementation or managed harness owns its tool-selection loop. Neither replaces business authorization."
         ]
       },
       {

@@ -1,0 +1,340 @@
+[
+  {
+    "domain": 1,
+    "title": "Model, data, and prompt decisions",
+    "focus": "Choose from representative evidence; customize only the responsibility that needs it.",
+    "items": [
+      {
+        "clue": "Select on your workload",
+        "decision": "Compare supported models using representative held-out inputs, capability/modality, limits, safety, latency, cost, and Region/API support.",
+        "trap": "Public benchmark rank alone is insufficient.",
+        "sources": [
+          "trap-1-1"
+        ]
+      },
+      {
+        "clue": "Prompt, RAG, or customization?",
+        "decision": "Format/examples/tone → prompting and supported structured output. Private/current/attributable knowledge → RAG. Stable behavior still fails evaluated prompts → supported customization.",
+        "trap": "Validate schema AND business meaning. Low temperature is not truth or determinism. RAG and customization can combine; assess data quality, benefit, lifecycle cost, and serving support.",
+        "sources": [
+          "trap-1-2",
+          "trap-1-3",
+          "trap-1-4"
+        ]
+      },
+      {
+        "clue": "Managed RAG or custom layer?",
+        "decision": "Use Knowledge Bases with a supported store; use a supported Lambda transformation for custom chunking. Own query orchestration or retrieval only where the managed contract does not fit.",
+        "trap": "OpenSearch does not automatically mean custom RAG. Custom chunking alone does not force rebuilding ingestion, retrieval, and citations. Extra control adds operations cost.",
+        "sources": [
+          "trap-3-1",
+          "trap-3-2"
+        ]
+      },
+      {
+        "clue": "Search and context boundaries",
+        "decision": "Semantic intent → vector retrieval. Exact IDs → exact lookup, lexical, or supported hybrid. Lost passage context → evaluate chunking/overlap or parent-child retrieval.",
+        "trap": "Preserve searchable identifiers and measure recall. Hybrid is not universally superior. Evaluate chunking/overlap or parent-child retrieval; larger chunks dilute precision/use tokens, semantic chunking is not a universal default, and GraphRAG has a different contract.",
+        "sources": [
+          "trap-3-3",
+          "trap-3-4",
+          "trap-3-7",
+          "trap-12-10"
+        ]
+      },
+      {
+        "clue": "Data preparation must be a gate",
+        "decision": "Validate extracted structure before database/index writes. Apply and verify required PII redaction; use explicit Glue/Data Quality failure or quarantine rules for invalid records.",
+        "trap": "A report is not a gate; IsComplete alone does not validate non-empty text. Preserve layout and speaker turns, but do not treat speaker labels as verified roles. Fix detached PDF columns before chunking; check native audio support before requiring text conversion.",
+        "sources": [
+          "trap-4-1",
+          "trap-4-2",
+          "trap-4-3",
+          "trap-4-4",
+          "trap-4-6",
+          "trap-12-9",
+          "trap-12-11"
+        ]
+      },
+      {
+        "clue": "Versioned configuration is not a release gate",
+        "decision": "Prompt Management versions reusable instructions. AppConfig deployment + polling/extension changes application routing. Model/LoRA releases need evaluation → governed artifact/approval → compatible serving/deployment.",
+        "trap": "Versions do not prove quality or approval. AppConfig is not instantaneous global mutation. Registry alone does not update endpoints or hot-swap adapters.",
+        "sources": [
+          "trap-1-5",
+          "trap-12-4",
+          "trap-12-14"
+        ]
+      },
+      {
+        "clue": "Changed/deleted source still appears",
+        "decision": "Check completed synchronization, ingestion failures, update/delete handling, and derived copies; coalesce/pace StartIngestionJob requests.",
+        "trap": "An S3 update alone does not prove index refresh. Check freshness, entitlement, recall, context budget, and citation support.",
+        "sources": [
+          "trap-3-8",
+          "trap-12-8"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": 2,
+    "title": "Execution, integration, and recovery",
+    "focus": "Choose who controls progress before choosing the runner.",
+    "items": [
+      {
+        "clue": "Task, workflow, or agent?",
+        "decision": "One bounded stateless operation → Lambda. Known durable states/retries/approval → Step Functions. Model-selected next tools → bounded agent. Long-lived/custom runtime → suitable ECS/Fargate or agent hosting.",
+        "trap": "Externalize durable state; conventional Lambda invocations are limited to 15 minutes. Persistent processes differ from session state; GPU/host needs require suitable hosting. Complexity alone does not justify orchestration. AgentCore Runtime hosts agents; the implementation or managed harness owns the loop.",
+        "sources": [
+          "trap-2-1",
+          "trap-2-2",
+          "trap-2-3",
+          "trap-2-4"
+        ]
+      },
+      {
+        "clue": "Dynamic diagnosis, controlled write",
+        "decision": "Agent proposes → validate scope/parameters → durable approval/action workflow where required.",
+        "trap": "The business API still enforces authorization, approval, and idempotency. Bound tool scope, iterations, time, and tokens; a framework does not supply business authorization.",
+        "sources": [
+          "trap-2-5"
+        ]
+      },
+      {
+        "clue": "Buffering or routing?",
+        "decision": "SQS → absorb bursts and pace workers. EventBridge → route events to independent targets; add queues where buffering is needed.",
+        "trap": "Queue age, visibility timeout, DLQ, retries, and rate control matter. Shared workers distribute work rather than broadcast it to every consumer. Concurrency alone is not a model token-rate limit.",
+        "sources": [
+          "trap-2-6",
+          "trap-2-7"
+        ]
+      },
+      {
+        "clue": "S3 event starts a workflow",
+        "decision": "S3 EventBridge delivery → rule → Step Functions. For object bursts, filter keys, buffer, then pace.",
+        "trap": "Direct bucket notifications cannot target a state machine or SQS FIFO.",
+        "sources": [
+          "trap-12-1",
+          "trap-12-2"
+        ]
+      },
+      {
+        "clue": "Prompt chain or conversation API?",
+        "decision": "Bedrock Flows → supported typed nodes/branches. Converse/ConverseStream → common supported-model chat API. Keep authoritative state, validate intent/entities, and request missing fields.",
+        "trap": "Flows is not model-selected next-action reasoning. The application supplies relevant message history; an inference call is not a conversation store. InvokeModel can also implement chat with a model-specific contract.",
+        "sources": [
+          "trap-1-6",
+          "trap-1-7",
+          "trap-12-7"
+        ]
+      },
+      {
+        "clue": "Acknowledgement or delivery?",
+        "decision": "Immediate acknowledgement → valid proxy response/direct integration plus tracked job state. WebSocket tokens → decode stream events and send to the connection ID.",
+        "trap": "Async acceptance is not business completion. Storing a connection ID does not resume a model stream.",
+        "sources": [
+          "trap-12-3",
+          "trap-12-6"
+        ]
+      },
+      {
+        "clue": "Shared implementation standards",
+        "decision": "Use application/Lambda code for lightweight normalization/schema checks; versioned infrastructure constructs + runtime wrappers + CI for consistent redaction/logging. Q Developer can assist IDE review/edit/test.",
+        "trap": "Preserve meaningful identifiers/case; Comprehend is not arbitrary query normalization. Review the actual diff and execute tests; avoid obsolete command syntax.",
+        "sources": [
+          "trap-4-5",
+          "trap-12-15",
+          "trap-12-16"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": 3,
+    "title": "Security, governance, and evidence",
+    "focus": "Identity, access, safety, privacy, and residency are separate controls.",
+    "items": [
+      {
+        "clue": "Identity is not entitlement",
+        "decision": "Cognito/federation authenticates callers; IAM + application/data authorization limits actions and business data. Roles Anywhere uses trusted CA/X.509 credentials for eligible headless workloads.",
+        "trap": "Authentication and directory integration alone do not establish document/tool permission. Authorize backend scope → ACL/filter → retrieval; the ingestion role does not authorize every caller to every vector.",
+        "sources": [
+          "trap-5-1",
+          "trap-5-2",
+          "trap-3-9",
+          "trap-12-5"
+        ]
+      },
+      {
+        "clue": "Guardrails is not authorization",
+        "decision": "Use supported Guardrails input/output policies and deterministic checks for content risks; enforce tool/data permission separately.",
+        "trap": "Schema compliance is not factual correctness. Retrieved documents/tool results can carry injection; safety filtering does not enforce tenant access. Lake Formation filters do not block independent direct S3 access.",
+        "sources": [
+          "trap-5-3"
+        ]
+      },
+      {
+        "clue": "Find PII, then verify transformation",
+        "decision": "S3 discovery → Macie; text pipeline → Comprehend; model I/O → Guardrails.",
+        "trap": "Detection is not verified redaction, and filtered output does not sanitize all logs or derived copies.",
+        "sources": [
+          "trap-5-4"
+        ]
+      },
+      {
+        "clue": "Private path and encryption",
+        "decision": "Interface VPC endpoint/PrivateLink + private DNS + network/endpoint policy/IAM → private role-restricted inference. KMS/TLS/Secrets Manager + least privilege → bytes and secrets.",
+        "trap": "A private subnet alone does not create the private service path. Remove bypasses. Encryption does not establish entitlement, residency, or deletion.",
+        "sources": [
+          "trap-5-5",
+          "trap-5-6",
+          "trap-12-12"
+        ]
+      },
+      {
+        "clue": "Permission ceilings and findings",
+        "decision": "SCPs/permissions boundaries limit applicable permissions. Config checks supported resource configuration; GuardDuty detects supported threats; Security Hub aggregates supported findings.",
+        "trap": "Ceilings do not grant access; explicit denies still apply. Config does not inspect every prompt; threat/finding services are not inline content filters or detectors of every GenAI attack.",
+        "sources": [
+          "trap-5-7",
+          "trap-5-8",
+          "trap-5-9"
+        ]
+      },
+      {
+        "clue": "Which evidence answers the audit question?",
+        "decision": "AWS API caller/time/location → CloudTrail with required event coverage. Prompt/response → explicitly enabled, protected Bedrock invocation logging for supported calls.",
+        "trap": "API metadata is not prompt content. Logs can contain sensitive input, including pre-masking input; apply access, encryption, retention, and delivery monitoring.",
+        "sources": [
+          "trap-6-1",
+          "trap-6-2"
+        ]
+      },
+      {
+        "clue": "One Region, geography, or global?",
+        "decision": "Exactly one approved Region → in-Region inference. Approved geographic destinations → eligible geographic profile. No geographic restriction → evaluate eligible global/geographic profiles.",
+        "trap": "Check EVERY destination: geography labels are insufficient for a permitted subset. Private encrypted transport does not authorize another Region. Source-Region application recovery and retention/deletion of all derived copies remain separate.",
+        "sources": [
+          "trap-7-1",
+          "trap-7-2",
+          "trap-7-3"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": 4,
+    "title": "Cost, latency, and operational efficiency",
+    "focus": "Identify the repeated work and measure the actual bottleneck.",
+    "items": [
+      {
+        "clue": "Intermittent or stable throughput?",
+        "decision": "Flexible intermittent traffic → on-demand. Stable measured token demand → evaluate Provisioned Throughput.",
+        "trap": "On-demand still has quotas/throttles. Check hourly billing, sizing, support, and commitment; no universal 60–70% break-even or guaranteed lower p99.",
+        "sources": [
+          "trap-8-1",
+          "trap-8-2"
+        ]
+      },
+      {
+        "clue": "Offline completion or earlier tokens?",
+        "decision": "Supported offline S3 dataset → Bedrock batch inference. Earlier visible output while waiting → streaming with end-to-end transport.",
+        "trap": "Check job semantics, record reconciliation, model/Region support, and completion objectives. Streaming is not async and need not make generation faster/cheaper; handle buffering, disconnects, and partial failures. Avoid universal batch discount/latency claims.",
+        "sources": [
+          "trap-8-3",
+          "trap-8-4"
+        ]
+      },
+      {
+        "clue": "Capacity pool or model routing?",
+        "decision": "Cross-Region profile → broader eligible compute pool. Intelligent Prompt Routing or custom routing/cascade → simpler queries use less capability.",
+        "trap": "Geographic controls/source-endpoint recovery remain separate. Evaluate both query groups; native routing has model-pair/family restrictions. Custom routing does not inherently need Step Functions.",
+        "sources": [
+          "trap-8-5",
+          "trap-8-6"
+        ]
+      },
+      {
+        "clue": "Prefix cache or answer cache?",
+        "decision": "Identical long prefix/questions differ → Bedrock prompt caching. Equivalent questions/valid answer → semantic response cache. Identical complete scoped input/configuration → exact cache/fingerprint.",
+        "trap": "Prompt cache hits still generate; check supported checkpoints, TTL, hits, and billing. Answer caches can skip generation only with a valid entry. Calibrate similarity, scope, freshness, expiry/eviction/invalidation, and unsafe reuse.",
+        "sources": [
+          "trap-9-1",
+          "trap-9-2",
+          "trap-9-3"
+        ]
+      },
+      {
+        "clue": "Metrics, spans, or log queries?",
+        "decision": "Changing latency/tokens/throttles/errors/queue age → CloudWatch metrics/alarms. Slow/failed hop → instrumented X-Ray/OTel spans. Across-call prompt/version patterns → Logs Insights over configured logs.",
+        "trap": "Custom quality signals need evaluation/instrumentation. Lambda tracing alone does not expose every SDK call or hidden model stage.",
+        "sources": [
+          "trap-6-3",
+          "trap-6-4",
+          "trap-6-6"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": 5,
+    "title": "Evaluation, diagnosis, and release decisions",
+    "focus": "Find the first failed boundary; test outcomes before promotion.",
+    "items": [
+      {
+        "clue": "Evidence missing or poorly ordered?",
+        "decision": "Missing → inspect ingestion, freshness, source versions, ACLs/filters, query/chunking, and recall. Present but poorly ordered → rerank. Noisy context → evaluate precision, ranking, chunk boundaries, and pruning.",
+        "trap": "Reranking reorders existing candidates and adds latency/cost. Neither reranking nor a larger generator recovers unseen evidence; preserve relevant evidence when pruning.",
+        "sources": [
+          "trap-3-5",
+          "trap-3-6",
+          "trap-10-1",
+          "trap-10-2"
+        ]
+      },
+      {
+        "clue": "Faithfulness, relevance, or task completion?",
+        "decision": "Invented claims → source faithfulness. Off-question answer → answer relevance/task rubric. Fluent wrong action → actual tool selection/parameters, authorization, idempotency, and completion.",
+        "trap": "Citation presence is not source support. Correctness, relevance, and faithfulness differ. Use source-fact/business assertions plus factuality evaluation before promotion.",
+        "sources": [
+          "trap-10-3",
+          "trap-10-4",
+          "trap-10-5",
+          "trap-12-13"
+        ]
+      },
+      {
+        "clue": "Trace, judge, expert, or assertion?",
+        "decision": "Agent failure → correlated agent trace + tool logs/workflow history. Semantic assessment at scale → calibrated LLM judge. High-risk labels → experts with guidelines/adjudication. Repeatable regressions → assertions/suitable automated metrics.",
+        "trap": "Persist required trace events; memory summaries are different evidence. Judges need rubrics and human calibration/bias checks; humans are fallible. BLEU/ROUGE overlap is not semantic truth or tool correctness.",
+        "sources": [
+          "trap-6-5",
+          "trap-10-6",
+          "trap-10-7",
+          "trap-10-8"
+        ]
+      },
+      {
+        "clue": "Compare before or during exposure?",
+        "decision": "Offline → same held-out cases/sources/rubric. A/B → live outcome comparison with stable cohorts and attribution.",
+        "trap": "Apply prior safety gates and gather enough evidence; no mandatory 50/50 split. Block a release that improves averages but breaks a critical cohort or repeats a business write.",
+        "sources": [
+          "trap-11-1",
+          "trap-11-2"
+        ]
+      },
+      {
+        "clue": "Canary, shadow, blue/green, or probe?",
+        "decision": "Canary → small live cohort + stop/rollback + gradual promotion. Shadow → mirrored requests without candidate responses. Blue/green → switch prepared environments. Synthetic canary → scheduled integration probe.",
+        "trap": "Isolate shadow side effects and account for duplicated data/cost. Validate rollback/state compatibility. Uptime alone does not prove factual quality.",
+        "sources": [
+          "trap-11-3",
+          "trap-11-4",
+          "trap-11-5",
+          "trap-11-6"
+        ]
+      }
+    ]
+  }
+]

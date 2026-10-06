@@ -566,8 +566,8 @@
           "Amazon Q Developer",
           "Amazon Bedrock"
         ],
-        "question": "An organization evaluating the services in the exam blueprint wants a packaged employee assistant over supported enterprise document sources. It requires identity-aware access, built-in connectors, and conversational answers with source citations. The team prefers a managed application over building its own assistant. The sources include supported internal document repositories rather than software source-code assistance. Employees must receive only content their identity permits. There is no requirement for a bespoke business transaction workflow or GPU-serving configuration. Which service best matches this category?",
-        "clue": "The requirement is a packaged enterprise knowledge assistant with connectors and citations.",
+        "question": "An organization that is an eligible existing Amazon Q Business customer wants a packaged employee assistant over supported enterprise document sources. It requires identity-aware access, built-in connectors, and conversational answers with source citations. The team prefers a managed application over building its own assistant. The sources include supported internal document repositories rather than software source-code assistance. Employees must receive only content their identity permits. There is no requirement for a bespoke business transaction workflow or GPU-serving configuration. Which service best matches this category?",
+        "clue": "The requirement is a packaged enterprise knowledge assistant with connectors and citations. The customer is eligible to continue using the service.",
         "why": "Amazon Q Business is the enterprise-assistant category described here. It packages the document-connector and employee question-answering experience, whereas a Bedrock application requires the team to build that experience. Q Developer addresses developer productivity rather than this employee knowledge task.",
         "options": [
           {
@@ -1007,15 +1007,15 @@
           "Amazon Bedrock",
           "Bedrock Guardrails contextual grounding"
         ],
-        "question": "A Bedrock assistant retrieves the current policy correctly. The model’s answer adds an eligibility claim that is absent from the supplied passage. The team wants to check completed answers against the source and route failed checks to a safe fallback before returning them. Traces confirm that the full relevant passage reached the model and that the output satisfies the required JSON schema. Increasing retrieval count has not removed the unsupported claim. The required source-based response-check feature is available for the selected configuration. Which capability best targets this requirement?",
+        "question": "A Bedrock application handles single-turn policy questions in a supported contextual-grounding use case, rather than conversational chatbot QA. It retrieves the current policy correctly. The model’s answer adds an eligibility claim that is absent from the supplied passage. The team wants to check completed answers against the source and route failed checks to a safe fallback before returning them. Traces confirm that the full relevant passage reached the model and that the output satisfies the required JSON schema. Increasing retrieval count has not removed the unsupported claim. The required source-based response-check feature is available for the selected configuration. Which capability best targets this requirement?",
         "clue": "Retrieval succeeded; the requirement is a post-generation source-support check.",
         "why": "Configure supported Bedrock Guardrails contextual grounding checks using the source, query, and generated response. The check evaluates grounding/relevance against the supplied context and can support the application’s block or fallback policy. It addresses unsupported claims after retrieval rather than changing API access permissions.",
         "options": [
           {
             "name": "Bedrock Guardrails contextual grounding checks",
             "when": "Assess supported generated response/source alignment and relevance.",
-            "trap": "Scores are not calibrated truth probabilities and support limits matter.",
-            "action": "Run a supported contextual grounding check using the source and answer, then apply the block/fallback policy before delivery.",
+            "trap": "Scores are not calibrated truth probabilities. Conversational QA/chatbot use cases are not supported.",
+            "action": "Run a supported contextual grounding check using the source, user query, and generated answer, then apply the block/fallback policy before delivery.",
             "wrong": ""
           },
           {
@@ -1661,7 +1661,7 @@
         ],
         "reading": "#evaluation",
         "answer": 0,
-        "change": "Use Clarify for a supported ML bias/explainability assessment, or CloudWatch when the task is monitoring and alarming on already emitted operational or quality signals.",
+        "change": "For an eligible existing deployment, use Clarify for a supported ML bias/explainability assessment, or CloudWatch when the task is monitoring and alarming on already emitted operational or quality signals.",
         "stage": "Evaluate",
         "band": "Observability"
       },

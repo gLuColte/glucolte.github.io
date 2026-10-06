@@ -78,6 +78,9 @@
       "trap-12-13"
     ],
     "deploy": [
+      "trap-12-14",
+      "trap-11-3",
+      "trap-11-5",
       "trap-8-1",
       "trap-8-2",
       "trap-8-3",
@@ -86,14 +89,11 @@
       "trap-9-2",
       "trap-9-3",
       "trap-11-2",
-      "trap-11-3",
       "trap-11-4",
-      "trap-11-5",
       "trap-12-3",
       "trap-12-4",
       "trap-12-6",
       "trap-12-12",
-      "trap-12-14",
       "trap-12-15",
       "trap-12-16"
     ],
@@ -485,6 +485,16 @@
       "trap-12-11",
       "trap-12-14",
       "trap-11-1"
-    ]
+    ],
+    "continued-pretraining": [
+      "trap-1-4",
+      "trap-12-14"
+    ],
+    "distillation": [
+      "trap-1-4",
+      "trap-12-14"
+    ],
+    "lora": [],
+    "lora-rank": []
   }
 }

@@ -1,9 +1,0 @@
-<details id="aip-full-reference" class="aip-full-reference">
-<summary>Full exam trap reference</summary>
-<p>Use this for detailed lookup. The mindmap above shows a short recap of the selected responsibility.</p>
-{% include aip-trap-explorer.html %}
-<div class="aip-definition-fallback"><details><summary>Definitions and capability boundaries</summary>    <div class="aip-concept-list">{% for concept in site.data.aip_concepts %}<details id="concept-{{ concept.id }}" class="aip-concept"><summary>{{ concept.title }}</summary><p>{{ concept.summary | escape }}</p>{% if concept.parent %}<p class="aip-concept-parent">Parent: <a href="#concept-{{ concept.parent }}">{{ concept.parent }}</a></p>{% endif %}<dl>{% assign keys = 'constraint,managed,extension,ownership,capability,clue,trap' | split: ',' %}{% for key in keys %}{% if concept[key] %}<dt>{{ key | capitalize }}</dt><dd>{{ concept[key] | escape }}</dd>{% endif %}{% endfor %}</dl>{% if concept.read %}<a href="{{ concept.read }}">Read the related guide →</a>{% endif %}</details>{% endfor %}</div><div class="aip-static-notes">{% for note in site.data.aip_map_notes %}<details><summary>{{ note.title | escape }}</summary><p>{{ note.copy | escape }}</p></details>{% endfor %}</div></details></div>
-
-<div class="aip-release-references">    <details><summary>Model lifecycle references</summary><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-analyze.html">Bedrock training/validation metrics</a> · <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/customizing-models-lora.html">LoRA</a> · <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-adapt.html">SageMaker adapter inference components</a></details></div>
-
-</details>

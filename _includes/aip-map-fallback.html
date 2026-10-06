@@ -1,0 +1,6 @@
+<div class="aip-map-fallback">
+  <p>Map explanations are available below when interaction is unavailable.</p>
+  {%- for node in site.data.aip_map_nodes %}{% assign concept = site.data.aip_concepts | where: 'id', node.concept | first %}
+  <details id="concept-{{ concept.id }}"><summary>{{ node.title | escape }}</summary><p>{{ concept.summary | escape }}</p>{% if concept.capability %}<p><strong>Capabilities:</strong> {{ concept.capability | escape }}</p>{% endif %}{% if concept.trap %}<p><strong>Decision boundary / trap:</strong> {{ concept.trap | escape }}</p>{% endif %}</details>
+  {%- endfor %}
+</div>

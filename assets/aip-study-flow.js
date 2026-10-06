@@ -1,9 +1,8 @@
-/* Architecture recap and diagnostics with a separate static reference. No network or storage. */
+/* Architecture decisions and evidence-led diagnostics. No network or storage. */
 (() => {
   'use strict';
-  const map=document.getElementById('genai-map'),explorer=document.getElementById('aip-trap-explorer');
-  if(!map||!explorer)return;
-  const rows=[...explorer.querySelectorAll('tr[data-stage]')];
+  const map=document.getElementById('genai-map');
+  if(!map)return;
   const get=id=>document.getElementById(`aip-${id}`);
   const openAncestors=node=>{for(let parent=node;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;};
   function route(){
@@ -15,8 +14,10 @@
       const owner=data.nodes.find(node=>id.startsWith('stage-')?node.stage?.toLowerCase()===id.slice(6):node.band?.toLowerCase()===id.slice(5));
       if(owner){showBoundary(owner.concept,owner.id);document.getElementById('map-'+owner.id).scrollIntoView({block:'center'});}return;
     }
+    if(id.startsWith('concept-')&&concepts.has(id.slice(8))){showBoundary(id.slice(8));return;}
+    // Older trap links lead to the compact domain recap, never a second catalogue.
+    if(traps.has(id)){const target=document.getElementById('trap-domain-'+traps.get(id).domain);openAncestors(target);target.scrollIntoView({block:'start'});return;}
     const target=document.getElementById(id);if(!target)return;
-    if(target.matches('tr[data-stage]')){openAncestors(target);target.scrollIntoView({block:'center'});return;}
     if(target.matches('.map-link')){showBoundary(target.dataset.concept,target.id.slice(4));map.scrollIntoView({block:'start'});target.focus({preventScroll:true});return;}
     if(id==='aip-trap-practice'){get('symptom-overlay').scrollIntoView({block:'start'});return;}
     openAncestors(target);
@@ -28,6 +29,8 @@
   });
   const data=JSON.parse(document.getElementById('aip-study-data').textContent);
   const concepts=new Map(data.concepts.map(item=>[item.id,item]));
+  const traps=new Map(data.traps.flatMap(table=>table.rows.map(row=>[row.id,{...row,headings:table.headers}])));
+  const plain=copy=>copy.replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/\*\*|`/g,'');
   const nodeById=new Map(data.nodes.map(item=>[item.id,item]));
   const scenarioFamily=get('diagnostic-family'),scenario=get('diagnostic-scenario'),investigation=get('investigation');
   let selectedMap=null,diagnosis=null;
@@ -60,19 +63,15 @@
   function fieldBlock(label,copy){const section=make('div');section.append(make('h4',label),make('p',copy));return section;}
   function renderInlineTraps(ids){
     const list=get('inline-traps');list.replaceChildren();
-    // The recap is deliberately bounded. Exact, unabridged rows remain in the reference.
+    // Keep exact distinctions available without rendering an unrelated full archive.
     [...new Set(ids)].slice(0,3).forEach(id=>{
-      const row=rows.find(row=>row.id===id);if(!row)return;
-      const cells=[...row.querySelectorAll('td')],headings=[...row.closest('table').querySelectorAll('thead th')];
+      const row=traps.get(id);if(!row)return;
       const item=make('div',undefined,'aip-recap-distinction');item.dataset.trapId=id;
-      item.append(make('h5',cells[0].querySelector('.aip-original-cell').textContent.trim()));
+      item.append(make('h5',plain(row.cells[0])));
       const content=make('dl');
-      cells.slice(1).forEach((cell,index)=>{
-        // Reference-only link columns are available through the single reference link below.
-        if(headings[index+1].textContent==='More detail')return;
-        const original=cell.querySelector('.aip-original-cell');
-        content.append(make('dt',headings[index+1].textContent),make('dd'));
-        content.lastElementChild.append(original.cloneNode(true));
+      row.cells.slice(1).forEach((cell,index)=>{
+        if(row.headings[index+1]==='More detail')return;
+        content.append(make('dt',row.headings[index+1]),make('dd',plain(cell)));
       });item.append(content);list.append(item);
     });
   }
@@ -81,7 +80,6 @@
     const precise=data.boundaryLinks.concepts[conceptId];
     const ids=precise||nodeIds.flatMap(id=>data.boundaryLinks.nodes[id]||[]);
     renderInlineTraps(ids);
-    get('boundary-reference').href=ids[0]?'#'+ids[0]:'#aip-full-reference';
   }
   function shortPath(path,id){
     const index=path.steps.findIndex(step=>step.id===id),steps=path.steps.slice(Math.max(0,index-4),index+1);
@@ -140,6 +138,6 @@
   });
   scenarioFamily.addEventListener('change',setFamily);scenario.addEventListener('change',chooseScenario);
   map.querySelector('.aip-map-mode').hidden=false;map.querySelector('.aip-diagnostic-controls').hidden=false;
-  map.querySelector('.aip-diagnostic-fallback').hidden=true;investigation.hidden=false;setFamily();
+  map.querySelector('.aip-diagnostic-fallback').hidden=true;map.querySelector('.aip-map-fallback').hidden=true;investigation.hidden=false;setFamily();
   route();
 })();

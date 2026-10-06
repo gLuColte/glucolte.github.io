@@ -1,0 +1,13 @@
+<section id="aip-domain-recap" class="aip-domain-recap" aria-label="Exam traps at a glance">
+  <h3>Domain trap recap</h3>
+  <p>Recall the decision, then check the tempting substitute. Open one domain at a time; detailed concepts stay in the mindmap.</p>
+  {%- for domain in site.data.aip_domain_recap %}{% assign index = forloop.index0 %}{% assign blueprint = site.data.aip_domain_practice[index] %}
+  <details id="trap-domain-{{ domain.domain }}" class="aip-recap-domain" name="aip-domain-recap">
+    <summary><strong>Domain {{ domain.domain }} · {{ blueprint.weight }}% · {{ domain.title }}</strong><span>{{ domain.focus }}</span></summary>
+    <dl>{%- for item in domain.items %}
+      <dt>{{ item.clue | escape }}</dt>
+      <dd><p>{{ item.decision | escape }}</p><p class="aip-recap-trap"><strong>Trap:</strong> {{ item.trap | escape }}</p></dd>
+    {%- endfor %}</dl>
+  </details>
+  {%- endfor %}
+</section>
