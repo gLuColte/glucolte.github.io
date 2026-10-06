@@ -5,9 +5,8 @@
     <strong class="aip-lab__title">Learn the trap. Choose the right AWS service.</strong>
     <p>Pick a domain → try a multiple-choice question → learn the service distinction.</p>
   </div>
-  <div class="aip-lab__fallback">
-    <p>The five domains cover model/data decisions (31%), integration (26%), security/governance (20%), optimization (12%), and evaluation/troubleshooting (11%). The references below explain the key service differences. Enable JavaScript for the domain trap lessons and questions.</p>
-  </div>
+  <div class="aip-lab__fallback">{% include aip-static-domain-practice.html %}</div>
+  <script id="aip-practice-data" type="application/json">{{ site.data.aip_domain_practice | jsonify }}</script>
   <div class="aip-lab__interactive" hidden>
     <div id="aip-domains" class="aip-domains__selector" role="group" aria-label="Choose an exam domain"></div>
     <div class="aip-domains__heading">

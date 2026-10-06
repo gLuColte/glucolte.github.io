@@ -1,0 +1,749 @@
+{
+  "paths": {
+    "rag": {
+      "title": "RAG / evidence → answer",
+      "summary": "Find where approved evidence first disappeared, changed meaning, became inaccessible, or stopped supporting the answer.",
+      "steps": [
+        {
+          "id": "source",
+          "label": "Source",
+          "evidence": "Compare the authoritative object, version, permission, and required passage with the failing question.",
+          "rule": "If the fact is absent or stale at source, downstream ranking cannot create it."
+        },
+        {
+          "id": "preprocess",
+          "label": "Preprocess",
+          "evidence": "Compare extraction/transcription output against the original tables, qualifiers, and identifiers.",
+          "rule": "Repair missing meaning before changing vector size or model weights."
+        },
+        {
+          "id": "parse",
+          "label": "Parse",
+          "evidence": "Inspect the actual text and structure entering the chunker.",
+          "rule": "An extraction defect is earlier than a chunk-boundary defect."
+        },
+        {
+          "id": "chunk",
+          "label": "Chunking",
+          "evidence": "Inspect the units containing the answer and its exceptions; check boundaries and overlap.",
+          "rule": "Use a supported chunking strategy or ingestion extension before replacing RAG."
+        },
+        {
+          "id": "metadata",
+          "label": "Metadata",
+          "evidence": "Inspect source/version identifiers and trusted ACL fields attached to each required chunk.",
+          "rule": "Similarity cannot compensate for missing access or freshness metadata."
+        },
+        {
+          "id": "embed",
+          "label": "Document embedding",
+          "evidence": "Check embedding model, dimensions/configuration, and measured recall on this corpus.",
+          "rule": "Matching dimensions are necessary, but the embedding spaces must also be compatible."
+        },
+        {
+          "id": "index",
+          "label": "Index",
+          "evidence": "Confirm the exact current chunk/vector/metadata exists and synchronization succeeded.",
+          "rule": "Missing chunk → investigate ingestion; a reranker cannot recreate it."
+        },
+        {
+          "id": "query",
+          "label": "Query / scope",
+          "evidence": "Inspect the real query, meaningful IDs, trusted tenant scope, and filters sent downstream.",
+          "rule": "Do not remove exact identifiers or loosen authorization to improve recall."
+        },
+        {
+          "id": "query-embed",
+          "label": "Query embedding",
+          "evidence": "Compare query-vector generation with the indexed document-vector contract.",
+          "rule": "Changing the query model alone does not migrate the index."
+        },
+        {
+          "id": "candidates",
+          "label": "Candidates",
+          "evidence": "Inspect the permitted pre-rerank candidates and whether the required evidence is present.",
+          "rule": "Indexed and permitted but absent here → investigate search/filtering/recall."
+        },
+        {
+          "id": "reranker",
+          "label": "Reranking",
+          "evidence": "Compare before/after ordering, candidate input, top-k, and any removed relevant passages.",
+          "rule": "Present but poorly ordered → ranking; absent from input → upstream."
+        },
+        {
+          "id": "best-context",
+          "label": "Context selection",
+          "evidence": "Inspect final passages, parent context, qualifiers, citations, and token-budget pruning.",
+          "rule": "A good candidate can still be lost before it reaches the model."
+        },
+        {
+          "id": "prompt",
+          "label": "Prompt",
+          "evidence": "Inspect the exact assembled messages, source separation, task rules, and context truncation.",
+          "rule": "Correct evidence plus unclear instructions is not solved by another vector database."
+        },
+        {
+          "id": "model",
+          "label": "Model",
+          "evidence": "Compare outputs on the same verified context with the baseline and actual generation settings.",
+          "rule": "Only blame model capability after validating the input and output contract."
+        },
+        {
+          "id": "response",
+          "label": "Answer / validation",
+          "evidence": "Compare individual claims and citations against supplied evidence and the user requirement.",
+          "rule": "A valid citation or JSON shape is not proof of faithfulness or correctness."
+        }
+      ],
+      "symptoms": [
+        [
+          "index",
+          "Required chunk is absent from the index"
+        ],
+        [
+          "candidates",
+          "Indexed, permitted chunk never enters candidates"
+        ],
+        [
+          "reranker",
+          "Correct candidate is present but ordered badly"
+        ],
+        [
+          "prompt",
+          "Correct evidence reaches the model; answer is wrong"
+        ]
+      ]
+    },
+    "prompt": {
+      "title": "Prompt / model answer quality",
+      "summary": "First define what a correct answer means. Choose a suitable model, supply clear instructions and relevant context, then generate and validate. Output checks verify both format and the original task rules; valid JSON alone is insufficient.",
+      "steps": [
+        {
+          "id": "user-query",
+          "label": "Task definition",
+          "evidence": "Inspect label meanings, output requirements, ambiguity, and representative boundary cases.",
+          "rule": "A persona does not define missing business rules."
+        },
+        {
+          "id": "select",
+          "label": "Model / task fit",
+          "evidence": "Compare baseline performance, supported modality, context budget, and task requirements.",
+          "rule": "A public benchmark or larger model is not proof of task fit."
+        },
+        {
+          "id": "system-instructions",
+          "label": "Instructions",
+          "evidence": "Check instruction priority, untrusted-source separation, refusal/escalation rules, and examples.",
+          "rule": "Prompt instructions cannot replace deterministic authorization."
+        },
+        {
+          "id": "prompt-template",
+          "label": "Template version",
+          "evidence": "Compare the evaluated template/variables with the deployed version and rendered payload.",
+          "rule": "A saved prompt version is not necessarily the version actually invoked."
+        },
+        {
+          "id": "retrieved-knowledge",
+          "label": "Evidence",
+          "evidence": "Verify the selected knowledge contains the required facts and qualifications.",
+          "rule": "Missing current facts usually require evidence, not style fine-tuning."
+        },
+        {
+          "id": "conversation",
+          "label": "History / state",
+          "evidence": "Inspect included turns, authoritative state, permission scope, and trimming.",
+          "rule": "An inference API does not automatically retain every earlier turn."
+        },
+        {
+          "id": "generation-config",
+          "label": "Generation settings",
+          "evidence": "Inspect actual token limits, stop sequences, sampling, template, and model/API settings.",
+          "rule": "Cut-off output differs from hallucination; low temperature is not a truth guarantee."
+        },
+        {
+          "id": "response",
+          "label": "Output contract",
+          "evidence": "Check semantic correctness, factual support, schema, and actual business outcome separately.",
+          "rule": "Valid JSON can still encode an incorrect or unauthorized action."
+        }
+      ],
+      "symptoms": [
+        [
+          "user-query",
+          "Labels or decision boundaries are ambiguous"
+        ],
+        [
+          "conversation",
+          "Model forgets a previous user fact"
+        ],
+        [
+          "generation-config",
+          "Answer ends early or changes after deployment"
+        ],
+        [
+          "retrieved-knowledge",
+          "Current private fact is missing from the answer"
+        ],
+        [
+          "response",
+          "JSON is valid, but the category or business decision is wrong"
+        ]
+      ]
+    },
+    "training": {
+      "title": "Fine-tuning / training quality",
+      "summary": "Work from held-out task behavior back through the artifact, training configuration, records, and adaptation choice. Loss is evidence, not the final goal.",
+      "steps": [
+        {
+          "id": "select",
+          "label": "Base model / baseline",
+          "evidence": "Compare representative tasks with the untuned model and supported customization methods.",
+          "rule": "Fine-tuning is not automatically better than a suitable baseline."
+        },
+        {
+          "id": "adapt",
+          "label": "Adaptation choice",
+          "evidence": "State whether the gap is instructions, changing facts, stable behavior, or domain adaptation.",
+          "rule": "Prompting, RAG, supervised tuning, and continued pre-training solve different gaps."
+        },
+        {
+          "id": "datasets",
+          "label": "Splits / lineage",
+          "evidence": "Inspect dataset versions, provenance, duplicates, leakage, and representative critical cohorts.",
+          "rule": "Training and final test data must remain independent."
+        },
+        {
+          "id": "training-records",
+          "label": "Records / labels",
+          "evidence": "Inspect model-specific format, input/output alignment, labels, and sensitive content.",
+          "rule": "More incorrectly labeled examples can reinforce the defect."
+        },
+        {
+          "id": "training-config",
+          "label": "Training configuration",
+          "evidence": "Compare supported base/method, tokenizer, length/truncation, learning rate, epochs, and batch settings.",
+          "rule": "A configuration change must be evaluated; more epochs is not a universal fix."
+        },
+        {
+          "id": "fine-tuning",
+          "label": "Training execution",
+          "evidence": "Check job status, actual configuration/data, permissions, logs, and produced artifact identity.",
+          "rule": "A completed job proves execution, not the desired behavior."
+        },
+        {
+          "id": "training-runs",
+          "label": "Learning curves",
+          "evidence": "Compare available training/validation curves with held-out outputs and critical cohorts.",
+          "rule": "Improving training loss with worsening validation may indicate overfitting; also check data/split defects."
+        },
+        {
+          "id": "checkpoint",
+          "label": "Checkpoint selection",
+          "evidence": "Compare candidate checkpoints with the baseline using independent task and safety gates.",
+          "rule": "The final epoch or lowest training loss is not automatically the best checkpoint."
+        },
+        {
+          "id": "lifecycle-evaluate",
+          "label": "Held-out evaluation",
+          "evidence": "Inspect correctness, safety, task success, regressions, and relevant latency/cost.",
+          "rule": "A critical regression blocks promotion even if average quality improves."
+        },
+        {
+          "id": "registry",
+          "label": "Approved artifact",
+          "evidence": "Check exactly which artifact/configuration passed the gate and was approved.",
+          "rule": "Approval does not deploy it."
+        },
+        {
+          "id": "deployment-check",
+          "label": "Live identity",
+          "evidence": "Send an attributed smoke request through the real route; compare with the offline candidate.",
+          "rule": "If offline passes but live fails, inspect routing/version/serving before retraining."
+        },
+        {
+          "id": "monitor",
+          "label": "Production behavior",
+          "evidence": "Compare observed cohort failures, task mix, drift, and versions with held-out evaluation.",
+          "rule": "Production regression starts an investigation or rollback, not automatic retraining."
+        }
+      ],
+      "symptoms": [
+        [
+          "training-runs",
+          "Training improves but validation degrades"
+        ],
+        [
+          "training-records",
+          "Tuned model learns inconsistent labels"
+        ],
+        [
+          "datasets",
+          "Excellent test score collapses on new examples"
+        ],
+        [
+          "deployment-check",
+          "Offline candidate passes; production behaves like the old model"
+        ]
+      ]
+    },
+    "adapters": {
+      "title": "LoRA / adapter release",
+      "summary": "An adapter release depends on its compatible base, evaluated artifact, serving integration, and actual request route. Start from live behavior and verify each identity.",
+      "steps": [
+        {
+          "id": "select",
+          "label": "Compatible base",
+          "evidence": "Identify the exact supported base model/revision, tokenizer, and serving runtime.",
+          "rule": "A same-family model name does not prove adapter compatibility."
+        },
+        {
+          "id": "datasets",
+          "label": "Task examples",
+          "evidence": "Check the versioned examples and held-out cohorts used to train and evaluate this adapter.",
+          "rule": "Small adapter artifacts do not reduce the need for good supervision."
+        },
+        {
+          "id": "lora-rank",
+          "label": "LoRA configuration",
+          "evidence": "Inspect rank/scaling/dropout and training settings against validation results.",
+          "rule": "Higher rank is not a cure for wrong labels or leakage."
+        },
+        {
+          "id": "lora",
+          "label": "Adapter training",
+          "evidence": "Confirm the intended base remained frozen and the expected adapter artifact was produced.",
+          "rule": "LoRA changes adapter weights; it is not retrieval or a standalone model."
+        },
+        {
+          "id": "lora-artifact",
+          "label": "Artifact / base pairing",
+          "evidence": "Check adapter/base versions, tokenizer/template, artifact format, and merged versus unmerged status.",
+          "rule": "An unmerged adapter needs its compatible base at inference."
+        },
+        {
+          "id": "lifecycle-evaluate",
+          "label": "Release gate",
+          "evidence": "Evaluate the actual base+adapter pair with the intended inference configuration and cohorts.",
+          "rule": "Evaluating a different base or template invalidates the release comparison."
+        },
+        {
+          "id": "registry",
+          "label": "Version / approval",
+          "evidence": "Inspect registered artifact, approval, lineage, and rollback pair.",
+          "rule": "Registry approval does not load or hot-swap the live adapter."
+        },
+        {
+          "id": "lora-serving",
+          "label": "Load / route adapter",
+          "evidence": "Inspect deployed base/component, adapter readiness, actual selected identity, and tenant entitlement.",
+          "rule": "Use the supported adapter-serving contract; generic model registration is insufficient."
+        },
+        {
+          "id": "deployment-check",
+          "label": "Live smoke / rollback",
+          "evidence": "Compare attributed live requests with the approved pair; verify rollback restores the pair and route.",
+          "rule": "Base-like output can be a loading/routing defect, not failed training."
+        },
+        {
+          "id": "monitor",
+          "label": "Live adapter behavior",
+          "evidence": "Correlate outcomes with adapter/base versions, task cohorts, loading failures, and request scope.",
+          "rule": "Aggregate endpoint metrics can hide one broken adapter or tenant route."
+        }
+      ],
+      "symptoms": [
+        [
+          "lora-artifact",
+          "Adapter fails to load against the selected base"
+        ],
+        [
+          "lora-serving",
+          "Request behaves as if the adapter is absent"
+        ],
+        [
+          "registry",
+          "Adapter is approved, but live endpoint did not change"
+        ],
+        [
+          "lora-rank",
+          "Increasing rank did not improve held-out quality"
+        ]
+      ]
+    },
+    "serving": {
+      "title": "Inference / latency / cost",
+      "summary": "Separate queue wait, initialization, model generation, transport buffering, and repeated work before choosing a performance capability.",
+      "steps": [
+        {
+          "id": "select",
+          "label": "Task / model fit",
+          "evidence": "Compare measured quality, token use, latency, and cost across suitable supported models.",
+          "rule": "A smaller/faster model must still meet the task quality target."
+        },
+        {
+          "id": "quantization",
+          "label": "Representation / runtime",
+          "evidence": "Benchmark supported precision and serving settings with the actual hardware/runtime and quality gates.",
+          "rule": "Lower precision does not guarantee lower end-to-end latency."
+        },
+        {
+          "id": "deployment-check",
+          "label": "Serving identity",
+          "evidence": "Verify the intended model/container/component/configuration is ready and receiving requests.",
+          "rule": "An endpoint being reachable does not identify the release it serves."
+        },
+        {
+          "id": "capacity",
+          "label": "Capacity / routing",
+          "evidence": "Inspect demand, quotas, utilization, scaling, approved destinations, and selected capacity mode.",
+          "rule": "Cross-Region routing, reserved capacity, and application failover are different controls."
+        },
+        {
+          "id": "admission",
+          "label": "Admission / queue wait",
+          "evidence": "Measure accepted token demand, throttles, queue age, worker pacing, and tenant budgets.",
+          "rule": "Concurrency limits do not express every token-rate requirement."
+        },
+        {
+          "id": "caching",
+          "label": "Repeated work",
+          "evidence": "Inspect exact scoped result reuse, compatible embedding reuse, or supported prompt-prefix hits.",
+          "rule": "Prompt caching does not reuse the complete answer."
+        },
+        {
+          "id": "generation-config",
+          "label": "Generation work",
+          "evidence": "Inspect context/output token counts, stop limits, and actual generation configuration.",
+          "rule": "Longer output can dominate total latency even when the first token is fast."
+        },
+        {
+          "id": "traces",
+          "label": "Stage timings",
+          "evidence": "Separate queue, initialization, retrieval, model first-token/generation, and transport spans.",
+          "rule": "Optimize the measured bottleneck; an uninstrumented hop is not proven fast."
+        },
+        {
+          "id": "response",
+          "label": "Delivery contract",
+          "evidence": "Check synchronous/streaming/background mode and buffering at every transport hop.",
+          "rule": "Streaming improves early delivery while the caller waits; it is not asynchronous completion."
+        },
+        {
+          "id": "performance",
+          "label": "User outcome / cost",
+          "evidence": "Compare p95/first-token/total latency and cost per successful task across cohorts.",
+          "rule": "Low invocation cost can hide retries, failures, or poor task quality."
+        }
+      ],
+      "symptoms": [
+        [
+          "admission",
+          "429s or long queue waits during bursts"
+        ],
+        [
+          "response",
+          "Model streams, but browser receives one late response"
+        ],
+        [
+          "traces",
+          "First token is fast, but total answer is slow"
+        ],
+        [
+          "caching",
+          "Repeated prompt prefix incurs avoidable work"
+        ]
+      ]
+    },
+    "workflow": {
+      "title": "Agent / durable workflow / tools",
+      "summary": "Start from the authoritative business outcome. Trace validation, tool calls, state, retries, and the authority that chose each step.",
+      "steps": [
+        {
+          "id": "user",
+          "label": "Caller / requirement",
+          "evidence": "Inspect trusted caller scope, requested business outcome, and job/delivery contract.",
+          "rule": "A natural-language request does not establish write authority."
+        },
+        {
+          "id": "orchestration",
+          "label": "Who chooses next?",
+          "evidence": "Check whether transitions are known states, model-selected tools, or independently delivered events.",
+          "rule": "Complexity alone does not justify an agent."
+        },
+        {
+          "id": "step-functions",
+          "label": "Durable state / waits",
+          "evidence": "Inspect applicable workflow history, state, retries, timeout, callback identity, and approval.",
+          "rule": "A model-generated plan is not durable execution state."
+        },
+        {
+          "id": "agents",
+          "label": "Tool choice",
+          "evidence": "Inspect observations, allowed tools, chosen action, iteration/token limits, and scoped authority.",
+          "rule": "An agent framework does not grant permission or ensure correct business choices."
+        },
+        {
+          "id": "tool-validation",
+          "label": "Arguments / preconditions",
+          "evidence": "Check parameter schema, tenant/business authorization, transaction rules, and required approval.",
+          "rule": "Valid JSON is not a valid or authorized transaction."
+        },
+        {
+          "id": "mcp",
+          "label": "Tool execution",
+          "evidence": "Inspect tool logs, dependencies, runtime limits, errors, and the authoritative returned result.",
+          "rule": "A tool timeout does not prove its side effect failed."
+        },
+        {
+          "id": "recovery",
+          "label": "Recovery / duplicates",
+          "evidence": "Check durable work identity, retries, DLQ, idempotency, and outcome reconciliation.",
+          "rule": "Repeated delivery must not cause a duplicate business write."
+        },
+        {
+          "id": "response",
+          "label": "Business outcome",
+          "evidence": "Compare the claimed completion with the authoritative record and persisted job status.",
+          "rule": "A fluent answer or accepted job is not completed work."
+        }
+      ],
+      "symptoms": [
+        [
+          "recovery",
+          "Retry causes a duplicate external write"
+        ],
+        [
+          "tool-validation",
+          "Tool JSON is valid but the action is unauthorized"
+        ],
+        [
+          "step-functions",
+          "Approval wait loses execution state"
+        ],
+        [
+          "response",
+          "Agent claims success but business record is unchanged"
+        ]
+      ]
+    },
+    "security": {
+      "title": "Access / safety / sensitive copies",
+      "summary": "Identify the actual exposure boundary. Authorization, safety filtering, private transport, encryption, and retention protect different things.",
+      "steps": [
+        {
+          "id": "authentication",
+          "label": "Trusted identity",
+          "evidence": "Inspect authentication context, effective roles/policies, and caller attribution.",
+          "rule": "Identity proves who called, not which tenant documents they may retrieve."
+        },
+        {
+          "id": "tenant",
+          "label": "Data / tool scope",
+          "evidence": "Verify caller-to-resource entitlement, fail-closed metadata filters, and bypass paths before context or writes.",
+          "rule": "Guardrails cannot replace tenant authorization."
+        },
+        {
+          "id": "private-network",
+          "label": "Network path",
+          "evidence": "Inspect actual DNS/endpoint/routing/policies and direct public bypass routes.",
+          "rule": "Private transport does not itself establish resource entitlement or allowed residency."
+        },
+        {
+          "id": "kms",
+          "label": "Encrypted copies",
+          "evidence": "Check source, index, intermediate, job, and log encryption plus effective key access.",
+          "rule": "Encryption does not sanitize content or authorize a tenant."
+        },
+        {
+          "id": "guardrails",
+          "label": "Content / injection",
+          "evidence": "Inspect untrusted document/tool inputs, applied safety checks, and deterministic output/business validation.",
+          "rule": "A content filter is not a transaction authorization boundary."
+        },
+        {
+          "id": "pii",
+          "label": "PII transformation",
+          "evidence": "Check where sensitive spans exist and verify required masking/redaction actually happened.",
+          "rule": "Detection is not verified redaction."
+        },
+        {
+          "id": "governance",
+          "label": "Retention / destinations",
+          "evidence": "Inventory source and derived copies, processing destinations, retention, deletion, and applicable policy ceilings.",
+          "rule": "Private encryption or not-used-for-training is not a complete residency/retention guarantee."
+        },
+        {
+          "id": "content-logs",
+          "label": "Observed exposure",
+          "evidence": "Inspect safely scoped evidence of what reached users, tools, caches, and logs, with request/version identity.",
+          "rule": "Filtered output can coexist with sensitive pre-filter logs; protect every retained copy."
+        }
+      ],
+      "symptoms": [
+        [
+          "tenant",
+          "Tenant A receives tenant B’s retrieved passage"
+        ],
+        [
+          "content-logs",
+          "Masked answer is safe, but logs still contain PII"
+        ],
+        [
+          "private-network",
+          "Private application still calls a public runtime path"
+        ],
+        [
+          "governance",
+          "Deleted source content remains in derived copies"
+        ]
+      ]
+    }
+  },
+  "meanings": {
+    "source": "The original document or business record is the authority for the fact the assistant needs.",
+    "preprocess": "Preprocessing converts the original document, image, or audio into a usable representation without losing its meaning.",
+    "parse": "Parsing extracts text and structure, including table relationships, headings, and exceptions, before chunking.",
+    "chunk": "A chunk is a small searchable unit of a document. Its boundaries determine which facts and conditions stay together.",
+    "metadata": "Metadata describes a chunk: its source, version, identifiers, and which callers may access it.",
+    "embed": "A document embedding is a numeric representation used to find passages with related meaning.",
+    "index": "The index is the searchable copy of your chunks, vectors, and metadata. It can differ from the original source.",
+    "query": "The retrieval query carries the question, exact identifiers, and trusted access scope used to search the corpus.",
+    "query-embed": "A query embedding represents the question numerically so it can be compared with document embeddings.",
+    "candidates": "Candidates are the passages the initial search actually returns. Only these passages are available to a downstream reranker.",
+    "reranker": "A reranker changes the order of passages already found by search, so the most useful evidence is selected first.",
+    "best-context": "Context selection chooses which retrieved passages fit into the model request, including necessary conditions and source references.",
+    "prompt": "The prompt is the actual assembled request: instructions, the user question, evidence, and any conversation history.",
+    "model": "The model generates an answer from the context and settings it actually receives.",
+    "response": "The delivered result must satisfy the user’s request and be checked against evidence or the authoritative business outcome.",
+    "select": "Model selection means choosing a supported model that meets the actual task, quality, modality, latency, and cost requirements.",
+    "user-query": "Task definition states exactly what to decide or produce, including the meaning of labels and boundary cases.",
+    "system-instructions": "System instructions describe the task rules, authority boundaries, and how to handle insufficient or untrusted information.",
+    "prompt-template": "A prompt template is the reusable, versioned structure into which the application inserts task-specific inputs.",
+    "retrieved-knowledge": "Retrieved knowledge is the permitted source evidence included in the request to answer a question.",
+    "conversation": "Conversation context is the relevant earlier discussion and application state explicitly supplied with the current request.",
+    "generation-config": "Generation settings control limits and behavior such as output length, stop sequences, and sampling. They do not establish factual truth.",
+    "adapt": "Adaptation chooses what needs changing: instructions, retrieved facts, model behavior, or domain learning.",
+    "datasets": "Dataset splits separate training examples, tuning/validation examples, and independent final tests. Lineage records where each version came from.",
+    "training-records": "A training record pairs an input with the expected output or label. A label is the answer the model is being taught to produce.",
+    "training-config": "Training configuration specifies how learning runs: supported method/base, data format, sequence length, learning rate, epochs, and batches.",
+    "fine-tuning": "Fine-tuning trains a supported model on task examples to change learned behavior; it is separate from supplying facts through RAG.",
+    "training-runs": "Learning curves show how training and, where available, validation error change as training progresses.",
+    "checkpoint": "A checkpoint is a saved training artifact. Different checkpoints can generalize differently even within the same training run.",
+    "lifecycle-evaluate": "Held-out evaluation tests a candidate on representative examples it was not trained or tuned to memorize.",
+    "registry": "Artifact registration and approval record which version may be released. They do not perform the live deployment.",
+    "deployment-check": "Live verification checks which model, adapter, prompt, and route actually serve a real application request.",
+    "monitor": "Production monitoring connects real task outcomes and failures to the versions and user groups that produced them.",
+    "lora-rank": "LoRA rank controls the capacity of the small trainable adapter. Scaling and dropout also affect its training behavior.",
+    "lora": "LoRA learns small adapter weights while the base model stays frozen. The adapter modifies that compatible base model’s behavior.",
+    "lora-artifact": "An unmerged LoRA adapter must be paired with the compatible base revision, tokenizer/template, and supported artifact format.",
+    "lora-serving": "Adapter serving loads the intended base and adapter and routes each authorized request to the right pair.",
+    "quantization": "Quantization reduces the precision used to represent model weights. Its memory, speed, and quality effects depend on the serving setup.",
+    "capacity": "Capacity is the amount of inference work the configured service or endpoint can handle under its quotas and routing rules.",
+    "admission": "Admission controls which requests enter; queueing and worker pacing determine when accepted work reaches the model.",
+    "caching": "Caching reuses a specific kind of compatible work: an answer, an embedding, or a supported prompt prefix.",
+    "traces": "Stage timings measure where time was spent across queueing, initialization, retrieval, generation, and delivery.",
+    "performance": "Performance should be judged by usable outcomes: latency experienced by users, successful tasks, and the cost of producing them.",
+    "user": "The entry point establishes the caller, their permitted request, and whether they expect a live response or a durable background job.",
+    "orchestration": "Orchestration determines who controls the next action: explicit workflow states, model-selected tools, or event-driven workers.",
+    "step-functions": "A durable workflow records progress through known steps, retries, timeouts, and approval waits.",
+    "agents": "An agent chooses tools using the task and observations, within the allowed actions and execution limits.",
+    "tool-validation": "Tool validation checks arguments, caller permission, and business preconditions before an external action is allowed.",
+    "mcp": "Tool execution is the actual API or business operation. A returned error and the business record must be checked separately.",
+    "recovery": "Recovery reconciles uncertain results and retries. Idempotency prevents repeated delivery from repeating the same business action.",
+    "authentication": "Authentication establishes who is calling. Effective roles and policies determine their allowed AWS actions.",
+    "tenant": "Data and tool scope restrict the caller to the documents, records, and actions they are entitled to use.",
+    "private-network": "A private network path uses the intended endpoint, DNS, routing, and policies rather than an unintended public route.",
+    "kms": "Encryption protects stored and transmitted copies; key policies determine who can use the encryption keys.",
+    "guardrails": "Content safety checks address harmful content and untrusted instructions. They are separate from document or transaction authorization.",
+    "pii": "PII handling detects sensitive personal information and applies the required verified masking, redaction, or retention rules.",
+    "governance": "Governance controls permitted processing locations, permission ceilings, retention, and deletion across original and derived copies.",
+    "content-logs": "Exposure includes what reached users, tools, caches, and retained logs—not only the final answer shown on screen."
+  },
+  "symptoms": {
+    "rag": {
+      "source": "The assistant gives an outdated policy, or the required fact is not present even in the current original document.",
+      "preprocess": "A scan or transcript looks readable, but a table column, exception, speaker turn, or identifier has disappeared.",
+      "parse": "The extracted text mixes table cells or drops headings, so the chunker receives an incomplete or misleading passage.",
+      "chunk": "The answer is split from its exception or section heading. A retrieved fragment looks correct but changes meaning without its neighbours.",
+      "metadata": "A passage has the wrong version or missing access tags; retrieval may return stale evidence or exclude permitted content.",
+      "embed": "Known paraphrases do not find their relevant documents, or the index rejects vectors after an embedding configuration change.",
+      "index": "The source contains the answer, but its corresponding current chunk is missing from the searchable index.",
+      "query": "Searching for an exact equipment ID returns similar products, or trusted access filters unexpectedly exclude the required document.",
+      "query-embed": "Retrieval breaks or degrades after only the query embedding model or dimensions change; indexed documents still use the old settings.",
+      "candidates": "The right passage exists in the index and is permitted for this caller, but the initial search never returns it.",
+      "reranker": "The right passage was found, but less relevant passages rank above it. The answer may use the wrong evidence after selection.",
+      "best-context": "The right passage is retrieved and ranked well, but it or its exception is removed to fit the model’s context budget.",
+      "prompt": "The needed evidence reaches the model, yet the answer ignores a condition, follows document instructions, or answers a different task.",
+      "model": "The verified request is complete and clear, but this model repeatedly fails the task while a suitable baseline handles it.",
+      "response": "The answer sounds plausible, but its claims are unsupported, its citations do not justify them, or it misses the requested result."
+    },
+    "prompt": {
+      "select": "The model struggles with the task or modality even on clear representative inputs; prompt changes do not resolve the limitation.",
+      "user-query": "Similar examples receive inconsistent categories because nobody defined where one label ends and another begins.",
+      "system-instructions": "The assistant invents an answer when evidence is missing or treats instructions inside a retrieved document as authoritative.",
+      "prompt-template": "A tested prompt works offline, but the deployed application renders different instructions, variables, or examples.",
+      "retrieved-knowledge": "The answer misses a current private fact because the supplied passages never contained that fact or its qualifying condition.",
+      "conversation": "The assistant forgets an earlier user fact because the relevant turn or application state was not included in the current request.",
+      "generation-config": "The answer ends mid-sentence, stops at an unexpected string, or changes after deployment despite apparently identical instructions.",
+      "response": "The response fits the JSON schema but assigns the wrong category, invents a fact, or represents an invalid business action."
+    },
+    "training": {
+      "select": "The tuned model does not outperform the original model on the real task, or the selected base does not support the needed method.",
+      "adapt": "Weight changes fail to fix frequently changing facts or ambiguous instructions because those gaps required evidence or clearer task rules.",
+      "datasets": "Evaluation looks excellent on familiar examples but collapses on genuinely new cases or an underrepresented user group.",
+      "training-records": "The tuned model learns inconsistent answers—for example, equivalent inputs are labeled “approve” in one record and “reject” in another.",
+      "training-config": "Training becomes unstable or the model ignores important parts of examples after a learning-rate, length, or format change.",
+      "fine-tuning": "The job fails, produces no usable artifact, or trains on a different dataset/configuration than the release was intended to use.",
+      "training-runs": "Training error keeps falling while validation error or unseen-task failures increase: the model fits training examples without improving generalization.",
+      "checkpoint": "The last saved model performs worse on new examples than an earlier checkpoint or the original baseline.",
+      "lifecycle-evaluate": "Average scores improve, but a critical safety case, task type, or user group regresses on independent examples.",
+      "registry": "The approved version does not match the artifact that passed evaluation, or the release lacks a clear compatible rollback target.",
+      "deployment-check": "The candidate passes offline tests, but production still behaves like the old model or uses different inference settings.",
+      "monitor": "Quality falls after release for real users, particularly on inputs or cohorts unlike those in the evaluation set."
+    },
+    "adapters": {
+      "select": "The adapter cannot be used with the chosen base model or runtime, even though the model family name looks similar.",
+      "datasets": "The adapter learns the wrong task boundaries or fails a specialised cohort absent from its examples.",
+      "lora-rank": "Increasing rank makes the adapter larger or more expensive, but held-out quality stays flat or gets worse.",
+      "lora": "The tuning job fails or produces an unexpected artifact; the assumed adapter-only training setup was not actually applied.",
+      "lora-artifact": "Loading fails, or the adapter produces poor output when paired with a different base revision, tokenizer, or prompt format.",
+      "lifecycle-evaluate": "The adapter passes one evaluation configuration but fails when combined with the actual base, template, or serving settings.",
+      "registry": "The new adapter is marked approved, yet users still receive the previous adapter’s behaviour because approval did not load it.",
+      "lora-serving": "Requests behave like the unadapted base model or the wrong task adapter, despite a valid adapter artifact existing.",
+      "deployment-check": "A live smoke request does not match the approved base/adapter pair, or rollback restores only part of the previous configuration.",
+      "monitor": "One adapter or tenant route degrades while overall endpoint health and average latency still look normal."
+    },
+    "serving": {
+      "select": "The application meets latency or price targets but fails the task, or a more expensive model adds no measured useful quality.",
+      "quantization": "The reduced-precision model fits memory but loses important task quality or shows no speed improvement on the target runtime.",
+      "deployment-check": "The endpoint responds, but its output or timing differs from the intended model/container/configuration tested before release.",
+      "capacity": "Requests throttle or slow under load because demand exceeds available quota/capacity, or routing reaches an unapproved destination.",
+      "admission": "Users see 429 errors or long waits during bursts; accepted work accumulates faster than model capacity can process it.",
+      "caching": "Equivalent permitted work is repeated unnecessarily, or an incorrectly scoped cache returns stale or another tenant’s results.",
+      "generation-config": "Answers generate far more tokens than needed, making total latency and cost high even when the first token arrives quickly.",
+      "traces": "The first token is fast but completion is slow, or total request time is high without evidence identifying which stage consumed it.",
+      "response": "The model emits tokens incrementally, but the browser receives one late response because a transport hop buffers them.",
+      "performance": "A cheap or fast invocation produces so many failed tasks or retries that users experience poor outcomes and higher total cost."
+    },
+    "workflow": {
+      "user": "The system accepts a request without verified scope, or returns a live success message for work that is still only queued.",
+      "orchestration": "A fixed approval process uses unpredictable model-selected actions, or a tool-selection task is forced into an unsuitable rigid sequence.",
+      "step-functions": "A long approval wait loses progress, retries restart completed work, or a callback resumes the wrong execution.",
+      "agents": "The agent chooses an unsuitable tool, repeatedly loops, or attempts an action beyond the caller’s permitted scope.",
+      "tool-validation": "The tool arguments are valid JSON, but the refund amount, account, permission, or transaction precondition is invalid.",
+      "mcp": "A tool times out or reports an error, but it is unclear whether the external business operation already completed.",
+      "recovery": "A retry or duplicate message creates a second payment, ticket, or other write for the same original request.",
+      "response": "The agent says the action succeeded, but the authoritative business record is unchanged or the durable job remains incomplete."
+    },
+    "security": {
+      "authentication": "The caller is unauthenticated, the effective identity differs from expectations, or an applicable policy denies the attempted AWS action.",
+      "tenant": "Tenant A receives tenant B’s passage or can request an action against a record it does not own.",
+      "private-network": "An application in private subnets still invokes the public service endpoint, or a direct route bypasses the intended endpoint policy.",
+      "kms": "A required derived copy is unencrypted, or a supposedly authorised service cannot read it because key access is missing.",
+      "guardrails": "A harmful response or injected document/tool instruction reaches the model or an external action without the required checks.",
+      "pii": "Sensitive names or identifiers remain in an index, request, or result even though a detection job reported finding them.",
+      "governance": "Deleted source content remains in caches or indexes, retained copies outlive policy, or processing occurs in an unapproved location.",
+      "content-logs": "The displayed answer masks personal information, but invocation logs, tool logs, or cached results still retain the original sensitive input."
+    }
+  }
+}

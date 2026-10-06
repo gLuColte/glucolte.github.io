@@ -1,0 +1,454 @@
+[
+  {
+    "id": "constraint",
+    "title": "Requirements",
+    "stage": "Constraint",
+    "concept": "system",
+    "band": null,
+    "x": 50,
+    "y": 135,
+    "w": 140,
+    "h": 90,
+    "role": [
+      "Use case",
+      "Quality / cost / latency"
+    ],
+    "services": [
+      "Use case first",
+      "Then AWS capability"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "data",
+    "title": "Data",
+    "stage": "Data-Prepare",
+    "concept": "datasets",
+    "band": null,
+    "x": 215,
+    "y": 135,
+    "w": 140,
+    "h": 90,
+    "role": [
+      "Approved inputs",
+      "Representative data"
+    ],
+    "services": [
+      "Versioned datasets",
+      "Quality gate"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "select",
+    "title": "Select",
+    "stage": "Select",
+    "concept": "select",
+    "band": null,
+    "x": 380,
+    "y": 135,
+    "w": 140,
+    "h": 90,
+    "role": [
+      "Task / model fit",
+      "Held-out comparison"
+    ],
+    "services": [
+      "Bedrock",
+      "SageMaker AI"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "adapt",
+    "title": "Customize / train",
+    "stage": "Adapt-FineTune",
+    "concept": "model-customization",
+    "band": null,
+    "x": 545,
+    "y": 135,
+    "w": 190,
+    "h": 165,
+    "role": [
+      "Optional model change"
+    ],
+    "services": [
+      "Bedrock / SageMaker"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "adapt-finetune",
+    "title": "Fine-tune",
+    "stage": "Adapt-FineTune",
+    "concept": "fine-tuning",
+    "band": null,
+    "x": 555,
+    "y": 197,
+    "w": 170,
+    "h": 28,
+    "role": [
+      "Labeled data"
+    ],
+    "services": [
+      "Supported tuning"
+    ],
+    "cls": "map-lane"
+  },
+  {
+    "id": "adapt-pretrain",
+    "title": "Pre-train",
+    "stage": "Adapt-FineTune",
+    "concept": "continued-pretraining",
+    "band": null,
+    "x": 555,
+    "y": 230,
+    "w": 170,
+    "h": 28,
+    "role": [
+      "Domain text"
+    ],
+    "services": [
+      "Where supported"
+    ],
+    "cls": "map-lane"
+  },
+  {
+    "id": "adapt-distill",
+    "title": "Distill",
+    "stage": "Adapt-FineTune",
+    "concept": "distillation",
+    "band": null,
+    "x": 555,
+    "y": 263,
+    "w": 170,
+    "h": 28,
+    "role": [
+      "Teacher → student"
+    ],
+    "services": [
+      "Eligible workflow"
+    ],
+    "cls": "map-lane"
+  },
+  {
+    "id": "evaluate",
+    "title": "Evaluate + approve",
+    "stage": "Evaluate",
+    "concept": "lifecycle-evaluate",
+    "band": null,
+    "x": 760,
+    "y": 135,
+    "w": 155,
+    "h": 90,
+    "role": [
+      "Baseline + cohorts",
+      "Promotion gate"
+    ],
+    "services": [
+      "Bedrock evaluations",
+      "Human / task checks"
+    ],
+    "cls": "map-gate"
+  },
+  {
+    "id": "deploy",
+    "title": "Deploy",
+    "stage": "Deploy",
+    "concept": "deploy",
+    "band": null,
+    "x": 940,
+    "y": 135,
+    "w": 135,
+    "h": 90,
+    "role": [
+      "Controlled rollout",
+      "Rollback target"
+    ],
+    "services": [
+      "Approved artifact",
+      "Serving / route"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "monitor",
+    "title": "Monitor",
+    "stage": "Monitor",
+    "concept": "monitor",
+    "band": null,
+    "x": 1100,
+    "y": 135,
+    "w": 130,
+    "h": 90,
+    "role": [
+      "Outcomes / drift",
+      "Feedback"
+    ],
+    "services": [
+      "CloudWatch",
+      "Quality / traces"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "source",
+    "title": "Source",
+    "stage": "Data-Prepare",
+    "concept": "source",
+    "band": null,
+    "x": 50,
+    "y": 395,
+    "w": 200,
+    "h": 100,
+    "role": [
+      "Approved facts / media",
+      "Source versions"
+    ],
+    "services": [
+      "S3 / databases",
+      "Documents / media"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "data-prepare",
+    "title": "Preprocess",
+    "stage": "Data-Prepare",
+    "concept": "preprocess",
+    "band": null,
+    "x": 285,
+    "y": 395,
+    "w": 200,
+    "h": 100,
+    "role": [
+      "Preserve meaning",
+      "Validate / redact / gate"
+    ],
+    "services": [
+      "Textract / Transcribe",
+      "Glue / Comprehend / BDA"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "data-ingest",
+    "title": "Ingestion",
+    "stage": "Data-Ingest",
+    "concept": "ingestion",
+    "band": null,
+    "x": 520,
+    "y": 395,
+    "w": 200,
+    "h": 100,
+    "role": [
+      "Parse → chunk → embed",
+      "Metadata → index"
+    ],
+    "services": [
+      "Knowledge Bases",
+      "Lambda transformation"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "store",
+    "title": "Knowledge store",
+    "stage": "Data-Ingest",
+    "concept": "store",
+    "band": null,
+    "x": 755,
+    "y": 395,
+    "w": 200,
+    "h": 100,
+    "role": [
+      "Searchable evidence",
+      "Vectors + source / ACL"
+    ],
+    "services": [
+      "Bedrock Knowledge Bases",
+      "OpenSearch / vector store"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "user",
+    "title": "User / API",
+    "stage": "Constraint",
+    "concept": "user",
+    "band": null,
+    "x": 50,
+    "y": 600,
+    "w": 200,
+    "h": 100,
+    "role": [
+      "Trusted request",
+      "Caller / tenant scope"
+    ],
+    "services": [
+      "API Gateway + router",
+      "Cognito / federation"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "retrieval",
+    "title": "Retrieval",
+    "stage": "Adapt-RAG",
+    "concept": "retrieval",
+    "band": null,
+    "x": 285,
+    "y": 600,
+    "w": 200,
+    "h": 100,
+    "role": [
+      "Permitted candidates",
+      "Ranking → best context"
+    ],
+    "services": [
+      "Knowledge Bases",
+      "Search / Bedrock reranking"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "prompt",
+    "title": "Prompt / context",
+    "stage": "Adapt-Prompt",
+    "concept": "prompt",
+    "band": null,
+    "x": 520,
+    "y": 600,
+    "w": 200,
+    "h": 100,
+    "role": [
+      "Instructions + RAG evidence",
+      "Query + history"
+    ],
+    "services": [
+      "Prompt Management",
+      "Converse / application"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "model",
+    "title": "Model",
+    "stage": "Select",
+    "concept": "model",
+    "band": null,
+    "x": 755,
+    "y": 600,
+    "w": 200,
+    "h": 100,
+    "role": [
+      "Generate / reason",
+      "Evaluated configuration"
+    ],
+    "services": [
+      "Amazon Bedrock",
+      "SageMaker AI"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "response",
+    "title": "Response",
+    "stage": "Evaluate",
+    "concept": "response",
+    "band": null,
+    "x": 990,
+    "y": 600,
+    "w": 200,
+    "h": 100,
+    "role": [
+      "Validate / deliver",
+      "Verify actual outcome"
+    ],
+    "services": [
+      "Converse / ConverseStream",
+      "Async workers / batch"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "orchestration",
+    "title": "Orchestration",
+    "stage": "Constraint",
+    "concept": "orchestration",
+    "band": null,
+    "x": 50,
+    "y": 850,
+    "w": 260,
+    "h": 105,
+    "role": [
+      "Who chooses the next step?",
+      "State / retries / approvals"
+    ],
+    "services": [
+      "Lambda / Step Functions",
+      "EventBridge / SQS / Agents"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "security",
+    "title": "Security / governance",
+    "stage": null,
+    "concept": "security",
+    "band": "Security",
+    "x": 355,
+    "y": 850,
+    "w": 260,
+    "h": 105,
+    "role": [
+      "Identity / access / isolation",
+      "Safety ≠ authorization"
+    ],
+    "services": [
+      "IAM / KMS / private paths",
+      "Guardrails / data controls"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "evaluation",
+    "title": "Evaluation",
+    "stage": "Evaluate",
+    "concept": "evaluation",
+    "band": null,
+    "x": 660,
+    "y": 850,
+    "w": 260,
+    "h": 105,
+    "role": [
+      "Quality / safety / task success",
+      "Before release + in production"
+    ],
+    "services": [
+      "Bedrock evaluations",
+      "Golden dataset / human checks"
+    ],
+    "cls": ""
+  },
+  {
+    "id": "observability",
+    "title": "Observability",
+    "stage": null,
+    "concept": "observability",
+    "band": "Observability",
+    "x": 965,
+    "y": 850,
+    "w": 260,
+    "h": 105,
+    "role": [
+      "Evidence of what happened",
+      "Versions / caller / timing"
+    ],
+    "services": [
+      "CloudWatch / CloudTrail",
+      "Invocation logs / X-Ray / OTel"
+    ],
+    "cls": ""
+  }
+]

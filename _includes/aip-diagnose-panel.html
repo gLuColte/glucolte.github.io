@@ -1,0 +1,13 @@
+<section class="aip-diagnostic aip-unified-panel" id="aip-symptom-overlay" aria-label="Diagnosis and decision boundaries">
+  <div class="aip-panel-head"><strong>Diagnose backwards. Find the boundary.</strong><p>Choose an observed failure to highlight investigation points in red, or select a map layer to study its decisions.</p></div>
+  <div class="aip-diagnostic-controls" hidden>
+    <label>Scenario family<select id="aip-diagnostic-family">{% for entry in site.data.aip_diagnostics.paths %}<option value="{{ entry[0] }}">{{ entry[1].title | escape }}</option>{% endfor %}</select></label>
+    <label>Observed situation<select id="aip-diagnostic-scenario"><option value="">Choose a situation</option></select></label>
+  </div>
+  <div id="aip-investigation" class="aip-investigation" hidden aria-live="polite" aria-atomic="true"><p>Select a situation above, or a responsibility in the map.</p></div>
+  <div class="aip-diagnostic-fallback">
+    <p>The static checkpoints below keep the same scenarios, evidence, and decision rules available without JavaScript.</p>
+    <div class="aip-deep-diagnostics">{% for entry in site.data.aip_diagnostics.paths %}{% assign path_key = entry[0] %}{% assign path = entry[1] %}<details><summary>{{ path.title }}</summary><p>{{ path.summary }}</p>{% for step in path.steps %}<details><summary>{{ step.label }}</summary><strong>Situation</strong><p>{{ site.data.aip_diagnostics.symptoms[path_key][step.id] }}</p><strong>What this means</strong><p>{{ site.data.aip_diagnostics.meanings[step.id] }}</p><strong>Inspect the evidence</strong><p>{{ step.evidence }}</p><strong>Decision boundary / trap</strong><p>{{ step.rule }}</p><a href="#concept-{{ step.id }}">Related concept →</a></details>{% endfor %}</details>{% endfor %}</div>
+  </div>
+  {% include aip-boundary-content.html %}
+</section>

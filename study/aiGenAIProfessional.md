@@ -23,7 +23,7 @@ Prepare for **AWS Certified Generative AI Developer – Professional (AIP-C01)**
 
 ## 0. GenAI Mindmap {#genai-mindmap}
 
-Start here. Locate the architecture layer, name the constraint, and check managed capabilities and supported extensions before taking custom ownership. Use **Mental Map** for the whole system; switch to **Study** to explore a layer and its exam traps.
+Start with the **requirements**, then compare models using approved representative data. The **model lifecycle** selects, optionally customizes, evaluates, deploys, and monitors the model. Prompt engineering and RAG shape the runtime context. The four supporting pillars apply throughout. Select a map box or diagnostic situation to reveal its decision boundaries and trap rows. Prompt → RAG → fine-tune is an escalation heuristic; study shortcuts are starting hypotheses.
 
 {% include genai-mindmap.html %}
 
@@ -47,19 +47,16 @@ For every scenario, complete this reasoning chain:
 
 Choose a domain, then a trap from the cheat sheet. **Try a multiple-choice question** tests a scenario with competing requirements and four possible actions. A correct answer explains the deciding clue, the alternatives, what would change the decision, and the service flow. Open **Learn the distinction** to compare the named AWS services, see when each fits, and identify the misleading shortcut.
 
+[Practise decision boundaries in the mindmap](#aip-trap-practice)
+
 {% include aip-domain-practice.html %}
+
+{% include aip-study-reference.html %}
 
 ### Select the model and manage the prompt {#model-prompt-decisions}
 
-| Need | Decision | Check before choosing |
-|---|---|---|
-| A task needs a foundation model | Compare supported models on representative held-out inputs | Capability/modality, context and output limits, safety, latency, token cost, Region/API support. Public benchmark rank alone is insufficient. |
-| Private, current, or attributable knowledge | Retrieve evidence into context | Freshness, entitlement, candidate recall, context budget, and citation correctness. |
-| Format, examples, or tone need adjustment | Start with prompting and supported structured output | Validate schema **and** factual/business meaning. Low temperature reduces variation; it does not guarantee truth or identical results. |
-| Evaluated prompting is insufficient for stable behavior/style | Consider supported customization | Data quality, evaluation benefit, lifecycle cost, and deployment support. RAG and customization can combine. |
-| Versioned reusable instructions | Bedrock Prompt Management | Templates, variables, variants, versions, and reproducible configuration. A version is not proof of approval or quality. |
-| Visual prompt → retrieval → tool/condition chain | Bedrock Flows | Supported typed nodes and branching; use an agent when the model must select the next action. |
-| Common supported-model chat API | `Converse` / `ConverseStream` | The application supplies relevant message history; the inference call is not a persistent conversation store. `InvokeModel` can also implement chat with a model-specific contract. |
+[Open model and prompt choices in the full reference](#trap-1-1)
+
 
 Treat prompts, model IDs/configuration, retrieval settings, tools, and policies as versioned release inputs. Evaluate before promotion, implement required approval in the delivery workflow, and retain a tested rollback target. [Prompt Management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html), [Flows](https://docs.aws.amazon.com/bedrock/latest/userguide/flows.html), [Converse](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html).
 
@@ -70,15 +67,8 @@ Treat prompts, model IDs/configuration, retrieval settings, tools, and policies 
 <span id="requirement-matrix"></span>
 <span id="agent-step-functions-lambda"></span>
 
-| Responsibility | Strong candidate | Boundary / runner-up |
-|---|---|---|
-| One bounded stateless operation | Lambda | Externalize durable state. A conventional invocation is limited to 15 minutes; long waits need a workflow or suitable compute. |
-| Long-lived/custom runtime or complex MCP service | ECS/Fargate where the runtime fits | A persistent connection/process is different from external session state. GPU/host-specific requirements need suitable hosting. |
-| Known durable sequence, branches, retries, approval | Step Functions | Developers control the states; complexity alone is not a reason to add orchestration. |
-| Model-selected tools based on observations | Bedrock Agents or a framework such as Strands | Limit tools, caller scope, parameters, iterations, time, and tokens. AgentCore supplies runtime/memory/observability capabilities; it is not itself model reasoning. |
-| Dynamic diagnosis followed by controlled action | Bounded agent → validated proposal → Step Functions | The business API still enforces authorization, approval, and idempotency. |
-| Absorb bursts and pace workers | SQS | Queue age, visibility timeout, DLQ, retries, and rate control matter. Concurrency alone is not a model token-rate limit. |
-| Route events to independent targets | EventBridge | Add queues where consumers need buffering. A shared worker queue distributes work instead of independently broadcasting it to every consumer. |
+[Open compute, orchestration, and recovery in the full reference](#trap-2-1)
+
 
 Strands supports custom single- and multi-agent patterns; AWS Agent Squad coordinates routing among specialized agents. Choose by the required coordination pattern and managed/custom boundary, then evaluate handoffs and outcomes. A framework label does not supply business authorization. [Orchestration comparison](/study/aiAWSServices#section-3-1-agentcore-boundary).
 
@@ -105,17 +95,8 @@ Implementation reference: [agents and AgentCore](/study/aiAWSServices#section-3-
 
 **Ingestion:** source → extract/validate/redact → chunk → embed → index with source/version/ACL metadata. **Request:** trusted identity → authorized corpus → candidates → optional rerank → context → generation → checked citations. These are different lifecycles.
 
-| Need or symptom | First decision | Qualification |
-|---|---|---|
-| Managed ingestion, retrieval, and citations | Bedrock Knowledge Bases with a supported store | Custom chunking alone does not force custom RAG: supported Lambda transformations can supply it. |
-| Unsupported ranking/query behavior or pipeline control | Custom orchestration with `Retrieve`, or custom retrieval | Added control has development and operations cost. |
-| Semantic intent | Vector retrieval | Evaluate domain/language fit and candidate recall. |
-| Exact asset ID/SKU/policy code | Exact lookup, lexical, or supported hybrid retrieval | Preserve identifiers in searchable text/metadata. Hybrid is not universally superior. |
-| Wrong order, correct evidence in candidates | Reranking | Reorders existing candidates; adds latency/cost. |
-| Correct evidence absent | Check ingestion, freshness, ACLs/filters, query, chunking, and recall | Reranking and a larger generator cannot recover unseen evidence. |
-| Chunk boundaries lose context | Evaluate chunking/overlap or parent-child retrieval | Larger chunks can dilute precision and consume tokens; semantic chunking is not a universal default. |
-| Changed/deleted source still returned | Verify completed sync/update/delete handling and derived copies | An S3 update alone does not prove index refresh. |
-| Multi-tenant knowledge | Backend authorization → filter/ACL → retrieval | The ingestion role's access does not authorize every caller to every vector. |
+[Open retrieval and knowledge boundaries in the full reference](#trap-3-1)
+
 
 **Embedding dimensions:** Titan Text Embeddings V2 supports **1,024 / 512 / 256** output dimensions; G1 uses 1,536. Compare retrieval quality, storage, and latency on your corpus. More dimensions do not guarantee better domain accuracy, and similarity thresholds are not portable between models/datasets. [Titan embeddings](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-embedding-models.html).
 
@@ -123,14 +104,8 @@ Use `Retrieve` to test retrieval separately from generation; use `RetrieveAndGen
 
 ### Prepare data before creating derived copies {#preprocessing}
 
-| Input / requirement | Candidate | Boundary |
-|---|---|---|
-| Scans, forms, tables | Textract | Preserve layout/table relationships and validate fields. |
-| Recordings in a text pipeline | Transcribe | Preserve speaker turns; labels are not verified business roles. Check native audio support before requiring this intermediary. |
-| Semantic structured extraction from supported media | Bedrock Data Automation | Projects/blueprints and S3 output; validate before database/index writes. |
-| Text entities or PII | Comprehend or domain-specific detector | Detection locates spans; apply and verify redaction before inference, storage, or indexing. |
-| Lightweight normalization/schema validation | Lambda/application code | Preserve meaningful identifiers/case; Comprehend does not normalize arbitrary queries. |
-| Dataset rules, ETL, catalogue | Glue / Glue Data Quality | Explicitly fail or quarantine invalid data; a quality report is not automatically a gate. |
+[Open data preparation gates in the full reference](#trap-4-1)
+
 
 <span id="knowledge-service-boundary"></span>
 **Assistant versus retriever versus store:** Q Business supplies a packaged enterprise assistant in an exam scenario; Kendra is an enterprise retriever; Knowledge Bases supplies RAG in your application; OpenSearch or Aurora/pgvector supplies search/vector storage according to requirements. Check availability/migration notices for new implementations. [Comparison](/study/aiAWSServices#assistant-retriever-vector-store).
@@ -139,17 +114,8 @@ Data details: [Data Automation](/study/aiAWSServices#data-automation), [Glue qua
 
 ## 5. Protect each boundary with the right control {#security-controls}
 
-| Question | Primary control | Do not substitute |
-|---|---|---|
-| Who is the caller? | Cognito / appropriate federation | Authentication is not document/tool entitlement. |
-| Which actions/resources and business data may they use? | IAM + application/data authorization | Prompts and Guardrails do not enforce all tenant/business permissions. |
-| Which content risks should be filtered? | Bedrock Guardrails + deterministic checks | Configure supported input/output policies. Schema compliance does not establish factual correctness. |
-| Where is the sensitive data? | **S3 discovery: Macie; text pipeline: Comprehend; model I/O: Guardrails** | Detection is not verified redaction; filtered output does not sanitize all logs. |
-| Must the API path be private? | Interface VPC endpoint / PrivateLink, private DNS, network/endpoint policies | A private subnet alone does not create the private service path. |
-| How are bytes and secrets protected? | KMS/encryption, TLS, Secrets Manager, least privilege | Encryption does not establish entitlement, residency, or deletion. |
-| Must permissions be limited across accounts or for a role? | SCP / permissions boundary | These limit applicable permissions; they do not grant them. Explicit denies and IAM evaluation still apply. |
-| Is resource configuration compliant? | AWS Config rules for supported resources or custom checks | Config does not inspect every model prompt. |
-| Suspicious behavior or aggregated findings? | GuardDuty for supported threats; Security Hub for supported findings | Neither is an inline content filter or a detector of every GenAI attack. |
+[Open security and governance boundaries in the full reference](#trap-5-1)
+
 
 Use WAF where the selected entry-point integration supports it for request filtering/rate protection; it does not replace semantic prompt-attack checks. For responsible AI, evaluate fairness by cohort, document capabilities/limitations and intended use, preserve source/tool evidence, and escalate high-risk decisions to accountable humans. Traces expose emitted events and rationale, not guaranteed access to every hidden model thought. [Governance artifacts](/study/aiAWSServices#model-governance).
 
@@ -163,14 +129,8 @@ Lake Formation row/column filters apply through integrated query engines; they d
 <span id="observability"></span>
 <span id="diagnostic-artifact"></span>
 
-| Question | Evidence |
-|---|---|
-| Who called which AWS API, when, from where? | **CloudTrail**, with required event coverage/selectors. |
-| What prompt/response produced this result? | **Bedrock Model Invocation Logging**, explicitly enabled for supported calls and protected. |
-| Are latency, tokens, throttles, errors, or queue age changing? | **CloudWatch metrics/alarms**; custom quality signals require evaluation/instrumentation. |
-| Which hop was slow or failed? | Instrumented **X-Ray/OpenTelemetry spans**. Lambda tracing alone does not expose every SDK call or hidden model stage. |
-| Why did the agent choose/fail a tool? | **Agent trace** + tool logs/workflow history, correlated by IDs. Persist required trace events; memory summaries are different evidence. |
-| Which prompt versions drive cost or unsafe responses across calls? | **Logs Insights** over configured invocation/application logs. |
+[Open telemetry responsibilities in the full reference](#trap-6-1)
+
 
 Invocation logging is disabled by default and can expose sensitive input/output, including pre-masking input. Protect supported CloudWatch/S3 destinations with access, encryption, retention, and delivery monitoring. Prefer non-sensitive correlation IDs; content capture is a deliberate policy decision. [Invocation logging](https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html), [CloudTrail integration](https://docs.aws.amazon.com/bedrock/latest/userguide/logging-using-cloudtrail.html), [agent trace controls](/study/aiAWSServices#agent-trace-controls).
 
@@ -178,11 +138,8 @@ Invocation logging is disabled by default and can expose sensitive input/output,
 
 <span id="cross-region"></span>
 
-| Allowed processing | Candidate | Rejection test |
-|---|---|---|
-| Exactly one approved Region | In-Region inference | Geographic/global profiles can process elsewhere. |
-| Approved Regions inside one geography | Eligible geographic profile, checking every destination | An EU/US/APAC label is insufficient if only a subset of destinations is approved. |
-| No geographic restriction | Evaluate global/geographic profiles against capacity/cost/latency | Global routing is not permitted by a geographic restriction. |
+[Open residency decisions in the full reference](#trap-7-1)
+
 
 Cross-Region inference broadens the eligible compute pool; it does not independently fail over the source-Region application/endpoint. Check support, quotas, destinations, IAM/SCPs, and model handling. Private encrypted transport does not make an unapproved destination acceptable. Inference profiles currently do not support Provisioned Throughput. [Cross-Region inference](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html).
 
@@ -192,25 +149,16 @@ Inventory **source objects, chunks/vectors, application state, caches, invocatio
 
 Delivery, capacity, routing, and caching are different dimensions. A supported on-demand call may stream and use a cross-Region profile.
 
-| Objective | Candidate | Check / trade-off |
-|---|---|---|
-| Flexible intermittent traffic | On-demand | Quotas and throttling still apply. |
-| Stable measured token throughput | Provisioned Throughput | Hourly billing, support, sizing, commitment; no universal 60–70% break-even. Reservation alone does not guarantee lower p99. |
-| Offline S3 dataset | Bedrock batch inference | Model/Region support, job semantics, record reconciliation, completion objective. Avoid universal discount/latency claims. |
-| Earlier visible output | Bedrock streaming + end-to-end transport | Handle buffering, partial failure, and disconnects; streaming does not inherently make generation faster/cheaper. |
-| Broader eligible compute pool | Cross-Region profile | Geographic controls and source-endpoint recovery remain separate. |
-| Simpler queries need less capability | Intelligent Prompt Routing or custom routing/cascade | Evaluate both query groups; native routing has model-pair/family restrictions. Custom logic does not inherently need Step Functions. |
+[Open serving and optimization choices in the full reference](#trap-8-1)
+
 
 <span id="hosting-decision"></span>
 **Custom weights do not automatically mean SageMaker.** Bedrock supports eligible customization/import. SageMaker endpoints fit custom serving, chosen GPU instances, or endpoint scaling control. For arrival-driven long jobs, evaluate Asynchronous Inference; for a known dataset, Batch Transform. [Hosting choices](/study/aiAWSServices#sagemaker-inference-options), [Bedrock custom import](https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html).
 
 ### Three different reusable units {#cost-patterns}
 
-| What repeats? | Pattern | Does a hit skip generation? |
-|---|---|---|
-| Identical long prefix; questions differ | **Bedrock prompt caching** | No. Reuses supported prefix processing; verify checkpoints, TTL, hits, and billing. |
-| Equivalent questions; answer remains valid | **Semantic response caching** | Yes. Calibrate similarity and test meaning, scope, freshness, and unsafe reuse. |
-| Identical complete scoped input/configuration | **Result fingerprinting / exact response cache** | Yes, if a valid entry exists. Exact input does not guarantee a hit after expiry, eviction, or invalidation. |
+[Open caching responsibilities in the full reference](#trap-9-1)
+
 
 Response-cache keys need **tenant/entitlement, corpus version, model/prompt/policy configuration, and expiry**. A cache must not bypass authorization or preserve deleted content. An embedding cache avoids re-embedding unchanged compatible text rather than caching the answer. [Caching and routing](/study/aiAWSServices#routing-caching-capacity).
 
@@ -222,27 +170,13 @@ Measure **tokens/cost per successful outcome**, first-token and total latency, c
 
 Use a versioned **golden dataset** of representative questions, expert-validated answers, source evidence, and tool outcomes. Keep final held-out tests separate from tuning examples. Compare with the accepted baseline by cohort, including language, tenant, rare IDs, safety cases, and side effects.
 
-| Defect / question | Measure or inspect | First response |
-|---|---|---|
-| Relevant evidence missing | Recall, ingestion status, filters, source versions | Find the first missing boundary; fix retrieval before generation. |
-| Retrieved context contains noise | Context precision/relevance, ranking, chunk boundaries | Evaluate retrieval/reranking/pruning while preserving evidence. |
-| Answer invents claims despite evidence | **Faithfulness** against supplied sources | Test context use and grounding checks; a cited answer can still be false. |
-| Answer does not address the question | **Answer relevance** | Check intent/task rubric; correctness and source support are distinct. |
-| Fluent answer, wrong action | Task completion, tool selection/parameters, authorization, idempotency | Inspect actual outcomes/trace and enforce deterministic checks. |
-| Large-scale semantic assessment | Calibrated **LLM-as-a-judge** | Explicit rubrics, human calibration, judge-error/bias checks. |
-| High-risk judgment or reference labels | Domain experts / humans | Use guidelines and adjudication; human labels are not infallible. |
-| Fast repeatable regressions | Assertions and suitable automated metrics | BLEU/ROUGE capture overlap, not semantic truth/tool correctness. |
+[Open evaluation and troubleshooting in the full reference](#trap-10-1)
+
 
 ### Choose comparison, rollout, and validation deliberately {#quality-gate-decisions}
 
-| Method | Purpose | Control |
-|---|---|---|
-| Offline comparison | Compare before exposure | Same held-out cases, sources, and rubric. |
-| A/B | Compare live variants' outcomes | Stable cohorts, attribution, sufficient evidence, prior safety gates. No mandatory 50/50 split. |
-| Canary deployment | Limit rollout exposure | Small live cohort, stop/rollback criteria, gradual promotion. |
-| Shadow | Compare mirrored requests without returning candidate output | Isolate writes/side effects; duplicated inference still has data/cost implications. |
-| Blue/green | Switch between prepared environments | Validate rollback and state compatibility. |
-| Synthetic canary | Scheduled integration/availability probe | Meaningful checks; uptime alone does not prove factual quality. |
+[Open comparison, rollout, and validation in the full reference](#trap-11-1)
+
 
 Version changes, run quality/security gates, and promote only after critical checks pass. Confirmed failures become regression cases. Block a release that improves averages but breaks a critical cohort or repeats a business write.
 
@@ -258,24 +192,8 @@ Lifecycle details: [SageMaker evaluation/approval](/study/aiAWSServices#sagemake
 <details class="architecture-reference" markdown="1">
 <summary>Open the API/configuration checks after practising the decisions</summary>
 
-| Clue | Exact boundary | More detail |
-|---|---|---|
-| S3 upload starts a state machine | S3 EventBridge delivery → rule → Step Functions; direct bucket notification cannot target a state machine. | [Events](/study/aiAWSServices#event-stream-controls) |
-| Bursts under `final/` | Filter object keys, buffer, then pace; direct S3 notifications cannot target SQS FIFO. | [Events](/study/aiAWSServices#event-stream-controls) |
-| WebSocket tokens | Decode stream events; `post_to_connection` uses connection ID. Storing an ID does not resume the model stream. | [Transport](/study/aiAWSServices#event-stream-controls) |
-| Models/cohorts change without release | AppConfig deployment + polling/extension + routing; not instantaneous global mutation. | [AppConfig](/study/aiAWSServices#appconfig-routing) |
-| Headless on-premises credentials | Roles Anywhere uses a trusted CA/X.509 certificate; directory integration alone is not this exchange. | [Roles Anywhere](https://docs.aws.amazon.com/rolesanywhere/latest/userguide/introduction.html) |
-| Immediate API acknowledgement | Valid proxy response or appropriate direct integration; async acceptance is not business completion. | [API formats](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html) |
-| Claim-type clarification | Validate intent/entities, keep authoritative state, branch, then request missing fields. | [Flows](/study/aiAWSServices#bedrock-flows-evaluation) |
-| Stale S3 Knowledge Base | Coalesce/pace `StartIngestionJob`, check completion/failures, verify update/delete. | [KB configuration](/study/aiAWSServices#kb-internals) |
-| PDF columns detach | Fix extraction/advanced parsing before chunking/indexing. | [Parsing](/study/aiAWSServices#kb-internals) |
-| Child snippets lack context | Evaluate hierarchical parent substitution; GraphRAG has a different contract. | [Retrieval](/study/aiAWSServices#kb-internals) |
-| Empty records/PII enter training | Explicit Glue failure/quarantine/redaction gate; `IsComplete` alone does not validate non-empty text. | [Glue gates](/study/aiAWSServices#glue-quality-redaction) |
-| Private role-restricted inference | Runtime endpoint + private DNS/network + scoped endpoint policy/IAM; remove bypass paths. | [Private inference](/study/aiAWSServices#private-inference) |
-| New prompt invents source facts | Source-fact/business assertions plus factuality evaluation before promotion. | [Regression gates](/study/aiInfrastructure#constraint-regression) |
-| Weekly model/LoRA release | Evaluation → governed artifact/approval → compatible serving/deployment; Registry alone does not update endpoints or hot-swap adapters. | [Lifecycle](/study/aiAWSServices#sagemaker-adapter-lifecycle) |
-| Consistent team redaction/logging | Versioned infrastructure constructs + runtime wrappers + CI checks. | [Shared components](/study/aiAWSServices#shared-ai-components) |
-| IDE review/edit/test | Q Developer capabilities, reviewed diff, executed tests; avoid obsolete command syntax. | [Developer tools](/study/aiAWSServices#q-developer-capabilities) |
+[Open api and configuration boundaries in the full reference](#trap-12-1)
+
 
 </details>
 

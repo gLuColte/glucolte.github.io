@@ -1,0 +1,102 @@
+[
+  {
+    "concept": "security",
+    "title": "SECURITY / GOVERNANCE \u2014 across every lifecycle and runtime boundary",
+    "copy": "IAM \u00b7 Cognito / federation \u00b7 Guardrails \u00b7 Lake Formation \u00b7 KMS / encryption \u00b7 residency / SCPs \u00b7 Lake Formation filters do not block an agent with independent direct S3 access."
+  },
+  {
+    "concept": "preprocess",
+    "title": "DATA: PREPARE THIS VERSION",
+    "copy": "Textract \u00b7 Transcribe \u00b7 Bedrock Data Automation \u00b7 Comprehend / PII \u00b7 Glue / Glue Data Quality"
+  },
+  {
+    "concept": "preprocess",
+    "title": "PREPARATION GATE",
+    "copy": "Explicitly fail / quarantine / verify redaction \u00b7 A quality report is not automatically a gate."
+  },
+  {
+    "concept": "ingestion",
+    "title": "DATA: INGEST \u2192 EMBED \u2192 INDEX",
+    "copy": "If the application needs retrieval \u00b7 Preserve source / version / ACL metadata"
+  },
+  {
+    "concept": "select",
+    "title": "SELECT",
+    "copy": "Compare supported models on representative \u00b7 held-out inputs and actual constraints"
+  },
+  {
+    "concept": "prompt",
+    "title": "CONTEXT-TIME: PROMPT FIRST",
+    "copy": "Prompt Management \u00b7 Flows \u00b7 Converse"
+  },
+  {
+    "concept": "retrieval",
+    "title": "CONTEXT-TIME: RAG / EVIDENCE",
+    "copy": "Knowledge Bases \u00b7 Kendra \u00b7 vector store"
+  },
+  {
+    "concept": "fine-tuning",
+    "title": "WEIGHT-TIME: SUPPORTED CUSTOMIZATION",
+    "copy": "Bedrock customization \u00b7 SageMaker \u00b7 Custom import / LoRA"
+  },
+  {
+    "concept": "lifecycle-evaluate",
+    "title": "PROMOTION GATE: EVALUATE + APPROVE",
+    "copy": "Compare with the baseline and critical cohorts \u00b7 Block averages-up / critical-cohort-down releases"
+  },
+  {
+    "concept": "deploy",
+    "title": "CONTROLLED EXPOSURE",
+    "copy": "Canary / blue-green / shadow \u00b7 rollback target"
+  },
+  {
+    "concept": "deploy",
+    "title": "DEPLOY + VERIFY",
+    "copy": "Apply the compatible approved release \u00b7 Registry alone does not update endpoints \u00b7 or hot-swap adapters."
+  },
+  {
+    "concept": "monitor",
+    "title": "MONITOR \u2192 FEEDBACK",
+    "copy": "Quality / drift \u00b7 task outcomes \u00b7 cost / latency \u00b7 Revisit selection or adaptation using evidence"
+  },
+  {
+    "concept": "lifecycle",
+    "title": "RUNTIME: INSIDE ONE DEPLOYED VERSION",
+    "copy": "A request-time snapshot, not a lifecycle stage sequence"
+  },
+  {
+    "concept": "user",
+    "title": "USER / API",
+    "copy": "Trusted scope"
+  },
+  {
+    "concept": "retrieval",
+    "title": "RETRIEVAL",
+    "copy": "Permitted evidence"
+  },
+  {
+    "concept": "prompt",
+    "title": "PROMPT",
+    "copy": "Context / history"
+  },
+  {
+    "concept": "model",
+    "title": "MODEL",
+    "copy": "Generate / reason"
+  },
+  {
+    "concept": "response",
+    "title": "RESPONSE",
+    "copy": "Validate / deliver"
+  },
+  {
+    "concept": "orchestration",
+    "title": "CONTROLLED TOOLS / WORKFLOWS",
+    "copy": "Authorization \u00b7 approval \u00b7 idempotency"
+  },
+  {
+    "concept": "observability",
+    "title": "OBSERVABILITY / EVALUATION \u2014 evidence throughout both axes",
+    "copy": "CloudTrail \u00b7 Bedrock invocation logging \u00b7 CloudWatch \u00b7 X-Ray / OTel \u00b7 versioned golden dataset \u00b7 Missing evidence, invented claims, and wrong business actions are different defects."
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Constraint",
+    "label": "Requirements / use case",
+    "slug": "constraint",
+    "description": "Name the hard requirement before choosing a service."
+  },
+  {
+    "name": "Data-Prepare",
+    "label": "Prepare data",
+    "slug": "data-prepare",
+    "description": "Validate, fail or quarantine, and verify required redaction before downstream use."
+  },
+  {
+    "name": "Data-Ingest",
+    "label": "Ingest / embed / index",
+    "slug": "data-ingest",
+    "description": "Preserve evidence, compatible vectors, versions, and trusted access metadata."
+  },
+  {
+    "name": "Select",
+    "label": "Select",
+    "slug": "select",
+    "description": "Compare supported choices using representative held-out inputs and the actual constraints."
+  },
+  {
+    "name": "Adapt-Prompt",
+    "label": "Runtime: prompt / context",
+    "slug": "adapt-prompt",
+    "description": "Change instructions, examples, templates, or supplied conversation context."
+  },
+  {
+    "name": "Adapt-RAG",
+    "label": "Runtime: RAG / retrieval",
+    "slug": "adapt-rag",
+    "description": "Change the evidence, query, retrieval, ranking, or context-selection path."
+  },
+  {
+    "name": "Adapt-FineTune",
+    "label": "Model: customize / train",
+    "slug": "adapt-finetune",
+    "description": "Consider supported weight changes only for an evaluated behavior need."
+  },
+  {
+    "name": "Evaluate",
+    "label": "Evaluate / approve",
+    "slug": "evaluate",
+    "description": "Compare with the baseline; validate cohorts, source support, task outcomes, and approval."
+  },
+  {
+    "name": "Deploy",
+    "label": "Deploy / controlled exposure",
+    "slug": "deploy",
+    "description": "Apply the approved compatible release, control exposure, and verify rollback."
+  },
+  {
+    "name": "Monitor",
+    "label": "Monitor / feedback",
+    "slug": "monitor",
+    "description": "Collect outcomes and evidence; route demonstrated regressions back to selection or adaptation."
+  }
+]

@@ -1,0 +1,16 @@
+<section id="aip-trap-explorer" class="aip-explorer" aria-label="Full exam trap reference by domain">
+<nav class="aip-reference-stages" aria-label="Architecture stages">{% for stage in site.data.aip_stages %}<a href="#map-{% if stage.name == 'Adapt-Prompt' %}prompt{% elsif stage.name == 'Adapt-RAG' %}retrieval{% else %}{{ stage.slug }}{% endif %}">{{ stage.label }}</a>{% endfor %}<a href="#map-security">Security</a><a href="#map-observability">Observability</a></nav>
+  {%- for domain in site.data.aip_domain_practice -%}{%- assign domain_number = forloop.index -%}
+  <section class="aip-trap-domain" id="trap-domain-{{ domain_number }}" data-domain="{{ domain_number }}">
+    <h4>Domain {{ domain_number }} · {{ domain.weight }}% · {{ domain.name }}</h4>
+    {%- for table in site.data.aip_trap_tables -%}{%- assign domain_rows = table.rows | where: 'domain', domain_number -%}{%- if domain_rows.size > 0 -%}
+    <div class="aip-trap-table-group" data-table="{{ table.id }}">
+      <div class="aip-table-scroll"><table class="aip-tagged-table"><caption>{{ table.title }} · Domain {{ domain_number }}</caption><thead><tr>{%- for header in table.headers -%}<th scope="col">{{ header | escape }}</th>{%- endfor -%}</tr></thead><tbody>
+      {%- for row in domain_rows -%}<tr id="{{ row.id }}" data-domain="{{ row.domain }}" data-stage="{{ row.stage }}" data-band="{{ row.band }}">
+        {%- for cell in row.cells -%}{%- assign column_index = forloop.index0 -%}<td><div class="aip-original-cell">{{ cell | markdownify }}</div>{%- if forloop.first -%}<span class="aip-row-tags"><a class="aip-row-map" href="#map-{% if row.stage == 'Adapt-Prompt' %}prompt{% elsif row.stage == 'Adapt-RAG' %}retrieval{% else %}{{ row.stage | downcase }}{% endif %}">{{ row.stage }}</a>{%- if row.band != 'none' -%}<span>{{ row.band }}</span>{%- endif -%}</span>{%- endif -%}</td>{%- endfor -%}
+
+      </tr>{%- endfor -%}
+      </tbody></table></div>
+    </div>{%- endif -%}{%- endfor -%}
+  </section>{%- endfor -%}
+</section>

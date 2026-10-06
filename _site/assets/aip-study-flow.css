@@ -1,0 +1,208 @@
+.aip-map,.aip-explorer { --flow-blue:#2563eb; --flow-soft:#eff6ff; --flow-wire:#64748b; --flow-teal:#047857; --flow-gate:#fffbeb; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:16px; margin:26px 0; box-shadow:0 10px 28px rgba(30,64,175,.07); scroll-margin-top:calc(var(--header-h,64px) + 16px); }
+[data-theme="dark"] :is(.aip-map,.aip-explorer) { --flow-blue:#93c5fd; --flow-soft:#172554; --flow-wire:#94a3b8; --flow-teal:#5eead4; --flow-gate:#302817; }
+.aip-map [hidden],.aip-explorer [hidden] { display:none !important; }
+.aip-map-header,.aip-explorer-head { padding:22px 24px; border-bottom:1px solid var(--line); background:linear-gradient(110deg,var(--flow-soft),var(--card)); border-radius:16px 16px 0 0; }
+.aip-map-header>span { display:block; font:700 11px var(--mono); color:var(--flow-blue); letter-spacing:.08em; margin-bottom:10px; }
+.aip-map-header>strong,.aip-explorer-head>strong { display:block; font-size:22px; line-height:1.35; }
+.aip-map p,.aip-explorer p { font-size:13px; line-height:1.6; }
+.aip-map-tools { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:16px 20px 6px; }
+.aip-map button,.aip-explorer button,.aip-map select,.aip-explorer select { background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:7px; padding:10px 12px; font:inherit; font-size:13px; min-height:44px; cursor:pointer; }
+.aip-map :is(a,button,select,summary):focus-visible,.aip-explorer :is(a,button,select,summary):focus-visible { outline:3px solid var(--flow-blue); outline-offset:3px; }
+.aip-map-tools a { font-size:13px; }
+.aip-map-hint { margin:8px 20px 14px; color:var(--muted); font-size:12px !important; }
+.aip-map-viewport { margin:0 20px 20px; overflow:auto; border:1px solid var(--line); border-radius:10px; background:var(--bg); scrollbar-width:thin; }
+.aip-architecture { display:block; width:100%; min-width:1030px; height:auto; font-family:var(--sans,system-ui,sans-serif); }
+.aip-map.map-fit .aip-architecture { min-width:0; }
+.aip-architecture .map-panel,.aip-architecture .map-adapt-frame { fill:var(--card); stroke:var(--line); stroke-width:1.5; }
+.aip-architecture .map-link rect { fill:var(--card); stroke:var(--line); stroke-width:1.5; }
+.aip-architecture .map-link:hover rect,.aip-architecture .map-link:focus rect,.aip-architecture .map-link.is-selected rect { fill:var(--flow-soft); stroke:var(--flow-blue); stroke-width:3; }
+.aip-architecture .map-gate rect { fill:var(--flow-gate); stroke:#b7791f; stroke-width:2; }
+.aip-architecture .map-security rect,.aip-architecture .map-observability rect { fill:var(--flow-soft); stroke:var(--flow-blue); stroke-width:2; }
+.aip-architecture .map-runtime rect { fill:var(--card); stroke:var(--flow-teal); }
+.aip-architecture .map-snapshot rect { fill:var(--bg); stroke:var(--flow-teal); stroke-width:2; }
+.aip-architecture .map-node-title { fill:var(--flow-blue); font-size:17px; font-weight:700; }
+.aip-architecture .map-node-copy { fill:var(--ink); font-size:15px; }
+.aip-architecture #map-constraint .map-node-title { font-size:14px; }
+.aip-architecture #map-evaluate .map-node-title,.aip-architecture #map-adapt-finetune .map-node-title { font-size:15px; }
+.aip-architecture .map-runtime .map-node-title { fill:var(--flow-teal); font-size:14px; }
+.aip-architecture .map-runtime .map-node-copy { font-size:12px; }
+.aip-architecture .map-axis-title { fill:var(--muted); font:700 14px var(--mono); }
+.aip-architecture .map-note { fill:var(--muted); font-size:17px; }
+.aip-architecture .map-edge { fill:none; stroke:var(--flow-wire); stroke-width:2; marker-end:url(#aip-map-arrow); }
+.aip-architecture .map-optional { stroke-dasharray:5 5; }
+.aip-architecture .map-feedback { stroke:var(--flow-blue); stroke-width:3; }
+.aip-architecture .map-edge-label { fill:var(--muted); font-size:14px; }
+.aip-architecture #aip-map-arrow path { fill:var(--flow-wire); }
+.aip-architecture .map-band-rail { fill:none; stroke:var(--flow-blue); stroke-width:2; stroke-dasharray:6 8; opacity:.4; }
+.aip-diagnostic,.aip-study-reference { margin:16px 20px; padding:16px; border:1px solid var(--line); border-radius:10px; }
+.aip-diagnostic summary,.aip-study-reference summary,.aip-stage-landing summary,.aip-trap-domain>summary { cursor:pointer; font-size:14px; font-weight:600; }
+.aip-diagnostic details,.aip-study-reference details { border:1px solid var(--line); border-radius:8px; margin:10px 0; padding:12px; }
+.aip-concept dl { font-size:13px; }
+.aip-concept dt { margin-top:10px; font-weight:700; color:var(--muted); }
+.aip-concept dd { margin:4px 0; }
+.aip-map label { display:block; font-size:12px; margin:12px 0; }
+.aip-map label select { display:block; margin-top:6px; width:100%; }
+.aip-filters { display:flex; flex-wrap:wrap; gap:12px; align-items:end; padding:18px 20px; background:var(--flow-soft); }
+.aip-filters label { flex:1 1 160px; font-size:12px; min-width:0; }
+.aip-filters select { display:block; margin-top:6px; width:100%; }
+#aip-filter-status { flex-basis:100%; margin:0; }
+.aip-stage-index { padding:14px 20px; }
+.aip-stage-landing { padding:10px 0; scroll-margin-top:100px; }
+.aip-stage-landing ul { font-size:13px; }
+.aip-stage-landing small { color:var(--muted); }
+.aip-static-note { padding:0 20px; }
+.aip-trap-domain { margin:16px 20px; padding:16px; border:1px solid var(--line); border-radius:10px; }
+.aip-trap-domain>summary { color:var(--flow-blue); }
+.aip-trap-group-title { display:block; margin:22px 0 8px; font-size:15px; }
+.aip-table-scroll { overflow:auto; }
+.aip-tagged-table { width:100%; font-size:13px; line-height:1.55; }
+.aip-tagged-table caption { text-align:left; font-size:12px; color:var(--muted); margin-bottom:8px; }
+.aip-tagged-table th { white-space:normal; }
+.aip-tagged-table td { vertical-align:top; min-width:140px; }
+.aip-original-cell>p { margin:0; }
+.aip-boundary { border:0; padding:0; margin:0; }
+.aip-boundary summary { font-size:12px; color:var(--flow-blue); cursor:pointer; margin-bottom:7px; }
+.aip-explorer[data-view="reference"] .aip-boundary summary { display:none; }
+.aip-tagged-table tr:target { outline:3px solid var(--flow-blue); outline-offset:-3px; background:var(--flow-soft); }
+.aip-row-tags { font-size:11px; min-width:110px !important; }
+.aip-row-tags a,.aip-row-tags span { display:block; margin-bottom:7px; }
+.aip-row-tags span { color:var(--muted); }
+.aip-static-domain,.aip-static-topic { border:1px solid var(--line); border-radius:8px; padding:14px; margin:12px 0; }
+.aip-static-topic details { padding:12px 0; }
+.aip-static-topic summary,.aip-static-domain>summary { cursor:pointer; }
+.aip-static-topic p,.aip-static-topic li { font-size:13px; line-height:1.6; }
+@media(min-width:1250px) { .aip-map,.aip-explorer { width:min(1180px,calc(100vw - 64px)); margin-left:50%; transform:translateX(-50%); } }
+@media(max-width:600px) { .aip-map-header,.aip-explorer-head { padding:18px 15px; } .aip-map-header>strong,.aip-explorer-head>strong { font-size:19px; } .aip-map-viewport { margin:0 10px 16px; max-height:72vh; } .aip-map-tools { padding:12px; } .aip-diagnostic,.aip-study-reference,.aip-trap-domain { margin:12px 10px; padding:12px; } .aip-filters { padding:14px 10px; } .aip-map,.aip-explorer { scroll-margin-top:180px; } }
+@media print { .aip-map-tools,.aip-filters { display:none !important; } .aip-map,.aip-explorer { width:100%; transform:none; margin-left:0; box-shadow:none; } .aip-map-viewport { overflow:visible; max-height:none; } .aip-architecture { min-width:0; } }
+
+/* One overview level; details stay behind deliberate disclosures. */
+.aip-architecture .map-lane .map-node-title { font-size:14px; }
+.aip-architecture .map-lane .map-node-copy { font-size:12px; }
+.aip-architecture .map-lane .map-node-title { dominant-baseline:middle; }
+.aip-architecture .map-runtime .map-node-title { font-size:13px; }
+.aip-architecture .map-runtime .map-node-copy { font-size:11px; }
+.aip-filter-options { flex:0 1 180px; }
+.aip-filter-options>summary { cursor:pointer; padding:12px; font-size:13px; }
+.aip-filter-options[open] { flex-basis:100%; order:4; border-top:1px solid var(--line); padding-top:10px; }
+.aip-filter-options-body { display:flex; flex-wrap:wrap; gap:12px; }
+.aip-filters>label { flex:1 1 280px; max-width:520px; }
+.aip-tagged-table caption { font-size:15px; color:var(--ink); font-weight:600; margin:20px 0 10px; }
+
+.aip-original-cell+.aip-row-tags { display:block; margin-top:10px; padding-top:8px; border-top:1px solid var(--line); }
+.aip-original-cell+.aip-row-tags a,.aip-original-cell+.aip-row-tags span { display:inline; margin-right:8px; }
+/* Map and practice are one learning section, with no second card or toolbar. */
+.aip-map-practice { margin:16px 20px; border:1px solid var(--line); border-radius:10px; scroll-margin-top:100px; }
+.aip-map-practice>summary { cursor:pointer; padding:16px; font-size:14px; font-weight:600; }
+.aip-map-practice>summary small { display:block; margin:6px 0 0 18px; color:var(--muted); font-size:12px; font-weight:400; }
+.aip-map .aip-explorer { width:auto; margin:0; transform:none; border:0; border-top:1px solid var(--line); border-radius:0 0 10px 10px; box-shadow:none; }
+.aip-practice-instruction { margin:14px 18px; color:var(--muted); }
+.aip-map .aip-explorer .aip-trap-domain { margin:12px; }
+.aip-map .aip-explorer .aip-filters { padding:14px 16px; }
+.aip-map-viewport { margin-top:16px; }
+.aip-map-hint { margin-top:16px; }
+@media(max-width:600px) { .aip-map-practice { margin:12px 10px; } .aip-map .aip-explorer .aip-trap-domain { margin:10px; } }
+
+.aip-map-legend { display:flex; flex-wrap:wrap; gap:12px 22px; padding:16px 24px 0; color:var(--muted); font-size:12px; }
+.aip-map-legend span { display:flex; align-items:center; gap:8px; }
+.aip-map-legend span::before { content:""; display:block; width:24px; border-top:2px solid var(--flow-wire); }
+.aip-map-legend .legend-runtime::before { border-color:var(--flow-teal); }
+.aip-map-legend .legend-evidence::before { border-top-style:dashed; }
+.aip-map-legend .legend-feedback::before { border-color:var(--flow-blue); }
+.aip-architecture .map-request { stroke:var(--flow-teal); marker-end:url(#aip-request-arrow); }
+.aip-architecture #aip-request-arrow path { fill:var(--flow-teal); }
+/* Principles and service names occupy the same UML container. */
+.aip-map-mode { display:flex; align-items:center; flex-wrap:wrap; gap:12px; padding:16px 24px 0; }
+.aip-map-mode>span { color:var(--muted); font-size:12px; }
+#aip-show-services[aria-pressed="true"] { border-color:var(--flow-blue); background:var(--flow-soft); color:var(--flow-blue); }
+.aip-architecture .map-services { display:none; }
+.aip-map[data-services="true"] .map-principle { display:none; }
+.aip-map[data-services="true"] .map-services { display:block; }
+.aip-architecture .map-lifecycle .map-node-title { font-size:14px; }
+.aip-architecture .map-lifecycle .map-node-copy { font-size:12px; }
+.aip-architecture .map-mini-title { font-size:11px; fill:var(--flow-blue); font-weight:700; }
+.aip-architecture .map-mini-copy { font-size:10px; fill:var(--ink); }
+.aip-architecture .map-support-wire { fill:none; stroke:var(--flow-wire); stroke-width:2; }
+.aip-architecture .map-link.is-failed rect { fill:var(--flow-failure-bg,#fff1f2); stroke:var(--flow-failure,#be123c); stroke-width:3; }
+.aip-architecture .map-link.is-failed .map-node-title { fill:var(--flow-failure,#be123c); }
+[data-theme="dark"] .aip-map { --flow-failure:#fda4af; --flow-failure-bg:#3b1826; }
+.aip-unified-panel { padding:0; overflow:hidden; }
+.aip-panel-head { padding:12px 16px; background:#f3f4f6; border-bottom:1px solid var(--line); }
+.aip-panel-head>strong { font-size:14px; font-weight:600; line-height:1.4; }
+.aip-panel-head>p { margin:5px 0 0; font-size:12px; line-height:1.5; color:var(--muted); }
+[data-theme="dark"] .aip-panel-head { background:#27272a; }
+.aip-diagnostic-controls { display:grid; grid-template-columns:minmax(180px,1fr) minmax(240px,2fr); gap:16px; padding:0 20px; }
+.aip-investigation { padding:0 20px 20px; }
+.aip-investigation h3 { font-size:18px; margin:16px 0; }
+.aip-investigation h4 { font-size:12px; color:var(--muted); margin:0 0 7px; text-transform:uppercase; letter-spacing:.04em; }
+.aip-investigation-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; margin:20px 0; }
+.aip-investigation-grid p { margin:0; }
+.aip-investigation-note { color:var(--muted); font-size:12px !important; }
+.aip-local-path { padding:12px 0; }
+.aip-local-path>p { color:var(--muted); font-size:12px !important; }
+.aip-local-path ol { display:flex; flex-wrap:wrap; list-style:none; padding:0; gap:8px; margin:8px 0; }
+.aip-local-path li { display:flex; align-items:center; gap:8px; font-size:12px; }
+.aip-local-path li+li::before { content:'→'; color:var(--muted); }
+.aip-local-path li { background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:10px; }
+.aip-local-path .is-failed { border-color:var(--flow-failure,#be123c); background:var(--flow-failure-bg,#fff1f2); color:var(--flow-failure,#be123c); }
+.aip-boundary-children { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
+.aip-boundary-children>strong { flex-basis:100%; font-size:12px; color:var(--muted); }
+.aip-boundary-children button { padding:8px 12px; font-size:12px; }
+.aip-diagnostic-fallback { padding:16px 20px; }
+.aip-diagnostic-fallback>div>details { margin:12px 0; }
+@media(max-width:600px) { .aip-diagnostic-controls { grid-template-columns:minmax(0,1fr); gap:0; padding:0 14px; } .aip-investigation { padding:0 14px 16px; } .aip-map-mode { padding:14px; } .aip-investigation-grid { grid-template-columns:minmax(0,1fr); } }
+/* Contextual distinctions belong to the decision boundary, not separate archives. */
+.aip-boundary-content { padding:0 20px 20px; border-top:1px solid var(--line); }
+.aip-boundary-content>h4 { margin:18px 0 8px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+.aip-boundary-content>#aip-boundary-rule { margin:0 0 14px; }
+.aip-map .aip-boundary-content .aip-explorer { border:0; background:none; }
+.aip-map .aip-boundary-filters { display:block; padding:0; background:none; margin:10px 0 16px; border:0; }
+.aip-boundary-filters>summary { font-size:12px; font-weight:400; color:var(--muted); }
+.aip-boundary-filter-body { display:flex; flex-wrap:wrap; align-items:end; gap:8px 12px; padding:10px 0; }
+.aip-boundary-filter-body label { flex:1 1 200px; }
+.aip-boundary-filter-body #aip-filter-status { flex-basis:100%; }
+.aip-explorer[data-view="quiz"]>.aip-trap-domain { display:none; }
+.aip-map .aip-inline-trap { padding:12px 14px; margin:8px 0; background:var(--bg); }
+.aip-inline-trap>summary { font-weight:500; line-height:1.5; }
+.aip-inline-tags { color:var(--muted); font-size:11px !important; }
+.aip-inline-field h5 { margin:14px 0 5px; font-size:12px; color:var(--muted); }
+.aip-inline-field p { margin:0; }
+.aip-context-notes details,.aip-release-references details { margin:12px 0; }
+.aip-definition-fallback { padding-top:12px; }
+@media(max-width:600px) { .aip-boundary-content { padding:0 14px 16px; } }
+
+/* The map is a recap. The complete lookup stays in one separate disclosure. */
+.aip-stage-targets { height:0; overflow:hidden; }
+.aip-concept-links { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin:16px 0; font-size:12px; line-height:1.8; }
+.aip-concept-links>span { color:var(--muted); }
+.aip-concept-links a { padding:2px 0; text-underline-offset:3px; }
+.aip-recap-distinction { border-top:1px solid var(--line); padding:12px 0; }
+.aip-recap-distinction h5 { margin:0 0 8px; font-size:13px; line-height:1.5; font-weight:600; }
+.aip-recap-distinction dl { margin:0; font-size:13px; line-height:1.6; }
+.aip-recap-distinction dt { display:inline; color:var(--muted); font-size:12px; }
+.aip-recap-distinction dt::after { content:': '; }
+.aip-recap-distinction dd { display:inline; margin:0; }
+.aip-recap-distinction dd::after { content:''; display:block; margin-bottom:6px; }
+.aip-recap-distinction .aip-original-cell,.aip-recap-distinction .aip-original-cell>p { display:inline; }
+.aip-reference-link { margin:6px 0 0; font-size:12px !important; }
+.aip-full-reference { border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin:24px 0; scroll-margin-top:100px; }
+.aip-full-reference>summary { cursor:pointer; font-size:14px; font-weight:600; }
+.aip-full-reference p { font-size:13px; line-height:1.6; }
+.aip-full-reference .aip-explorer { width:auto; margin:0; transform:none; border:0; background:none; box-shadow:none; }
+.aip-full-reference .aip-trap-domain { border:0; border-top:1px solid var(--line); border-radius:0; margin:20px 0; padding:0; }
+.aip-full-reference .aip-trap-domain>h4 { font-size:15px; margin:20px 0; }
+.aip-full-reference .aip-concept { padding:12px; border:1px solid var(--line); border-radius:8px; margin:12px 0; }
+.aip-full-reference summary { cursor:pointer; }
+.aip-reference-stages { display:flex; flex-wrap:wrap; gap:8px 14px; margin:20px 0; font-size:12px; }
+.aip-full-reference .aip-row-tags { font-size:10px; }
+@media(min-width:1250px) { .aip-full-reference { width:min(1180px,calc(100vw - 64px)); margin-left:50%; transform:translateX(-50%); } }
+@media(max-width:600px) { .aip-full-reference { padding:14px; } }
+
+/* Three connected flows, with soft fills and clear spacing in either theme. */
+.aip-map { --map-model-fill:#f5f3fb; --map-model-border:#ddd5ee; --map-model-heading:#70578d; --map-data-fill:#fdf8ed; --map-data-border:#eadfc6; --map-data-heading:#866322; --map-inference-fill:#eef8f5; --map-inference-border:#cce5dc; --map-inference-heading:#21695e; }
+[data-theme="dark"] .aip-map { --map-model-fill:#241f30; --map-model-border:#514362; --map-model-heading:#c4b5fd; --map-data-fill:#2b251c; --map-data-border:#625039; --map-data-heading:#e6c99a; --map-inference-fill:#1a2b27; --map-inference-border:#34594f; --map-inference-heading:#9cdecf; }
+.aip-architecture .map-lifecycle-panel { fill:var(--map-model-fill); stroke:var(--map-model-border); }
+.aip-architecture .map-knowledge-panel { fill:var(--map-data-fill); stroke:var(--map-data-border); }
+.aip-architecture .map-inference-panel { fill:var(--map-inference-fill); stroke:var(--map-inference-border); }
+.aip-architecture .map-lifecycle-heading { fill:var(--map-model-heading); }
+.aip-architecture .map-knowledge-heading { fill:var(--map-data-heading); }
+.aip-architecture .map-inference-heading { fill:var(--map-inference-heading); }

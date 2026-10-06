@@ -1,0 +1,74 @@
+[
+  {
+    "id": "symptom-1",
+    "stage": "Adapt-RAG",
+    "band": "Observability",
+    "row": "trap-10-1",
+    "symptom": "Relevant evidence missing",
+    "evidence": "Recall, ingestion status, filters, source versions",
+    "response": "Find the first missing boundary; fix retrieval before generation."
+  },
+  {
+    "id": "symptom-2",
+    "stage": "Adapt-RAG",
+    "band": "Observability",
+    "row": "trap-10-2",
+    "symptom": "Retrieved context contains noise",
+    "evidence": "Context precision/relevance, ranking, chunk boundaries",
+    "response": "Evaluate retrieval/reranking/pruning while preserving evidence."
+  },
+  {
+    "id": "symptom-3",
+    "stage": "Evaluate",
+    "band": "Observability",
+    "row": "trap-10-3",
+    "symptom": "Answer invents claims despite evidence",
+    "evidence": "**Faithfulness** against supplied sources",
+    "response": "Test context use and grounding checks; a cited answer can still be false."
+  },
+  {
+    "id": "symptom-4",
+    "stage": "Adapt-Prompt",
+    "band": "Observability",
+    "row": "trap-10-4",
+    "symptom": "Answer does not address the question",
+    "evidence": "**Answer relevance**",
+    "response": "Check intent/task rubric; correctness and source support are distinct."
+  },
+  {
+    "id": "symptom-5",
+    "stage": "Constraint",
+    "band": "Security Observability",
+    "row": "trap-10-5",
+    "symptom": "Fluent answer, wrong action",
+    "evidence": "Task completion, tool selection/parameters, authorization, idempotency",
+    "response": "Inspect actual outcomes/trace and enforce deterministic checks."
+  },
+  {
+    "id": "symptom-6",
+    "stage": "Evaluate",
+    "band": "Observability",
+    "row": "trap-10-6",
+    "symptom": "Large-scale semantic assessment",
+    "evidence": "Calibrated **LLM-as-a-judge**",
+    "response": "Explicit rubrics, human calibration, judge-error/bias checks."
+  },
+  {
+    "id": "symptom-7",
+    "stage": "Evaluate",
+    "band": "Observability",
+    "row": "trap-10-7",
+    "symptom": "High-risk judgment or reference labels",
+    "evidence": "Domain experts / humans",
+    "response": "Use guidelines and adjudication; human labels are not infallible."
+  },
+  {
+    "id": "symptom-8",
+    "stage": "Evaluate",
+    "band": "Observability",
+    "row": "trap-10-8",
+    "symptom": "Fast repeatable regressions",
+    "evidence": "Assertions and suitable automated metrics",
+    "response": "BLEU/ROUGE capture overlap, not semantic truth/tool correctness."
+  }
+]

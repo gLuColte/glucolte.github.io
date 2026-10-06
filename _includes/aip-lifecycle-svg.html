@@ -1,0 +1,47 @@
+<svg class="aip-architecture" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 990" role="group" aria-labelledby="aip-map-title aip-map-description"><title id="aip-map-title">GenAI application: connected data, requests, lifecycle and supporting pillars</title><desc id="aip-map-description">Requirements-led model lifecycle with monitoring feedback; prepared data informs selection, and deployment configures the runtime model. Source, preprocessing, ingestion and knowledge storage supply runtime retrieval. User, retrieval, prompt, model and response form the request path. Orchestration, security, evaluation and observability apply throughout. Select a layer to inspect its decisions. The service toggle replaces principles inside the same containers.</desc><defs><marker id="aip-map-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z"/></marker><marker id="aip-request-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z"/></marker></defs>
+<rect class="map-panel map-lifecycle-panel" x="30" y="20" width="1220" height="305" rx="18"/>
+<rect class="map-panel map-knowledge-panel" x="30" y="350" width="1220" height="190" rx="18"/>
+<rect class="map-panel map-inference-panel" x="30" y="560" width="1220" height="180" rx="18"/>
+<text class="map-axis-title map-lifecycle-heading" x="50" y="52">MODEL LIFECYCLE</text>
+<text class="map-axis-title map-knowledge-heading" x="50" y="375">KNOWLEDGE / DATA FLOW</text>
+<text class="map-axis-title map-inference-heading" x="50" y="585">RUNTIME / INFERENCE FLOW</text>
+<text class="map-edge-label" x="1000" y="585">One deployed version</text>
+<path class="map-edge " d="M190 175 H215"/>
+<path class="map-edge " d="M355 175 H380"/>
+<path class="map-edge " d="M520 175 H545"/>
+<path class="map-edge " d="M735 175 H760"/>
+<path class="map-edge " d="M915 175 H940"/>
+<path class="map-edge " d="M1075 175 H1100"/>
+<path class="map-edge map-feedback" d="M1165 135 V88 H450 V135"/>
+<path class="map-edge map-feedback" d="M640 88 V135"/>
+<text class="map-edge-label" x="530" y="78">Monitor → revisit model selection / customization</text>
+<path class="map-edge map-optional" d="M385 395 V340 H285 V225"/>
+<text class="map-edge-label" x="390" y="345">Prepared representative inputs</text>
+<path class="map-edge map-optional" d="M1008 225 V315 H1265 V545 H855 V600"/>
+<text class="map-edge-label" x="970" y="535">Deployed model / adapter</text>
+<path class="map-edge " d="M250 445 H285"/>
+<path class="map-edge " d="M485 445 H520"/>
+<path class="map-edge " d="M720 445 H755"/>
+<path class="map-edge " d="M855 495 V530 H385 V600"/>
+<text class="map-edge-label" x="410" y="520">Indexed evidence</text>
+<path class="map-edge map-request" d="M250 650 H285"/>
+<path class="map-edge map-request" d="M485 650 H520"/>
+<path class="map-edge map-request" d="M720 650 H755"/>
+<path class="map-edge map-request" d="M955 650 H990"/>
+<path class="map-support-wire" d="M640 740 V805 M180 850 V805 H1095 V850 M485 805 V850 M790 805 V850"/>
+<text class="map-axis-title" x="50" y="785">APPLY ACROSS LIFECYCLE, DATA AND REQUESTS</text>
+{% for node in site.data.aip_map_nodes %}{% assign center = node.w | divided_by: 2.0 | plus: node.x %}
+{% if node.id == 'prompt' %}<g id="map-adapt-prompt">{% elsif node.id == 'retrieval' %}<g id="map-adapt-rag">{% endif %}
+<a id="map-{{ node.id }}" class="map-link {{ node.cls }}{% if node.y < 330 and node.cls != 'map-lane' %} map-lifecycle{% endif %}" href="#concept-{{ node.concept }}" {% if node.band %}data-band="{{ node.band }}"{% else %}data-stage="{{ node.stage }}"{% endif %} data-concept="{{ node.concept }}" aria-label="{{ node.title | escape }}: inspect decisions">
+<rect x="{{ node.x }}" y="{{ node.y }}" width="{{ node.w }}" height="{{ node.h }}" rx="12"/>
+{% if node.cls == 'map-lane' %}
+<text class="map-mini-title" x="{{ node.x | plus: 8 }}" y="{{ node.y | plus: 18 }}">{{ node.title | escape }}</text>
+<g class="map-principle"><text class="map-mini-copy" x="{{ node.x | plus: node.w | minus: 8 }}" y="{{ node.y | plus: 18 }}" text-anchor="end">{{ node.role[0] | escape }}</text></g>
+<g class="map-services" aria-hidden="true"><text class="map-mini-copy" x="{{ node.x | plus: node.w | minus: 8 }}" y="{{ node.y | plus: 18 }}" text-anchor="end">{{ node.services[0] | escape }}</text></g>
+{% else %}
+<text class="map-node-title" x="{{ center }}" y="{{ node.y | plus: 28 }}" text-anchor="middle">{{ node.title | escape }}</text>
+<g class="map-principle">{% for line in node.role %}{% assign offset = forloop.index0 | times: 22 | plus: 54 %}<text class="map-node-copy" x="{{ center }}" y="{{ node.y | plus: offset }}" text-anchor="middle">{{ line | escape }}</text>{% endfor %}</g>
+<g class="map-services" aria-hidden="true">{% for line in node.services %}{% assign offset = forloop.index0 | times: 22 | plus: 54 %}<text class="map-node-copy" x="{{ center }}" y="{{ node.y | plus: offset }}" text-anchor="middle">{{ line | escape }}</text>{% endfor %}</g>
+{% endif %}</a>{% if node.id == 'prompt' or node.id == 'retrieval' %}</g>{% endif %}{% endfor %}
+<text class="map-edge-label" x="550" y="317">Customize only if needed; evaluate the unchanged model too.</text>
+</svg>
