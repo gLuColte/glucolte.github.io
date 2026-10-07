@@ -19,14 +19,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="notes • principles • systems" />
 <meta property="og:description" content="notes • principles • systems" />
-<link rel="canonical" href="https://glucolte.github.io/study/aiFundamentals" />
-<meta property="og:url" content="https://glucolte.github.io/study/aiFundamentals" />
+<link rel="canonical" href="http://localhost:4000/study/aiFundamentals" />
+<meta property="og:url" content="http://localhost:4000/study/aiFundamentals" />
 <meta property="og:site_name" content="glucolte" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="AI Fundamentals" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Fundamentals","url":"https://glucolte.github.io/study/aiFundamentals"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"notes • principles • systems","headline":"AI Fundamentals","url":"http://localhost:4000/study/aiFundamentals"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -928,6 +928,55 @@ end
   </li>
   <li>A provider may manage conversation history or cached session state between API calls. That state belongs to the application/serving platform; ordinary inference does not train it into model weights.</li>
 </ul>
+
+<h3 id="bedrock-token-admission">13.3 Bedrock output caps and token quotas</h3>
+
+<p>Context-window capacity limits one request’s size. A <strong>tokens-per-minute (TPM) quota</strong> limits service throughput across requests. An output cap can affect both.</p>
+
+<details class="inference-details">
+  <summary>Bedrock Token Admission vs Actual Usage</summary>
+  <div class="bedrock-token-admission">
+  <p class="bedrock-token-location">Runtime → Model Inference → Quotas / Throttling</p>
+  <div class="bedrock-token-grid">
+    <div>
+      <strong>One request, three quantities</strong>
+      <pre><code class="language-plaintext">REQUEST
+├─ Input tokens
+├─ maxTokens (output cap)
+└─ Actual generated output</code></pre>
+      <p><code>maxTokens</code> limits output and contributes to admission pressure. Actual output can be much smaller. Billing uses actual consumed tokens, not the configured maximum.</p>
+    </div>
+    <div>
+      <strong>Admission → execution → usage</strong>
+      <pre><code class="language-plaintext">Request arrives
+      ↓
+Input tokens + output allowance/cap
+      ↓
+Quota / admission consideration
+      ↓
+Enough capacity?
+├─ NO → ThrottlingException → stop
+└─ YES → Execute
+          ↓
+     Generate actual output
+          ↓
+     Actual usage / billing</code></pre>
+    </div>
+  </div>
+  <p><strong>Recall:</strong> oversized <code>maxTokens</code> across concurrent requests can increase TPM pressure and cause throttling. Use a realistic safe upper bound; verify that complete answers still fit.</p>
+  <pre><code class="language-plaintext">Task: Category label + one-line reason
+Bad:  maxTokens = model maximum
+Better: maxTokens = realistic requirement
+                       + safe margin</code></pre>
+  <aside class="technique-callout" aria-label="Exam Clue">
+    <strong>Exam Clue</strong>
+    <p>Actual sent/received tokens appear below quota, request count is below quota, but busy periods still produce <code>ThrottlingException</code>, and every request has an unnecessarily large output cap → investigate oversized <code>maxTokens</code> and token admission pressure.</p>
+  </aside>
+  <p class="bedrock-token-note">Quota accounting is adjusted during/after generation; unused allowance is replenished. Model-specific burndown rates and caching rules affect quota usage. Converse uses <code>maxTokens</code>; native field names vary. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-token-burndown.html">AWS token accounting</a>.</p>
+</div>
+
+  <p>Explore this boundary in the <a href="/study/aiGenAIProfessional#concept-bedrock-token-admission">connected architecture map</a>.</p>
+</details>
 
 <h2 id="section-10-training">14. Training, fine-tuning, and inference</h2>
 

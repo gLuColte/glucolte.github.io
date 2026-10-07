@@ -694,6 +694,16 @@ end
   - a larger advertised window does not guarantee reliable attention to every detail.
 - A provider may manage conversation history or cached session state between API calls. That state belongs to the application/serving platform; ordinary inference does not train it into model weights.
 
+### 13.3 Bedrock output caps and token quotas {#bedrock-token-admission}
+
+Context-window capacity limits one request's size. A **tokens-per-minute (TPM) quota** limits service throughput across requests. An output cap can affect both.
+
+<details class="inference-details">
+  <summary>Bedrock Token Admission vs Actual Usage</summary>
+  {% include bedrock-token-admission.html %}
+  <p>Explore this boundary in the <a href="/study/aiGenAIProfessional#concept-bedrock-token-admission">connected architecture map</a>.</p>
+</details>
+
 ## 14. Training, fine-tuning, and inference {#section-10-training}
 
 - **Pretraining** learns model parameters from broad data.

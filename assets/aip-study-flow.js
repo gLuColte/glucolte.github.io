@@ -181,7 +181,16 @@
     context={conceptId,nodeId:selectedMap,title:nodeId?nodeById.get(nodeId).title:item.title};
     // Keep the selected stage above the situation; choosing a case never changes it.
     const boundary=get('boundary-content');get('symptom-overlay').append(boundary);
-    explanation.replaceChildren(make('h3',`Decisions at ${context.title}`),fieldBlock('Purpose',item.summary));
+    const purpose=fieldBlock('Purpose',item.summary);
+    if(item.purposeTemplate){
+      const template=document.getElementById(item.purposeTemplate);
+      if(template)purpose.append(template.content.cloneNode(true));
+    }
+    explanation.replaceChildren(make('h3',`Decisions at ${context.title}`),purpose);
+    if(item.detailTemplate){
+      const template=document.getElementById(item.detailTemplate);
+      if(template)explanation.append(template.content.cloneNode(true));
+    }
     if(item.example&&!item.comparison)explanation.append(fieldBlock('Example',item.example));
     if(item.comparison)explanation.append(comparisonBlock(item.comparison));
     (item.additionalComparisons||[]).forEach(comparison=>explanation.append(comparisonBlock(comparison)));
@@ -197,10 +206,12 @@
       children.forEach(child=>{const link=make('a',child.title);link.href='#concept-'+child.id;link.dataset.concept=child.id;link.addEventListener('click',event=>{event.preventDefault();showBoundary(child.id);});hierarchy.append(link);});explanation.append(hierarchy);
     }
     if(item.questions){const checklist=make('div',undefined,'aip-requirement-checklist');checklist.append(make('h4','Requirements to pin down'));const list=make('ul');item.questions.forEach(question=>list.append(make('li',question)));checklist.append(list);explanation.append(checklist);}
-    const grid=make('div',undefined,'aip-investigation-grid');
-    grid.append(fieldBlock(item.decision?'Decision to make':'Requirement to satisfy',item.decision||inherited(conceptId,'constraint')));explanation.append(grid);
-    const reasoning=make('details',undefined,'aip-layer-reasoning');reasoning.append(make('summary','What is managed, what can be extended, and what must I own?'));
-    [['AWS manages','managed'],['Supported extension','extension'],['Custom ownership','ownership'],['AWS capabilities that fit','capability'],['Exam clue','clue'],['Boundary to remember','trap']].forEach(([label,key])=>{const copy=inherited(conceptId,key);if(copy)reasoning.append(fieldBlock(label,copy));});explanation.append(reasoning);
+    if(!item.detailTemplate){
+      const grid=make('div',undefined,'aip-investigation-grid');
+      grid.append(fieldBlock(item.decision?'Decision to make':'Requirement to satisfy',item.decision||inherited(conceptId,'constraint')));explanation.append(grid);
+      const reasoning=make('details',undefined,'aip-layer-reasoning');reasoning.append(make('summary','What is managed, what can be extended, and what must I own?'));
+      [['AWS manages','managed'],['Supported extension','extension'],['Custom ownership','ownership'],['AWS capabilities that fit','capability'],['Exam clue','clue'],['Boundary to remember','trap']].forEach(([label,key])=>{const copy=inherited(conceptId,key);if(copy)reasoning.append(fieldBlock(label,copy));});explanation.append(reasoning);
+    }
     if(item.parent&&!['system','lifecycle'].includes(item.parent)){const parent=make('a',`← ${concepts.get(item.parent).title}`);parent.href='#concept-'+item.parent;parent.addEventListener('click',event=>{event.preventDefault();showBoundary(item.parent);});explanation.append(parent);}
     setSituations(conceptId,selectedMap);chooseScenario();
   }

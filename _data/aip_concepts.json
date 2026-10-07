@@ -495,6 +495,7 @@
     "parent": "system",
     "title": "Prompt / context",
     "summary": "System instructions + prompt template + user query + retrieved knowledge + conversation context become the model input. Keep untrusted data separate from governing instructions.",
+    "purposeTemplate": "aip-converse-guard-content",
     "constraint": "The model input must contain clear governing instructions, the right scoped evidence/history, and a valid task/output contract.",
     "managed": "Prompt Management stores supported templates, variables, variants, and versions. Converse or model-specific inference APIs receive the actual messages/context the application supplies.",
     "extension": "Add explicit task rules/examples, assemble permitted evidence/history, and use supported output constraints. Check restrictions when invoking a managed prompt with the selected API.",
@@ -508,7 +509,7 @@
   {
     "id": "model",
     "parent": "system",
-    "title": "Model",
+    "title": "Model Inference",
     "summary": "Invoke a compatible evaluated model using permitted context. Choose the hosting boundary by required controls, not by whether something is “custom.”",
     "constraint": "Invoke a compatible evaluated model within quality, approved-processing, latency/capacity, and serving-control requirements.",
     "managed": "Bedrock manages eligible FM inference infrastructure. SageMaker AI provides managed ML jobs/endpoints with deeper choices of model, container, instance, and lifecycle configuration.",
@@ -519,6 +520,24 @@
     "trap": "Custom does not automatically mean SageMaker. Bedrock also supports eligible customization.",
     "read": "#hosting-decision",
     "example": "A requirement to choose a GPU instance or serving container points to deeper hosting control; a fine-tuned artifact alone does not establish that need."
+  },
+  {
+    "id": "model-quotas",
+    "parent": "model",
+    "title": "Quotas / Throttling",
+    "summary": "Separate request-count limits, token admission pressure, and actual generated usage. A short answer can still start with a large output allowance.",
+    "constraint": "Admit concurrent requests within the model's token and request quotas while leaving enough output space for complete answers.",
+    "clue": "Low actual token counts with burst throttling and large output caps → inspect maxTokens.",
+    "trap": "Actual token usage alone does not show the output allowance considered when requests start.",
+    "read": "/study/aiFundamentals#bedrock-token-admission"
+  },
+  {
+    "id": "bedrock-token-admission",
+    "parent": "model-quotas",
+    "title": "Bedrock Token Admission vs Actual Usage",
+    "summary": "The output cap affects admission; actual consumption determines token billing.",
+    "detailTemplate": "aip-bedrock-token-admission",
+    "read": "/study/aiFundamentals#bedrock-token-admission"
   },
   {
     "id": "response",
@@ -2238,15 +2257,20 @@
       {
         "title": "How will you build the loop?",
         "headers": [
-          "Implementation",
+          "Implementation approach",
           "What it provides",
+          "Hosting options / who operates it",
           "Choose when / boundary"
         ],
         "rows": [
           [
-            "Handwritten loop",
+            "Write your own loop",
             [
               "Your code calls model / validates tools / repeats"
+            ],
+            [
+              "Your app: local / AWS / other clouds",
+              "AWS: AgentCore Runtime / ECS/Fargate / EC2"
             ],
             [
               "Precise custom control",
@@ -2254,32 +2278,33 @@
             ]
           ],
           [
-            "Strands Agents",
+            "Use an agent SDK: Strands / LangChain",
             [
-              "SDK model/tool loop",
-              "Tools / hooks / coordination patterns"
+              "Library runs the model/tool loop",
+              "Strands: tools / hooks / coordination patterns",
+              "LangChain: integrations / middleware; agents use LangGraph"
             ],
             [
-              "Model-led tool use with configurable SDK control",
-              "Framework ≠ managed hosting"
+              "Your app: local / AWS / other clouds",
+              "AWS: AgentCore Runtime / ECS/Fargate / EC2",
+              "LangChain: optional managed LangSmith Deployment"
+            ],
+            [
+              "Model-led tools with configurable library abstractions",
+              "Own state / retries / stopping / recovery",
+              "Not limited to linear chains; SDK ≠ managed hosting"
             ]
           ],
           [
-            "LangChain",
-            [
-              "Agent harness / model and tool integrations",
-              "Agents built on LangGraph"
-            ],
-            [
-              "Compose agent behavior with higher-level abstractions",
-              "Not limited to linear chains"
-            ]
-          ],
-          [
-            "LangGraph",
+            "Define a graph: LangGraph",
             [
               "Explicit nodes / edges / state",
               "Checkpoints / human intervention"
+            ],
+            [
+              "Your app: local / AWS / other clouds",
+              "AWS: AgentCore Runtime / ECS/Fargate / EC2",
+              "Optional LangSmith Deployment: managed hosting"
             ],
             [
               "Mix required steps with agentic investigation",
@@ -2287,10 +2312,14 @@
             ]
           ],
           [
-            "AgentCore Harness",
+            "Configure a managed loop: AgentCore Harness",
             [
               "AWS runs configured model/tool loop",
               "Configure model / tools / memory / limits"
+            ],
+            [
+              "AWS-managed loop inside AgentCore Runtime",
+              "You configure agent / tools / permissions"
             ],
             [
               "Supported managed contract meets the requirement",
@@ -2298,7 +2327,7 @@
             ]
           ]
         ],
-        "note": "These are implementation choices, not five separate agent types or required wrappers. LangGraph can contain an agent loop. Hosting is separate: AgentCore Runtime can host your own or framework-based code; AgentCore Harness runs a managed loop inside Runtime. Every option still needs enforced business authorization.",
+        "note": "These are implementation approaches, not different agent types. Strands and LangChain are alternative SDKs with different APIs; an agent loop can sit inside a graph or fixed workflow. Choose hosting separately: AgentCore Runtime manages hosting; ECS/Fargate manages container compute; EC2 gives you host responsibility. Lambda fits bounded runs within its execution/connection limits. Framework code still needs configuration and maintenance; AgentCore Harness supplies the managed loop inside Runtime. Agent hosting and model hosting are separate: an EC2-hosted agent can invoke Bedrock.",
         "sources": [
           {
             "title": "AI Agents: examples and deeper explanation",
@@ -2319,6 +2348,18 @@
           {
             "title": "AgentCore Harness vs Runtime",
             "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-vs-runtime.html"
+          },
+          {
+            "title": "Strands deployment options",
+            "url": "https://strandsagents.com/docs/user-guide/sdk/deploy/"
+          },
+          {
+            "title": "AgentCore framework-compatible hosting",
+            "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html"
+          },
+          {
+            "title": "LangSmith deployment options",
+            "url": "https://docs.langchain.com/langsmith/deployment"
           }
         ]
       }

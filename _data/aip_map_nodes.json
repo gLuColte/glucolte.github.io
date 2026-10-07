@@ -333,7 +333,7 @@
   },
   {
     "id": "model",
-    "title": "Model",
+    "title": "Model Inference",
     "stage": "Select",
     "concept": "model",
     "band": null,

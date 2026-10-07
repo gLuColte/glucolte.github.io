@@ -3,3 +3,6 @@ Screenshot*.png
 
 # Ignore markdown files containing "tmp"
 *tmp*.md
+
+# Local practice-exam walkthroughs and generation prompts
+/udemey_exam_review/

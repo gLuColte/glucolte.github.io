@@ -1,0 +1,20 @@
+<details class="aip-layer-reasoning aip-purpose-concept">
+  <summary><code>guardContent</code> — scope which input the guardrail checks</summary>
+  <p class="bedrock-token-location">Converse API → Content Blocks → Guardrail Scoping</p>
+  <p>A single Converse message can mix blocks. With <code>guardContent</code>, scope the <strong>HIGH content filters</strong> to the user question; trusted passages in plain <code>text</code> still reach the model without those checks.</p>
+  <pre><code class="language-plaintext">Converse Message
+├─ Plain text: trusted report
+│  "Attacker exploited..."
+│  → Model (skip filters)
+│
+└─ guardContent: user question
+   "How do I mitigate this?"
+   → Guardrail (HIGH)
+   → Model if allowed</code></pre>
+  <aside class="technique-callout" aria-label="Exam Pattern">
+    <strong>Exam Pattern</strong>
+    <p>Trusted context causes false positives + user input must still be checked + same strength + less text to check → use <code>guardContent</code>.</p>
+  </aside>
+  <p><strong>Common trap:</strong> HIGH → LOW/NONE also weakens protection for the user's question.</p>
+  <p><strong>Remember:</strong> scope evaluation; keep the guardrail strong. Wrap every user question that needs checking. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-use-converse-api.html">AWS Converse guardrail scoping</a>.</p>
+</details>

@@ -4,8 +4,19 @@
   <details id="concept-{{ concept.id }}">
     <summary>{{ node.title | escape }}</summary>
     <p><strong>Purpose:</strong> {{ concept.summary | escape }}</p>
+    {%- if concept.id == 'prompt' %}{% include converse-guard-content.html %}{% endif %}
     {%- if concept.example %}{% unless concept.comparison %}<p><strong>Example:</strong> {{ concept.example | escape }}</p>{% endunless %}{% endif %}
     {%- if concept.comparison %}{% include aip-model-comparison.html comparison=concept.comparison %}{% endif %}
+    {%- if concept.id == 'model' %}
+    <details id="concept-model-quotas">
+      <summary>Quotas / Throttling</summary>
+      <details id="concept-bedrock-token-admission">
+        <summary>Bedrock Token Admission vs Actual Usage</summary>
+        {% include bedrock-token-admission.html %}
+        <p><a href="/study/aiFundamentals#bedrock-token-admission">AI Fundamentals: output caps and token quotas</a></p>
+      </details>
+    </details>
+    {%- endif %}
     {%- for inline_id in concept.inlineConcepts %}{% assign inline_concept = site.data.aip_concepts | where: 'id', inline_id | first %}
     <div id="concept-{{ inline_concept.id }}">
       <h4>{{ inline_concept.title | escape }}</h4>

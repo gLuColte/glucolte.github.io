@@ -809,6 +809,18 @@
 .inference-details summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .inference-details[open] summary { margin-bottom: 10px; }
 .inference-details p:last-child { margin-bottom: 0; }
+.bedrock-token-admission { margin:14px 0; font-size:13px; line-height:1.6; }
+.bedrock-token-location,.bedrock-token-note { color:var(--muted); font-size:12px !important; }
+.bedrock-token-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; margin:16px 0; }
+.bedrock-token-grid > div { min-width:0; }
+.bedrock-token-admission pre { padding:12px; font-size:12px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
+.content :is(.bedrock-token-admission,.aip-purpose-concept) pre code.language-plaintext { background:transparent; color:inherit; border:0; padding:0; }
+.aip-purpose-concept pre { padding:12px; font-size:12px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
+.aip-purpose-concept .technique-callout { max-width:none; margin:12px 0; }
+.aip-purpose-concept .technique-callout p { margin:4px 0 0; }
+.bedrock-token-admission .technique-callout { max-width:none; margin:16px 0; }
+.bedrock-token-admission .technique-callout p { margin:4px 0 0; }
+@media (max-width:600px) { .bedrock-token-grid { grid-template-columns:1fr; gap:8px; } }
 .inference-handoff { display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; }
 .inference-handoff > b { color: var(--muted); line-height: 1; }
 
