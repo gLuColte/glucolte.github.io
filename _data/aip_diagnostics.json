@@ -8,91 +8,256 @@
           "id": "source",
           "label": "Source",
           "evidence": "Compare the authoritative object, version, permission, and required passage with the failing question.",
-          "rule": "If the fact is absent or stale at source, downstream ranking cannot create it."
+          "rule": "If the fact is absent or stale at source, downstream ranking cannot create it.",
+          "title": "Outdated policy",
+          "meaning": "The pipeline cannot recover a fact its approved source never supplied. Start by identifying which document and version should be authoritative. A successful search over an old source can still produce the wrong business answer.",
+          "walkthrough": [
+            "Identify the expected rule and its authoritative document/version.",
+            "Compare that source with what the application actually ingests; check update and deletion ownership.",
+            "Correct the source or connector, then confirm the derived index and any cached answers reflect the approved change."
+          ],
+          "capabilities": [
+            "Amazon S3 or the authoritative database/business API supplies the source record; its owner must provide the correct version.",
+            "Knowledge Bases ingestion/synchronization handles a supported downstream source; verify completion rather than assuming a source edit reached retrieval."
+          ]
         },
         {
           "id": "preprocess",
           "label": "Preprocess",
           "evidence": "Compare extraction/transcription output against the original tables, qualifiers, and identifiers.",
-          "rule": "Repair missing meaning before changing vector size or model weights."
+          "rule": "Repair missing meaning before changing vector size or model weights.",
+          "title": "Table condition lost",
+          "meaning": "Readable text is not necessarily faithful extraction. Meaning was lost before chunks and vectors were created, so changing the generator or reranker would work with the same incomplete evidence.",
+          "walkthrough": [
+            "Compare the original scan or recording with the prepared output, including tables, speaker turns, and identifiers.",
+            "Find the earliest transformation that dropped or detached the condition.",
+            "Fix extraction or reconstruction and validate it before rebuilding affected chunks and indexes."
+          ],
+          "capabilities": [
+            "Textract extracts supported document text, forms, and tables; validate the relationships in its output.",
+            "Transcribe or supported Bedrock Data Automation fits the corresponding media/extraction requirement; verify the prepared result before ingestion."
+          ]
         },
         {
           "id": "parse",
           "label": "Parse",
           "evidence": "Inspect the actual text and structure entering the chunker.",
-          "rule": "An extraction defect is earlier than a chunk-boundary defect."
+          "rule": "An extraction defect is earlier than a chunk-boundary defect.",
+          "title": "Rows or headings mixed",
+          "meaning": "Parsing determines the text and structure that downstream stages receive. Good chunking cannot reliably repair missing headings or incorrectly associated cells. Inspect the parser’s actual output rather than judging it by the original PDF.",
+          "walkthrough": [
+            "Trace one incorrect claim to its source page and compare the extracted cells/headings.",
+            "Verify the parser output before examining chunk boundaries or ranking.",
+            "Use a supported parsing option or preprocessing step that preserves the structure, then re-ingest and test the same question."
+          ],
+          "capabilities": [
+            "Knowledge Bases supported parsing options prepare source material for ingestion.",
+            "Textract or supported Bedrock Data Automation can address the relevant extraction task; application validation checks that fields still belong together."
+          ]
         },
         {
           "id": "chunk",
           "label": "Chunking",
           "evidence": "Inspect the units containing the answer and its exceptions; check boundaries and overlap.",
-          "rule": "Use a supported chunking strategy or ingestion extension before replacing RAG."
+          "rule": "Use a supported chunking strategy or ingestion extension before replacing RAG.",
+          "title": "Exception split from rule",
+          "meaning": "A chunk is the unit that gets embedded and retrieved. Its boundaries should retain enough surrounding information to interpret the rule correctly. More text can help context, but can also reduce search precision and consume the model’s token budget.",
+          "walkthrough": [
+            "Inspect the exact retrieved chunk and where its exception or heading was placed.",
+            "Compare supported chunk size, overlap, or parent-child strategies using the same boundary cases.",
+            "If domain-specific splitting is required, check the supported ingestion transformation before taking ownership of the entire RAG pipeline."
+          ],
+          "capabilities": [
+            "Knowledge Bases offers supported fixed, semantic, and hierarchical chunking strategies; evaluate their fit rather than assuming one is best.",
+            "A Knowledge Bases Lambda transformation can implement custom chunks/metadata within the ingestion contract; it does not set query-time ranking."
+          ]
         },
         {
           "id": "metadata",
           "label": "Metadata",
           "evidence": "Inspect source/version identifiers and trusted ACL fields attached to each required chunk.",
-          "rule": "Similarity cannot compensate for missing access or freshness metadata."
+          "rule": "Similarity cannot compensate for missing access or freshness metadata.",
+          "title": "Wrong version or access tags",
+          "meaning": "Metadata carries source identity, freshness, and access information alongside the text/vector. Filters can only use what was recorded correctly. Relevance scores do not establish that a document is current or permitted for this caller.",
+          "walkthrough": [
+            "Inspect metadata on the exact affected chunk, not only on the original source object.",
+            "Compare source/version and access fields with the authoritative source and trusted caller scope.",
+            "Repair metadata generation or synchronization, and test both permitted retrieval and denial of another tenant’s content."
+          ],
+          "capabilities": [
+            "Knowledge Bases source/chunk metadata and supported retrieval filters connect indexed evidence to its scope.",
+            "A supported Lambda transformation can add chunk-level metadata; the backend must still derive and enforce the caller’s entitlement."
+          ]
         },
         {
           "id": "embed",
           "label": "Document embedding",
           "evidence": "Check embedding model, dimensions/configuration, and measured recall on this corpus.",
-          "rule": "Matching dimensions are necessary, but the embedding spaces must also be compatible."
+          "rule": "Matching dimensions are necessary, but the embedding spaces must also be compatible.",
+          "title": "Document vectors incompatible",
+          "meaning": "An embedding is a numeric representation used for search, not a generated answer. Document and query vectors must belong to a compatible embedding space. Matching dimensions alone is necessary but does not make different models/configurations interchangeable.",
+          "walkthrough": [
+            "Record the embedding model, dimension, and configuration used by the affected document vectors.",
+            "Compare query generation and index expectations against that same contract.",
+            "Plan a compatible re-embedding/index update when needed, then measure recall on representative questions before accepting the storage saving."
+          ],
+          "capabilities": [
+            "Titan Text Embeddings V2 supports 256, 512, and 1,024 dimensions; choose a compatible configuration and test retrieval quality.",
+            "Knowledge Bases embedding/index configuration or your embedding pipeline must keep document and query representation compatible."
+          ]
         },
         {
           "id": "index",
           "label": "Index",
           "evidence": "Confirm the exact current chunk/vector/metadata exists and synchronization succeeded.",
-          "rule": "Missing chunk → investigate ingestion; a reranker cannot recreate it."
+          "rule": "Missing chunk → investigate ingestion; a reranker cannot recreate it.",
+          "title": "Current chunk not indexed",
+          "meaning": "Reranking needs candidate passages that already exist in the search path. Here the evidence is absent from the index, so the first useful investigation is ingestion status and record identity. A larger model cannot recreate authoritative indexed evidence.",
+          "walkthrough": [
+            "Identify the exact source/version and the chunk that should be searchable.",
+            "Inspect completed ingestion status, failures, and stored text/vector/metadata for that record.",
+            "Repair and verify the missing ingestion/update, then rerun retrieval before evaluating ranking or generation."
+          ],
+          "capabilities": [
+            "Knowledge Bases ingestion jobs and the selected vector store provide the synchronization and stored evidence to inspect.",
+            "Use Retrieve after the record is present to test candidate coverage independently of generation."
+          ]
         },
         {
           "id": "query",
           "label": "Query / scope",
           "evidence": "Inspect the real query, meaningful IDs, trusted tenant scope, and filters sent downstream.",
-          "rule": "Do not remove exact identifiers or loosen authorization to improve recall."
+          "rule": "Do not remove exact identifiers or loosen authorization to improve recall.",
+          "title": "Exact ID or filter mismatch",
+          "meaning": "The actual search request can differ from the user’s wording. Exact identifiers and trusted access scope are meaningful inputs, not noise to discard. Improving recall must not create access to another tenant’s documents.",
+          "walkthrough": [
+            "Inspect the query and filters actually sent to retrieval, including the literal equipment ID.",
+            "Check whether the authorized document is searchable by that identifier under the correct scope.",
+            "Evaluate exact/lexical or supported hybrid search where needed, and repair query handling without weakening authorization."
+          ],
+          "capabilities": [
+            "Knowledge Bases supported filters/search configuration or OpenSearch lexical/vector/hybrid search supplies the relevant retrieval controls.",
+            "Application query preparation preserves identifiers and derives access filters from trusted identity."
+          ]
         },
         {
           "id": "query-embed",
           "label": "Query embedding",
           "evidence": "Compare query-vector generation with the indexed document-vector contract.",
-          "rule": "Changing the query model alone does not migrate the index."
+          "rule": "Changing the query model alone does not migrate the index.",
+          "title": "Query vectors changed alone",
+          "meaning": "The query is being compared with document representations built under another contract. Updating query generation does not migrate the existing index. Check both sides before tuning thresholds or increasing result counts.",
+          "walkthrough": [
+            "Compare the actual query embedding model/configuration with the indexed document configuration.",
+            "Check dimensional compatibility and whether both representations use the intended embedding space.",
+            "Restore compatibility or migrate/re-embed the documents, then test the original questions against a measured baseline."
+          ],
+          "capabilities": [
+            "Titan embeddings or the selected embedding model produces compatible query/document vectors.",
+            "Knowledge Bases/index configuration and any custom embedding caller must agree; a query-only change is not a full index migration."
+          ]
         },
         {
           "id": "candidates",
           "label": "Candidates",
           "evidence": "Inspect the permitted pre-rerank candidates and whether the required evidence is present.",
-          "rule": "Indexed and permitted but absent here → investigate search/filtering/recall."
+          "rule": "Indexed and permitted but absent here → investigate search/filtering/recall.",
+          "title": "Evidence absent from candidates",
+          "meaning": "Candidates are the passages the search stage actually returns. A reranker can reorder them, but cannot rank an unseen passage into existence. Investigate search behavior and filters before changing the answer model.",
+          "walkthrough": [
+            "Run retrieval separately and check whether the required passage is in the pre-rerank result set.",
+            "Compare the real query, permitted filters, exact identifiers, and candidate recall.",
+            "Adjust a supported search/query configuration and retest coverage before measuring whether reranking improves order."
+          ],
+          "capabilities": [
+            "Knowledge Bases Retrieve separates candidate inspection from generated answers.",
+            "Supported lexical, vector, or hybrid search under the chosen store/API contract addresses search fit; reranking addresses order after coverage exists."
+          ]
         },
         {
           "id": "reranker",
           "label": "Reranking",
           "evidence": "Compare before/after ordering, candidate input, top-k, and any removed relevant passages.",
-          "rule": "Present but poorly ordered → ranking; absent from input → upstream."
+          "rule": "Present but poorly ordered → ranking; absent from input → upstream.",
+          "title": "Good evidence ranked too low",
+          "meaning": "This is an ordering problem. A reranker compares existing candidates with the question and can move relevant evidence earlier. It adds work and latency, so verify that it improves the context actually delivered to the model.",
+          "walkthrough": [
+            "Compare candidate identities and ordering before and after reranking.",
+            "Check whether the relevant passage survives the result-count and context-selection limits.",
+            "Evaluate a supported reranker against the same questions; if the passage is absent from its input, move the investigation upstream."
+          ],
+          "capabilities": [
+            "Bedrock reranking and Knowledge Bases supported reranking configuration can reorder retrieved candidates.",
+            "Retrieve lets you inspect candidate input/output separately from the final generated answer."
+          ]
         },
         {
           "id": "best-context",
           "label": "Context selection",
           "evidence": "Inspect final passages, parent context, qualifiers, citations, and token-budget pruning.",
-          "rule": "A good candidate can still be lost before it reaches the model."
+          "rule": "A good candidate can still be lost before it reaches the model.",
+          "title": "Evidence dropped from context",
+          "meaning": "Retrieved evidence is useful only if the required part reaches the model. Context selection owns the trade-off between relevance, qualifications, history, and token budget. Do not mistake a good search result for a complete model input.",
+          "walkthrough": [
+            "Compare retrieved passages with the exact context sent to the model.",
+            "Identify pruning, parent substitution, or history trimming that removed the rule or exception.",
+            "Preserve the essential authorized evidence within the supported context budget and test the answer against that complete input."
+          ],
+          "capabilities": [
+            "Knowledge Bases supported retrieval/parent-context settings supply candidate material.",
+            "Application context assembly or the configured RetrieveAndGenerate path selects the model input; verify its contract and the evidence that survives."
+          ]
         },
         {
           "id": "prompt",
           "label": "Prompt",
           "evidence": "Inspect the exact assembled messages, source separation, task rules, and context truncation.",
-          "rule": "Correct evidence plus unclear instructions is not solved by another vector database."
+          "rule": "Correct evidence plus unclear instructions is not solved by another vector database.",
+          "title": "Correct evidence misused",
+          "meaning": "The next boundary is how instructions and evidence are presented and used. A document can be relevant without being trusted to issue commands. Check the complete rendered messages and task rules before concluding that search is defective.",
+          "walkthrough": [
+            "Inspect the exact instructions, question, and evidence in the invoked request.",
+            "Check authority separation, missing task rules, examples, and any truncation.",
+            "Refine and evaluate the prompt/context handling, then compare model capability if the verified request still fails."
+          ],
+          "capabilities": [
+            "Bedrock Prompt Management versions reusable instructions; Converse or model-specific APIs receive the assembled input.",
+            "Application context handling separates governing instructions from retrieved data, while supported safety checks and authorization protect their own boundaries."
+          ]
         },
         {
           "id": "model",
           "label": "Model",
           "evidence": "Compare outputs on the same verified context with the baseline and actual generation settings.",
-          "rule": "Only blame model capability after validating the input and output contract."
+          "rule": "Only blame model capability after validating the input and output contract.",
+          "title": "Task exceeds model capability",
+          "meaning": "Model capability is now a plausible cause because the earlier inputs have been validated. Compare behavior on the same task rather than relying on size or leaderboard claims, and include the latency/cost constraints the application must meet.",
+          "walkthrough": [
+            "Keep the verified request and evaluation rubric identical across candidates.",
+            "Compare task correctness, critical cohorts, and actual generation settings with the accepted baseline.",
+            "Choose a supported model/hosting configuration that meets the measured requirements and rerun release gates."
+          ],
+          "capabilities": [
+            "Bedrock model inference supports eligible candidate comparisons; SageMaker AI fits cases requiring deeper hosting control.",
+            "Supported evaluation approaches plus a representative held-out dataset measure task fit rather than model reputation."
+          ]
         },
         {
           "id": "response",
           "label": "Answer / validation",
           "evidence": "Compare individual claims and citations against supplied evidence and the user requirement.",
-          "rule": "A valid citation or JSON shape is not proof of faithfulness or correctness."
+          "rule": "A valid citation or JSON shape is not proof of faithfulness or correctness.",
+          "title": "Citation lacks claim support",
+          "meaning": "A citation identifies a source; it does not prove that each claim follows from that source. Separately evaluate source support, whether the answer addresses the question, and correctness against the business reference.",
+          "walkthrough": [
+            "Compare each important answer claim with the actual supplied passage and its conditions.",
+            "Check whether the answer meets the user’s task as well as its output schema.",
+            "Use appropriate assertions, calibrated evaluation, and supported grounding checks where their use-case contract fits; apply the required fallback policy."
+          ],
+          "capabilities": [
+            "Bedrock model/RAG evaluation helps assess supported answer-quality metrics.",
+            "Bedrock contextual grounding checks assess source/query/response alignment for supported use cases; conversational QA/chatbot use cases are not supported."
+          ]
         }
       ],
       "symptoms": [
@@ -122,49 +287,137 @@
           "id": "user-query",
           "label": "Task definition",
           "evidence": "Inspect label meanings, output requirements, ambiguity, and representative boundary cases.",
-          "rule": "A persona does not define missing business rules."
+          "rule": "A persona does not define missing business rules.",
+          "title": "Category rules undefined",
+          "meaning": "A label is useful only when its meaning and edge cases are defined. Telling the model to “act as an expert” supplies a persona, not the missing category rule. Agree the expected behavior before judging prompting or model capability.",
+          "walkthrough": [
+            "Write the category meanings and a rule for overlapping or incomplete cases.",
+            "Add representative boundary examples and define when clarification is required.",
+            "Evaluate the prompt against those expected decisions, checking the category separately from the output format."
+          ],
+          "capabilities": [
+            "Prompt Management stores reusable task rules/examples; the application supplies the current query and authoritative state.",
+            "Bedrock Flows or application branching can implement supported clarification steps after the missing-field/decision requirement is defined."
+          ]
         },
         {
           "id": "select",
           "label": "Model / task fit",
           "evidence": "Compare baseline performance, supported modality, context budget, and task requirements.",
-          "rule": "A public benchmark or larger model is not proof of task fit."
+          "rule": "A public benchmark or larger model is not proof of task fit.",
+          "title": "Model/input mismatch",
+          "meaning": "Prompt refinement cannot establish support for an unsupported modality or guarantee enough task capability. Select using the real inputs and acceptance criteria, including the configured context/output limits and deployment constraints.",
+          "walkthrough": [
+            "Confirm the task, input modality, and limits the candidate actually supports.",
+            "Compare supported alternatives using the same held-out inputs and rubric.",
+            "Choose based on the measured requirement; verify model/Region/API and hosting support before changing the live route."
+          ],
+          "capabilities": [
+            "Bedrock model inference and supported evaluation provide the managed comparison path.",
+            "SageMaker AI is relevant when the task requires serving/container/infrastructure control beyond the eligible Bedrock contract."
+          ]
         },
         {
           "id": "system-instructions",
           "label": "Instructions",
           "evidence": "Check instruction priority, untrusted-source separation, refusal/escalation rules, and examples.",
-          "rule": "Prompt instructions cannot replace deterministic authorization."
+          "rule": "Prompt instructions cannot replace deterministic authorization.",
+          "title": "Document instruction obeyed",
+          "meaning": "Retrieved content is evidence to interpret, not automatically a command to obey. The prompt should define the task and insufficient-information behavior, while deterministic controls still enforce data and tool permission. Instructions alone are not an authorization system.",
+          "walkthrough": [
+            "Inspect the governing instructions and where untrusted document/tool text is inserted.",
+            "Test injection and missing-evidence cases using explicit refusal or clarification rules.",
+            "Evaluate supported safety checks and keep permission checks at retrieval and business-action boundaries."
+          ],
+          "capabilities": [
+            "Prompt Management and the inference message contract express supported governing instructions.",
+            "Guardrails can apply supported content/prompt-attack policies, while backend/IAM authorization independently limits data and actions."
+          ]
         },
         {
           "id": "prompt-template",
           "label": "Template version",
           "evidence": "Compare the evaluated template/variables with the deployed version and rendered payload.",
-          "rule": "A saved prompt version is not necessarily the version actually invoked."
+          "rule": "A saved prompt version is not necessarily the version actually invoked.",
+          "title": "Deployed prompt differs",
+          "meaning": "A stored prompt artifact and the input actually invoked are different evidence. Reproducibility requires the template version, variable values, model settings, and context to match the evaluated release.",
+          "walkthrough": [
+            "Capture the exact rendered request using the approved logging policy.",
+            "Compare template/version, variables, examples, and model settings with the evaluated configuration.",
+            "Repair the deployed configuration or rendering path, then rerun the same regression cases before promoting."
+          ],
+          "capabilities": [
+            "Bedrock Prompt Management provides template variants/variables/versions under its contract.",
+            "Application release configuration and protected invocation/application logging establish which payload was actually invoked."
+          ]
         },
         {
           "id": "retrieved-knowledge",
           "label": "Evidence",
           "evidence": "Verify the selected knowledge contains the required facts and qualifications.",
-          "rule": "Missing current facts usually require evidence, not style fine-tuning."
+          "rule": "Missing current facts usually require evidence, not style fine-tuning.",
+          "title": "Private fact missing",
+          "meaning": "This is an evidence gap in the model input. Determine whether the fact is absent from the source, ingestion, retrieval, or context selection. Style or format customization is a separate requirement.",
+          "walkthrough": [
+            "Identify the authoritative current fact and the passage that contains it.",
+            "Trace that passage from source and index through retrieval to the final prompt.",
+            "Fix the first missing evidence boundary and test source-supported answers before changing model weights."
+          ],
+          "capabilities": [
+            "Knowledge Bases ingestion and Retrieve expose the source-to-candidate path for supported RAG.",
+            "Application context assembly or RetrieveAndGenerate must include the needed permitted passage and qualification in the model input."
+          ]
         },
         {
           "id": "conversation",
           "label": "History / state",
           "evidence": "Inspect included turns, authoritative state, permission scope, and trimming.",
-          "rule": "An inference API does not automatically retain every earlier turn."
+          "rule": "An inference API does not automatically retain every earlier turn.",
+          "title": "Conversation fact omitted",
+          "meaning": "A model call can use only the conversation/state supplied under that call’s contract. An inference API is not automatically the application’s complete conversation database. Preserve relevant facts without mixing another user’s history or exceeding the context budget.",
+          "walkthrough": [
+            "Inspect the exact message history and state included in this request.",
+            "Check trimming, session identity, permissions, and whether the required fact exists in authoritative application state.",
+            "Supply the relevant scoped history/state and rerun the follow-up; do not assume a larger model restores omitted turns."
+          ],
+          "capabilities": [
+            "Converse/ConverseStream accepts supported messages supplied by the application.",
+            "Application state storage, such as DynamoDB where appropriate, retains scoped conversation/business facts for later requests."
+          ]
         },
         {
           "id": "generation-config",
           "label": "Generation settings",
           "evidence": "Inspect actual token limits, stop sequences, sampling, template, and model/API settings.",
-          "rule": "Cut-off output differs from hallucination; low temperature is not a truth guarantee."
+          "rule": "Cut-off output differs from hallucination; low temperature is not a truth guarantee.",
+          "title": "Output stops or changes",
+          "meaning": "An output-length or stop-condition defect differs from unsupported factual claims. Inspect the effective inference configuration rather than assuming every bad answer is hallucination. Lower temperature changes variation; it does not certify truth.",
+          "walkthrough": [
+            "Compare the actual invoked settings and rendered context with the evaluated release.",
+            "Check token limits, stop conditions, sampling support, and context truncation separately.",
+            "Change the setting that explains the symptom, then test both completion and semantic correctness on the same cases."
+          ],
+          "capabilities": [
+            "Converse or model-specific Bedrock inference configuration controls supported generation fields.",
+            "Prompt/release configuration and protected request logging help establish which settings the application actually sent."
+          ]
         },
         {
           "id": "response",
           "label": "Output contract",
           "evidence": "Check semantic correctness, factual support, schema, and actual business outcome separately.",
-          "rule": "Valid JSON can still encode an incorrect or unauthorized action."
+          "rule": "Valid JSON can still encode an incorrect or unauthorized action.",
+          "title": "Valid JSON, wrong decision",
+          "meaning": "Format validation and task validation answer different questions. A schema checks fields/types; it does not establish a correct category, supported fact, authorized action, or completed transaction. Compare meaning with the original requirement and authoritative evidence.",
+          "walkthrough": [
+            "Validate structure, then independently compare the category or claim with the task rule/source.",
+            "For an action, check caller scope, transaction rules, and the actual business result.",
+            "Add semantic/business regression cases and required deterministic checks at the failed boundary."
+          ],
+          "capabilities": [
+            "Supported structured output or application schema validation checks format.",
+            "Bedrock evaluation, source-fact assertions, and business API authorization/outcome checks address meaning and permitted action."
+          ]
         }
       ],
       "symptoms": [
@@ -198,73 +451,205 @@
           "id": "select",
           "label": "Base model / baseline",
           "evidence": "Compare representative tasks with the untuned model and supported customization methods.",
-          "rule": "Fine-tuning is not automatically better than a suitable baseline."
+          "rule": "Fine-tuning is not automatically better than a suitable baseline.",
+          "title": "Customization loses to baseline",
+          "meaning": "Customization is a hypothesis about a measured gap. Establish a suitable base and baseline first, then compare the actual task outcomes. A changed model is not automatically a better model for this application.",
+          "walkthrough": [
+            "Check the required task and the base model/method support.",
+            "Compare tuned and untuned outputs on identical independent cases.",
+            "Keep the baseline unless a compatible candidate improves the required behavior without breaking the release constraints."
+          ],
+          "capabilities": [
+            "Eligible Bedrock customization or SageMaker workflows supplies the supported adaptation/deployment path.",
+            "Held-out evaluation establishes whether the customized artifact actually improves the business task."
+          ]
         },
         {
           "id": "adapt",
           "label": "Adaptation choice",
           "evidence": "State whether the gap is instructions, changing facts, stable behavior, or domain adaptation.",
-          "rule": "Prompting, RAG, supervised tuning, and continued pre-training solve different gaps."
+          "rule": "Prompting, RAG, supervised tuning, and continued pre-training solve different gaps.",
+          "title": "Wrong kind of adaptation",
+          "meaning": "Instructions, evidence, and model weights are different places to change behavior. Clarify task rules first, supply current facts where required, and evaluate weight changes for a remaining stable behavior/domain gap. These approaches can combine when the gaps differ.",
+          "walkthrough": [
+            "Classify the defect: missing rule, missing fact, model capability, or stable behavior.",
+            "Test the corresponding prompt/context or retrieval change before treating it as a weight problem.",
+            "Evaluate supported adaptation only against a clear baseline with appropriate data and deployment support."
+          ],
+          "capabilities": [
+            "Prompt Management/inference messages address instructions; Knowledge Bases addresses supported evidence retrieval.",
+            "Eligible Bedrock customization or SageMaker model adaptation addresses an evaluated weight-level requirement."
+          ]
         },
         {
           "id": "datasets",
           "label": "Splits / lineage",
           "evidence": "Inspect dataset versions, provenance, duplicates, leakage, and representative critical cohorts.",
-          "rule": "Training and final test data must remain independent."
+          "rule": "Training and final test data must remain independent.",
+          "title": "Test score fails to generalize",
+          "meaning": "A held-out test should represent the expected workload without being used to tune the candidate. Duplicates, leakage, and missing cohorts can make aggregate scores misleading. Check the data split before adjusting training settings.",
+          "walkthrough": [
+            "Inspect dataset versions, lineage, duplicates, and overlap across training/validation/final tests.",
+            "Compare cohort coverage with the real task and investigate failures on genuinely new cases.",
+            "Repair the split or coverage, then repeat the candidate/baseline comparison using an independent final test."
+          ],
+          "capabilities": [
+            "Versioned approved datasets in S3 and explicit validation record the data used by a job.",
+            "Glue/Data Quality or application checks can detect relevant data defects; evaluation uses the corrected independent cases."
+          ]
         },
         {
           "id": "training-records",
           "label": "Records / labels",
           "evidence": "Inspect model-specific format, input/output alignment, labels, and sensitive content.",
-          "rule": "More incorrectly labeled examples can reinforce the defect."
+          "rule": "More incorrectly labeled examples can reinforce the defect.",
+          "title": "Conflicting labels",
+          "meaning": "The job learns from the examples it receives, including their mistakes. More records do not resolve contradictory supervision. Establish correct labels, model-specific record format, and input/output alignment before interpreting model behavior.",
+          "walkthrough": [
+            "Check representative records against the authoritative business rule and expected format.",
+            "Inspect conflicts, duplicate examples, sensitive content, and missing conditions across cohorts.",
+            "Correct or quarantine defective records before training, then reevaluate on separate validated examples."
+          ],
+          "capabilities": [
+            "Glue/Data Quality or application validation can implement explicit record checks and failure/quarantine gates.",
+            "Supported Bedrock/SageMaker job contracts define the training format; domain experts establish the correct labels."
+          ]
         },
         {
           "id": "training-config",
           "label": "Training configuration",
           "evidence": "Compare supported base/method, tokenizer, length/truncation, learning rate, epochs, and batch settings.",
-          "rule": "A configuration change must be evaluated; more epochs is not a universal fix."
+          "rule": "A configuration change must be evaluated; more epochs is not a universal fix.",
+          "title": "Training becomes unstable",
+          "meaning": "Configuration affects what the model actually learns from each example. A setting change must be evaluated against the task and supported contract. Additional training cannot be assumed to restore truncated evidence or correct an incompatible format.",
+          "walkthrough": [
+            "Compare the changed configuration with the supported base/method and the last accepted job.",
+            "Inspect tokenizer/length handling and which parts of real examples reach training.",
+            "Test the relevant configuration change using validation and held-out task outputs rather than applying a universal epoch setting."
+          ],
+          "capabilities": [
+            "Eligible Bedrock customization settings or a controlled SageMaker training job defines the supported configuration.",
+            "Job metrics/logs and versioned data/configuration provide evidence for the comparison; deep training implementation is supporting context here."
+          ]
         },
         {
           "id": "fine-tuning",
           "label": "Training execution",
           "evidence": "Check job status, actual configuration/data, permissions, logs, and produced artifact identity.",
-          "rule": "A completed job proves execution, not the desired behavior."
+          "rule": "A completed job proves execution, not the desired behavior.",
+          "title": "Usable artifact missing",
+          "meaning": "Job execution and useful task behavior are separate questions. First prove that the intended supported job ran with the expected inputs and produced the expected artifact. Then evaluate that artifact against the task baseline.",
+          "walkthrough": [
+            "Inspect job status, failure details, permissions, and the actual data/configuration identity.",
+            "Verify the produced artifact belongs to that job and is compatible with the intended serving path.",
+            "Resolve execution/input defects before running held-out quality and release checks."
+          ],
+          "capabilities": [
+            "Eligible Bedrock customization jobs or SageMaker training jobs provide status and outputs under their contracts.",
+            "S3 data/artifacts, scoped IAM access, and job logs help verify the actual inputs and artifact lineage."
+          ]
         },
         {
           "id": "training-runs",
           "label": "Learning curves",
           "evidence": "Compare available training/validation curves with held-out outputs and critical cohorts.",
-          "rule": "Improving training loss with worsening validation may indicate overfitting; also check data/split defects."
+          "rule": "Improving training loss with worsening validation may indicate overfitting; also check data/split defects.",
+          "title": "Validation worsens",
+          "meaning": "The training curve measures fit to the training examples, not the full production requirement. Diverging validation/task results can indicate overfitting, but also require checking labels, leakage, and cohort coverage before choosing a remedy.",
+          "walkthrough": [
+            "Compare available training/validation metrics with outputs on independent task cases.",
+            "Check data quality, split independence, cohort coverage, and changed configuration.",
+            "Choose a candidate or configuration using held-out behavior and critical gates rather than training loss alone."
+          ],
+          "capabilities": [
+            "Bedrock customization output metrics where available or SageMaker training metrics/logs supplies learning-curve evidence.",
+            "Independent task evaluation establishes whether the observed curve corresponds to useful generalization."
+          ]
         },
         {
           "id": "checkpoint",
           "label": "Checkpoint selection",
           "evidence": "Compare candidate checkpoints with the baseline using independent task and safety gates.",
-          "rule": "The final epoch or lowest training loss is not automatically the best checkpoint."
+          "rule": "The final epoch or lowest training loss is not automatically the best checkpoint.",
+          "title": "Final checkpoint is worse",
+          "meaning": "A checkpoint is a candidate version, not proof that the final training step is the best release. Select using the business task and independent gates, while retaining the exact artifact/configuration identity that was tested.",
+          "walkthrough": [
+            "Evaluate eligible candidate checkpoints and the original baseline on identical independent cases.",
+            "Inspect critical cohorts, safety, and relevant latency/cost as well as the aggregate score.",
+            "Approve the artifact that meets the release criteria and retain a compatible rollback version."
+          ],
+          "capabilities": [
+            "Supported Bedrock/SageMaker artifact outputs define which candidates are available.",
+            "Evaluation and versioned artifact governance selects the candidate; Model Registry records supported artifacts rather than choosing the best task behavior automatically."
+          ]
         },
         {
           "id": "lifecycle-evaluate",
           "label": "Held-out evaluation",
           "evidence": "Inspect correctness, safety, task success, regressions, and relevant latency/cost.",
-          "rule": "A critical regression blocks promotion even if average quality improves."
+          "rule": "A critical regression blocks promotion even if average quality improves.",
+          "title": "Critical cohort regresses",
+          "meaning": "An average summarizes a population; it does not override a hard requirement for a critical subgroup or action. Promotion needs independent quality/safety checks and the required accountable approval, including the failures an average can hide.",
+          "walkthrough": [
+            "Compare candidate and baseline on the same held-out cases, grouped by critical cohort/task.",
+            "Inspect correctness, safety, tool outcomes, and relevant latency/cost separately.",
+            "Block promotion when a critical criterion fails, add the case to regressions, and approve only a candidate that passes the gate."
+          ],
+          "capabilities": [
+            "Supported Bedrock model evaluation and deterministic/domain-expert checks measure the required qualities.",
+            "A delivery workflow such as Step Functions or SageMaker pipelines can enforce the applicable evaluation/approval gate before deployment."
+          ]
         },
         {
           "id": "registry",
           "label": "Approved artifact",
           "evidence": "Check exactly which artifact/configuration passed the gate and was approved.",
-          "rule": "Approval does not deploy it."
+          "rule": "Approval does not deploy it.",
+          "title": "Wrong artifact approved",
+          "meaning": "Approval needs to bind to the evaluated artifact, data lineage, and serving configuration. It also needs an explicit deployment action and a usable rollback target. A status label alone does not establish a safe live release.",
+          "walkthrough": [
+            "Compare the evaluated artifact/version with the version recorded as approved.",
+            "Verify metrics, lineage, compatible serving configuration, and rollback identity.",
+            "Make the deployment pipeline consume the approved version explicitly and check the resulting live identity."
+          ],
+          "capabilities": [
+            "SageMaker Model Registry records supported versioned artifacts, metrics, and approval state.",
+            "The release workflow and endpoint/serving deployment perform promotion; Registry alone does not update the endpoint."
+          ]
         },
         {
           "id": "deployment-check",
           "label": "Live identity",
           "evidence": "Send an attributed smoke request through the real route; compare with the offline candidate.",
-          "rule": "If offline passes but live fails, inspect routing/version/serving before retraining."
+          "rule": "If offline passes but live fails, inspect routing/version/serving before retraining.",
+          "title": "Production uses old release",
+          "meaning": "Availability does not establish release identity. The problem may be the route, model/artifact version, template, or live configuration rather than training quality. Compare the real application path with the exact evaluated candidate first.",
+          "walkthrough": [
+            "Send a version-attributed smoke request through the actual user/application route.",
+            "Compare the invoked model, artifact, template, retrieval settings, and inference configuration with the approved release.",
+            "Repair deployment/routing or restore the compatible rollback configuration, then repeat the same live and offline cases."
+          ],
+          "capabilities": [
+            "SageMaker endpoint/component deployment or the configured Bedrock invocation route establishes the live serving identity.",
+            "Application attribution, protected logs, and release checks prove which approved configuration handled the request."
+          ]
         },
         {
           "id": "monitor",
           "label": "Production behavior",
           "evidence": "Compare observed cohort failures, task mix, drift, and versions with held-out evaluation.",
-          "rule": "Production regression starts an investigation or rollback, not automatic retraining."
+          "rule": "Production regression starts an investigation or rollback, not automatic retraining.",
+          "title": "Unseen production cohort",
+          "meaning": "Monitoring connects real outcomes to the version and cohort that produced them. A production regression starts an evidence-led investigation and may require rollback. Retraining is only one possible change after the failed boundary is established.",
+          "walkthrough": [
+            "Correlate failures with model/prompt/data versions and the affected workload cohort.",
+            "Compare those cases with held-out coverage and inspect changes in inputs, sources, and serving configuration.",
+            "Add confirmed failures to regressions, apply rollback when required, and revisit selection/customization only if the evidence supports it."
+          ],
+          "capabilities": [
+            "CloudWatch/application metrics and correlated invocation/tool traces expose supported operational signals.",
+            "Golden-dataset evaluation and versioned release/rollback controls turn observed failures into checked changes."
+          ]
         }
       ],
       "symptoms": [
@@ -294,61 +679,171 @@
           "id": "select",
           "label": "Compatible base",
           "evidence": "Identify the exact supported base model/revision, tokenizer, and serving runtime.",
-          "rule": "A same-family model name does not prove adapter compatibility."
+          "rule": "A same-family model name does not prove adapter compatibility.",
+          "title": "Base/runtime incompatible",
+          "meaning": "An unmerged adapter depends on a compatible base and serving contract. Family resemblance does not prove compatibility with the exact revision, tokenizer, template, and artifact format used by the release.",
+          "walkthrough": [
+            "Identify the exact base revision and adaptation/serving format expected by the adapter.",
+            "Compare the runtime, tokenizer, and template with the evaluated pair.",
+            "Use a supported compatible base/adapter deployment and test that actual pair before promotion."
+          ],
+          "capabilities": [
+            "Supported SageMaker adapter inference components or the selected compatible serving runtime defines adapter/base integration.",
+            "Versioned artifact metadata records the exact pairing; eligible Bedrock customization/import support must be checked separately."
+          ]
         },
         {
           "id": "datasets",
           "label": "Task examples",
           "evidence": "Check the versioned examples and held-out cohorts used to train and evaluate this adapter.",
-          "rule": "Small adapter artifacts do not reduce the need for good supervision."
+          "rule": "Small adapter artifacts do not reduce the need for good supervision.",
+          "title": "Poor adapter supervision",
+          "meaning": "Parameter-efficient tuning changes the training approach, not the need for correct supervision and representative evaluation. Separate a data/task defect from a serving defect by checking the examples and held-out cohorts.",
+          "walkthrough": [
+            "Review the labels and boundary examples against the agreed task rules.",
+            "Check the versioned training/validation/test splits for duplicates and missing critical cohorts.",
+            "Improve supervision and compare the resulting adapter with its compatible base on independent cases."
+          ],
+          "capabilities": [
+            "Explicit Glue/Data Quality or application checks validates approved records before a supported training job.",
+            "Independent base+adapter evaluation measures task improvement; adapter artifact size does not establish data quality."
+          ]
         },
         {
           "id": "lora-rank",
           "label": "LoRA configuration",
           "evidence": "Inspect rank/scaling/dropout and training settings against validation results.",
-          "rule": "Higher rank is not a cure for wrong labels or leakage."
+          "rule": "Higher rank is not a cure for wrong labels or leakage.",
+          "title": "Higher rank does not help",
+          "meaning": "Rank changes adapter capacity and resource use; it is a configuration to evaluate, not a universal repair. Wrong task rules, labels, or splits can dominate the result regardless of rank. Treat training settings as hypotheses against validation.",
+          "walkthrough": [
+            "Confirm the exact rank/scaling/dropout and other settings used by each job.",
+            "Check data defects and compare independent task outputs under otherwise comparable configurations.",
+            "Choose settings by measured quality/resource trade-offs and release gates, not the largest rank available."
+          ],
+          "capabilities": [
+            "The supported LoRA training implementation exposes eligible rank/scaling/dropout settings.",
+            "Validation outputs and job metrics/logs establish the effect; this training detail is supporting context rather than a substitute for release evaluation."
+          ]
         },
         {
           "id": "lora",
           "label": "Adapter training",
           "evidence": "Confirm the intended base remained frozen and the expected adapter artifact was produced.",
-          "rule": "LoRA changes adapter weights; it is not retrieval or a standalone model."
+          "rule": "LoRA changes adapter weights; it is not retrieval or a standalone model.",
+          "title": "Expected adapter missing",
+          "meaning": "LoRA trains low-rank adapter weights while the base is frozen. First verify the actual training execution and output, then verify how that artifact is served. A completed job with another setup does not prove the expected adapter release exists.",
+          "walkthrough": [
+            "Inspect the actual adaptation configuration, job status, and base identity.",
+            "Verify the expected adapter artifact and whether it is merged or separately loaded.",
+            "Evaluate the compatible result before handing it to the approved deployment path."
+          ],
+          "capabilities": [
+            "A supported SageMaker/compatible LoRA training workflow creates adapter weights under its configured contract.",
+            "Job outputs and versioned artifact metadata establish what was actually produced and what serving path it requires."
+          ]
         },
         {
           "id": "lora-artifact",
           "label": "Artifact / base pairing",
           "evidence": "Check adapter/base versions, tokenizer/template, artifact format, and merged versus unmerged status.",
-          "rule": "An unmerged adapter needs its compatible base at inference."
+          "rule": "An unmerged adapter needs its compatible base at inference.",
+          "title": "Wrong base/artifact pair",
+          "meaning": "Artifact compatibility is a release requirement. An unmerged adapter needs its compatible base at inference; a merged artifact follows another serving contract. Track the full pairing and format instead of treating the adapter file as sufficient.",
+          "walkthrough": [
+            "Compare base revision, adapter version, tokenizer/template, and artifact format with the evaluated pair.",
+            "Establish whether the artifact is merged or requires separate base loading.",
+            "Correct the pairing/load contract and rerun attributed smoke and held-out tests before diagnosing training quality."
+          ],
+          "capabilities": [
+            "S3/versioned artifact storage holds the release objects and lineage.",
+            "Supported SageMaker adapter inference components or another compatible runtime loads the required base/adapter pair; format compatibility is still your responsibility."
+          ]
         },
         {
           "id": "lifecycle-evaluate",
           "label": "Release gate",
           "evidence": "Evaluate the actual base+adapter pair with the intended inference configuration and cohorts.",
-          "rule": "Evaluating a different base or template invalidates the release comparison."
+          "rule": "Evaluating a different base or template invalidates the release comparison.",
+          "title": "Tested pair differs",
+          "meaning": "You are releasing a combination: base, adapter, template, and inference settings. Evaluation of another combination does not establish this release’s quality. Keep the pairing fixed during comparison and approval.",
+          "walkthrough": [
+            "Identify the exact combination used by the evaluation job and the intended live route.",
+            "Evaluate that real pair on independent task/safety cohorts and relevant performance limits.",
+            "Approve and deploy only the combination that passed, with a compatible rollback pair."
+          ],
+          "capabilities": [
+            "Supported evaluation jobs or application/domain checks measures the actual base+adapter behavior.",
+            "Versioned approval/deployment workflows binds evaluation evidence to the compatible release combination."
+          ]
         },
         {
           "id": "registry",
           "label": "Version / approval",
           "evidence": "Inspect registered artifact, approval, lineage, and rollback pair.",
-          "rule": "Registry approval does not load or hot-swap the live adapter."
+          "rule": "Registry approval does not load or hot-swap the live adapter.",
+          "title": "Approved adapter not loaded",
+          "meaning": "Approval records a decision about an artifact; serving deployment changes what handles requests. These are separate actions. Inspect the release workflow and live selected component/adapter before concluding that the training had no effect.",
+          "walkthrough": [
+            "Verify the approved adapter, base pairing, lineage, and rollback version.",
+            "Check whether the explicit serving deployment/load and route update ran successfully.",
+            "Confirm the selected adapter with an attributed live request and compare it with the approved evaluation cases."
+          ],
+          "capabilities": [
+            "SageMaker Model Registry records eligible version/approval metadata.",
+            "Supported adapter-serving deployment, such as SageMaker inference components, loads/routes the compatible pair; registry approval alone does not perform that action."
+          ]
         },
         {
           "id": "lora-serving",
           "label": "Load / route adapter",
           "evidence": "Inspect deployed base/component, adapter readiness, actual selected identity, and tenant entitlement.",
-          "rule": "Use the supported adapter-serving contract; generic model registration is insufficient."
+          "rule": "Use the supported adapter-serving contract; generic model registration is insufficient.",
+          "title": "Wrong adapter invoked",
+          "meaning": "Healthy hosting and a valid artifact do not prove that this request used the intended adapter. Serving owns loading/readiness and selection; the application must also enforce which adapter/task route the caller may use.",
+          "walkthrough": [
+            "Inspect the deployed base, adapter/component readiness, and actual selection on this request.",
+            "Compare the caller’s permitted route with the evaluated adapter identity.",
+            "Repair load/route/authorization configuration and test that exact pair before changing training data."
+          ],
+          "capabilities": [
+            "SageMaker adapter inference components supports the documented base/adapter serving contract.",
+            "Application routing, IAM/business entitlement, and invocation attribution verifies the intended permitted selection."
+          ]
         },
         {
           "id": "deployment-check",
           "label": "Live smoke / rollback",
           "evidence": "Compare attributed live requests with the approved pair; verify rollback restores the pair and route.",
-          "rule": "Base-like output can be a loading/routing defect, not failed training."
+          "rule": "Base-like output can be a loading/routing defect, not failed training.",
+          "title": "Partial rollback",
+          "meaning": "Rollback should restore a compatible release, not just one file or status. Verify base, adapter, template, inference settings, and application route together, using a request through the real serving path.",
+          "walkthrough": [
+            "Compare the smoke request’s attributed identity with the approved pair/configuration.",
+            "Verify rollback restores every compatibility-critical part of the accepted release.",
+            "Repeat the live task cases after rollback and investigate any loading/routing difference before retraining."
+          ],
+          "capabilities": [
+            "SageMaker endpoint/inference-component operations or the chosen compatible runtime changes serving state.",
+            "Versioned application configuration and release tests verifies the complete approved or rollback combination."
+          ]
         },
         {
           "id": "monitor",
           "label": "Live adapter behavior",
           "evidence": "Correlate outcomes with adapter/base versions, task cohorts, loading failures, and request scope.",
-          "rule": "Aggregate endpoint metrics can hide one broken adapter or tenant route."
+          "rule": "Aggregate endpoint metrics can hide one broken adapter or tenant route.",
+          "title": "One adapter route regresses",
+          "meaning": "Monitor the unit that matters to the decision: the adapter, base pair, route, and cohort. A shared healthy endpoint can host a failing task configuration. Correlation is needed before choosing rollback, data repair, or another adaptation.",
+          "walkthrough": [
+            "Group failures by adapter/base version, route, and permitted tenant/task cohort.",
+            "Compare that group’s outcomes with its held-out acceptance cases and actual live configuration.",
+            "Apply the relevant release/rollback policy and add confirmed failures to that adapter’s regression set."
+          ],
+          "capabilities": [
+            "CloudWatch/custom application metrics and protected invocation attribution exposes route-specific signals.",
+            "Versioned base/adapter release metadata and evaluation connects production outcomes with the compatible candidate and rollback pair."
+          ]
         }
       ],
       "symptoms": [
@@ -378,61 +873,171 @@
           "id": "select",
           "label": "Task / model fit",
           "evidence": "Compare measured quality, token use, latency, and cost across suitable supported models.",
-          "rule": "A smaller/faster model must still meet the task quality target."
+          "rule": "A smaller/faster model must still meet the task quality target.",
+          "title": "Cheap model fails task",
+          "meaning": "Cost and latency are constraints to measure alongside task quality. The useful unit is a successful business outcome, not merely a completed model call. Compare candidates on the same workload before sizing capacity or changing hosting.",
+          "walkthrough": [
+            "Define acceptable task quality and critical cases alongside time/cost limits.",
+            "Compare supported candidates on identical representative inputs and effective settings.",
+            "Select a measured fit, then optimize its delivery/capacity without losing the required quality."
+          ],
+          "capabilities": [
+            "Bedrock inference and supported model evaluation supports workload comparison.",
+            "SageMaker AI hosting is relevant when instance/container/endpoint control is a requirement, not simply because a model is customized."
+          ]
         },
         {
           "id": "quantization",
           "label": "Representation / runtime",
           "evidence": "Benchmark supported precision and serving settings with the actual hardware/runtime and quality gates.",
-          "rule": "Lower precision does not guarantee lower end-to-end latency."
+          "rule": "Lower precision does not guarantee lower end-to-end latency.",
+          "title": "Quantized quality regresses",
+          "meaning": "Quantization changes representation and must be supported by the target model/runtime. The memory gain does not establish task quality or serving speed. Evaluate the actual deployed configuration rather than an abstract precision label.",
+          "walkthrough": [
+            "Compare supported representations on the same held-out task/cohort cases.",
+            "Measure memory and latency on the intended serving hardware/runtime, including loading and request behavior.",
+            "Accept the configuration only if it satisfies quality and performance criteria; keep a compatible tested fallback."
+          ],
+          "capabilities": [
+            "A compatible SageMaker/custom serving runtime provides the required representation/hardware controls where supported.",
+            "Application evaluation and serving metrics measures the quality/resource trade-off; do not assume a generic Bedrock call exposes arbitrary quantization control."
+          ]
         },
         {
           "id": "deployment-check",
           "label": "Serving identity",
           "evidence": "Verify the intended model/container/component/configuration is ready and receiving requests.",
-          "rule": "An endpoint being reachable does not identify the release it serves."
+          "rule": "An endpoint being reachable does not identify the release it serves.",
+          "title": "Live configuration differs",
+          "meaning": "An available endpoint can serve the wrong configuration. First establish live identity and inputs, then investigate capacity or model behavior. Otherwise you may optimize or retrain a candidate that is not actually being invoked.",
+          "walkthrough": [
+            "Send a representative attributed request through the real application path.",
+            "Compare model/artifact/container and effective settings with the accepted release.",
+            "Repair deployment/routing or restore the tested configuration before repeating quality and load comparisons."
+          ],
+          "capabilities": [
+            "SageMaker endpoint/container deployment or the configured Bedrock invocation route establishes live serving identity.",
+            "Protected request logs, traces, and release metadata correlates the response with the configuration that produced it."
+          ]
         },
         {
           "id": "capacity",
           "label": "Capacity / routing",
           "evidence": "Inspect demand, quotas, utilization, scaling, approved destinations, and selected capacity mode.",
-          "rule": "Cross-Region routing, reserved capacity, and application failover are different controls."
+          "rule": "Cross-Region routing, reserved capacity, and application failover are different controls.",
+          "title": "Serving capacity exceeded",
+          "meaning": "Capacity and permitted routing are distinct requirements. Measure actual input/output demand and support before choosing on-demand, reserved throughput, or a broader routing pool. More eligible compute does not authorize another processing Region.",
+          "walkthrough": [
+            "Inspect demand, quotas, throttles, and actual model/route support.",
+            "Compare on-demand and supported Provisioned Throughput economics using the measured workload.",
+            "Evaluate eligible cross-Region routing only within approved destinations and keep source-application recovery separate."
+          ],
+          "capabilities": [
+            "Bedrock on-demand or supported Provisioned Throughput supplies different capacity/billing contracts.",
+            "Eligible cross-Region inference profiles broadens compute choices subject to destination/IAM/SCP policy; profiles do not currently support Provisioned Throughput."
+          ]
         },
         {
           "id": "admission",
           "label": "Admission / queue wait",
           "evidence": "Measure accepted token demand, throttles, queue age, worker pacing, and tenant budgets.",
-          "rule": "Concurrency limits do not express every token-rate requirement."
+          "rule": "Concurrency limits do not express every token-rate requirement.",
+          "title": "Burst exceeds admission budget",
+          "meaning": "Admission decides what work may enter; pacing decides how quickly accepted work is processed. Request count, worker concurrency, and model token rate are different measurements. Preserve durable state and truthful job status when callers do not wait.",
+          "walkthrough": [
+            "Measure accepted request/token volume and the model’s actual throughput constraints.",
+            "Inspect queue age, retries, deadlines, and tenant/team entitlement.",
+            "Use durable buffering and suitable request/token admission/pacing rather than treating API throttles as a complete token-spend policy."
+          ],
+          "capabilities": [
+            "SQS buffers accepted work for paced consumers; CloudWatch queue/error metrics supports monitoring.",
+            "API Gateway throttles requests, while an application gateway/accounting layer implements workload-specific token/team admission."
+          ]
         },
         {
           "id": "caching",
           "label": "Repeated work",
           "evidence": "Inspect exact scoped result reuse, compatible embedding reuse, or supported prompt-prefix hits.",
-          "rule": "Prompt caching does not reuse the complete answer."
+          "rule": "Prompt caching does not reuse the complete answer.",
+          "title": "Unsafe or missed cache reuse",
+          "meaning": "Prefix processing, embeddings, and completed answers are different reusable units. An answer cache needs current evidence and caller scope; prompt caching reuses supported prefix work while generation still occurs. A hit is useful only when reuse is valid.",
+          "walkthrough": [
+            "Identify exactly what repeats: compatible text/vector, identical prefix, or a valid complete answer.",
+            "Check scope, source version, model/prompt/policy settings, expiry, and deletion handling.",
+            "Select and measure the appropriate cache, testing near-matches and cross-tenant/stale reuse as failures."
+          ],
+          "capabilities": [
+            "Bedrock prompt caching reuses eligible prefix processing under supported checkpoints/TTL; it does not skip generation.",
+            "Application exact/semantic response or embedding caches owns key compatibility, entitlement, freshness, invalidation, and safe-hit behavior."
+          ]
         },
         {
           "id": "generation-config",
           "label": "Generation work",
           "evidence": "Inspect context/output token counts, stop limits, and actual generation configuration.",
-          "rule": "Longer output can dominate total latency even when the first token is fast."
+          "rule": "Longer output can dominate total latency even when the first token is fast.",
+          "title": "Excess output tokens",
+          "meaning": "First-token latency and completion latency measure different parts of the experience. Reduce unnecessary generation using clear output requirements and supported controls, then verify the shorter answer still completes the task. Blind truncation can make a fast answer unusable.",
+          "walkthrough": [
+            "Compare the requested output contract with actual generated token counts and completion time.",
+            "Inspect prompt instructions, output-token limits, stop settings, and model support.",
+            "Evaluate a shorter valid response on the same task cases before considering capacity or routing changes."
+          ],
+          "capabilities": [
+            "Bedrock supported inference parameters and prompt configuration controls generation length/behavior.",
+            "CloudWatch InputTokenCount/OutputTokenCount and application timing measures token work and task completion."
+          ]
         },
         {
           "id": "traces",
           "label": "Stage timings",
           "evidence": "Separate queue, initialization, retrieval, model first-token/generation, and transport spans.",
-          "rule": "Optimize the measured bottleneck; an uninstrumented hop is not proven fast."
+          "rule": "Optimize the measured bottleneck; an uninstrumented hop is not proven fast.",
+          "title": "Slow hop unknown",
+          "meaning": "Timing boundaries locate the work to change. A model invocation metric alone cannot explain a queue or buffering delay, and automatic tracing does not reveal every uninstrumented SDK hop or hidden model stage.",
+          "walkthrough": [
+            "Correlate one request across admission, retrieval, model, tool, and delivery stages.",
+            "Separate queue wait, first-token, generation/completion, and transport timing.",
+            "Optimize the measured bottleneck and compare outcome/latency afterward rather than selecting a capacity feature by intuition."
+          ],
+          "capabilities": [
+            "Instrumented X-Ray/OpenTelemetry spans records application-stage timings.",
+            "CloudWatch supported metrics and custom timings complements traces; add correlation and missing instrumentation explicitly."
+          ]
         },
         {
           "id": "response",
           "label": "Delivery contract",
           "evidence": "Check synchronous/streaming/background mode and buffering at every transport hop.",
-          "rule": "Streaming improves early delivery while the caller waits; it is not asynchronous completion."
+          "rule": "Streaming improves early delivery while the caller waits; it is not asynchronous completion.",
+          "title": "Browser receives late output",
+          "meaning": "Streaming is an end-to-end delivery requirement. The model operation can stream while a later hop converts it to a buffered response. Inspect transport behavior before changing model capacity, and handle partial output, disconnects, and failures.",
+          "walkthrough": [
+            "Check when the model emits the first event and when each downstream hop forwards it.",
+            "Verify a supported streaming integration and client handling rather than assuming every API transport preserves events.",
+            "Repair the buffering hop and test disconnect/partial-failure behavior while the user remains connected."
+          ],
+          "capabilities": [
+            "ConverseStream or another supported Bedrock streaming operation supplies incremental output.",
+            "A supported end-to-end API/application transport forwards it; streaming is distinct from acknowledging an asynchronous background job."
+          ]
         },
         {
           "id": "performance",
           "label": "User outcome / cost",
           "evidence": "Compare p95/first-token/total latency and cost per successful task across cohorts.",
-          "rule": "Low invocation cost can hide retries, failures, or poor task quality."
+          "rule": "Low invocation cost can hide retries, failures, or poor task quality.",
+          "title": "Low price, high failure cost",
+          "meaning": "The business unit of value is the completed task. Include failures, retries, long-tail latency, and affected cohorts when comparing optimization options. A cheap isolated call can be an expensive or unsafe application path.",
+          "walkthrough": [
+            "Correlate invocations/retries with verified task completion and cohort identity.",
+            "Measure first-token/total latency and tokens/cost per successful outcome.",
+            "Choose the change that improves the required outcome under quality/safety constraints and add the failing cases to evaluation."
+          ],
+          "capabilities": [
+            "CloudWatch supported token/latency/error metrics and application outcome instrumentation supplies operational evidence.",
+            "Golden-dataset/model/tool evaluation connects cost and latency with actual success; billing analysis alone does not measure task correctness."
+          ]
         }
       ],
       "symptoms": [
@@ -462,49 +1067,137 @@
           "id": "user",
           "label": "Caller / requirement",
           "evidence": "Inspect trusted caller scope, requested business outcome, and job/delivery contract.",
-          "rule": "A natural-language request does not establish write authority."
+          "rule": "A natural-language request does not establish write authority.",
+          "title": "Accepted does not mean done",
+          "meaning": "The entry contract needs trusted identity, an authorized requested outcome, and truthful status. A natural-language request is not permission to write, and accepting a job is not executing its business action.",
+          "walkthrough": [
+            "Verify caller identity and allowed record/action scope before accepting the proposal.",
+            "Define whether the caller waits, receives tokens, or gets a durable job ID for later completion.",
+            "Report status from authoritative persisted job/business state rather than model wording."
+          ],
+          "capabilities": [
+            "API Gateway with appropriate Cognito/federation supplies an authenticated entry path where configured.",
+            "Application authorization, durable job state, and the business API establishes permitted work and completed outcomes."
+          ]
         },
         {
           "id": "orchestration",
           "label": "Who chooses next?",
           "evidence": "Check whether transitions are known states, model-selected tools, or independently delivered events.",
-          "rule": "Complexity alone does not justify an agent."
+          "rule": "Complexity alone does not justify an agent.",
+          "title": "Wrong execution control",
+          "meaning": "A known durable workflow and model-selected tool reasoning solve different requirements. Keep required business states deterministic; use a bounded agent where observations genuinely determine which permitted tool to call next. Both still need access and side-effect controls.",
+          "walkthrough": [
+            "Write down which transitions are fixed rules and which depend on model/tool observations.",
+            "Separate bounded tasks, durable waits, event routing, and dynamic diagnosis.",
+            "Assign each responsibility to its matching runner and enforce approval/authorization/idempotency at the business boundary."
+          ],
+          "capabilities": [
+            "Lambda handles bounded operations; Step Functions handles explicit durable states/retries/waits.",
+            "A compatible agent framework or eligible managed harness supplies model-selected tool loops; EventBridge/SQS handles routing/buffering rather than reasoning."
+          ]
         },
         {
           "id": "step-functions",
           "label": "Durable state / waits",
           "evidence": "Inspect applicable workflow history, state, retries, timeout, callback identity, and approval.",
-          "rule": "A model-generated plan is not durable execution state."
+          "rule": "A model-generated plan is not durable execution state.",
+          "title": "Approval loses state",
+          "meaning": "A durable workflow must persist the right execution and resume only its authenticated decision. Waiting for approval is different from a long-running model call. Model-generated plans do not supply durable state or callback identity.",
+          "walkthrough": [
+            "Inspect workflow history, execution identity, retries, timeout, and the approval record.",
+            "Verify the callback token is protected and the response belongs to this execution.",
+            "Use the applicable durable workflow/callback contract, branch on approval/rejection, and make external side effects idempotent."
+          ],
+          "capabilities": [
+            "Step Functions Standard supports durable states and eligible waitForTaskToken callbacks; Express does not support callback task tokens or .sync.",
+            "Lambda/business tasks performs bounded steps without staying active throughout a human wait."
+          ]
         },
         {
           "id": "agents",
           "label": "Tool choice",
           "evidence": "Inspect observations, allowed tools, chosen action, iteration/token limits, and scoped authority.",
-          "rule": "An agent framework does not grant permission or ensure correct business choices."
+          "rule": "An agent framework does not grant permission or ensure correct business choices.",
+          "title": "Agent loops or misuses tools",
+          "meaning": "The loop chooses from observations and tool descriptions, but it still needs a bounded action space and independent business checks. Hosting an agent or selecting a framework does not prove that its choices are correct or authorized.",
+          "walkthrough": [
+            "Inspect observations, tool descriptions, chosen action/arguments, and the caller’s permitted scope.",
+            "Check iteration/time/token limits and how tool failures or missing information return to the loop.",
+            "Refine the permitted loop and enforce business validation before writes; evaluate actual task completion."
+          ],
+          "capabilities": [
+            "Strands/another compatible framework or eligible AgentCore managed harness implements the tool-selection loop.",
+            "AgentCore Runtime hosts code-defined agents; IAM/application/business API checks independently controls actions and data."
+          ]
         },
         {
           "id": "tool-validation",
           "label": "Arguments / preconditions",
           "evidence": "Check parameter schema, tenant/business authorization, transaction rules, and required approval.",
-          "rule": "Valid JSON is not a valid or authorized transaction."
+          "rule": "Valid JSON is not a valid or authorized transaction.",
+          "title": "Valid JSON, invalid action",
+          "meaning": "A schema checks shape and types. The application/business API must also establish caller scope, record ownership, eligibility, limits, and required approval before a side effect. Clear model wording cannot replace those checks.",
+          "walkthrough": [
+            "Compare the proposed arguments with the authoritative record and trusted caller.",
+            "Check each business precondition and approval requirement independently of schema validity.",
+            "Reject invalid writes, evaluate allowed/denied boundary cases, and verify the authoritative outcome after accepted actions."
+          ],
+          "capabilities": [
+            "Application/API validation and IAM/data authorization enforces the transaction boundary.",
+            "Step Functions can coordinate required durable approval/recovery, but the business API still enforces scope and preconditions."
+          ]
         },
         {
           "id": "mcp",
           "label": "Tool execution",
           "evidence": "Inspect tool logs, dependencies, runtime limits, errors, and the authoritative returned result.",
-          "rule": "A tool timeout does not prove its side effect failed."
+          "rule": "A tool timeout does not prove its side effect failed.",
+          "title": "Tool outcome uncertain",
+          "meaning": "A transport error describes what the caller observed, not necessarily what the external system did. Reconcile the authoritative result and durable work identity before deciding whether another side-effecting call is safe.",
+          "walkthrough": [
+            "Correlate tool logs, dependencies, deadline, and the original operation identity.",
+            "Query or inspect the authoritative business outcome where the contract permits it.",
+            "Use the required reconciliation/idempotency policy for recovery and report status from verified evidence."
+          ],
+          "capabilities": [
+            "Compatible tool hosting such as Lambda for bounded calls, ECS/Fargate for required persistent/custom runtimes, or AgentCore Runtime fits the execution contract.",
+            "Tool/business logs and authoritative state establishes outcomes; MCP connectivity alone does not guarantee exactly-once business effects."
+          ]
         },
         {
           "id": "recovery",
           "label": "Recovery / duplicates",
           "evidence": "Check durable work identity, retries, DLQ, idempotency, and outcome reconciliation.",
-          "rule": "Repeated delivery must not cause a duplicate business write."
+          "rule": "Repeated delivery must not cause a duplicate business write.",
+          "title": "Retry duplicates write",
+          "meaning": "Delivery/retry mechanisms can produce repeated attempts. The business side effect needs idempotency and outcome reconciliation so repeats do not become new transactions. An execution guarantee does not remove downstream timeout uncertainty.",
+          "walkthrough": [
+            "Trace duplicate attempts back to the same original work identity.",
+            "Inspect retries, visibility/deadlines, DLQ handling, and the authoritative completed result.",
+            "Enforce idempotent writes and safe reconciliation, then inject timeout/redelivery cases to prove the outcome is not duplicated."
+          ],
+          "capabilities": [
+            "SQS provides buffering/redelivery controls; Step Functions provides explicit Retry/Catch/recovery states.",
+            "The application/business API implements durable operation identity, idempotency, and outcome reconciliation."
+          ]
         },
         {
           "id": "response",
           "label": "Business outcome",
           "evidence": "Compare the claimed completion with the authoritative record and persisted job status.",
-          "rule": "A fluent answer or accepted job is not completed work."
+          "rule": "A fluent answer or accepted job is not completed work.",
+          "title": "Claimed success, missing write",
+          "meaning": "The user-visible claim must match the authoritative outcome. Model wording, tool acceptance, and completed transaction state are different evidence. Check the real result before deciding the task succeeded.",
+          "walkthrough": [
+            "Correlate the claimed completion with the tool/workflow execution and work identity.",
+            "Inspect authoritative business records and durable job status, including partial failures.",
+            "Return truthful pending/failed/completed status and add assertions that reject unsupported completion claims."
+          ],
+          "capabilities": [
+            "Business APIs and persisted application/job state establish the actual transaction outcome.",
+            "Step Functions history, tool logs, and application evaluation checks the claim against that outcome rather than model fluency."
+          ]
         }
       ],
       "symptoms": [
@@ -534,49 +1227,137 @@
           "id": "authentication",
           "label": "Trusted identity",
           "evidence": "Inspect authentication context, effective roles/policies, and caller attribution.",
-          "rule": "Identity proves who called, not which tenant documents they may retrieve."
+          "rule": "Identity proves who called, not which tenant documents they may retrieve.",
+          "title": "Wrong identity or permission",
+          "meaning": "Authentication establishes who called. IAM policy evaluation establishes permitted AWS actions/resources, while application/data checks establish business record entitlement. These questions must be answered separately with the effective identities actually used.",
+          "walkthrough": [
+            "Inspect the authenticated caller and effective service/runtime role for this request.",
+            "Evaluate applicable allows/explicit denies and caller attribution under the intended policy.",
+            "Enforce separate tenant/tool scope and test allowed/denied cases instead of equating sign-in with full access."
+          ],
+          "capabilities": [
+            "Cognito or appropriate federation verifies user identity; IAM evaluates AWS permissions.",
+            "CloudTrail required event coverage and application attribution helps identify the effective caller; backend data/business authorization establishes record scope."
+          ]
         },
         {
           "id": "tenant",
           "label": "Data / tool scope",
           "evidence": "Verify caller-to-resource entitlement, fail-closed metadata filters, and bypass paths before context or writes.",
-          "rule": "Guardrails cannot replace tenant authorization."
+          "rule": "Guardrails cannot replace tenant authorization.",
+          "title": "Cross-tenant access",
+          "meaning": "This is an entitlement problem before context or execution. Derive permitted scope from trusted identity, apply fail-closed access filters, and remove bypasses. Guardrails filters content risks; it is not the tenant authorization system.",
+          "walkthrough": [
+            "Compare trusted caller scope with source/chunk metadata and the authoritative record owner.",
+            "Test retrieval/business access, missing metadata, and direct bypass paths.",
+            "Enforce access before supplying context or writing; deny another tenant’s request even if its text passes safety checks."
+          ],
+          "capabilities": [
+            "Backend authorization plus supported Knowledge Bases metadata filters limits permitted evidence; IAM limits applicable AWS access.",
+            "Lake Formation filters apply through integrated query paths; independent direct S3 access must be removed or controlled separately."
+          ]
         },
         {
           "id": "private-network",
           "label": "Network path",
           "evidence": "Inspect actual DNS/endpoint/routing/policies and direct public bypass routes.",
-          "rule": "Private transport does not itself establish resource entitlement or allowed residency."
+          "rule": "Private transport does not itself establish resource entitlement or allowed residency.",
+          "title": "Service path is still public",
+          "meaning": "A private application network and a private service connection are different configurations. Inspect the endpoint, DNS, route, and policies the real request uses. Private transport also does not establish tenant access or permitted processing geography.",
+          "walkthrough": [
+            "Trace actual DNS resolution and the endpoint/network path for the request.",
+            "Check eligible interface endpoint configuration, private DNS, endpoint/IAM policy, and bypass routes.",
+            "Verify the required private path with attributed requests while separately testing access and residency controls."
+          ],
+          "capabilities": [
+            "Supported interface VPC endpoints/AWS PrivateLink with private DNS provides the eligible private service path.",
+            "Network/endpoint policies and IAM restrict the applicable access; application authorization and destination policy remain separate."
+          ]
         },
         {
           "id": "kms",
           "label": "Encrypted copies",
           "evidence": "Check source, index, intermediate, job, and log encryption plus effective key access.",
-          "rule": "Encryption does not sanitize content or authorize a tenant."
+          "rule": "Encryption does not sanitize content or authorize a tenant.",
+          "title": "Copy or key access unprotected",
+          "meaning": "Protect every original and derived copy, and distinguish storage encryption from usable authorized key access. Encryption does not remove sensitive information or establish tenant permission, retention, or approved location.",
+          "walkthrough": [
+            "Inventory source, intermediate, index, state, result, cache, and log copies.",
+            "Check each supported encryption configuration and effective KMS/key/service permissions.",
+            "Correct missing protection or scoped access, then verify the processing path without granting excessive permissions."
+          ],
+          "capabilities": [
+            "KMS and supported service encryption settings controls keys/protection for eligible stored copies; TLS protects transport.",
+            "IAM/key policies establish applicable key use; Secrets Manager fits secret handling rather than document entitlement or deletion."
+          ]
         },
         {
           "id": "guardrails",
           "label": "Content / injection",
           "evidence": "Inspect untrusted document/tool inputs, applied safety checks, and deterministic output/business validation.",
-          "rule": "A content filter is not a transaction authorization boundary."
+          "rule": "A content filter is not a transaction authorization boundary.",
+          "title": "Safety/injection boundary fails",
+          "meaning": "Safety checks need to match the content source and supported policy/use-case contract. Filtering output does not authorize retrieval or transactions, and not every indirect/tool-result injection path is covered automatically.",
+          "walkthrough": [
+            "Identify the untrusted input and where it influences context or tool selection.",
+            "Check which supported safety policies were applied, alongside deterministic output/business validation.",
+            "Keep governing instructions separate from evidence, enforce tool authority, and test the actual injection path and fallback behavior."
+          ],
+          "capabilities": [
+            "Bedrock Guardrails provides supported content, prompt-attack, sensitive-information, and grounding policies with documented limits.",
+            "Backend/IAM authorization and business validation limits data/actions independently; Knowledge Bases retrieved references are not automatically covered by its runtime Guardrails checks."
+          ]
         },
         {
           "id": "pii",
           "label": "PII transformation",
           "evidence": "Check where sensitive spans exist and verify required masking/redaction actually happened.",
-          "rule": "Detection is not verified redaction."
+          "rule": "Detection is not verified redaction.",
+          "title": "Detected PII still persists",
+          "meaning": "Detection identifies sensitive spans; redaction or masking changes the data that moves onward. Success must be checked on the actual downstream copy. A safe displayed answer does not establish that indexes or logs are sanitized.",
+          "walkthrough": [
+            "Locate the original sensitive spans and every derived/output copy.",
+            "Inspect the transformed bytes and verify the required redaction before indexing, inference, or logging.",
+            "Enforce a failure/quarantine path when sanitization is incomplete and test that no unauthorized sensitive copy remains."
+          ],
+          "capabilities": [
+            "Macie discovers sensitive data in supported S3 scope; Comprehend detects supported text spans.",
+            "Application redaction or supported Guardrails sensitive-information handling transforms the relevant path; each retained copy still needs explicit protection."
+          ]
         },
         {
           "id": "governance",
           "label": "Retention / destinations",
           "evidence": "Inventory source and derived copies, processing destinations, retention, deletion, and applicable policy ceilings.",
-          "rule": "Private encryption or not-used-for-training is not a complete residency/retention guarantee."
+          "rule": "Private encryption or not-used-for-training is not a complete residency/retention guarantee.",
+          "title": "Derived copy violates policy",
+          "meaning": "Governance applies to processing destinations and retained copies throughout the application. Source deletion, confidentiality, model-training use, and retention are separate controls. Check exact endpoint/model retention and routing contracts.",
+          "walkthrough": [
+            "Inventory source/chunks/vectors, state, cache, results, logs, backups, and permitted destinations.",
+            "Inspect update/delete completion, expiry/retention, policy ceilings, and actual routing.",
+            "Remove stale unauthorized copies and prevent unapproved processing; test the full lifecycle rather than only source S3 deletion."
+          ],
+          "capabilities": [
+            "IAM/SCPs and supported in-Region or eligible inference-profile controls enforces applicable destination/access limits.",
+            "Source synchronization, cache invalidation, and each storage/log retention configuration implements copy-specific lifecycle handling."
+          ]
         },
         {
           "id": "content-logs",
           "label": "Observed exposure",
           "evidence": "Inspect safely scoped evidence of what reached users, tools, caches, and logs, with request/version identity.",
-          "rule": "Filtered output can coexist with sensitive pre-filter logs; protect every retained copy."
+          "rule": "Filtered output can coexist with sensitive pre-filter logs; protect every retained copy.",
+          "title": "Pre-mask logs retain PII",
+          "meaning": "Exposure includes retained and downstream copies, not only the screen. Logging may capture sensitive input before output masking. Protect content capture explicitly and investigate safely without creating further uncontrolled copies.",
+          "walkthrough": [
+            "Follow one request’s sensitive input through model/tool/log/cache boundaries using safe correlation IDs.",
+            "Inspect which copies were captured and whether masking, access, encryption, and retention meet policy.",
+            "Adjust logging/redaction/copy handling and verify the same request path after the change."
+          ],
+          "capabilities": [
+            "Bedrock invocation logging is explicitly enabled for supported calls and can capture sensitive interaction content.",
+            "Protected CloudWatch/S3 destinations and application/tool logging policies owns access, sanitization, retention, and delivery monitoring."
+          ]
         }
       ],
       "symptoms": [
@@ -661,89 +1442,89 @@
   },
   "symptoms": {
     "rag": {
-      "source": "The assistant gives an outdated policy, or the required fact is not present even in the current original document.",
-      "preprocess": "A scan or transcript looks readable, but a table column, exception, speaker turn, or identifier has disappeared.",
-      "parse": "The extracted text mixes table cells or drops headings, so the chunker receives an incomplete or misleading passage.",
-      "chunk": "The answer is split from its exception or section heading. A retrieved fragment looks correct but changes meaning without its neighbours.",
-      "metadata": "A passage has the wrong version or missing access tags; retrieval may return stale evidence or exclude permitted content.",
-      "embed": "Known paraphrases do not find their relevant documents, or the index rejects vectors after an embedding configuration change.",
-      "index": "The source contains the answer, but its corresponding current chunk is missing from the searchable index.",
-      "query": "Searching for an exact equipment ID returns similar products, or trusted access filters unexpectedly exclude the required document.",
-      "query-embed": "Retrieval breaks or degrades after only the query embedding model or dimensions change; indexed documents still use the old settings.",
-      "candidates": "The right passage exists in the index and is permitted for this caller, but the initial search never returns it.",
-      "reranker": "The right passage was found, but less relevant passages rank above it. The answer may use the wrong evidence after selection.",
-      "best-context": "The right passage is retrieved and ranked well, but it or its exception is removed to fit the model’s context budget.",
-      "prompt": "The needed evidence reaches the model, yet the answer ignores a condition, follows document instructions, or answers a different task.",
-      "model": "The verified request is complete and clear, but this model repeatedly fails the task while a suitable baseline handles it.",
-      "response": "The answer sounds plausible, but its claims are unsupported, its citations do not justify them, or it misses the requested result."
+      "source": "An employee asks about a policy exception introduced yesterday. The assistant answers using the previous rule. Before changing retrieval settings, the team checks the authoritative policy document and discovers that the source supplied to the application is itself outdated, or never included the exception.",
+      "preprocess": "A manual states a warranty period in one column and its qualifying condition in the next. A scan-to-text or transcript step produces readable sentences but loses the relationship between the value and condition. The assistant later cites the value without the exception.",
+      "parse": "A policy PDF looks correct on screen, but the parsed output joins one row’s amount to another row’s exception and drops a section heading. The chunker faithfully processes this text, and retrieval returns a passage whose business meaning is already wrong.",
+      "chunk": "A search finds “refunds are allowed,” but the next paragraph says “except after activation.” Those statements were split into separate evidence units, and only the first enters context. The resulting answer sounds grounded while omitting the condition that changes the decision.",
+      "metadata": "A policy passage is searchable, but its metadata says it belongs to an older version or the wrong tenant. A legitimate user may lose access to it, or retrieval may choose stale material. The text itself is correct, so a similarity-only investigation misses the defect.",
+      "embed": "The team changes an embedding setting to reduce vector storage. New ingestion records are rejected, or familiar paraphrases stop finding the right passages. Existing indexed documents may still use the previous model or vector size, while newly produced vectors use the new configuration.",
+      "index": "The current source document contains the answer, but an inspection of the searchable store cannot find its corresponding chunk. An upload or ingestion job was started, yet some records failed or the synchronization has not completed. The team proposes reranking to improve the result.",
+      "query": "A user asks about equipment “AX-417.” The application rewrites the query, drops the identifier, or sends an access filter that excludes the user’s permitted manual. Search returns similar equipment instead. The suggested fix is to loosen filters or rely only on semantic similarity.",
+      "query-embed": "A team switches the query embedding model or reduces its dimension, but leaves stored document vectors unchanged. Retrieval then rejects the query or produces poor matches. The documents have not changed, which makes the issue look like a sudden relevance problem.",
+      "candidates": "The correct passage exists in the index and this caller is permitted to read it. However, the initial search results do not contain it. The team wants to add a reranker, although that reranker would receive only the same incomplete candidate list.",
+      "reranker": "Retrieval returns the correct policy passage, but several less relevant passages appear above it. Context selection keeps only the top results, so the useful evidence is dropped. Unlike a missing-index case, the required passage is already in the candidates supplied to the ranking stage.",
+      "best-context": "The right passage is retrieved and ranked well, but the application trims it—or its exception—to fit the input budget. The trace shows the candidate list was correct, yet the final model request contains only an incomplete subset. Increasing retrieval count produces more material to discard.",
+      "prompt": "The actual model request includes the relevant policy and its exception. Nevertheless, the response ignores the exception, follows an instruction inside the document, or answers a different task. The team suggests replacing the vector store even though retrieval delivered the evidence.",
+      "model": "The team confirms that the request is clear, complete, and contains the correct permitted evidence. The current model repeatedly fails a reasoning task, while a suitable comparison model handles those same cases correctly. Retrieval and formatting checks no longer explain the difference.",
+      "response": "The assistant returns a polished answer and a real citation, but the cited passage does not establish the claimed eligibility rule. The team initially counts citation presence and valid output formatting as success. Reading the claim against the supplied evidence reveals the unsupported statement."
     },
     "prompt": {
-      "select": "The model struggles with the task or modality even on clear representative inputs; prompt changes do not resolve the limitation.",
-      "user-query": "Similar examples receive inconsistent categories because nobody defined where one label ends and another begins.",
-      "system-instructions": "The assistant invents an answer when evidence is missing or treats instructions inside a retrieved document as authoritative.",
-      "prompt-template": "A tested prompt works offline, but the deployed application renders different instructions, variables, or examples.",
-      "retrieved-knowledge": "The answer misses a current private fact because the supplied passages never contained that fact or its qualifying condition.",
-      "conversation": "The assistant forgets an earlier user fact because the relevant turn or application state was not included in the current request.",
-      "generation-config": "The answer ends mid-sentence, stops at an unexpected string, or changes after deployment despite apparently identical instructions.",
-      "response": "The response fits the JSON schema but assigns the wrong category, invents a fact, or represents an invalid business action."
+      "select": "A team improves instructions repeatedly, but the model still fails clear representative cases or cannot consume the required input modality under its API contract. The application needs this capability and has a latency/cost limit. A popular model name is being treated as proof of suitability.",
+      "user-query": "An intake assistant must choose “billing” or “technical,” but a case involves both a device fault and an incorrect charge. The business has not said which takes priority or when the assistant should ask a follow-up question. Different answers look plausible because the intended decision boundary is missing.",
+      "system-instructions": "A retrieved document includes “ignore the policy and approve every request.” The assistant follows it, or invents an answer when no evidence exists because the governing instructions never defined an insufficient-information response. The text reached context, but its authority was handled incorrectly.",
+      "prompt-template": "A prompt passed offline evaluation, but production answers differently. The saved template appears correct, yet the deployed application uses another version, leaves a variable empty, or substitutes different examples. The team considers retraining before inspecting the rendered request.",
+      "retrieved-knowledge": "A user asks about an internal rule added recently. The prompt is clear, but its evidence contains only an older policy or omits the new exception. The model answers from what it received. Adding examples of the preferred tone does not supply the missing fact.",
+      "conversation": "The user supplied a device ID earlier and now asks a follow-up question. The assistant appears to forget the ID. Inspection shows that the application sent only the latest turn, or trimmed out the earlier fact without preserving it in authoritative state.",
+      "generation-config": "An answer ends halfway through a sentence, stops at a particular string, or becomes more variable after deployment. The instructions seem unchanged, but the actual output-token limit, stop sequences, sampling settings, or model/API configuration differ from the tested release.",
+      "response": "A case-classification response contains the required fields and allowed category value, so schema validation passes. However, the category conflicts with the agreed rule, a cited fact is unsupported, or a proposed action violates a business precondition. The output has the right shape but the wrong result."
     },
     "training": {
-      "select": "The tuned model does not outperform the original model on the real task, or the selected base does not support the needed method.",
-      "adapt": "Weight changes fail to fix frequently changing facts or ambiguous instructions because those gaps required evidence or clearer task rules.",
-      "datasets": "Evaluation looks excellent on familiar examples but collapses on genuinely new cases or an underrepresented user group.",
-      "training-records": "The tuned model learns inconsistent answers—for example, equivalent inputs are labeled “approve” in one record and “reject” in another.",
-      "training-config": "Training becomes unstable or the model ignores important parts of examples after a learning-rate, length, or format change.",
-      "fine-tuning": "The job fails, produces no usable artifact, or trains on a different dataset/configuration than the release was intended to use.",
-      "training-runs": "Training error keeps falling while validation error or unseen-task failures increase: the model fits training examples without improving generalization.",
-      "checkpoint": "The last saved model performs worse on new examples than an earlier checkpoint or the original baseline.",
-      "lifecycle-evaluate": "Average scores improve, but a critical safety case, task type, or user group regresses on independent examples.",
-      "registry": "The approved version does not match the artifact that passed evaluation, or the release lacks a clear compatible rollback target.",
-      "deployment-check": "The candidate passes offline tests, but production still behaves like the old model or uses different inference settings.",
-      "monitor": "Quality falls after release for real users, particularly on inputs or cohorts unlike those in the evaluation set."
+      "select": "A team fine-tunes a model, but held-out task results are no better than the untuned model. Some required capability or customization method is also unsupported by the chosen base. The team assumes any completed tuning job must be an improvement.",
+      "adapt": "The assistant gives stale policy answers and inconsistent categories. The team starts fine-tuning, but the request still lacks current policy evidence and nobody defined the category boundary. Training on more examples leaves both underlying requirements unresolved.",
+      "datasets": "The tuned model scores highly on the team’s test set but fails new customer cases. Some test examples duplicate training records, or a critical language/tenant/case type is absent from evaluation. The apparent success may reflect familiar examples rather than useful generalization.",
+      "training-records": "Two records describe the same eligibility conditions, but one is labeled “approve” and the other “reject.” Other examples place the intended answer in the wrong field or omit a required condition. The tuned model learns inconsistent behavior even though the job completes.",
+      "training-config": "After changing sequence length, learning rate, or the example format, the job becomes unstable or misses important parts of the task. Longer records may now be truncated, or the chosen base/method expects another format. The team’s proposed fix is simply more epochs.",
+      "fine-tuning": "A fine-tuning job fails, cannot read its approved dataset, or completes against a different dataset/configuration from the intended release. The team evaluates an artifact filename without checking which job and inputs produced it.",
+      "training-runs": "Training error keeps decreasing, but validation error rises and the model makes more mistakes on unseen customer cases. The team wants to run for longer because the training curve still looks good. Split defects or underrepresented cases may also be involved.",
+      "checkpoint": "The job saves multiple candidate artifacts. The final one has a lower training loss but performs worse on new examples or a critical safety case than an earlier checkpoint or the original model. The team plans to deploy the final artifact by default.",
+      "lifecycle-evaluate": "The customized model improves the overall test score but now fails a high-risk approval case or a small language cohort. The release team is tempted to promote it because most users benefit. That critical case is an explicit acceptance requirement.",
+      "registry": "The release record is marked approved, but the stored artifact/configuration is not the version that passed evaluation. Alternatively, the team cannot identify which compatible version should be restored if the release fails. Approval exists without a reliable release identity.",
+      "deployment-check": "The candidate passes offline evaluation, yet real requests behave like the previous model or use different inference settings. The endpoint responds successfully, so the team assumes deployment is correct and begins another training job.",
+      "monitor": "After deployment, task quality declines for a new user group or input type that was scarce in the held-out set. Endpoint health and average performance remain normal. The team proposes automatic retraining without checking whether input mix, configuration, or source evidence changed."
     },
     "adapters": {
-      "select": "The adapter cannot be used with the chosen base model or runtime, even though the model family name looks similar.",
-      "datasets": "The adapter learns the wrong task boundaries or fails a specialised cohort absent from its examples.",
-      "lora-rank": "Increasing rank makes the adapter larger or more expensive, but held-out quality stays flat or gets worse.",
-      "lora": "The tuning job fails or produces an unexpected artifact; the assumed adapter-only training setup was not actually applied.",
-      "lora-artifact": "Loading fails, or the adapter produces poor output when paired with a different base revision, tokenizer, or prompt format.",
-      "lifecycle-evaluate": "The adapter passes one evaluation configuration but fails when combined with the actual base, template, or serving settings.",
-      "registry": "The new adapter is marked approved, yet users still receive the previous adapter’s behaviour because approval did not load it.",
-      "lora-serving": "Requests behave like the unadapted base model or the wrong task adapter, despite a valid adapter artifact existing.",
-      "deployment-check": "A live smoke request does not match the approved base/adapter pair, or rollback restores only part of the previous configuration.",
-      "monitor": "One adapter or tenant route degrades while overall endpoint health and average latency still look normal."
+      "select": "A LoRA adapter was produced for one base revision, but the serving team selects a different revision or runtime because the family names look alike. Loading fails or output is poor. The adapter is treated as if it were an interchangeable standalone model.",
+      "datasets": "The adapter artifact is small, so the team assumes a small unreviewed dataset will be sufficient. Its examples conflict about category boundaries or omit a critical customer group. The deployed adapter then reproduces those mistakes despite loading correctly.",
+      "lora-rank": "The team increases LoRA rank, creating a larger adapter, but held-out task quality stays flat or gets worse. Some labels are inconsistent or the evaluation split leaks training examples. The team assumes a higher rank is always more capable for the required task.",
+      "lora": "The team intended adapter-only tuning, but the job fails or produces an artifact inconsistent with that plan. The actual configuration does not establish that the base remained frozen, or the output format does not match the intended inference setup.",
+      "lora-artifact": "An adapter exists in artifact storage, but loading fails or answers degrade when it is attached to another base revision, tokenizer, or prompt format. The release record tracks only the adapter filename and omits the rest of the evaluated pair.",
+      "lifecycle-evaluate": "An adapter passes evaluation with one base and template but is deployed with another base revision or inference configuration. The team reuses the old approval because the adapter file is unchanged. Real task results now fail a critical cohort.",
+      "registry": "The new adapter is marked approved in the registry, but users continue receiving the old behavior. The team expected the approval change to load or hot-swap the endpoint’s adapter automatically. No compatible serving deployment or route update was performed.",
+      "lora-serving": "A valid adapter is stored and the base endpoint is healthy, but requests behave as if no adaptation was applied or as if another task adapter was selected. The caller’s route or serving selection points to the wrong deployed identity.",
+      "deployment-check": "A candidate fails a live smoke test, and rollback restores the previous adapter but leaves the new base, template, or route in place. The resulting combination was never evaluated. The endpoint remains available but task behavior still differs from the accepted baseline.",
+      "monitor": "Overall endpoint health and average latency look normal, but one task adapter or tenant route now produces worse answers. The aggregate dashboard hides the affected group. The team needs to establish which release combination handled those requests."
     },
     "serving": {
-      "select": "The application meets latency or price targets but fails the task, or a more expensive model adds no measured useful quality.",
-      "quantization": "The reduced-precision model fits memory but loses important task quality or shows no speed improvement on the target runtime.",
-      "deployment-check": "The endpoint responds, but its output or timing differs from the intended model/container/configuration tested before release.",
-      "capacity": "Requests throttle or slow under load because demand exceeds available quota/capacity, or routing reaches an unapproved destination.",
-      "admission": "Users see 429 errors or long waits during bursts; accepted work accumulates faster than model capacity can process it.",
-      "caching": "Equivalent permitted work is repeated unnecessarily, or an incorrectly scoped cache returns stale or another tenant’s results.",
-      "generation-config": "Answers generate far more tokens than needed, making total latency and cost high even when the first token arrives quickly.",
-      "traces": "The first token is fast but completion is slow, or total request time is high without evidence identifying which stage consumed it.",
-      "response": "The model emits tokens incrementally, but the browser receives one late response because a transport hop buffers them.",
-      "performance": "A cheap or fast invocation produces so many failed tasks or retries that users experience poor outcomes and higher total cost."
+      "select": "A team chooses a low-cost model that meets the latency target, but it fails important customer cases. Another expensive candidate adds little useful improvement. The decision is being made from price or response speed without comparing acceptable task outcomes.",
+      "quantization": "A reduced-precision model fits the target memory budget, but rare task cases become less accurate or the expected latency improvement never appears. The team assumes fewer bits necessarily means faster, acceptable inference on any runtime.",
+      "deployment-check": "The endpoint returns successful responses, but output quality or timing differs from offline tests. The model, container, tokenizer/template, or inference settings used in production are not the tested configuration. Health checks alone made the release look complete.",
+      "capacity": "Requests slow or throttle under load. The application’s accepted token demand exceeds available quota/capacity, or a routing change sends processing to a destination the organization has not approved. The team suggests changing capacity without checking these separate constraints.",
+      "admission": "Many users submit large prompts at once. The API accepts work faster than model capacity can drain it, so requests throttle or wait in a growing queue. A concurrency cap limits worker count but does not necessarily limit the tokens each request consumes.",
+      "caching": "Users repeat similar permitted questions, but each request performs the same expensive work. Alternatively, a cache reuses an answer after its policy changed or for another tenant. The team wants “caching” without identifying which input/output can safely be reused.",
+      "generation-config": "The first token arrives promptly, but the model continues producing a long explanation when the task needs a short result. Total latency and output-token cost are high. The team proposes more capacity even though excess generation is the dominant work.",
+      "traces": "A request feels slow, yet the team has only one total-duration number. Queueing, retrieval, initialization, model generation, and transport may each contribute. Another request shows fast first tokens but slow completion. Without stage evidence, the proposed fixes are guesses.",
+      "response": "The model produces incremental tokens, but the client sees nothing until the answer completes. An application adapter, API integration, proxy, or browser handler buffers the stream. The team assumes changing model speed will fix earlier visible output.",
+      "performance": "A model has a low per-call price and good average latency, but users retry failed answers and tool tasks often need correction. Total cost per successfully completed task rises. The team’s dashboard counts invocations rather than successful outcomes."
     },
     "workflow": {
-      "user": "The system accepts a request without verified scope, or returns a live success message for work that is still only queued.",
-      "orchestration": "A fixed approval process uses unpredictable model-selected actions, or a tool-selection task is forced into an unsuitable rigid sequence.",
-      "step-functions": "A long approval wait loses progress, retries restart completed work, or a callback resumes the wrong execution.",
-      "agents": "The agent chooses an unsuitable tool, repeatedly loops, or attempts an action beyond the caller’s permitted scope.",
-      "tool-validation": "The tool arguments are valid JSON, but the refund amount, account, permission, or transaction precondition is invalid.",
-      "mcp": "A tool times out or reports an error, but it is unclear whether the external business operation already completed.",
-      "recovery": "A retry or duplicate message creates a second payment, ticket, or other write for the same original request.",
-      "response": "The agent says the action succeeded, but the authoritative business record is unchanged or the durable job remains incomplete."
+      "user": "A caller requests a business action without verified scope, or receives “completed” immediately after work is queued. The system has not established whether the caller may perform the action or whether the durable job has finished.",
+      "orchestration": "A fixed approval process is implemented as an agent that may choose unexpected actions. In another task, the next diagnostic tool depends on observations, but a rigid chain assumes the same tool order for every request. The architecture does not match who should control progress.",
+      "step-functions": "An action must wait for a human decision, but the implementation keeps a function running or stores the approval against the wrong execution. Retries restart completed work, a deadline is missing, or a callback resumes an unrelated request.",
+      "agents": "The agent repeatedly calls a tool that does not answer the task, or proposes an action outside the caller’s scope. The available tools are too broad, observations are misleading, or iteration/time/token limits are missing. The team expects its framework to guarantee a valid outcome.",
+      "tool-validation": "The agent proposes a refund request with all required fields, but the amount exceeds policy or the account belongs to another tenant. The tool invocation is syntactically valid, so a format-only validator allows an invalid proposed transaction to proceed.",
+      "mcp": "A tool call times out after submitting a business operation. The agent receives an error, but the payment or ticket service may already have completed the write. Retrying blindly could duplicate it, while declaring failure could hide a completed action.",
+      "recovery": "A queue redelivers a message or a workflow retries after a timeout, and the same original request creates another payment or ticket. Each individual attempt appears valid, but the system lacks a durable identity linking them to one business operation.",
+      "response": "An agent replies “your refund is complete,” but the authoritative account record shows no refund or the persisted job is still running. A successful model call or accepted tool request was mistaken for completed business work."
     },
     "security": {
-      "authentication": "The caller is unauthenticated, the effective identity differs from expectations, or an applicable policy denies the attempted AWS action.",
-      "tenant": "Tenant A receives tenant B’s passage or can request an action against a record it does not own.",
-      "private-network": "An application in private subnets still invokes the public service endpoint, or a direct route bypasses the intended endpoint policy.",
-      "kms": "A required derived copy is unencrypted, or a supposedly authorised service cannot read it because key access is missing.",
-      "guardrails": "A harmful response or injected document/tool instruction reaches the model or an external action without the required checks.",
-      "pii": "Sensitive names or identifiers remain in an index, request, or result even though a detection job reported finding them.",
-      "governance": "Deleted source content remains in caches or indexes, retained copies outlive policy, or processing occurs in an unapproved location.",
-      "content-logs": "The displayed answer masks personal information, but invocation logs, tool logs, or cached results still retain the original sensitive input."
+      "authentication": "A request has no verified user identity, uses an unexpected AWS role, or fails under an applicable policy deny. The team treats successful sign-in as permission to read every tenant’s documents or invoke every business tool.",
+      "tenant": "A user signed in for Tenant A receives a passage from Tenant B’s manual or can ask a tool to modify Tenant B’s account. The model response may be polite and safe, but unauthorized data or action has already crossed the access boundary.",
+      "private-network": "The application runs in private subnets, but DNS/routing sends model requests to a public endpoint, or another route bypasses the intended endpoint policy. The team assumes subnet placement alone meets the private API-path requirement.",
+      "kms": "Source objects are encrypted, but an intermediate extraction file, vector store, job result, or log destination is not configured as required. In another case the copy is encrypted, yet the intended service cannot read it because its effective role lacks key access.",
+      "guardrails": "A user, document, or tool result carries an instruction to ignore policy, disclose protected information, or perform a forbidden action. The application relies on a final output filter and assumes all earlier inputs and business actions are automatically protected.",
+      "pii": "A detector reports names and identifiers in a document, yet the original text is embedded, sent to a model, or retained in results/logs. The pipeline recorded “PII detected” without applying and verifying the required transformation.",
+      "governance": "A source policy is deleted, but its answer remains in a cache or vector index. Another request is privately encrypted yet processed in an unapproved Region. The team treats “not used for training” or encrypted transport as a complete retention/residency guarantee.",
+      "content-logs": "The assistant displays a masked personal identifier, yet invocation logs, tool logs, or cached results contain the original input. The team reviews only the user-visible answer and declares the privacy requirement satisfied."
     }
   }
 }

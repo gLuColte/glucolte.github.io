@@ -85,6 +85,7 @@
   }
   function shortPath(path,id){
     const index=path.steps.findIndex(step=>step.id===id),steps=path.steps.slice(Math.max(0,index-4),index+1);
+    if(steps.length<2)return;
     const wrap=make('div',undefined,'aip-local-path');wrap.append(make('p','Trace left from the highlighted checkpoint to check its inputs.'));
     const flow=make('ol');steps.forEach(step=>{
       const item=make('li',step.label,step.id===id?'is-failed':'');
@@ -104,14 +105,18 @@
   }
   function setSituations(conceptId,nodeId){
     availableScenarios=new Map();scenario.replaceChildren(make('option','Choose a situation'));scenario.options[0].value='';
-    const add=(entry,group)=>{availableScenarios.set(entry.value,entry);const option=make('option',entry.title);option.value=entry.value;group.append(option);};
+    const add=(entry,group)=>{
+      let position=availableScenarios.size+1,letter='';
+      while(position>0){position--;letter=String.fromCharCode(65+position%26)+letter;position=Math.floor(position/26);}
+      availableScenarios.set(entry.value,entry);const option=make('option',`${letter} — ${entry.title}`);option.value=entry.value;group.append(option);
+    };
     const wholeLayer=conceptId===nodeById.get(nodeId).concept;
     const related=new Set(data.stageScenarioLinks?.[conceptId]||[]);
     (data.stageScenarios||[]).filter(item=>wholeLayer&&item.node===nodeId).forEach(item=>add({...item,value:'design:'+item.id},scenario));
     for(const [key,path] of Object.entries(data.diagnostics.paths)){
       const preferred=new Map(path.symptoms||[]),group=make('optgroup');group.label=path.title;
       path.steps.filter(step=>related.has(key+':'+step.id)||(wholeLayer&&owners(step.id).includes(nodeId))||isWithin(step.id,conceptId)).forEach(step=>{
-        add({value:key+':'+step.id,key,id:step.id,title:preferred.get(step.id)||data.diagnostics.symptoms[key][step.id],step,path},group);
+        add({value:key+':'+step.id,key,id:step.id,title:step.title||preferred.get(step.id)||step.label,step,path},group);
       });if(group.children.length)scenario.append(group);
     }
     get('scenario-label').textContent=`Situations at ${context.title}`;
@@ -122,22 +127,30 @@
     get('symptom-overlay').append(get('boundary-content'));
     investigation.replaceChildren();investigation.hidden=!scenario.value;
     if(!scenario.value){
-      diagnosis=null;setBoundaryContent(context.conceptId,[context.nodeId],inherited(context.conceptId,'trap'));
-      explanation.append(get('boundary-content'));mapState();return;
+      diagnosis=null;get('boundary-content').hidden=true;get('inline-traps').replaceChildren();mapState();return;
     }
     const entry=availableScenarios.get(scenario.value);if(!entry)return;
     const {step,path,key}=entry;
     const id=step?step.id:entry.id;
     const highlights=step?owners(id):entry.highlights;
     diagnosis={id,highlights};mapState();
-    investigation.append(make('h3',entry.title));
     investigation.append(fieldBlock('Situation',step?data.diagnostics.symptoms[key][id]:entry.situation));
     const locations=make('p',undefined,'aip-highlight-locations');locations.append(make('span','Investigation points in the map: '));
     highlights.forEach((id,index)=>{if(index)locations.append(document.createTextNode(' · '));const link=make('a',nodeById.get(id).title+' ↑');link.href='#map-'+id;link.addEventListener('click',event=>{event.preventDefault();const target=document.getElementById('map-'+id);target.scrollIntoView({block:'center',inline:'center'});target.focus({preventScroll:true});});locations.append(link);});
     investigation.append(locations);if(path)shortPath(path,id);
     const grid=make('div',undefined,'aip-investigation-grid');
-    grid.append(fieldBlock('What this means',step?data.diagnostics.meanings[id]:entry.meaning),fieldBlock('Inspect the evidence',step?step.evidence:entry.evidence));
+    grid.append(fieldBlock('What this means',step?(step.meaning||data.diagnostics.meanings[id]):entry.meaning),fieldBlock('Inspect the evidence',step?step.evidence:entry.evidence));
     investigation.append(grid);
+    const walkthrough=step?step.walkthrough:entry.walkthrough;
+    if(walkthrough?.length){
+      const section=make('div',undefined,'aip-situation-walkthrough');section.append(make('h4','Walk through the decision'));
+      const list=make('ol');walkthrough.forEach(copy=>list.append(make('li',copy)));section.append(list);investigation.append(section);
+    }
+    const capabilities=step?step.capabilities:entry.capabilities;
+    if(capabilities?.length){
+      const section=make('div',undefined,'aip-situation-capabilities');section.append(make('h4','AWS capabilities that fit'));
+      const list=make('ul');capabilities.forEach(copy=>list.append(make('li',copy)));section.append(list);investigation.append(section);
+    }
     if(step)setBoundaryContent(id,highlights,step.rule);
     else{get('boundary-content').hidden=false;get('boundary-rule').textContent=entry.rule;renderInlineTraps(entry.traps);}
     investigation.append(get('boundary-content'));
@@ -149,6 +162,7 @@
     // Keep the selected stage above the situation; choosing a case never changes it.
     const boundary=get('boundary-content');get('symptom-overlay').append(boundary);
     explanation.replaceChildren(make('h3',`Decisions at ${context.title}`),fieldBlock('Purpose',item.summary));
+    if(item.example)explanation.append(fieldBlock('Example',item.example));
     const children=data.concepts.filter(child=>child.parent===conceptId);
     if(children.length&&!['system','lifecycle'].includes(conceptId)){
       const hierarchy=make('nav',undefined,'aip-concept-links');hierarchy.setAttribute('aria-label','Related substeps');hierarchy.append(make('span','Substeps: '));
@@ -158,7 +172,7 @@
     const grid=make('div',undefined,'aip-investigation-grid');
     grid.append(fieldBlock(item.decision?'Decision to make':'Requirement to satisfy',item.decision||inherited(conceptId,'constraint')));explanation.append(grid);
     const reasoning=make('details',undefined,'aip-layer-reasoning');reasoning.append(make('summary','What is managed, what can be extended, and what must I own?'));
-    [['AWS manages','managed'],['Supported extension','extension'],['Custom ownership','ownership'],['Capabilities','capability'],['Exam clue','clue']].forEach(([label,key])=>{const copy=inherited(conceptId,key);if(copy)reasoning.append(fieldBlock(label,copy));});explanation.append(reasoning);
+    [['AWS manages','managed'],['Supported extension','extension'],['Custom ownership','ownership'],['AWS capabilities that fit','capability'],['Exam clue','clue'],['Boundary to remember','trap']].forEach(([label,key])=>{const copy=inherited(conceptId,key);if(copy)reasoning.append(fieldBlock(label,copy));});explanation.append(reasoning);
     if(item.parent&&!['system','lifecycle'].includes(item.parent)){const parent=make('a',`← ${concepts.get(item.parent).title}`);parent.href='#concept-'+item.parent;parent.addEventListener('click',event=>{event.preventDefault();showBoundary(item.parent);});explanation.append(parent);}
     setSituations(conceptId,selectedMap);chooseScenario();
   }

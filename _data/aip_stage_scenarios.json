@@ -2,9 +2,9 @@
   {
     "id": "requirements-model-size",
     "node": "constraint",
-    "title": "The team assumes it needs the largest model",
-    "situation": "A team needs concise summaries and reliable categories within a strict latency and token-cost budget. It proposes the largest available model before testing representative inputs.",
-    "meaning": "The requirement is measured task quality under constraints. Model size is a candidate characteristic, not an acceptance criterion.",
+    "title": "Largest model assumed",
+    "situation": "A support team wants an assistant to turn case notes into a short summary and assign each case to an agreed category. Users need reliable results quickly, and the team has a fixed token-cost budget. Someone proposes the largest available model because it appears strongest on public benchmarks, but nobody has compared candidates on the team’s actual case notes.",
+    "meaning": "The question is whether a model can do this particular task well enough within the budget and response-time limit. A larger model might help, but its size or benchmark position does not establish that benefit. First define acceptable summaries and categories, then measure candidates against that definition.",
     "evidence": "Compare supported candidates on the same held-out cases, including difficult inputs and critical cohorts. Check capability, context/output limits, quality, latency, and cost.",
     "rule": "Choose by representative workload fit; public benchmark rank or model size alone is insufficient.",
     "highlights": [
@@ -13,14 +13,22 @@
     ],
     "traps": [
       "trap-1-1"
+    ],
+    "walkthrough": [
+      "Define the target: write example summaries, category rules, and acceptable quality, latency, and cost. Include difficult cases, not only easy ones.",
+      "Compare fairly: run supported candidates on the same representative held-out notes and evaluate their outputs against the same rules.",
+      "Choose from the results: use the candidate that meets the requirements. Move to greater capability only when its measured improvement addresses a remaining gap."
+    ],
+    "capabilities": [
+      "Bedrock model inference and evaluation where supported: compare eligible candidates on the same representative task, quality, latency, and cost."
     ]
   },
   {
     "id": "requirements-evidence",
     "node": "constraint",
-    "title": "Answers need current private facts",
-    "situation": "An assistant explains policies clearly but cannot answer questions about recently changed internal rules. The team proposes fine-tuning to make every future answer current.",
-    "meaning": "The missing requirement is access to fresh, permitted evidence. Changing weights alone does not supply a live authoritative source.",
+    "title": "Current private facts missing",
+    "situation": "An employee asks whether a newly updated internal policy allows a particular expense. The assistant explains the old rule clearly, but the new exception exists only in the company’s current policy document. The team proposes fine-tuning the model so it will always know the latest policy, including changes made after that training job.",
+    "meaning": "The answer needs an authoritative fact that is missing from the request. Clear language is not the problem: the model has not received the current rule and its exception. Changing model weights does not establish a live connection to the policy source. The application must supply permitted, up-to-date evidence when answering.",
     "evidence": "Check source freshness, caller entitlement, whether the required fact reaches context, and whether citations support the answer.",
     "rule": "Private/current/attributable knowledge → evaluate RAG. RAG and customization can combine when their requirements differ.",
     "highlights": [
@@ -30,14 +38,22 @@
     ],
     "traps": [
       "trap-1-2"
+    ],
+    "walkthrough": [
+      "Locate the required fact: identify the current policy version, the relevant rule, and its exception. Confirm that this employee is entitled to that document.",
+      "Trace the evidence: check whether ingestion and retrieval deliver that passage, and whether it survives context assembly before the model is invoked.",
+      "Match the remedy to the gap: evaluate RAG for current private knowledge. Consider customization separately if a stable behavior problem remains after the right evidence is supplied."
+    ],
+    "capabilities": [
+      "Bedrock Knowledge Bases: supported ingestion and retrieval supply current permitted passages; inspect source sync, metadata/filter scope, and citations."
     ]
   },
   {
     "id": "requirements-task",
     "node": "constraint",
-    "title": "Format and task rules are unclear",
-    "situation": "Equivalent inputs receive different categories and inconsistent output shapes. The team has not defined category boundaries, supplied examples, or validated the business meaning of the result.",
-    "meaning": "Clarify what a correct answer means before treating the behavior as a model-capability or training defect.",
+    "title": "Task rules and format unclear",
+    "situation": "An assistant must classify incoming cases as “billing” or “technical.” A case describes a device failure that also produced an incorrect charge. Different runs assign different categories, and some responses have the wrong fields. The team has not specified how overlapping cases should be handled or provided examples of that boundary, but assumes the model needs training.",
+    "meaning": "The model cannot reliably apply a business distinction that the team has not defined. There are two requirements to clarify: which category is correct, and which output fields must be present. Enforcing a JSON schema helps with the second; it does not decide the first.",
     "evidence": "Review task definitions, governing instructions, representative examples, supported output constraints, and schema plus business assertions.",
     "rule": "Task/format gaps → start with prompting and supported structured output. Valid JSON or low temperature is not proof of a correct decision.",
     "highlights": [
@@ -46,14 +62,22 @@
     ],
     "traps": [
       "trap-1-3"
+    ],
+    "walkthrough": [
+      "Define the missing rule: agree how to handle cases involving both billing and technical issues, including when to ask for clarification.",
+      "Express and test it: put the rule and representative examples into the prompt, then use supported output constraints for the required fields.",
+      "Check meaning as well as shape: test whether the category follows the agreed rule. Evaluate model capability or customization only after the task is clear."
+    ],
+    "capabilities": [
+      "Bedrock Prompt Management: version the category rules and examples. Supported structured output and application validators check the required shape and business meaning."
     ]
   },
   {
     "id": "requirements-customize",
     "node": "constraint",
-    "title": "Stable behavior still fails clear prompts",
-    "situation": "The team has clear task rules, correct evidence, and evaluated prompt examples. A suitable baseline still misses a required stable style or classification behavior across representative cases.",
-    "meaning": "Supported customization may fit an evaluated behavior gap. This differs from missing current evidence or ambiguous instructions.",
+    "title": "Stable behavior still fails",
+    "situation": "A team needs consistent domain-specific classification and a stable writing style. It has defined the rules, supplied correct evidence, tested clear instructions and examples, and compared a suitable baseline on representative inputs. The baseline still misses the required behavior repeatedly. The team now has validated labeled examples and wants to know whether model customization is justified.",
+    "meaning": "This is an evaluated behavior gap, rather than an undefined task or a missing current fact. Supported customization may help the model reproduce that behavior more consistently. It is a candidate to test, not an automatic next step: the improvement must justify the added data, release, and deployment responsibilities.",
     "evidence": "Check supervision quality, held-out improvement, safety/cohort regressions, lifecycle cost, and compatibility with the intended deployment.",
     "rule": "Consider supported customization only for the measured gap; evaluate it against prompting/RAG baselines and verify deployment support.",
     "highlights": [
@@ -63,15 +87,23 @@
     ],
     "traps": [
       "trap-1-4"
+    ],
+    "walkthrough": [
+      "Confirm the diagnosis: show where evaluated prompting still fails despite clear task rules and the right evidence.",
+      "Test the proposed change: use suitable training examples and separate held-out cases to compare the customized model with the accepted baseline.",
+      "Apply the release gate: check critical cohorts, safety, lifecycle cost, and serving compatibility before approving deployment; retain a tested rollback target."
+    ],
+    "capabilities": [
+      "Eligible Bedrock customization or SageMaker adaptation: test a measured stable-behavior gap with validated examples, independent evaluation, and supported deployment."
     ]
   },
   {
     "id": "requirements-action",
     "node": "constraint",
-    "title": "Fluent output hides an invalid business action",
-    "situation": "An assistant proposes a well-formed refund request for an account outside the caller’s scope. The team proposes a larger model instead of enforcing the business preconditions.",
-    "meaning": "Language quality does not establish authorization or valid transaction semantics. Identify the control requirement independently of model choice.",
-    "evidence": "Inspect the effective caller, permitted record/action scope, actual tool arguments, approval requirements, and authoritative business outcome.",
+    "title": "Valid JSON, unauthorized refund",
+    "situation": "A support assistant can propose refunds through a business tool. An employee signed in for Tenant A asks for a refund on an account belonging to Tenant B. The assistant responds politely and produces JSON with the expected account, amount, and reason fields, so the schema validator accepts it. The team suggests a larger model to prevent this mistake, but the requested account is outside the employee’s permitted scope.",
+    "meaning": "“Fluent” means the explanation reads clearly; “well-formed” means the request has the expected fields and types. Neither establishes that this employee may refund this account. The key requirement is that every proposed action must pass trusted caller, record-access, and business-rule checks before it can execute. A model can propose an action; the application and business API must enforce its authority.",
+    "evidence": "Compare the authenticated caller’s tenant and permissions with the authoritative account owner. Inspect the proposed account, amount, and reason; check eligibility and any required approval. Finally, inspect the business record to establish whether a refund actually occurred. Test both an allowed refund and the cross-tenant request.",
     "rule": "Enforce deterministic authorization and action checks. A fluent answer or valid JSON is not a completed, permitted business action.",
     "highlights": [
       "constraint",
@@ -81,14 +113,23 @@
     "traps": [
       "trap-10-5",
       "trap-5-2"
+    ],
+    "walkthrough": [
+      "Name the requirement: this employee may act only on records and refund amounts permitted by the business policy. A plausible response is not the acceptance test.",
+      "Locate the failed boundary: valid JSON passed the format check, but the account belongs to another tenant. Investigate tool authorization and business preconditions.",
+      "Put the fix at that boundary: enforce scope and transaction rules in the application/business API, reject disallowed actions, and apply approval where required. A larger model cannot replace those checks."
+    ],
+    "capabilities": [
+      "IAM and application/business-API authorization: enforce caller and record scope before the tool executes.",
+      "Lambda or suitable tool hosting: apply deterministic eligibility/amount checks; Step Functions fits required durable approval."
     ]
   },
   {
     "id": "pretraining-freshness",
     "node": "adapt-pretrain",
-    "title": "Domain adaptation is mistaken for live knowledge",
-    "situation": "A domain-adapted model still gives an outdated policy after the original document changes. The team assumes continued pre-training should remove the need to retrieve current evidence.",
-    "meaning": "Domain adaptation changes eligible model behavior using suitable text; it is not a real-time source lookup.",
+    "title": "Adaptation gives outdated facts",
+    "situation": "A model has been adapted on domain documents and answers in the expected terminology. A policy changes after that adaptation job, but the application continues invoking the model without providing the new policy. Its answer still follows the old rule. The team assumes another round of continued pre-training will make retrieval unnecessary for future changes.",
+    "meaning": "Adapting eligible model weights on domain text and supplying current evidence are different responsibilities. Adaptation can change how the model handles a domain, but it does not prove that a future policy change reaches the model at request time.",
     "evidence": "Compare the source/version and context supplied for this request. Evaluate the adapted model against the original baseline on representative held-out tasks.",
     "rule": "Continued pre-training is model-specific and does not replace current evidence retrieval.",
     "highlights": [
@@ -97,14 +138,23 @@
     ],
     "traps": [
       "trap-1-2"
+    ],
+    "walkthrough": [
+      "Check the timeline: compare the adaptation dataset version with the policy version needed for this answer.",
+      "Check the request: verify whether the current rule and exception were retrieved and included in the actual context.",
+      "Choose the matching change: evaluate retrieval for current facts, and evaluate model-specific domain adaptation against a held-out baseline for its separate purpose."
+    ],
+    "capabilities": [
+      "Eligible model-specific Bedrock customization or SageMaker training: evaluate domain adaptation separately from current-fact retrieval.",
+      "Bedrock Knowledge Bases: retrieve the current permitted policy version into context; model adaptation does not synchronize future facts."
     ]
   },
   {
     "id": "distillation-quality",
     "node": "adapt-distill",
-    "title": "The cheaper student loses a critical task",
-    "situation": "A smaller distilled student reduces serving cost but fails a critical cohort that the teacher handled correctly. Average quality remains acceptable.",
-    "meaning": "Lower cost is useful only when the student preserves the required task quality, including critical cohorts.",
+    "title": "Student fails a critical cohort",
+    "situation": "A team uses an eligible teacher/student workflow to create a smaller model for lower-cost inference. The student performs well on common requests, so its average score looks acceptable. However, it now misclassifies a rare, high-risk case type that the teacher handled correctly. The team is considering promotion because the overall cost reduction is attractive.",
+    "meaning": "The rare case is a critical cohort: a defined group of inputs whose quality matters independently of the overall average. The cost reduction does not satisfy the requirement if the student fails that group. Distillation must be evaluated on the business task, including cases that an average can hide.",
     "evidence": "Compare teacher/student outputs on the same held-out tasks; inspect cohort quality, safety, latency, and cost before promotion.",
     "rule": "Do not promote an average improvement that violates a critical requirement. Distillation differs from quantization or adding an adapter.",
     "highlights": [
@@ -113,6 +163,15 @@
     ],
     "traps": [
       "trap-11-1"
+    ],
+    "walkthrough": [
+      "Compare the same cases: evaluate teacher and student using the same held-out inputs and task rubric.",
+      "Break down the results: inspect the critical cohort separately, alongside safety, latency, and cost.",
+      "Apply the acceptance criteria: block promotion while a critical requirement is broken. Keep the accepted baseline until a candidate meets the full release gate."
+    ],
+    "capabilities": [
+      "Eligible Bedrock distillation or a controlled SageMaker training workflow: create the supported student candidate.",
+      "Automated and human evaluation where appropriate: compare teacher/student on the same held-out tasks and block promotion when a critical cohort fails."
     ]
   }
 ]

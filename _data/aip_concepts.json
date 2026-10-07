@@ -4,14 +4,15 @@
     "parent": null,
     "title": "Whole application",
     "summary": "Prepare trusted knowledge ahead of time; retrieve permitted evidence and assemble context at runtime. The model lifecycle and four supporting pillars help coordinate, protect, evaluate, and monitor both flows.",
-    "constraint": "Locate the failed responsibility, then state the requirement the solution must satisfy.",
-    "managed": "Use managed model, data, orchestration, and control capabilities where their contracts fit.",
-    "extension": "Look for a supported extension at the specific layer before replacing its pipeline.",
-    "ownership": "Own the unsupported gap, including its recovery, authorization, evaluation, and operations.",
-    "capability": "Choose a layer first. AWS services implement responsibilities; they are not the architecture itself.",
-    "clue": "Ask: where is the problem → what is the constraint → what is managed → is an extension supported → what must I own?",
+    "constraint": "Establish which layer must change and the hard requirement it must meet; then compare managed support, supported extensions, and any remaining custom work.",
+    "managed": "Bedrock handles eligible model inference; Knowledge Bases handles supported RAG stages; Step Functions handles explicit durable workflows. Each service manages its configured contract, not the application’s whole business outcome.",
+    "extension": "If one ingestion step needs domain-specific chunks, use a supported Knowledge Bases Lambda transformation. If context needs business rules, add application assembly/validation around the managed model call.",
+    "ownership": "The team defines success, access, source freshness, safe action rules, evaluation, and recovery. Implement the unsupported responsibility and test its boundary instead of rebuilding every managed stage.",
+    "capability": "Bedrock inference, Knowledge Bases Retrieve/RetrieveAndGenerate, Lambda, Step Functions, and IAM/data authorization fit different responsibilities. Choose from the required boundary.",
+    "clue": "Custom chunking points to ingestion; poor candidate order points to retrieval/reranking; a durable human wait points to workflow state. Service choice follows that diagnosis.",
     "trap": "A custom requirement at one stage does not justify rebuilding the whole application.",
-    "read": "#how-to-think"
+    "read": "#how-to-think",
+    "example": "A policy assistant prepares approved documents, answers with permitted passages, and may propose a controlled business action. Each responsibility has a different acceptance test."
   },
   {
     "id": "requirements",
@@ -24,210 +25,225 @@
       "What limits the solution? Record quality, safety, latency, cost, approved data locations, access scope, and any required approval."
     ],
     "decision": "Turn these requirements into representative held-out cases. Select then compares model/task fit. Clearer instructions or examples address task/format gaps; RAG supplies required evidence; supported customization is a candidate when stable behavior still fails evaluated prompting. Compare measured benefit and lifecycle cost rather than assuming a larger model is necessary.",
-    "constraint": "The chosen approach must satisfy the business outcome and every hard constraint, with measurable acceptance criteria.",
-    "managed": "Use a supported evaluated model and managed application capabilities when their contracts meet the requirements.",
-    "extension": "Check for a supported prompt, retrieval, or ingestion extension at the layer that needs to change.",
-    "ownership": "Own acceptance criteria, business authorization, and the unsupported gap; do not rebuild every layer because one requirement is custom.",
-    "capability": "Representative evaluation cases first; then suitable model inference, prompt/context, retrieval, or supported customization.",
-    "clue": "Changing facts → evidence; unclear task/format → instructions/examples; stable behavior still fails evaluated prompting → assess customization.",
+    "constraint": "The approach must meet the business outcome and every hard constraint, measured on representative cases rather than inferred from model size.",
+    "managed": "No AWS service defines your business acceptance criteria. Bedrock supplies eligible model inference; Knowledge Bases supplies supported evidence retrieval. Your evaluation establishes whether those capabilities meet the use case.",
+    "extension": "Prompt Management can version clearer instructions/examples; Knowledge Bases can add current evidence; its Lambda transformation can change supported ingestion behavior. Check that specific extension before commissioning a custom pipeline.",
+    "ownership": "Define expected answers/actions, critical cohorts, allowed inputs/locations, and measurable quality/cost/latency limits. Enforce business permissions and turn difficult examples into held-out acceptance tests.",
+    "capability": "Instruction/format gap → Prompt Management plus output validation. Current private-fact gap → Knowledge Bases/RAG. Evaluated stable behavior gap → eligible Bedrock customization or SageMaker adaptation with deployment/evaluation controls.",
+    "clue": "“Policy changes daily” calls for current evidence. “Labels overlap” calls for explicit task rules/examples. “Stable behavior still fails a clear evaluated prompt” makes supported customization a candidate to test.",
     "trap": "Model size and public benchmark rank do not prove workload fit. Identify whether the gap is task definition, evidence, model capability, or stable behavior before changing weights.",
-    "read": "#how-to-think"
+    "read": "#how-to-think",
+    "example": "For an expense-policy assistant, “good” means answering from the current permitted policy, respecting exceptions, meeting response-time/cost limits, and never authorizing an invalid refund."
   },
   {
     "id": "source",
     "parent": "system",
     "title": "Source",
     "summary": "Approved facts, media, and datasets enter here. Establish provenance, versions, permitted use, and update/delete behavior before creating derived copies.",
-    "constraint": "Input modality, freshness, permission, and authoritative source version.",
-    "managed": "S3/object storage, databases, and supported data connectors provide source access and storage.",
-    "extension": "Pre-extract or adapt unsupported source formats/connectors while preserving provenance.",
-    "ownership": "Own unsupported connectors and source validation; carry source/version/ACL metadata into derived evidence.",
-    "capability": "Amazon S3, supported database/connectors, and authoritative business APIs.",
+    "constraint": "Identify approved source versions and caller entitlement, and decide how updates/deletes reach every relevant derived copy.",
+    "managed": "S3 and supported databases store source records; eligible connectors expose them to the downstream path. Storage or connector success does not establish that the records are correct and approved.",
+    "extension": "Use a supported source connector where it fits; otherwise adapt access/format through a controlled connector or preprocessing step while preserving source/version identity.",
+    "ownership": "Define source ownership, permission, freshness, provenance, and update/delete handling. Carry those facts into chunks/indexes and verify that a changed source reaches derived copies.",
+    "capability": "S3 documents, an authoritative database, or a scoped business API supplies the fact. Knowledge Bases source synchronization is a separate downstream responsibility.",
     "clue": "“Private manuals change daily” points to current source evidence and synchronization, not memorizing facts in weights.",
     "trap": "Changing a source object does not prove the index, cache, or generated answer was refreshed.",
-    "read": "#preprocessing"
+    "read": "#preprocessing",
+    "example": "If the current manual lacks the exception a user asks about, no retrieval setting can supply it. First establish which record/version is authoritative."
   },
   {
     "id": "preprocess",
     "parent": "system",
     "title": "Preprocess",
     "summary": "Convert or validate inputs before creating chunks, embeddings, datasets, or model requests. Preserve meaning rather than merely producing text.",
-    "constraint": "Document structure, modality, schema quality, sensitive spans, and approved downstream format.",
-    "managed": "Supported extraction, transcription, ETL, and text-analysis capabilities perform bounded transformations.",
-    "extension": "Add validation, reconstruction, or verified redaction around supported outputs.",
-    "ownership": "Own domain-specific transformations and unsupported formats; quarantine failures before indexing or logging.",
-    "capability": "Textract, Transcribe, Glue/Data Quality, Comprehend, or supported Bedrock Data Automation.",
+    "constraint": "Prepared output must preserve required meaning, satisfy the downstream schema, and meet sensitive-data policy before derived copies are created.",
+    "managed": "Textract extracts supported document structure; Transcribe converts supported speech; Glue/Data Quality handles ETL/rules; Comprehend detects supported text spans; Data Automation handles supported media extraction.",
+    "extension": "Validate and reconstruct relationships around extraction output, apply required redaction, and use explicit fail/quarantine handling when prepared data violates the rule.",
+    "ownership": "Own domain meaning, record validation, transformations, and checks on the actual downstream bytes. A successful extraction job or quality report does not prove data is safe to index.",
+    "capability": "Textract for forms/tables; Transcribe when a transcript is required; Data Automation for eligible structured media extraction; Glue/Data Quality for explicit data gates; Comprehend plus applied redaction for supported sensitive text.",
     "clue": "“The PDF condition disappeared during extraction” is a parsing/preprocessing problem before retrieval.",
     "trap": "Detection is not redaction, and accurate embeddings cannot restore missing extracted text.",
-    "read": "#preprocessing"
+    "read": "#preprocessing",
+    "example": "A scanned table’s amount and exception must stay associated after extraction; a PII detector must be followed by verified redaction before indexing."
   },
   {
     "id": "ingestion",
     "parent": "system",
     "title": "Ingestion",
     "summary": "Build searchable evidence: Parse → Chunk → Metadata → Embed → Index. This is preparation/synchronization work, not the per-question ranking path.",
-    "constraint": "Preserve source meaning, useful evidence units, metadata, vector compatibility, and freshness.",
-    "managed": "Bedrock Knowledge Bases orchestrates supported ingestion, embedding, indexing, and source synchronization.",
-    "extension": "Knowledge Bases Lambda transformation supports custom chunking and chunk metadata under its contract.",
-    "ownership": "Own only unsupported ingestion behavior; a compatible extension can leave the remaining pipeline managed.",
-    "capability": "Bedrock Knowledge Bases ingestion with supported parsers, chunking, embedding model, and vector store.",
+    "constraint": "Preserve useful evidence boundaries, trusted metadata, vector compatibility, and current searchable records under the selected ingestion contract.",
+    "managed": "Knowledge Bases coordinates configured supported parsing, chunking, embedding, and indexing into its eligible backing store. Check job completion and failures to prove that evidence became searchable.",
+    "extension": "A Knowledge Bases Lambda transformation can implement custom chunking or chunk metadata within its input/output contract. Managed embedding/indexing can remain after that supported hook.",
+    "ownership": "Own the domain-specific hook, source/metadata correctness, and unsupported ingestion gaps. Test actual indexed records and update/delete behavior; a started job is not completed synchronization.",
+    "capability": "Knowledge Bases ingestion jobs plus supported parser/chunk/embedding/store settings create searchable evidence. Lambda transformation extends ingestion, not query-time ranking.",
     "clue": "“Custom chunk boundaries, managed retrieval retained” points to an ingestion extension.",
     "trap": "A Lambda ingestion transformation does not control query-time ranking.",
-    "read": "#rag-trade-offs"
+    "read": "#rag-trade-offs",
+    "example": "A manual’s rule, exception, source version, and access scope must survive parsing/chunking and be stored with compatible vectors before a question can retrieve it."
   },
   {
     "id": "store",
     "parent": "system",
     "title": "Knowledge store",
     "summary": "Keep searchable chunks, vectors, metadata, and source references. A Knowledge Base coordinates RAG; its vector store holds/searches the indexed evidence.",
-    "constraint": "Supported query/storage features, metadata filtering, scale, synchronization, and access boundaries.",
-    "managed": "Knowledge Bases integrates supported stores and offers managed retrieval/generation APIs.",
-    "extension": "Configure supported stores, metadata, retrieval options, and application-side context processing.",
-    "ownership": "Own custom retrieval only where the managed path lacks required behavior. Assess support before deciding.",
-    "capability": "Bedrock Knowledge Bases with OpenSearch or another supported vector store.",
+    "constraint": "The store must support the required index/query/filter contract, scale, synchronization, and permitted access.",
+    "managed": "The selected store persists/searches eligible text, vectors, and metadata. Knowledge Bases coordinates its supported RAG integration and exposes retrieval/generation APIs for that configuration.",
+    "extension": "Configure supported fields, metadata filters, and retrieval options. Use separate Retrieve/context orchestration where it meets a requirement the combined path cannot express.",
+    "ownership": "Own unsupported search policy and any custom indexing/synchronization you take on. Verify the store/Knowledge Base integration before concluding that the whole application needs custom RAG.",
+    "capability": "Knowledge Bases plus supported OpenSearch/other vector-store integration fits managed RAG. A store by itself provides indexed search rather than an enterprise assistant.",
     "clue": "“OpenSearch is the backing store” does not say who owns the rest of RAG.",
     "trap": "OpenSearch does not automatically mean custom RAG. A vector database is not an enterprise assistant.",
-    "read": "#rag-trade-offs"
+    "read": "#rag-trade-offs",
+    "example": "OpenSearch can be the backing store of managed Knowledge Bases RAG. Seeing the store name does not tell you who owns ingestion, retrieval, or citations."
   },
   {
     "id": "user",
     "parent": "system",
     "title": "User / API",
     "summary": "Accept a request with trusted identity, its task, and an appropriate delivery contract. Carry scope and correlation through downstream stages.",
-    "constraint": "Authenticated caller, tenant entitlement, request limits, private access, and interactive versus background completion.",
-    "managed": "API Gateway, identity/federation services, and eligible private service endpoints supply entry-point capabilities.",
-    "extension": "Application validation/router logic can enforce team entitlement, token admission, and model routes.",
-    "ownership": "Own business/data authorization and request policy that generic API throttles cannot express.",
-    "capability": "API Gateway + application adapter/router; Cognito or federation where appropriate.",
+    "constraint": "Accept only a valid authorized task under a clear delivery, private-path, and admission contract.",
+    "managed": "API Gateway handles the selected API integration; Cognito/appropriate federation handles configured authentication. Supported VPC endpoints handles eligible private service access.",
+    "extension": "Application adapters can validate requests, derive trusted scope, select permitted model routes, and implement token/team admission that generic request throttles cannot express.",
+    "ownership": "Own business/data entitlement, authoritative state, request/accounting rules, and truthful synchronous/streaming/background status. Client-provided tenant IDs are not sufficient authority.",
+    "capability": "API Gateway plus appropriate identity and application routing forms the entry path. IAM/backend authorization and scoped retrieval/tool checks establishes permitted work.",
     "clue": "“Several teams need common model policy” points to a shared gateway, not just direct invocation.",
     "trap": "Authentication identifies the caller; it does not establish document or tool entitlement.",
-    "read": "#genai-gateway"
+    "read": "#genai-gateway",
+    "example": "A signed-in caller can submit a question, but the backend still needs to determine which tenant documents and business actions that caller may use."
   },
   {
     "id": "retrieval",
     "parent": "system",
     "title": "Retrieval",
     "summary": "Turn a question into permitted candidates, rank them, and select evidence for context. Query → query embedding → vector/lexical/hybrid → candidates → reranker → best context.",
-    "constraint": "Evidence coverage, exact identifiers, access filters, ranking, and context budget.",
-    "managed": "Knowledge Bases Retrieve/RetrieveAndGenerate and supported store/search/reranking options cover configured retrieval behavior.",
-    "extension": "Compose supported retrieval calls, filters, reranking, or context selection when the combined path is insufficient.",
-    "ownership": "Own unsupported query/ranking policy at this layer, retaining managed ingestion where it still fits.",
-    "capability": "Knowledge Bases, supported OpenSearch lexical/vector/hybrid search, and supported Bedrock reranking.",
+    "constraint": "Return enough relevant permitted evidence, rank it appropriately, and preserve its meaning within the context budget.",
+    "managed": "Knowledge Bases Retrieve returns supported candidate evidence, while RetrieveAndGenerate combines its configured retrieval/generation path. Search/reranking behavior depends on the chosen Knowledge Base/store/API contract.",
+    "extension": "Compose supported filters, search options, reranking, and context selection around Retrieve when needed. Check the contract of each extension and measure coverage before ordering.",
+    "ownership": "Own trusted caller scope, unsupported query/ranking policy, and evaluation. Preserve managed ingestion where it fits and do not loosen access to improve apparent recall.",
+    "capability": "Retrieve for inspecting candidates; supported OpenSearch/vector-store search for lexical/semantic/hybrid fit; Bedrock/Knowledge Bases reranking for existing-candidate order.",
     "clue": "Absent candidate → retrieval/earlier evidence boundary. Present but poorly ordered → reranking.",
     "trap": "Reranking cannot recover material absent from its candidate input.",
-    "read": "#rag-trade-offs"
+    "read": "#rag-trade-offs",
+    "example": "If the passage is missing from candidates, inspect search/filters; if it is present but ordered badly, evaluate reranking before changing the generator."
   },
   {
     "id": "prompt",
     "parent": "system",
     "title": "Prompt / context",
     "summary": "System instructions + prompt template + user query + retrieved knowledge + conversation context become the model input. Keep untrusted data separate from governing instructions.",
-    "constraint": "Clear task/rules, correct evidence, relevant conversation state, context size, and output contract.",
-    "managed": "Bedrock Prompt Management supplies reusable supported templates/configuration and versions; inference APIs accept context/messages.",
-    "extension": "Application context assembly supplies permitted evidence/history and supported structured-output configuration.",
-    "ownership": "Own evidence selection, authoritative state, prompt release gates, and semantic/business validation.",
-    "capability": "Prompt Management; Converse/ConverseStream or model-specific APIs with application-managed context.",
+    "constraint": "The model input must contain clear governing instructions, the right scoped evidence/history, and a valid task/output contract.",
+    "managed": "Prompt Management stores supported templates, variables, variants, and versions. Converse or model-specific inference APIs receive the actual messages/context the application supplies.",
+    "extension": "Add explicit task rules/examples, assemble permitted evidence/history, and use supported output constraints. Check restrictions when invoking a managed prompt with the selected API.",
+    "ownership": "Own task definitions, authoritative state, scope, rendered payload, semantic validation, and release gates. A saved prompt version does not prove the evaluated version was invoked.",
+    "capability": "Prompt Management versions reusable instructions; Converse/ConverseStream receives supported context; application/business checks validates facts and actions beyond output shape.",
     "clue": "“Right evidence, wrong answer” requires inspecting actual context and task instructions before assuming retrieval is broken.",
     "trap": "A versioned prompt, valid JSON, or low temperature does not establish factual truth.",
-    "read": "#model-prompt-decisions"
+    "read": "#model-prompt-decisions",
+    "example": "A response can follow the JSON schema yet classify a case incorrectly because the prompt never defined how overlapping categories should be handled."
   },
   {
     "id": "model",
     "parent": "system",
     "title": "Model",
     "summary": "Invoke a compatible evaluated model using permitted context. Choose the hosting boundary by required controls, not by whether something is “custom.”",
-    "constraint": "Model capability, customization support, latency/capacity, serving control, and approved processing Regions.",
-    "managed": "Bedrock abstracts eligible FM inference infrastructure; SageMaker AI offers managed ML training/hosting services with deeper controls.",
-    "extension": "Bedrock supports eligible customization/import; SageMaker supports compatible model/serving implementations.",
-    "ownership": "Take container/GPU/endpoint control when required, and accept its capacity/deployment responsibilities.",
-    "capability": "Amazon Bedrock for managed FM-centric integration; SageMaker AI when deeper ML/hosting control is decisive.",
+    "constraint": "Invoke a compatible evaluated model within quality, approved-processing, latency/capacity, and serving-control requirements.",
+    "managed": "Bedrock manages eligible FM inference infrastructure. SageMaker AI provides managed ML jobs/endpoints with deeper choices of model, container, instance, and lifecycle configuration.",
+    "extension": "Use eligible Bedrock customization/import where it meets the supported contract. Use compatible SageMaker model/container/endpoint configurations when the required control is decisive.",
+    "ownership": "Own model/task comparison, required serving implementation, capacity sizing, deployment compatibility, and business validation. Accept the operations responsibility associated with the controls you choose.",
+    "capability": "Bedrock for eligible managed FM-centric inference/customization; SageMaker AI for required ML/hosting control. Verify the exact model, feature, Region, and deployment contract.",
     "clue": "“Choose GPU family and serving container” points to hosting control. “Fine-tuned model” alone does not.",
     "trap": "Custom does not automatically mean SageMaker. Bedrock also supports eligible customization.",
-    "read": "#hosting-decision"
+    "read": "#hosting-decision",
+    "example": "A requirement to choose a GPU instance or serving container points to deeper hosting control; a fine-tuned artifact alone does not establish that need."
   },
   {
     "id": "response",
     "parent": "system",
     "title": "Response",
     "summary": "Deliver and validate the result under the caller’s contract. An answer, source citation, tool outcome, and durable job completion are different artifacts.",
-    "constraint": "Complete versus incremental delivery, user waiting, background completion, and verified outcome.",
-    "managed": "Supported Bedrock synchronous/streaming calls and batch jobs supply model-operation contracts.",
-    "extension": "A streaming adapter forwards events; asynchronous application workers persist job state/results.",
-    "ownership": "Own end-to-end transport, safe partial-output handling, job reconciliation, and business outcome validation.",
-    "capability": "Converse / ConverseStream; asynchronous jobs/workers; supported Bedrock batch inference.",
+    "constraint": "The delivered result must satisfy format, meaning, timing, and truthful task-completion requirements.",
+    "managed": "Bedrock supported synchronous/streaming calls and eligible batch jobs supply model-operation contracts. These do not automatically provide every application transport or business completion check.",
+    "extension": "Forward streaming events through a supported end-to-end transport, or compose durable asynchronous workers/state and completion notification where the caller need not wait.",
+    "ownership": "Own disconnects, buffering, partial failure, job reconciliation, citations/meaning checks, and authoritative business status. Return acceptance as pending rather than claiming completion.",
+    "capability": "Converse/ConverseStream or supported model APIs for bounded/incremental answers; eligible batch for an offline dataset; queues/workflows plus state for durable background work.",
     "clue": "Earlier tokens while the user waits → streaming. Caller can leave → async; offline dataset → eligible batch.",
     "trap": "Streaming is not asynchronous. A job acknowledgment is not completed business work.",
-    "read": "#inference-modes"
+    "read": "#inference-modes",
+    "example": "Earlier tokens while the caller waits calls for streaming; a job ID with later persisted results calls for background completion. Neither alone proves the business action succeeded."
   },
   {
     "id": "lifecycle",
     "parent": "system",
     "title": "Model lifecycle",
     "summary": "Requirements → representative data → Select → optional Customize/train → Evaluate + approve → Deploy/invoke → Monitor → revisit selection or customization. This changes the model configuration used at runtime; it is not repeated for each request. Prompt engineering and RAG change runtime instructions/evidence rather than model weights.",
-    "constraint": "Task/model fit, data quality, measured benefit, release safety, reproducibility, and rollback.",
-    "managed": "Bedrock provides supported model/customization/evaluation operations; SageMaker supplies broader ML lifecycle capabilities.",
-    "extension": "Version approved datasets and compatible model artifacts; add calibrated evaluations and approval gates.",
-    "ownership": "Own release criteria, custom training/serving needs, human accountability, and rollback verification.",
-    "capability": "Bedrock capabilities and/or SageMaker AI pipelines, training, governed artifacts, and endpoints according to the controls needed.",
+    "constraint": "Release only the compatible configuration that passed independent requirements, then monitor outcomes and revisit selection/customization when evidence warrants it.",
+    "managed": "Bedrock provides eligible model/customization/evaluation/inference operations. SageMaker provides managed jobs, pipelines, registry, and endpoint/adapter serving under their supported contracts.",
+    "extension": "Connect those operations with versioned datasets, automated/domain evaluation, required human approval, attributed live smoke checks, and a compatible rollback route.",
+    "ownership": "Own the acceptance criteria, artifact/configuration pairing, release authority, critical-cohort gates, and production response. Approval metadata does not deploy a candidate.",
+    "capability": "Supported Bedrock/SageMaker operations executes the model lifecycle; Registry records eligible versions/approval; delivery orchestration performs explicit promotion and rollback.",
     "clue": "Compare the selected or customized model against a held-out baseline; use monitoring evidence to revisit selection or customization.",
     "trap": "A trained model or registered artifact is not proof of a safe, deployed, working release.",
-    "read": "#evaluation"
+    "read": "#evaluation",
+    "example": "A weekly model/adapter release should bind evaluated data, artifact, prompt/settings, approval, live identity, and rollback rather than simply registering a new version."
   },
   {
     "id": "orchestration",
     "parent": "system",
     "title": "Orchestration",
     "summary": "Choose who controls progress across either data or runtime work: bounded code, explicit states, decoupled events, or model-selected actions.",
-    "constraint": "Who chooses the next step? Duration, durability, waits, retries, approval, and coupling.",
-    "managed": "Lambda executes bounded tasks; Step Functions persists explicit workflows; EventBridge routes events; SQS buffers work.",
-    "extension": "Bounded model/tool calls can be composed into workflows; persistent compatible tool services can use ECS/Fargate.",
-    "ownership": "Own action authority, idempotency, rate control, and unsupported runtime/coordination logic.",
-    "capability": "Lambda | Step Functions | EventBridge / SQS | Bedrock Agents or an appropriate agent framework.",
+    "constraint": "Choose the component from who determines the next step and the required duration, state, waits, coupling, and recovery.",
+    "managed": "Lambda runs bounded tasks; Step Functions persists configured workflow states; EventBridge routes events; SQS buffers work. An eligible agent harness/framework controls model-selected tool loops.",
+    "extension": "Compose bounded Bedrock/tool tasks inside known workflows, or pass a validated agent proposal to a durable approval/action path. Use a compatible persistent runtime only when required.",
+    "ownership": "Own tool descriptions and scope, business preconditions, iteration/time/token bounds, retries, idempotency, and rate control. Hosting or orchestration does not grant business permission.",
+    "capability": "Lambda → bounded code. Step Functions → explicit durable transitions/waits. Agent → observation-driven tool choice. EventBridge/SQS → decoupled routing/buffering. AgentCore Runtime hosts agents; its managed harness can supply a loop.",
     "clue": "Known durable sequence + wait/approval → Step Functions. Model chooses next tool from observations → agent.",
     "trap": "An agent framework does not replace durable workflow state or business authorization.",
-    "read": "#serverless-vs-containers"
+    "read": "#serverless-vs-containers",
+    "example": "A model can diagnose which permitted tool to try, then a deterministic workflow can validate the proposal, wait for approval, and perform an idempotent write."
   },
   {
     "id": "security",
     "parent": "system",
     "title": "Security / governance",
     "summary": "Apply identity, access, isolation, encryption, network, safety, PII, and governance controls at the boundaries they protect—not as one final filter.",
-    "constraint": "Caller/data/tool entitlement, sensitive copies, private paths, allowed Regions, retention, and content risk.",
-    "managed": "IAM/KMS, identity services, supported private endpoints, Guardrails, and data discovery/analysis supply distinct controls.",
-    "extension": "Application authorization/filtering, validation, redaction, and release/governance checks enforce workload-specific policy.",
-    "ownership": "Own tenant scope before context, transaction rules before writes, derived-copy handling, and unsupported policy checks.",
-    "capability": "Authentication + IAM/data authorization + isolation + KMS + network policy + appropriate safety/PII controls.",
+    "constraint": "Protect each data/action boundary independently and preserve scope/privacy requirements across source, context, tools, and retained copies.",
+    "managed": "Cognito/federation, IAM/KMS, supported private endpoints, Guardrails, and discovery/analysis services supply different identity, permission, protection, or content controls.",
+    "extension": "Add caller-derived retrieval filters, domain authorization, verified redaction, action validation, and supported safety policies at their own boundaries.",
+    "ownership": "Own tenant-to-record entitlement, transaction policy, bypass removal, approved destinations, and copy-specific retention/deletion. Test denied cases as well as safe-looking output.",
+    "capability": "IAM/data authorization for access; KMS/TLS for protection; PrivateLink for eligible network paths; Guardrails for supported content risks; Macie/Comprehend for their discovery/text roles.",
     "clue": "Tenant A must not retrieve tenant B’s documents → access/filtering before context.",
     "trap": "Guardrails is not authorization. Private transport or encryption does not establish entitlement or approved residency.",
-    "read": "#security-controls"
+    "read": "#security-controls",
+    "example": "A response filter can block harmful wording while still leaving another tenant’s passage in context. Access must be enforced before that passage is supplied."
   },
   {
     "id": "evaluation",
     "parent": "system",
     "title": "Evaluation / diagnosis",
     "summary": "Measure evidence coverage, answer/task quality, safety, latency, and cost before releases and during operation. Diagnose backwards using observed boundary evidence.",
-    "constraint": "Which quality failed, which cohort failed, and at what architecture boundary?",
-    "managed": "Supported Bedrock model/RAG evaluations supply automated/judge/human approaches; metrics/traces support operational evidence.",
-    "extension": "Add calibrated rubrics, expert labels, deterministic assertions, tool-outcome tests, and cohort gates.",
-    "ownership": "Own representative held-out datasets, metric interpretation, judge calibration, and release/rollback policy.",
-    "capability": "Recall/precision, faithfulness/correctness/relevance, safety, task success, first-token/total latency, and cost per successful outcome.",
+    "constraint": "Identify which quality or outcome failed, in which cohort, and at which responsibility before selecting a remedy.",
+    "managed": "Supported Bedrock model/RAG evaluation provides eligible automated, judge, and human approaches. CloudWatch and traces record operational evidence rather than automatically defining semantic quality.",
+    "extension": "Add explicit rubrics, expert labels, deterministic fact/business assertions, tool-outcome checks, and independent cohort comparisons to the supported evaluation path.",
+    "ownership": "Own reference quality, held-out independence, judge calibration, critical acceptance criteria, approval, and rollback policy. Evaluate source support and task completion separately from formatting.",
+    "capability": "Bedrock evaluation plus appropriate assertions/domain experts measures quality; Retrieve inspects evidence; workflow/tool traces establishes actions; CloudWatch measures emitted operational signals.",
     "clue": "Missing evidence, noisy retrieval, and unsupported generated claims are different defects.",
     "trap": "High average quality, a real citation, or low latency can hide a critical cohort or unsafe side effect.",
-    "read": "#evaluation"
+    "read": "#evaluation",
+    "example": "An average score may rise while one critical cohort regresses. The release gate must inspect that subgroup and actual tool outcomes before promotion."
   },
   {
     "id": "observability",
     "parent": "system",
     "title": "Observability",
     "summary": "Collect the evidence needed for the question: trends, caller activity, interaction content, or time across request stages.",
-    "constraint": "What happened, to which request/version/caller, at which stage—and what can be safely retained?",
-    "managed": "CloudWatch metrics/logs, CloudTrail events, supported invocation logging, and tracing capture different evidence.",
-    "extension": "Instrument spans and custom quality signals; correlate IDs and version attribution across application/model/tool stages.",
-    "ownership": "Own missing instrumentation, sanitized content policy, retention, delivery monitoring, and investigation queries.",
-    "capability": "CloudWatch | CloudTrail | Bedrock Model Invocation Logging | X-Ray / OpenTelemetry | agent/tool traces.",
+    "constraint": "Collect the right evidence for the question while limiting sensitive retention and linking it to the request/version/caller.",
+    "managed": "CloudWatch records supported metrics/logs; CloudTrail records covered AWS API activity; invocation logging captures supported model content when enabled; instrumented spans records application stages.",
+    "extension": "Add safe correlation IDs, version/cohort attribution, missing spans, tool/workflow events, and custom outcome metrics. Enable content capture only under the required privacy policy.",
+    "ownership": "Own instrumentation gaps, sanitized-content policy, event coverage, destination access/encryption/retention, and delivery monitoring. A tracing switch cannot expose every hidden/uninstrumented stage.",
+    "capability": "CloudTrail → caller/API audit; invocation logging → protected prompt/response evidence; CloudWatch → emitted trends; X-Ray/OTel → instrumented hops; agent/tool traces → observed actions.",
     "clue": "Who called → CloudTrail. Prompt/response → invocation logging. Trend → metrics. Slow stage → spans.",
     "trap": "Enabling Lambda tracing does not expose every uninstrumented SDK hop or hidden model internal.",
-    "read": "#logging-boundary"
+    "read": "#logging-boundary",
+    "example": "A total request duration cannot show whether queue wait, retrieval, generation, or a buffering hop caused the delay. Correlate evidence at those boundaries."
   },
   {
     "id": "source-documents",
@@ -235,7 +251,13 @@
     "title": "Documents / images",
     "summary": "S3 manuals, PDFs, scans, and images need source/version identity and a supported parsing or native multimodal path.",
     "clue": "Tables and scanned conditions must survive extraction.",
-    "trap": "A readable text file can still omit a material column or exception."
+    "trap": "A readable text file can still omit a material column or exception.",
+    "example": "A PDF manual needs its rule and table exception preserved together, with the source/version retained for later citation.",
+    "managed": "S3 stores the approved object; eligible Knowledge Bases parsing ingests supported content.",
+    "extension": "Use supported parsing or Textract/Data Automation preprocessing when the source structure requires it.",
+    "ownership": "Validate extracted relationships, source versions, access scope, and update/delete handling before indexing.",
+    "capability": "S3 for source identity; supported parsing/Textract for extraction; Knowledge Bases for the downstream supported RAG path.",
+    "constraint": "Preserve the document’s meaning, provenance, permitted use, and supported input format."
   },
   {
     "id": "source-databases",
@@ -243,7 +265,13 @@
     "title": "Databases / business records",
     "summary": "Query current authoritative records through an authorized supported connector or business API.",
     "clue": "Refund status is a live transaction fact, not a generic prompt example.",
-    "trap": "A correct source connection is not permission for every caller to every row."
+    "trap": "A correct source connection is not permission for every caller to every row.",
+    "example": "A refund answer needs the current authoritative account balance, not a stale natural-language summary of last week’s record.",
+    "managed": "The supported database or business API stores/serves the authoritative record under its configured access contract.",
+    "extension": "Use an eligible connector or scoped business tool; normalize only what the downstream task requires.",
+    "ownership": "Enforce caller-to-record entitlement, freshness, schema checks, and authoritative action outcomes.",
+    "capability": "Authorized database access or business API for live records; supported retrieval connectors where their contract fits.",
+    "constraint": "The record must be current and permitted for the caller, with its business meaning preserved."
   },
   {
     "id": "source-audio",
@@ -251,7 +279,13 @@
     "title": "Audio / media",
     "summary": "Use supported native modalities or prepare transcripts/structured output for the chosen downstream path.",
     "clue": "Choose the representation the selected model and retrieval path actually support.",
-    "trap": "Transcription is not compulsory for every supported audio-capable model."
+    "trap": "Transcription is not compulsory for every supported audio-capable model.",
+    "example": "A recorded conversation contains a condition stated by one speaker; dropping that turn can change the answer’s meaning.",
+    "managed": "Transcribe supplies supported transcription; eligible native multimodal models or Data Automation handle their supported media tasks.",
+    "extension": "Prepare a transcript/structured output only when the downstream path requires it, preserving turns and identifiers.",
+    "ownership": "Validate the relevant spoken facts and permissions; speaker labels alone do not establish verified business roles.",
+    "capability": "Native supported audio input, Transcribe, or Data Automation according to the required downstream task.",
+    "constraint": "Preserve the relevant audio meaning and satisfy the model/pipeline’s modality and privacy contract."
   },
   {
     "id": "documents",
@@ -260,7 +294,12 @@
     "summary": "Extract supported text, forms, and tables; reconstruct and validate relationships against the source.",
     "clue": "Condition missing from extracted table → repair extraction before re-indexing.",
     "trap": "Larger embeddings or chunks cannot restore a condition never extracted.",
-    "capability": "Amazon Textract; supported advanced parsing / Bedrock Data Automation where the contract fits."
+    "capability": "Textract for supported document extraction; application/Glue checks for the required field relationships and downstream gate.",
+    "example": "A form’s refund amount and eligibility field must still refer to the same record after extraction.",
+    "managed": "Textract extracts supported text, forms, and tables; source validation remains separate.",
+    "extension": "Reconstruct required layout/field relationships and add schema/domain validation around extraction output.",
+    "ownership": "Check against the source, quarantine invalid records, and preserve version/permission metadata.",
+    "constraint": "The extracted document must retain the fields, headings, and conditions required to answer correctly."
   },
   {
     "id": "audio",
@@ -269,7 +308,12 @@
     "summary": "Prepare supported recordings as text when the downstream pipeline needs transcripts.",
     "clue": "Preserve speaker turns and source references when they matter.",
     "trap": "Speaker labels do not verify business roles.",
-    "capability": "Amazon Transcribe, or a supported native audio/model path."
+    "capability": "Transcribe where text conversion is required; eligible native audio may avoid an unnecessary intermediary.",
+    "example": "A transcript should retain which turn contains the condition, while the application verifies who actually has business authority.",
+    "managed": "Transcribe converts supported recordings into transcript output under its configured contract.",
+    "extension": "Add permitted turn/identifier handling and validation before using the transcript in context or indexing.",
+    "ownership": "Verify important spoken facts, sensitive-data transformation, and role claims independently of speaker labels.",
+    "constraint": "Produce a valid permitted transcript only when required and preserve the meaning needed downstream."
   },
   {
     "id": "etl",
@@ -278,7 +322,12 @@
     "summary": "Normalize approved formats, catalog data, and evaluate explicit schema/data rules before creating derived copies.",
     "clue": "Invalid dataset records must fail or be quarantined before training/indexing.",
     "trap": "A data-quality report is not automatically a deployment or ingestion gate.",
-    "capability": "AWS Glue / Glue Data Quality plus explicit pipeline gating."
+    "capability": "Glue/Data Quality for explicit dataset rules/gates; application checks for business semantics not captured by the selected rule.",
+    "example": "A quality report flags empty records, but the pipeline must explicitly stop or quarantine them before training/indexing.",
+    "managed": "Glue provides supported ETL/catalogue operations and Data Quality evaluates configured rules.",
+    "extension": "Configure explicit failure/quarantine/redaction behavior and validate domain-specific fields around ETL output.",
+    "ownership": "Choose correct rules, preserve meaningful IDs/case, and verify invalid records cannot continue.",
+    "constraint": "Prepared records must satisfy the actual content/schema rule, not merely produce a quality report."
   },
   {
     "id": "pii-text",
@@ -287,7 +336,12 @@
     "summary": "Locate supported entities or sensitive spans; apply and verify required redaction before indexing or logging.",
     "clue": "Text-processing PII detection is a different boundary from S3 corpus discovery.",
     "trap": "Detection does not itself sanitize every downstream copy.",
-    "capability": "Amazon Comprehend plus verified application transformation."
+    "capability": "Comprehend for supported text detection; application transformation plus explicit pipeline gates for verified redaction.",
+    "example": "A detector locates a personal identifier, but the original text must be transformed before an embedding/log copy is produced.",
+    "managed": "Comprehend detects supported text entities/sensitive spans; detection itself does not remove them.",
+    "extension": "Apply supported/domain-appropriate masking or redaction and validate the resulting bytes.",
+    "ownership": "Own sanitization policy, failure/quarantine handling, and checks across derived copies.",
+    "constraint": "Sensitive spans must receive the required transformation before unauthorized downstream exposure."
   },
   {
     "id": "parse",
@@ -296,7 +350,12 @@
     "summary": "Preserve headings, tables, qualifiers, identifiers, and source versions in the extracted evidence.",
     "clue": "The condition is absent before chunking → fix parsing.",
     "trap": "Do not diagnose chunking when the original meaning was already lost.",
-    "constraint": "Correct source meaning and structure reach the chunker."
+    "constraint": "The actual parser output must preserve the source meaning that chunks will inherit.",
+    "example": "A row’s price detached from its qualifying column creates misleading text even before chunking starts.",
+    "managed": "Eligible Knowledge Bases parsers or extraction services supply configured source interpretation.",
+    "extension": "Use a supported parsing option or preprocess structured content before the managed ingestion path.",
+    "ownership": "Validate headings, row/cell relationships, qualifiers, identifiers, and source/version lineage.",
+    "capability": "Knowledge Bases parsing; Textract/Data Automation where their extraction contract fits; source-versus-output validation."
   },
   {
     "id": "chunk",
@@ -305,7 +364,12 @@
     "summary": "Create evidence units that balance focused matching, sufficient context, and token budget.",
     "clue": "Small matching passage needs surrounding section → evaluate parent/child context.",
     "trap": "Semantic or larger chunks are not universally better.",
-    "constraint": "Preserve meaning while meeting retrieval quality and context-budget targets."
+    "constraint": "Evidence units must balance searchable focus, necessary context, and token/storage cost.",
+    "example": "“Eligible” and “except after activation” should be tested as one meaningful evidence context, not independently useful fragments.",
+    "managed": "Knowledge Bases applies the supported configured chunking strategy during ingestion.",
+    "extension": "Choose supported size/overlap, semantic, hierarchical, or a Lambda transformation for required custom boundaries.",
+    "ownership": "Evaluate representative boundary cases, recall/precision, context cost, and the supported store contract.",
+    "capability": "Knowledge Bases chunking and supported Lambda transformation changes evidence units before embedding, not runtime ranking."
   },
   {
     "id": "chunk-default",
@@ -314,7 +378,12 @@
     "summary": "Use the service’s default sentence-aware text splitting where representative retrieval tests show it fits.",
     "clue": "Start simple when no measured boundary problem requires another strategy.",
     "trap": "Default is not proof that table relationships or conditions survived.",
-    "capability": "Bedrock Knowledge Bases default text chunking."
+    "capability": "Default Knowledge Bases chunking with representative source-to-answer tests.",
+    "example": "Start with the default split only if tests show that rules and exceptions remain retrievable together.",
+    "managed": "Knowledge Bases uses its default supported text splitting under the configured ingestion contract.",
+    "extension": "Compare another supported strategy or custom transformation if boundary cases fail.",
+    "ownership": "Inspect resulting chunks and retrieval outcomes; the word “default” is not a quality guarantee.",
+    "constraint": "The default boundaries must preserve sufficient meaning and useful candidate recall for this corpus."
   },
   {
     "id": "chunk-fixed",
@@ -323,7 +392,12 @@
     "summary": "Choose explicit token size/overlap to control predictable evidence units.",
     "clue": "A condition split across boundaries may need overlap or another context strategy.",
     "trap": "More overlap increases indexed material; larger chunks can add noise.",
-    "capability": "Supported fixed-size Knowledge Bases chunking."
+    "capability": "Knowledge Bases fixed-size chunking controls predictable units; evaluation determines whether those units fit the documents.",
+    "example": "A fixed token size with overlap may retain a short rule/exception pair but still split a longer table incorrectly.",
+    "managed": "Knowledge Bases applies supported fixed-size token/overlap settings.",
+    "extension": "Adjust supported size/overlap and compare with eligible hierarchical/semantic or custom alternatives.",
+    "ownership": "Measure retrieval and context cost on boundary cases instead of choosing size by habit.",
+    "constraint": "Choose supported token/overlap settings that preserve needed context without unnecessary noise."
   },
   {
     "id": "chunk-semantic",
@@ -332,7 +406,12 @@
     "summary": "Split supported text around meaning/topic changes; evaluate the resulting boundaries and additional cost.",
     "clue": "Meaning boundaries may help a corpus with topic transitions.",
     "trap": "Semantic chunking does not automatically provide parent substitution.",
-    "capability": "Supported Knowledge Bases semantic chunking."
+    "capability": "Knowledge Bases semantic chunking where supported; corpus-specific evaluation rather than a universal “best” strategy.",
+    "example": "Topic-aware boundaries may help a narrative manual but must still preserve the condition needed by a specific question.",
+    "managed": "Knowledge Bases provides supported semantic chunking for eligible inputs/configurations.",
+    "extension": "Compare supported semantic settings and other chunk strategies on identical representative cases.",
+    "ownership": "Inspect produced boundaries and measure recall, precision, processing cost, and answer support.",
+    "constraint": "Meaning-based splits must improve this workload enough to justify their processing/context trade-off."
   },
   {
     "id": "chunk-hierarchical",
@@ -341,7 +420,12 @@
     "summary": "Match child chunks and return broader parent context when the selected store/configuration supports it.",
     "clue": "Focused child match needs surrounding section conditions.",
     "trap": "Parent context costs tokens and may reduce the returned result count.",
-    "capability": "Supported Knowledge Bases hierarchical chunking."
+    "capability": "Knowledge Bases supported hierarchical parent-child retrieval; GraphRAG has a different contract.",
+    "example": "A small child passage matches the question; the broader parent supplies its heading and exception to the model.",
+    "managed": "Supported Knowledge Bases hierarchical chunking/retrieval links matched children to broader parent context.",
+    "extension": "Choose supported parent/child settings under the selected store contract and compare with other strategies.",
+    "ownership": "Verify parent substitution, resulting context size, and whether returned evidence still meets count/budget needs.",
+    "constraint": "The selected configuration must support parent context and preserve relevant evidence within the model budget."
   },
   {
     "id": "chunk-custom",
@@ -350,7 +434,12 @@
     "summary": "Define domain-specific evidence boundaries when supported built-in strategies do not fit.",
     "clue": "Custom chunking does not automatically require custom retrieval.",
     "trap": "Check an extension contract before rebuilding ingestion.",
-    "extension": "Knowledge Bases custom transformation can supply chunking logic."
+    "extension": "Use the supported Lambda transformation for domain-specific chunks or chunk metadata.",
+    "example": "A legal clause must stay with its own exception and source metadata even when generic token splitting separates them.",
+    "managed": "Knowledge Bases can keep supported embedding/indexing/retrieval managed after compatible custom ingestion output.",
+    "ownership": "Own the transformation code, input/output contract, correctness, failures, and representative retrieval tests.",
+    "capability": "Knowledge Bases Lambda transformation is an ingestion extension; it does not override query-time ranking.",
+    "constraint": "Implement only the unsupported evidence-boundary requirement while preserving compatible managed stages."
   },
   {
     "id": "transformation",
@@ -359,10 +448,12 @@
     "summary": "A supported Knowledge Bases ingestion hook supplies custom chunks or chunk-level metadata, then returns output for managed processing.",
     "clue": "Custom chunking / chunk metadata → supported ingestion extension.",
     "trap": "This hook does not own query-time retrieval or reranking.",
-    "managed": "Knowledge Bases retains supported embedding/indexing/retrieval responsibilities around the transformation.",
-    "extension": "Use the prescribed Lambda and intermediate-S3 contract; custom chunking uses the appropriate no-chunking configuration.",
-    "ownership": "Own and validate the transformation implementation, not the entire RAG pipeline.",
-    "capability": "Bedrock Knowledge Bases custom transformation with AWS Lambda."
+    "managed": "Knowledge Bases coordinates the supported transformation hook and subsequent configured processing.",
+    "extension": "Supply compatible Lambda input/output and required intermediate S3 handling for custom chunking/metadata.",
+    "ownership": "Validate each returned chunk/metadata record, handle errors, and test synchronization and retrieval afterward.",
+    "capability": "Knowledge Bases custom Lambda transformation plus its documented S3/file contract; Lambda alone is not a custom query ranker.",
+    "example": "A hook produces clause-sized chunks and source tags, then returns supported references so the Knowledge Base continues ingestion.",
+    "constraint": "The custom output must satisfy the ingestion contract and preserve chunk meaning, provenance, and trusted scope."
   },
   {
     "id": "metadata",
@@ -371,7 +462,12 @@
     "summary": "Attach source/version references, searchable identifiers, and trusted access metadata to evidence.",
     "clue": "Tenant filtering and freshness checks depend on reliable metadata.",
     "trap": "User-supplied tenant text is not trusted authorization scope.",
-    "constraint": "Useful, consistent metadata survives indexing and retrieval."
+    "constraint": "Metadata must be complete/correct enough for source identity, freshness, and permitted access.",
+    "example": "The same passage text with a wrong tenant or version tag can produce an unauthorized or stale answer.",
+    "managed": "Knowledge Bases/store integration records supported source/chunk metadata and exposes eligible filters.",
+    "extension": "Use source metadata or a supported transformation to attach required fields; configure supported retrieval filtering.",
+    "ownership": "Derive access tags from authoritative policy and verify correctness on indexed chunks and query filters.",
+    "capability": "Knowledge Bases metadata/filters; Lambda transformation for eligible chunk metadata; backend authorization for trusted caller scope."
   },
   {
     "id": "embed",
@@ -380,11 +476,12 @@
     "summary": "Represent documents and queries in a compatible embedding space. Smaller vectors can reduce storage, but require retrieval-quality evaluation.",
     "clue": "Document vector and query vector must have matching dimensions and compatible model/configuration.",
     "trap": "More dimensions do not guarantee accuracy; matching size alone is not sufficient.",
-    "constraint": "Compatible vectors and measured recall within storage/latency goals.",
-    "managed": "Supported Bedrock embedding models generate vectors; the vector store performs similarity search.",
-    "extension": "Select supported dimensions/configuration and rebuild affected vectors consistently.",
-    "ownership": "Own evaluation and migration consistency when changing embedding model or dimension.",
-    "capability": "Titan Text Embeddings V2 or another supported embedding model."
+    "constraint": "Document and query vectors must share a compatible model/configuration and meet retrieval-quality requirements.",
+    "managed": "The selected embedding model produces supported vector representations for the configured pipeline.",
+    "extension": "Choose supported dimensions/configuration and evaluate alternative embedding models on representative queries.",
+    "ownership": "Keep document/query embedding spaces compatible and plan re-embedding/index migration when the contract changes.",
+    "capability": "Titan Text Embeddings V2 or another eligible embedding model with compatible Knowledge Bases/store configuration.",
+    "example": "Reducing vectors from 1,024 to 512 dimensions may save storage, but the document/query configuration and measured recall must remain acceptable."
   },
   {
     "id": "titan",
@@ -393,7 +490,12 @@
     "summary": "Supported vector sizes are 256, 512, and 1,024 dimensions. Compare configurations on the same representative query set.",
     "clue": "Keep document/query contracts compatible through an index migration.",
     "trap": "Titan G1’s 1,536 dimensions are a different model contract.",
-    "capability": "Amazon Titan Text Embeddings V2: 256D / 512D / 1024D."
+    "capability": "Titan Text Embeddings V2 for eligible vector generation; retrieval evaluation determines which supported size fits.",
+    "example": "Compare 256D, 512D, and 1,024D on the same query set rather than assuming the largest vector always gives the best business answer.",
+    "managed": "Titan Text Embeddings V2 provides supported 256/512/1,024-dimensional output configurations.",
+    "extension": "Select a supported size consistently for document and query generation and evaluate the resulting index.",
+    "ownership": "Measure recall, storage, and latency; version the model/dimension/configuration and migration plan.",
+    "constraint": "Choose one compatible representation that satisfies measured recall and resource constraints."
   },
   {
     "id": "dim-256",
@@ -401,7 +503,13 @@
     "title": "256D",
     "summary": "256-dimensional V2 vectors are a supported configuration. Use compatible query vectors and measure recall, storage, and latency.",
     "clue": "Choose based on a measured quality target, not vector size alone.",
-    "trap": "An index accepting the vector does not prove it meets retrieval recall."
+    "trap": "An index accepting the vector does not prove it meets retrieval recall.",
+    "example": "Document 256D and query 256D are dimension-compatible when the model/configuration is compatible; different dimensions are not.",
+    "managed": "Titan Text Embeddings V2 can generate supported 256-dimensional vectors.",
+    "extension": "Configure both ingestion and query generation for that supported representation; compare it with other eligible sizes.",
+    "ownership": "Verify model/configuration compatibility, index expectations, recall, storage, and latency rather than dimension alone.",
+    "capability": "Titan V2 256D plus a compatible index/query path; held-out retrieval cases measure the trade-off.",
+    "constraint": "The 256D document/query configuration must be compatible and preserve required evidence recall."
   },
   {
     "id": "dim-512",
@@ -409,7 +517,13 @@
     "title": "512D",
     "summary": "512-dimensional V2 vectors are a supported configuration. Use compatible query vectors and measure recall, storage, and latency.",
     "clue": "Choose based on a measured quality target, not vector size alone.",
-    "trap": "An index accepting the vector does not prove it meets retrieval recall."
+    "trap": "An index accepting the vector does not prove it meets retrieval recall.",
+    "example": "Document 512D and query 512D are dimension-compatible when the model/configuration is compatible; different dimensions are not.",
+    "managed": "Titan Text Embeddings V2 can generate supported 512-dimensional vectors.",
+    "extension": "Configure both ingestion and query generation for that supported representation; compare it with other eligible sizes.",
+    "ownership": "Verify model/configuration compatibility, index expectations, recall, storage, and latency rather than dimension alone.",
+    "capability": "Titan V2 512D plus a compatible index/query path; held-out retrieval cases measure the trade-off.",
+    "constraint": "The 512D document/query configuration must be compatible and preserve required evidence recall."
   },
   {
     "id": "dim-1024",
@@ -417,7 +531,13 @@
     "title": "1024D",
     "summary": "1024-dimensional V2 vectors are a supported configuration. Use compatible query vectors and measure recall, storage, and latency.",
     "clue": "Choose based on a measured quality target, not vector size alone.",
-    "trap": "An index accepting the vector does not prove it meets retrieval recall."
+    "trap": "An index accepting the vector does not prove it meets retrieval recall.",
+    "example": "Document 1024D and query 1024D are dimension-compatible when the model/configuration is compatible; different dimensions are not.",
+    "managed": "Titan Text Embeddings V2 can generate supported 1024-dimensional vectors.",
+    "extension": "Configure both ingestion and query generation for that supported representation; compare it with other eligible sizes.",
+    "ownership": "Verify model/configuration compatibility, index expectations, recall, storage, and latency rather than dimension alone.",
+    "capability": "Titan V2 1024D plus a compatible index/query path; held-out retrieval cases measure the trade-off.",
+    "constraint": "The 1024D document/query configuration must be compatible and preserve required evidence recall."
   },
   {
     "id": "compatibility",
@@ -425,7 +545,13 @@
     "title": "Document ↔ query compatibility",
     "summary": "Document: 512D ↔ Query: 512D is dimension-compatible. Document: 1024D ↔ Query: 256D is not. Also preserve compatible model/configuration.",
     "clue": "A query-only dimension change against the old index breaks the vector contract.",
-    "trap": "Do not mix embedding spaces just because both vectors have the same length."
+    "trap": "Do not mix embedding spaces just because both vectors have the same length.",
+    "example": "An index built from 1,024D document vectors cannot be queried as if those records were 256D vectors.",
+    "managed": "Embedding services produces vectors under a configured model/dimension contract; the store expects compatible indexed/query inputs.",
+    "extension": "Restore compatible query settings or perform a planned re-embedding/index migration.",
+    "ownership": "Track both sides of the representation and test recall after a change; matching size does not prove matching embedding space.",
+    "capability": "Embedding model settings, index configuration, and the query caller together forms the compatibility contract.",
+    "constraint": "Keep model, dimensions, and applicable configuration compatible for documents and queries."
   },
   {
     "id": "index",
@@ -434,7 +560,12 @@
     "summary": "Persist chunks, vectors, metadata, and source versions. Check completed updates/deletes and derived copies.",
     "clue": "Source changed but old version retrieved → inspect ingestion/index freshness.",
     "trap": "S3 modification alone does not prove a successful index update.",
-    "constraint": "The intended current approved evidence is actually indexed and searchable."
+    "constraint": "Current permitted evidence must exist in the searchable index with compatible vectors and metadata.",
+    "example": "An uploaded revised manual is not useful until its current chunk/vector/metadata record is actually searchable and obsolete records are handled.",
+    "managed": "Knowledge Bases ingestion and the selected supported store performs configured indexing/synchronization.",
+    "extension": "Use supported ingestion/update handling or implement the unsupported connector/synchronization responsibility explicitly.",
+    "ownership": "Check completion/failures, exact record/version identity, deletion, and any stale cache/derived copies.",
+    "capability": "Knowledge Bases ingestion jobs and Retrieve plus store inspection verifies source-to-index-to-candidate completion."
   },
   {
     "id": "knowledge-bases",
@@ -442,7 +573,13 @@
     "title": "Bedrock Knowledge Bases",
     "summary": "Managed RAG coordinates supported source ingestion and retrieval with a supported backing store. Retrieve tests evidence separately; RetrieveAndGenerate combines the configured path.",
     "clue": "A managed extension can leave the rest of RAG managed.",
-    "trap": "Knowledge Bases and its vector store are different responsibilities."
+    "trap": "Knowledge Bases and its vector store are different responsibilities.",
+    "example": "Custom clause chunking can use a supported Lambda hook while the Knowledge Base retains compatible managed ingestion and retrieval.",
+    "managed": "Knowledge Bases coordinates the configured supported source, embedding, store, retrieval, and combined answer path.",
+    "extension": "Use its supported ingestion transformation, metadata/filter, search/reranking, and Retrieve APIs where they fit the required layer.",
+    "ownership": "Own source/task/access policy and unsupported behavior; verify the chosen Knowledge Base type/store/API feature contract.",
+    "capability": "Retrieve inspects evidence independently; RetrieveAndGenerate combines configured retrieval/generation; supported extensions can preserve managed responsibilities.",
+    "constraint": "Confirm required ingestion, store, search, filtering, and citation behavior fits the selected Knowledge Base contract."
   },
   {
     "id": "vector-store",
@@ -451,7 +588,12 @@
     "summary": "Store/search indexed vectors, text, and metadata under the selected integration contract.",
     "clue": "A managed Knowledge Base can use OpenSearch as its backing store.",
     "trap": "Naming OpenSearch does not imply a fully custom RAG pipeline.",
-    "capability": "Supported OpenSearch/vector-store integration; verify store and search feature support."
+    "capability": "OpenSearch or another supported vector store supplies search/storage; Knowledge Bases can own the compatible RAG integration.",
+    "example": "An OpenSearch vector index can support a managed Knowledge Base; its presence does not require operating the whole RAG pipeline yourself.",
+    "managed": "The selected store handles configured text/vector/metadata persistence and supported search operations.",
+    "extension": "Configure eligible fields, indexes, search modes, and filters under the chosen Knowledge Base or custom integration.",
+    "ownership": "Own unsupported search/synchronization behavior and measure scale, memory, relevance, and permitted access.",
+    "constraint": "The store/integration must support the required query/filter/index contract and resource scale."
   },
   {
     "id": "query",
@@ -459,7 +601,13 @@
     "title": "Query",
     "summary": "Preserve intent, literal identifiers, and trusted scope when forming the retrieval request.",
     "clue": "An equipment ID is not interchangeable with semantically similar products.",
-    "trap": "Normalizing away meaningful identifiers can destroy exact matching."
+    "trap": "Normalizing away meaningful identifiers can destroy exact matching.",
+    "example": "A query about AX-417 must retain the identifier and the authenticated caller’s permitted corpus.",
+    "managed": "Knowledge Bases or the selected store executes supported retrieval queries/configuration.",
+    "extension": "Add controlled normalization/decomposition or exact/lexical/hybrid options where the supported path fits.",
+    "ownership": "Preserve meaning and identifiers, derive scope from trusted identity, and evaluate altered queries without weakening access.",
+    "capability": "Retrieve/search configuration plus application query preparation targets intent and exact-term requirements.",
+    "constraint": "Send a faithful, scoped query with the identifiers and filters required for relevant authorized evidence."
   },
   {
     "id": "query-embed",
@@ -468,7 +616,12 @@
     "summary": "Generate the query representation compatible with indexed document vectors.",
     "clue": "Document/query dimensions and model space must remain compatible.",
     "trap": "Changing the query model alone does not migrate the document index.",
-    "capability": "The compatible embedding model/configuration used by the indexed corpus."
+    "capability": "Titan/eligible embedding model with compatible indexed vectors and retrieval API contract.",
+    "example": "A new query embedding model cannot silently be compared with document vectors created by an incompatible old model.",
+    "managed": "The selected embedding service generates query vectors under the configured supported representation.",
+    "extension": "Keep the document/query settings aligned or migrate/re-embed the document index when needed.",
+    "ownership": "Verify both configurations and actual index/query inputs; compare recall after the change.",
+    "constraint": "The query representation must be compatible with indexed document vectors, not merely the same apparent size."
   },
   {
     "id": "vector",
@@ -477,7 +630,12 @@
     "summary": "Find candidates by semantic similarity in a compatible vector space.",
     "clue": "Meaning similarity helps paraphrases and concept queries.",
     "trap": "Similar text is not proof of exact identifier match or permission.",
-    "capability": "Supported vector retrieval through Knowledge Bases / the selected store."
+    "capability": "Supported vector retrieval plus an eligible embedding model addresses semantic intent; exact IDs may need separate lexical signals.",
+    "example": "“Can I return this?” may match “refund eligibility” semantically even when those exact words differ.",
+    "managed": "Supported Knowledge Bases/store vector search finds candidates using the configured compatible vector representations.",
+    "extension": "Choose eligible embedding/search settings and compare with exact/lexical or hybrid signals when the task includes identifiers.",
+    "ownership": "Evaluate domain/language recall, permitted scope, and thresholds on this dataset.",
+    "constraint": "Semantic candidate matching must return required permitted evidence for the actual query distribution."
   },
   {
     "id": "bm25",
@@ -486,7 +644,12 @@
     "summary": "Use literal terms and identifiers as retrieval signals; field configuration and tokenization still matter.",
     "clue": "AX-1047 / SKU / policy code may need lexical matching or an exact field lookup.",
     "trap": "A semantic similarity score alone can miss a literal identifier.",
-    "capability": "OpenSearch lexical/BM25 or exact identifier lookup where configured."
+    "capability": "OpenSearch or another supported lexical search contract for exact terms/identifiers; eligible hybrid can combine semantic signals.",
+    "example": "Searching a literal SKU should not lose the code because other product descriptions sound similar.",
+    "managed": "Supported lexical/BM25 search scores configured searchable text fields/terms.",
+    "extension": "Preserve identifiers and use supported field/tokenization/query settings; evaluate combination with vector signals if eligible.",
+    "ownership": "Measure exact-ID cases and scope/freshness; lexical relevance is not an access-control guarantee.",
+    "constraint": "Literal terms and field handling must preserve the identifiers that decide the task."
   },
   {
     "id": "hybrid",
@@ -495,7 +658,12 @@
     "summary": "Combine semantic and lexical signals where the selected store/API supports it, then evaluate candidate coverage and relevance.",
     "clue": "The question contains both an exact asset ID and a semantic symptom.",
     "trap": "Hybrid support and quality vary; it is not universally the best search.",
-    "capability": "Supported hybrid retrieval configuration, for example eligible OpenSearch-backed paths."
+    "capability": "Supported Knowledge Bases/OpenSearch hybrid retrieval joins exact-term and semantic evidence signals.",
+    "example": "A question includes both a product code and a natural-language symptom; evaluate whether combining literal and semantic signals covers both.",
+    "managed": "The selected supported retrieval contract combines lexical and vector signals where available.",
+    "extension": "Configure eligible hybrid behavior and compare it with appropriate alternatives on identical query cases.",
+    "ownership": "Measure recall/relevance and feature support for this Knowledge Base/store/API; do not assume hybrid is universally superior.",
+    "constraint": "The selected integration must support the desired combination and improve measured permitted evidence coverage."
   },
   {
     "id": "candidates",
@@ -504,7 +672,12 @@
     "summary": "Inspect the permitted evidence actually returned before reranking. Missing candidates may reflect indexing, freshness, filters, or query behavior.",
     "clue": "Indexed and authorized source missing here → evaluate candidate recall and query/search.",
     "trap": "A reranker cannot score a document absent from its input.",
-    "constraint": "The required permitted evidence enters the candidate set."
+    "constraint": "Required evidence must enter the candidate set before downstream ranking/context can use it.",
+    "example": "A reranker cannot choose the policy exception if initial search never returned it.",
+    "managed": "Retrieve or supported store search returns the actual permitted candidate list for the configured query.",
+    "extension": "Adjust eligible search/query/filter settings and candidate coverage before introducing an ordering stage.",
+    "ownership": "Inspect record identity, freshness, access, and pre-rerank recall rather than trusting a plausible generated answer.",
+    "capability": "Knowledge Bases Retrieve isolates candidates from generation; selected search controls addresses coverage."
   },
   {
     "id": "reranker",
@@ -513,11 +686,12 @@
     "summary": "Reorder existing candidates for relevance to the question before pruning context. This adds a ranking stage, not a new source-ingestion path.",
     "clue": "Correct passage is present but placed below irrelevant candidates.",
     "trap": "Reranking cannot restore text never parsed/indexed/retrieved.",
-    "constraint": "The needed evidence is present but its ordering/selection is poor.",
-    "managed": "Supported Bedrock reranker models score supplied query/document candidates.",
-    "extension": "Use supported reranking configuration or compose a reranking call over collected candidates.",
-    "ownership": "Own unsupported ranking policy and its latency/cost evaluation, not unrelated ingestion.",
-    "capability": "Supported Bedrock reranking / ranking configuration."
+    "constraint": "The useful passage must already be in input, and reordering must improve the context actually supplied.",
+    "managed": "Supported Bedrock/Knowledge Bases reranking reorders supplied candidates for query relevance.",
+    "extension": "Configure eligible model/result settings and inspect ordering before/after reranking.",
+    "ownership": "Evaluate relevant passage retention, latency/cost, and the unchanged candidate-input boundary.",
+    "capability": "Bedrock reranking or Knowledge Bases supported reranking configuration addresses order, not missing index/search content.",
+    "example": "The correct clause is in candidates but gets dropped below the context cutoff; ordering is the gap to test."
   },
   {
     "id": "best-context",
@@ -525,7 +699,13 @@
     "title": "Best context",
     "summary": "Select authorized relevant evidence within the context budget, preserving qualifications and source references.",
     "clue": "Good candidate can still be lost by pruning or truncation before generation.",
-    "trap": "Top-ranked alone does not mean complete, permitted, or source-supported."
+    "trap": "Top-ranked alone does not mean complete, permitted, or source-supported.",
+    "example": "Selecting only the short rule while discarding its exception produces misleading context even after good retrieval.",
+    "managed": "The configured managed retrieval/generation path supplies context under its supported settings.",
+    "extension": "Use Retrieve plus application selection/pruning or supported parent-context behavior where extra control is required.",
+    "ownership": "Preserve authorized qualifications, source references, and relevant history within the model input budget.",
+    "capability": "Knowledge Bases retrieval/parent context and application context assembly chooses which evidence reaches inference.",
+    "constraint": "Select enough correct permitted evidence to preserve meaning within the supported context limit."
   },
   {
     "id": "system-instructions",
@@ -533,7 +713,13 @@
     "title": "System instructions",
     "summary": "State task authority, behavior, boundaries, and insufficient-information handling.",
     "clue": "Separate governing instructions from untrusted source passages.",
-    "trap": "A system instruction is not a deterministic access-control boundary."
+    "trap": "A system instruction is not a deterministic access-control boundary.",
+    "example": "If no authorized passage answers the question, define clarification/fallback behavior instead of inviting the model to invent a policy.",
+    "managed": "Bedrock supported message/prompt contracts carries governing instructions to the selected model.",
+    "extension": "Use versioned task rules/examples and supported safety checks around untrusted input.",
+    "ownership": "Define authority and insufficient-information behavior; keep access/transaction checks deterministic outside model wording.",
+    "capability": "Prompt Management plus supported inference instructions; Guardrails for eligible safety policies; IAM/backend checks for permission.",
+    "constraint": "Governing rules must state the task and boundaries without treating retrieved text as instruction authority."
   },
   {
     "id": "prompt-template",
@@ -542,7 +728,12 @@
     "summary": "Version reusable task instructions, variables, and supported model configuration.",
     "clue": "Reproducible prompt releases → Prompt Management.",
     "trap": "Saving a version does not mean it passed evaluation.",
-    "capability": "Bedrock Prompt Management plus application release/evaluation gates."
+    "capability": "Prompt Management for reusable/versioned instructions; protected request attribution and release tests for actual invocation.",
+    "example": "A tested version and a live rendered request can differ because a variable or example changed.",
+    "managed": "Prompt Management provides supported templates, variables, variants, versions, and model configuration.",
+    "extension": "Bind supported variables and invoke the evaluated prompt through a compatible API contract.",
+    "ownership": "Track the rendered payload, release identity, approval/evaluation, and fallback; a saved version is not evidence of live use.",
+    "constraint": "The rendered version/configuration must match the approved evaluated task requirements."
   },
   {
     "id": "user-query",
@@ -550,7 +741,13 @@
     "title": "User query",
     "summary": "Define the requested task clearly and preserve the question the evidence should answer.",
     "clue": "Different label definitions or overlap policies create different classification tasks.",
-    "trap": "A persona cannot fill in an undefined decision rule."
+    "trap": "A persona cannot fill in an undefined decision rule.",
+    "example": "“Choose billing or technical” is incomplete when a case belongs to both and no priority or clarification rule exists.",
+    "managed": "The inference API accepts the supplied query; it does not define the application’s business labels.",
+    "extension": "Add explicit task definitions, representative examples, and supported clarification branching.",
+    "ownership": "Agree expected decisions and missing-information handling, preserving user intent and meaningful identifiers.",
+    "capability": "Prompt Management for task rules; application/Flows branching for eligible clarification; assertions for expected decisions.",
+    "constraint": "The requested outcome and ambiguous boundary cases must be defined before measuring model correctness."
   },
   {
     "id": "retrieved-knowledge",
@@ -558,7 +755,13 @@
     "title": "Retrieved knowledge",
     "summary": "Supply selected permitted passages as evidence, keeping their identifiers and source conditions.",
     "clue": "A cited passage must actually support the answer claim.",
-    "trap": "Treat document instructions as untrusted data rather than system authority."
+    "trap": "Treat document instructions as untrusted data rather than system authority.",
+    "example": "The model needs both the current eligibility rule and its exception; an old or incomplete passage is insufficient.",
+    "managed": "Knowledge Bases supplies supported retrieved evidence under its configured search/access contract.",
+    "extension": "Use Retrieve/context assembly or compatible managed generation settings to include the required permitted passages.",
+    "ownership": "Verify freshness, entitlement, qualifications, source identity, and what actually reaches the model.",
+    "capability": "Knowledge Bases Retrieve/RetrieveAndGenerate for eligible evidence supply; application checks for the needed facts and source support.",
+    "constraint": "Supply the current authorized facts and qualifiers required by this question."
   },
   {
     "id": "conversation",
@@ -566,7 +769,13 @@
     "title": "Conversation context",
     "summary": "Supply relevant permitted history and authoritative state explicitly; trim within the context budget.",
     "clue": "Converse accepts messages; the application owns the history it sends.",
-    "trap": "An inference call is not automatically a persistent conversation store."
+    "trap": "An inference call is not automatically a persistent conversation store.",
+    "example": "A follow-up about “that device” needs its earlier ID included in relevant scoped history or authoritative state.",
+    "managed": "Converse/ConverseStream receives supported message history supplied by the application.",
+    "extension": "Select relevant turns and application state explicitly, trimming within the supported context budget.",
+    "ownership": "Persist authoritative facts, enforce session/tenant scope, and verify required details survive history trimming.",
+    "capability": "Converse messages for current context; appropriate application state storage such as DynamoDB for durable scoped facts.",
+    "constraint": "Preserve enough relevant authorized history/state to answer the current task within the model budget."
   },
   {
     "id": "bedrock",
@@ -575,7 +784,12 @@
     "summary": "Use eligible managed foundation models, inference APIs, customization, and supporting GenAI capabilities without choosing endpoint GPU fleets.",
     "clue": "Managed FM-centric application integration fits without infrastructure selection.",
     "trap": "Bedrock supports eligible customization; “custom weights” alone does not require SageMaker.",
-    "capability": "Bedrock inference/customization/import features where supported."
+    "capability": "Bedrock Converse/model APIs and supported Knowledge Bases/Guardrails/customization features for their respective responsibilities.",
+    "example": "Use an eligible managed model without designing a GPU endpoint fleet, while still evaluating the actual task and feature contract.",
+    "managed": "Bedrock provides supported FM inference infrastructure and eligible customization/import/application capabilities.",
+    "extension": "Configure supported prompts, tools, retrieval, safety, and adaptation around eligible model/API features.",
+    "ownership": "Own model/task fit, inputs/scope, release checks, and business outcomes; managed inference is not automatic correctness.",
+    "constraint": "The chosen model/feature/Region/API must meet task, processing, and serving requirements."
   },
   {
     "id": "sagemaker",
@@ -584,9 +798,12 @@
     "summary": "Choose deeper ML training, serving-container, instance, endpoint, and lifecycle controls where they are decisive.",
     "clue": "GPU family + serving container + endpoint autoscaling requirements.",
     "trap": "More control adds ownership; do not choose it merely because a prompt or chunker is custom.",
-    "managed": "SageMaker provides managed ML services while exposing supported training/hosting configuration.",
-    "ownership": "Own the model/container configuration, compatible artifacts, deployment, capacity, and validation.",
-    "capability": "SageMaker AI training and eligible hosted endpoint configurations."
+    "managed": "SageMaker AI supplies managed jobs/endpoints and supported lifecycle components with configurable ML/hosting choices.",
+    "ownership": "Own the implementation/configuration, capacity economics, artifact compatibility, evaluation, and deployment/rollback.",
+    "capability": "SageMaker endpoints/jobs/pipelines/eligible registry components when their deeper control is required; custom weights alone do not rule out Bedrock.",
+    "example": "A required custom serving container, GPU instance choice, or endpoint scaling policy calls for deeper hosting control.",
+    "extension": "Provide compatible model/container/artifact and endpoint settings, or use supported adapter inference components where eligible.",
+    "constraint": "Take deeper training/hosting control only where a hard requirement justifies its configuration and operations."
   },
   {
     "id": "sync",
@@ -595,7 +812,12 @@
     "summary": "The caller waits for one complete bounded response.",
     "clue": "Short complete answer needed before proceeding.",
     "trap": "A larger timeout does not turn the path into durable background work.",
-    "capability": "Supported Converse / InvokeModel and a bounded request path."
+    "capability": "Converse or compatible InvokeModel for supported bounded inference; application/API delivery and outcome validation.",
+    "example": "A user waits for one bounded complete answer; its response timeout must fit the whole request path.",
+    "managed": "Supported Bedrock synchronous inference produces the complete operation result.",
+    "extension": "Use a compatible API/application integration and validate the delivered task result.",
+    "ownership": "Own timeout/retry uncertainty, authorization, and whether this work fits a bounded waiting caller.",
+    "constraint": "The complete request must fit the caller’s waiting/time contract and return a valid result."
   },
   {
     "id": "streaming",
@@ -604,7 +826,12 @@
     "summary": "Expose incremental generated output while the caller stays connected; every transport hop must preserve streaming.",
     "clue": "Need earlier visible tokens while the user waits.",
     "trap": "Streaming does not imply background completion or lower total inference cost.",
-    "capability": "ConverseStream / InvokeModelWithResponseStream with an eligible streaming transport."
+    "capability": "Bedrock streaming plus supported end-to-end transport; verify each hop and model/API support.",
+    "example": "The first token is useful only if the adapter/API/proxy/client forwards it rather than buffering until completion.",
+    "managed": "ConverseStream or another supported Bedrock operation exposes incremental model output.",
+    "extension": "Implement a supported streaming transport/client path and compatible event decoding.",
+    "ownership": "Handle buffering, disconnects, partial failure, safe output, and resource cleanup without assuming a resumed model stream.",
+    "constraint": "The caller remains connected and receives incremental output under safe delivery/error handling."
   },
   {
     "id": "async",
@@ -613,7 +840,12 @@
     "summary": "Return durable acceptance/job identity and finish later with persisted status/results and failure handling.",
     "clue": "Caller can leave; accepted work must survive transient worker failures.",
     "trap": "Acknowledged is not completed, and a queue does not by itself enforce token rate.",
-    "capability": "SQS + paced Lambda/container workers + durable results; event/workflow patterns where appropriate."
+    "capability": "SQS/Step Functions plus application job state; SageMaker Asynchronous Inference where its hosting/job contract fits.",
+    "example": "Return a job ID quickly, then persist real pending/completed/failed state so the caller can leave and return later.",
+    "managed": "Queues/workflows and compatible job services supply their configured background execution contracts.",
+    "extension": "Compose durable application workers, results/status, polling or callbacks, and supported model work.",
+    "ownership": "Own acceptance versus completion, authorization, retries/idempotency, reconciliation, and durable result retention.",
+    "constraint": "Accepted work must survive the caller leaving and expose truthful recoverable completion state."
   },
   {
     "id": "batch",
@@ -622,7 +854,12 @@
     "summary": "Process a supported offline dataset as a managed inference job and reconcile record-level results.",
     "clue": "Many offline requests; no immediate live answer is needed.",
     "trap": "Batch support, input format, economics, and completion semantics depend on the model/Region contract.",
-    "capability": "Supported Bedrock batch inference over an approved S3 dataset."
+    "capability": "Bedrock batch inference or SageMaker Batch Transform according to the dataset/hosting requirement; not interactive token delivery.",
+    "example": "A known offline S3 dataset should be reconciled by record after the eligible inference job finishes.",
+    "managed": "Supported Bedrock batch inference processes an eligible dataset/job contract; SageMaker Batch Transform fits appropriate custom-hosted batch work.",
+    "extension": "Prepare supported records and correlate/reconcile output and failure records.",
+    "ownership": "Check model/Region support, completion objectives, job failures, permissions, and measured economics.",
+    "constraint": "Use a supported offline job and verify record-level completion under the task deadline."
   },
   {
     "id": "select",
@@ -630,7 +867,13 @@
     "title": "Select",
     "summary": "Compare supported model capability, modalities, context limits, quality, safety, latency, cost, and deployment requirements.",
     "clue": "Choose with representative tasks and a held-out baseline.",
-    "trap": "A public benchmark rank does not establish fit for this workload."
+    "trap": "A public benchmark rank does not establish fit for this workload.",
+    "example": "Compare two supported candidates on the same real task cases; a stronger public benchmark may not help your required modality, rare IDs, or latency budget.",
+    "managed": "Bedrock exposes eligible models through supported inference APIs; evaluation operations provide supported measurement approaches. SageMaker can host compatible candidates where deeper control is needed.",
+    "extension": "Use a representative held-out dataset and consistent rubric/settings; route among evaluated eligible models where the requirements call for it.",
+    "ownership": "Own the acceptance criteria, workload/cohort coverage, fair comparison, and support checks. Do not substitute model size or reputation for measured task fit.",
+    "capability": "Bedrock inference/evaluation or compatible SageMaker hosting supports model comparison. AppConfig plus application routing can change approved model/cohort selection under its deployment/polling contract.",
+    "constraint": "The candidate must meet task/modality, context/output, safety, latency/cost, Region/API, and deployment requirements."
   },
   {
     "id": "adapt",
@@ -639,20 +882,26 @@
     "summary": "Change instructions, evidence, or weights according to the observed deficiency; these approaches can combine. Prompt → RAG → weights: escalate only for an unmet need. This is an application decision, separate from the model-only lifecycle.",
     "clue": "Missing current facts differs from unstable instructions or stable style needs. Change instructions, evidence, or weights deliberately; evaluate each against a held-out baseline.",
     "trap": "RAG is not fine-tuning and neither is required for every model change.",
-    "extension": "Version prompts, retrieval, datasets, tools, and supported model artifacts; add calibrated evaluations and approval gates."
+    "extension": "Improve task instructions/examples, add supported RAG, or test eligible adaptation according to the measured gap.",
+    "example": "A format gap, a current-fact gap, and a stable learned-behavior gap require different experiments and may coexist.",
+    "managed": "Prompt Management, Knowledge Bases, and eligible Bedrock/SageMaker customization provide different instruction, evidence, and weight capabilities.",
+    "ownership": "Define the requirement, fair baseline, data/evaluation, and release controls for each change.",
+    "capability": "Prompt → task/format; RAG → current permitted evidence; eligible customization → evaluated stable behavior/domain need.",
+    "constraint": "Change the layer whose missing responsibility explains the observed defect, accepting custom ownership only where required."
   },
   {
     "id": "model-customization",
     "parent": "lifecycle",
     "title": "Model customization / training (optional)",
     "summary": "Change the model only for an evaluated need. Fine-tuning uses suitable labeled data; continued pre-training uses suitable unlabeled domain text where supported; distillation trains an eligible smaller student from teacher-generated behavior. LoRA is a fine-tuning technique, not a separate source of knowledge. An unchanged selected model can proceed to evaluation.",
-    "constraint": "A measured stable behavior, domain adaptation, or serving quality/cost need; suitable data and a supported model/workflow.",
-    "managed": "Bedrock provides supported model/customization/evaluation operations; SageMaker supplies broader ML lifecycle capabilities.",
-    "extension": "Eligible Bedrock model customization or SageMaker training according to support/control needs.",
-    "ownership": "Own release criteria, custom training/serving needs, human accountability, and rollback verification.",
-    "capability": "Eligible Bedrock model customization or SageMaker training according to support/control needs.",
+    "constraint": "Change weights only for a measured requirement with suitable data, supported method, demonstrated benefit, and a compatible release path.",
+    "managed": "Eligible Bedrock customization/distillation/import features or SageMaker jobs/endpoints supply supported adaptation and deployment operations. Availability depends on model/method/Region/serving contract.",
+    "extension": "Choose labeled-data tuning, supported unlabeled domain adaptation, or eligible teacher/student distillation for the measured requirement. LoRA changes adapter weights within a compatible tuning/serving setup.",
+    "ownership": "Own approved examples, independent evaluation, artifact compatibility, approval, deployment, and rollback. A trained artifact is not proof that the live application uses it or that its behavior improved.",
+    "capability": "Bedrock eligible customization/import/distillation or SageMaker model/adapter workflows addresses weight-level needs. Prompt Management and Knowledge Bases addresses separate instruction/evidence gaps.",
     "clue": "Stable behavior → fine-tuning; supported domain-text adaptation → continued pre-training; smaller student → distillation.",
-    "trap": "RAG is not fine-tuning and neither is required for every model change."
+    "trap": "RAG is not fine-tuning and neither is required for every model change.",
+    "example": "If clear instructions and correct evidence still fail a stable behavior requirement, test eligible adaptation and compare it with the unchanged baseline."
   },
   {
     "id": "prompt-engineering",
@@ -661,7 +910,12 @@
     "summary": "Clarify task, decision rules, examples, and supported output constraints before adding weight changes.",
     "clue": "Policy ambiguity or a missing few-shot boundary.",
     "trap": "A valid schema or low temperature cannot supply a missing fact.",
-    "capability": "Versioned prompts, Prompt Management, supported schema controls, and evaluation."
+    "capability": "Prompt Management plus Converse/model APIs; schema validation and task assertions checks different requirements.",
+    "example": "Define how overlapping categories should be handled, then test examples before assuming the model needs weight changes.",
+    "managed": "Prompt Management versions reusable instructions/examples; the supported inference contract carries the rendered context.",
+    "extension": "Add task rules, examples, relevant evidence, and supported output constraints.",
+    "ownership": "Own label meanings, semantic/business assertions, untrusted-data separation, and prompt regression gates.",
+    "constraint": "The prompt must express a clear task with testable expected outputs and appropriate evidence."
   },
   {
     "id": "rag",
@@ -670,7 +924,12 @@
     "summary": "Retrieve current private evidence into context rather than relying on model weights to track updates.",
     "clue": "Frequently changing source facts with attribution.",
     "trap": "RAG still needs ingestion freshness, authorization, retrieval quality, and faithful context use.",
-    "capability": "Knowledge Bases or a justified composed/custom retrieval layer."
+    "capability": "Knowledge Bases Retrieve/RetrieveAndGenerate with a supported store; Lambda transformation extends ingestion, supported reranking addresses candidate order.",
+    "example": "A policy changed after training; retrieve its current permitted rule and exception instead of assuming weights track every update.",
+    "managed": "Knowledge Bases coordinates supported source ingestion and retrieval/generation with the selected backing contract.",
+    "extension": "Use supported ingestion/filter/reranking extensions or compose Retrieve/context assembly for the specific gap.",
+    "ownership": "Own freshness, caller entitlement, source meaning, candidate/answer evaluation, and unsupported policy.",
+    "constraint": "Current authorized evidence must reach context and actually support the requested answer."
   },
   {
     "id": "fine-tuning",
@@ -679,7 +938,12 @@
     "summary": "Use suitable labeled training data for an evaluated stable behavior/task need when supported prompting is insufficient.",
     "clue": "Consistent domain behavior with a demonstrated quality gain.",
     "trap": "Daily private-document refresh and citations are not implemented merely by changing weights.",
-    "capability": "Eligible Bedrock model customization or SageMaker training according to support/control needs."
+    "capability": "Supported Bedrock fine-tuning/customization or SageMaker adaptation plus independent evaluation and compatible serving.",
+    "example": "A clear evaluated prompt and correct evidence still fail a stable classification behavior; test eligible tuning against the unchanged model.",
+    "managed": "Eligible Bedrock customization or SageMaker jobs executes supported tuning/configuration contracts.",
+    "extension": "Supply suitable approved labeled records or a compatible parameter-efficient method where supported.",
+    "ownership": "Own data quality/splits, held-out benefit, artifact compatibility, approval, and deployment/rollback.",
+    "constraint": "Tuning must address a measured stable gap and improve required held-out behavior enough to justify lifecycle cost."
   },
   {
     "id": "continued-pretraining",
@@ -688,7 +952,12 @@
     "summary": "Adapt eligible models on suitable unlabeled domain text where the model/feature supports it; evaluate against the original baseline.",
     "clue": "Domain adaptation differs from supervised instruction examples.",
     "trap": "This option is model-specific and not a real-time source lookup.",
-    "capability": "Supported continued pre-training or an appropriate controlled training workflow."
+    "capability": "Model-specific continued pre-training where eligible; retrieval remains the separate current-source capability.",
+    "example": "Adapting on unlabeled domain text may address a domain need, but a later policy change still needs current evidence.",
+    "managed": "Eligible Bedrock continued pre-training or a controlled SageMaker training path executes the supported method.",
+    "extension": "Supply approved suitable domain text and compare the supported adaptation with the original baseline.",
+    "ownership": "Own data approval, independent task evaluation, compatibility, lifecycle cost, and release support.",
+    "constraint": "Verify method/model support and a measured domain benefit; do not treat weights as a live source lookup."
   },
   {
     "id": "datasets",
@@ -696,7 +965,13 @@
     "title": "Datasets / splits",
     "summary": "Version approved training/tuning data and separate representative held-out evaluation data with source/tool references.",
     "clue": "Preserve expert labels and rare/critical cohorts.",
-    "trap": "Tuning on the held-out final test invalidates its independence."
+    "trap": "Tuning on the held-out final test invalidates its independence.",
+    "example": "A perfect score on records copied from training does not establish behavior on a new customer case. Version and separate the data used for tuning and final acceptance.",
+    "managed": "S3 stores approved versioned datasets; supported evaluation/training jobs consume their configured records. Those jobs do not independently establish that labels and splits represent your business task.",
+    "extension": "Use Glue/Data Quality or application checks for explicit rules, duplicate/label review, quarantine, and sensitive-data handling before jobs consume records.",
+    "ownership": "Own source approval, task labels, split independence, provenance, critical-cohort coverage, and test-set protection. Final held-out cases must not become tuning inputs.",
+    "capability": "S3/version metadata records lineage; Glue/Data Quality supports explicit gates; Bedrock/SageMaker jobs uses supported record formats; experts/application checks validates task meaning.",
+    "constraint": "Data must be approved, correctly labeled/formatted, representative, and separated into appropriate tuning and independent evaluation sets."
   },
   {
     "id": "lifecycle-evaluate",
@@ -705,7 +980,12 @@
     "summary": "Measure quality, correctness, faithfulness, safety, latency, and cost; use calibrated automated/judge checks and accountable human review where needed.",
     "clue": "Critical regression blocks promotion even when averages improve.",
     "trap": "Human review and automated evaluation complement each other; neither is automatically infallible.",
-    "capability": "Supported Bedrock evaluations, deterministic checks, expert review, and approval workflows."
+    "capability": "Bedrock evaluation measures eligible model/RAG qualities; deterministic/domain checks covers objective and high-risk requirements; Step Functions or a delivery pipeline enforces required promotion gates.",
+    "example": "Before promoting a candidate, compare it with the accepted baseline on the same independent cases, including critical cohorts that an average could hide.",
+    "managed": "Supported Bedrock evaluation executes eligible automated/judge/human comparisons; SageMaker/application workflows can run applicable checks. The evaluator does not decide your business release policy.",
+    "extension": "Add source-fact assertions, valid tool outcomes, calibrated rubrics, human review, and quality/safety/performance thresholds appropriate to the candidate.",
+    "ownership": "Own held-out references, judge calibration, cohort gates, approval authority, and acceptance/rollback criteria. Block a critical regression even when overall quality rises.",
+    "constraint": "The actual intended release configuration must pass independent task, safety, and relevant latency/cost requirements before approval."
   },
   {
     "id": "deploy",
@@ -713,7 +993,13 @@
     "title": "Deploy / invoke",
     "summary": "Release a compatible approved model/prompt/retrieval configuration with version attribution and rollback.",
     "clue": "Control serving infrastructure only when required.",
-    "trap": "A registered artifact does not automatically update an endpoint."
+    "trap": "A registered artifact does not automatically update an endpoint.",
+    "example": "A registry approval does not make a new adapter live. Deployment must load the compatible artifact, select its route, and pass an attributed smoke request.",
+    "managed": "SageMaker endpoints/inference components or the configured Bedrock invocation path provide supported serving operations. Model Registry records eligible artifacts/approval, rather than automatically changing live routes.",
+    "extension": "Compose explicit artifact promotion, canary/shadow/blue-green exposure where appropriate, version attribution, and smoke/rollback checks in the delivery workflow.",
+    "ownership": "Own the approved model/base-adapter/template/settings combination, side-effect isolation, critical-cohort stop criteria, state compatibility, and tested rollback route.",
+    "capability": "Registry → version/approval evidence. Serving deployment/router → actual invoked identity. Canary limits exposure; shadow isolates candidate output/side effects; blue-green switches prepared environments.",
+    "constraint": "Release the evaluated compatible configuration safely, prove its live identity, and preserve a working compatible rollback target."
   },
   {
     "id": "capacity",
@@ -722,8 +1008,13 @@
     "summary": "Separate intermittent on-demand use, measured reserved capacity, and eligible cross-Region routing.",
     "clue": "Stable demand and approved processing destinations are different constraints.",
     "trap": "An inference profile does not independently fail over the source application or provide chosen GPU controls.",
-    "capability": "Eligible on-demand / Provisioned Throughput / inference profiles; SageMaker endpoint capacity where required.",
-    "read": "#inference-modes"
+    "capability": "On-demand for flexible eligible calls; Provisioned Throughput for measured supported reservation needs; profiles for eligible allowed routing, currently without Provisioned Throughput.",
+    "read": "#inference-modes",
+    "example": "Intermittent demand, stable token throughput, and geographic compute routing are different requirements with different costs.",
+    "managed": "Bedrock on-demand, supported Provisioned Throughput, and eligible inference profiles supply distinct serving/routing contracts.",
+    "extension": "Size/evaluate supported options from measured workload and approved destinations; add appropriate application admission.",
+    "ownership": "Own quotas/demand, cost comparison, tail-latency measurement, destination policy, and source-application recovery.",
+    "constraint": "Capacity must meet real token demand within support, cost, latency, and geographic policy."
   },
   {
     "id": "monitor",
@@ -731,7 +1022,13 @@
     "title": "Monitor / improve",
     "summary": "Correlate production versions and outcomes, turn failures into regressions, and roll back critical degradation.",
     "clue": "Quality drift and failed tool outcomes need more than uptime metrics.",
-    "trap": "A monitoring chart does not itself generate calibrated quality scores."
+    "trap": "A monitoring chart does not itself generate calibrated quality scores.",
+    "example": "One tenant/task route can regress while endpoint uptime and aggregate latency look normal. Track outcomes by release and cohort, not health alone.",
+    "managed": "CloudWatch supported metrics/logs and configured invocation/tool tracing captures emitted evidence. These services do not automatically judge business correctness or decide that retraining is required.",
+    "extension": "Emit scoped outcome/cohort/version signals, add confirmed failures to the golden dataset, and trigger your evaluation/rollback process under explicit criteria.",
+    "ownership": "Own attribution, drift/failure analysis, critical-cohort monitoring, regression updates, and release response. Diagnose data/context/route changes before choosing model adaptation.",
+    "capability": "CloudWatch, protected invocation/application logs, and X-Ray/OTel/tool traces provide evidence; golden-dataset evaluation and deployment controls guide the response.",
+    "constraint": "Monitor actual quality, safety, latency/cost, and actions for the invoked release; investigate or roll back critical degradation."
   },
   {
     "id": "lambda",
@@ -740,7 +1037,12 @@
     "summary": "Run a bounded operation and externalize durable state. Split long waits into an appropriate workflow/job.",
     "clue": "Short stateless adapter, validation, or lookup.",
     "trap": "Warm execution memory is not a guaranteed persistent service lifecycle.",
-    "capability": "AWS Lambda; provisioned concurrency targets initialization, reserved concurrency targets allocation/caps."
+    "capability": "Lambda for one bounded operation; Step Functions/SQS for appropriate durable coordination or buffering around it.",
+    "example": "Run a bounded extraction/tool/API task; persist progress elsewhere when the overall job includes long waits.",
+    "managed": "Lambda manages eligible function execution; a conventional invocation is limited to 15 minutes.",
+    "extension": "Compose bounded functions with Step Functions or queued workers for the broader durable job.",
+    "ownership": "Own side-effect validation, external state, deadlines, retries/idempotency, dependencies, and rate control.",
+    "constraint": "The operation must fit the execution/runtime contract without using a function as a long-lived approval wait."
   },
   {
     "id": "step-functions",
@@ -749,11 +1051,13 @@
     "summary": "Developers define states, retries, branches, and approval waits. Bounded Bedrock/tool tasks can sit inside the workflow.",
     "clue": "Known sequence + durable state + hours-long approval.",
     "trap": "Model-selected autonomy is not needed just because a process is complex.",
-    "managed": "Standard workflows retain execution state and support appropriate callback/recovery patterns.",
-    "extension": "Invoke bounded tasks and approved integrations under scoped roles.",
-    "ownership": "Own the explicit state definition, approval identity/deadline, and idempotent external actions.",
-    "capability": "AWS Step Functions Standard where the durability/integration contract fits.",
-    "read": "#step-functions"
+    "managed": "Step Functions executes explicit configured states, retries, branches, and applicable durable integration/wait contracts.",
+    "extension": "Use Choice/Parallel/Map and supported Retry/Catch/callback patterns around bounded model/business tasks.",
+    "ownership": "Define state/approval/deadline rules, protect callback identity, and keep external business effects idempotent.",
+    "capability": "Standard supports eligible .sync/callback waits and long duration; Express has different duration/integration limits, including no callback task tokens.",
+    "read": "#step-functions",
+    "example": "A fixed review process must remember which step completed, wait for the authenticated decision, then branch on it.",
+    "constraint": "Known workflow transitions, durable state, recovery, and waits must match the selected workflow type."
   },
   {
     "id": "agents",
@@ -762,7 +1066,12 @@
     "summary": "The model reasons over observations to choose among permitted actions. Bound tools, time, iterations, tokens, and write authority.",
     "clue": "The next tool cannot be expressed as a known fixed sequence.",
     "trap": "Framework/runtime choice does not supply business authorization.",
-    "capability": "Bedrock Agents or an appropriate framework such as Strands; eligible runtime/tool hosting as needed."
+    "capability": "Compatible frameworks such as Strands or eligible AgentCore managed harness for the loop; IAM/backend controls for scope; durable workflows for required state/waits.",
+    "example": "A diagnostic task chooses its next permitted tool from observations; a required refund approval still follows business policy.",
+    "managed": "An eligible managed harness or compatible framework runs the configured model/tool loop; AgentCore Runtime hosts code-defined agents.",
+    "extension": "Expose bounded well-described tools, scoped retrieval, and supported human-control points where the loop contract fits.",
+    "ownership": "Own permitted actions/arguments, iteration/time/token limits, validation, evaluation, and business side effects.",
+    "constraint": "Use dynamic tool selection only where the next action genuinely depends on observations, within enforced authority."
   },
   {
     "id": "events",
@@ -771,8 +1080,13 @@
     "summary": "EventBridge routes events to targets; SQS retains work for paced consumers. These can support ingestion or runtime jobs.",
     "clue": "Independent event consumers differ from a worker buffer under a fixed model rate.",
     "trap": "Queues do not automatically implement token-rate admission.",
-    "capability": "EventBridge rules/targets; SQS with bounded/rate-controlled workers, retry/DLQ, and idempotency.",
-    "read": "#business-events"
+    "capability": "EventBridge → independent event targets; SQS → durable buffering/paced workers. A shared worker queue distributes rather than broadcasts every job.",
+    "read": "#business-events",
+    "example": "An event must reach independent targets, while bursts before a slow target need buffering and pacing.",
+    "managed": "EventBridge routes configured events; SQS stores work for configured consumers/redelivery.",
+    "extension": "Filter/rout events, put queues before constrained consumers, and compose appropriate workers/workflows.",
+    "ownership": "Own delivery/retry/DLQ policy, idempotency, queue deadlines, and safe processing rate.",
+    "constraint": "Match fan-out versus work distribution and keep accepted work recoverable under consumer demand/capacity."
   },
   {
     "id": "mcp",
@@ -781,7 +1095,12 @@
     "summary": "Match each tool’s duration, dependencies, connection lifecycle, and compute needs. Use a persistent service only when it is required.",
     "clue": "Long-lived compatible CPU service differs from a short DynamoDB lookup.",
     "trap": "External session state alone does not force every handler into containers.",
-    "capability": "Lambda for bounded handlers; eligible ECS/Fargate services for persistent CPU runtimes."
+    "capability": "Lambda/ECS/Fargate/compatible AgentCore runtime according to execution needs; MCP connectivity does not establish exactly-once business completion.",
+    "example": "A tool that times out may already have completed a write; inspect its authoritative outcome before another side-effecting attempt.",
+    "managed": "Compatible tool runtimes hosts code under their duration/connection/dependency contract; MCP exposes the configured tool interface.",
+    "extension": "Use bounded Lambda calls or an appropriate persistent ECS/Fargate/agent runtime only where the tool actually requires it.",
+    "ownership": "Own tool authentication, scope, inputs, deadlines, outcome reconciliation, and idempotency.",
+    "constraint": "The hosting and tool contract must fit runtime needs and provide evidence for safe business recovery."
   },
   {
     "id": "authentication",
@@ -790,7 +1109,12 @@
     "summary": "Identify the caller and evaluate allowed AWS actions/resources using the applicable policies and explicit denies.",
     "clue": "Who is calling differs from which customer record they may use.",
     "trap": "An ingestion role’s source access is not every end user’s document permission.",
-    "capability": "Cognito/federation + IAM; application/data authorization for business scope."
+    "capability": "Cognito/federation for identity; IAM for AWS access; backend/data authorization for business records; CloudTrail coverage for API audit.",
+    "example": "A signed-in user is identifiable but still needs permission for the requested document or transaction.",
+    "managed": "Cognito/appropriate federation verifies identity; IAM evaluates applicable AWS action/resource policies and explicit denies.",
+    "extension": "Carry the verified identity/role into backend entitlement checks and supported private/API integrations.",
+    "ownership": "Own tenant/record/action mapping and caller attribution; do not treat an ingestion role as every user’s permission.",
+    "constraint": "Establish the effective caller and applicable policy separately from permitted tenant/tool data scope."
   },
   {
     "id": "tenant",
@@ -799,10 +1123,12 @@
     "summary": "Derive scope from trusted identity; enforce permitted document access before context and business access before tool writes.",
     "clue": "Tenant A must never receive tenant B’s passages.",
     "trap": "A high similarity score or a Guardrail does not grant access.",
-    "managed": "Supported store/Knowledge Base filters help enforce configured scope; identity APIs establish the caller.",
-    "extension": "Backend ACL checks and trusted metadata filters bind retrieval to caller entitlement.",
-    "ownership": "Own caller-to-document mapping, fail-closed metadata handling, and bypass-path tests.",
-    "capability": "IAM plus application/data authorization and supported retrieval filters."
+    "managed": "IAM and supported store/query integrations enforces their configured access contract; content filtering is a different capability.",
+    "extension": "Derive scope from trusted identity, apply supported fail-closed metadata/access filters, and validate each business API action.",
+    "ownership": "Own entitlement mapping, complete/correct access tags, denial tests, and bypass removal before context or writes.",
+    "capability": "Backend authorization plus eligible Knowledge Bases filtering; IAM/S3 access controls; Lake Formation through integrated query paths, not independent direct S3 bypasses.",
+    "example": "Tenant A must be denied Tenant B’s passage even when the passage is relevant and its wording passes safety filtering.",
+    "constraint": "Only permitted records may enter the caller’s context or business action path."
   },
   {
     "id": "kms",
@@ -811,7 +1137,12 @@
     "summary": "Protect source, intermediate, vector, result, state, and log copies with required encryption and key access.",
     "clue": "Inventory derived copies rather than protecting only original S3 objects.",
     "trap": "Encryption does not authorize a tenant or prove deletion.",
-    "capability": "AWS KMS, service encryption configuration, TLS, and controlled key policies."
+    "capability": "KMS/service encryption plus TLS; Secrets Manager for relevant credentials/secrets; application access/deletion policy remains separate.",
+    "example": "Encrypting the source is insufficient if an extraction bucket or prompt log contains an unprotected sensitive copy.",
+    "managed": "KMS and eligible service encryption configuration protects configured copies; TLS protects supported transport.",
+    "extension": "Configure scoped key/service policies for source, index, intermediate, result, state, and log access.",
+    "ownership": "Inventory derived copies, verify protection and required key use, and keep entitlement/location/retention separate.",
+    "constraint": "Every required copy/path must meet encryption and scoped key-use policy without granting excessive access."
   },
   {
     "id": "private-network",
@@ -820,7 +1151,12 @@
     "summary": "Use eligible interface endpoints, private DNS, endpoint policies, and network controls for the required private API path.",
     "clue": "API traffic must stay on the approved private path.",
     "trap": "A private subnet alone is not a private service endpoint.",
-    "capability": "Supported VPC endpoints / AWS PrivateLink and configured network/endpoint policies."
+    "capability": "Supported interface endpoints/PrivateLink plus private DNS/network/endpoint/IAM policy for the selected service.",
+    "example": "Private subnets alone do not prove that the invoked service endpoint resolves and routes over the required private path.",
+    "managed": "Eligible interface VPC endpoints/PrivateLink provide supported private service access when configured.",
+    "extension": "Set applicable private DNS, routing/network controls, endpoint policy, and scoped IAM access.",
+    "ownership": "Verify the actual request path, remove bypass routes, and test entitlement/residency independently.",
+    "constraint": "Use the actual approved private API path, not an assumption based on workload subnet placement."
   },
   {
     "id": "guardrails",
@@ -829,7 +1165,12 @@
     "summary": "Apply supported content, sensitive-information, and grounding policies at the interaction stages they cover.",
     "clue": "Harmful content and unsupported claims need the appropriate safety check.",
     "trap": "Guardrails is not authorization or a guarantee against every indirect/tool-result injection.",
-    "capability": "Supported Amazon Bedrock Guardrails policies plus deterministic application checks."
+    "capability": "Bedrock Guardrails for eligible content checks; source/query/response grounding only for supported use cases, excluding conversational QA/chatbot; backend authorization remains separate.",
+    "example": "A safe displayed sentence can coexist with an unauthorized document in context or an invalid business write.",
+    "managed": "Guardrails applies supported configured content, sensitive-information, prompt-attack, and grounding policies within their documented limits.",
+    "extension": "Apply the relevant supported checks at input/output boundaries and combine them with deterministic task/access checks.",
+    "ownership": "Own policy selection, untrusted-source handling, fallback, entitlement, and action authorization; test indirect/tool-result paths explicitly.",
+    "constraint": "Use the correct safety policy at its supported boundary without substituting it for data/tool permission."
   },
   {
     "id": "pii",
@@ -838,7 +1179,12 @@
     "summary": "Locate where PII exists, choose discovery/detection/filtering for that location, and verify required transformation/retention.",
     "clue": "S3 discovery → Macie; supported text pipeline → Comprehend; model interaction → Guardrails.",
     "trap": "Detecting sensitive spans does not sanitize every index, log, or backup.",
-    "capability": "Macie / Comprehend / Guardrails at their respective boundaries."
+    "capability": "Macie → S3 discovery; Comprehend → text detection; Guardrails → eligible model I/O policy; application/pipeline transformation verifies sanitization.",
+    "example": "A PII detection job is not a successful redaction job if the original identifier is still embedded or logged.",
+    "managed": "Macie discovers supported S3 sensitive data; Comprehend detects supported text spans; Guardrails handles eligible model-interaction policies.",
+    "extension": "Apply and verify required masking/redaction before downstream copies; enforce failure/quarantine when transformation is incomplete.",
+    "ownership": "Own the sensitive-data inventory, transformation verification, access/retention, and derived-copy tests.",
+    "constraint": "Identify where sensitive data exists and verify the required handling on actual downstream bytes/copies."
   },
   {
     "id": "governance",
@@ -847,8 +1193,13 @@
     "summary": "Use applicable organizational/identity ceilings and approved processing destinations; manage retention and deletion of derived copies.",
     "clue": "Local IAM allow cannot override an applicable explicit SCP deny.",
     "trap": "Permission ceilings do not grant access; private encrypted transport does not establish residency.",
-    "capability": "SCPs / permissions boundaries, supported endpoint/profile policy, configuration/audit controls.",
-    "read": "#retention-privacy"
+    "capability": "IAM/SCP ceilings, approved in-Region/eligible profile routing, and each source/index/cache/log retention/deletion configuration protects different requirements.",
+    "read": "#retention-privacy",
+    "example": "A source deletion must reach its chunks, vectors, caches, and retained outputs; private transport does not authorize another Region.",
+    "managed": "SCPs/permissions boundaries limits applicable permissions; eligible routing/storage services follows their configured destination/retention contracts.",
+    "extension": "Configure allowed destinations, copy-specific retention/update/delete, and explicit source/cache/index synchronization.",
+    "ownership": "Own policy interpretation, copy inventory, bypass removal, exact model/endpoint retention support, and lifecycle verification.",
+    "constraint": "Enforce permitted locations, applicable permission ceilings, and lifecycle rules across original and derived copies."
   },
   {
     "id": "recall",
@@ -856,7 +1207,13 @@
     "title": "Recall / precision",
     "summary": "Recall assesses required-evidence coverage; precision/relevance assesses retrieval noise. Inspect actual candidates/context as well as scores.",
     "clue": "Missing relevant passage differs from too many irrelevant passages.",
-    "trap": "Good retrieval does not guarantee faithful generation."
+    "trap": "Good retrieval does not guarantee faithful generation.",
+    "example": "The correct exception is absent from the candidate set, while several unrelated policy pages are returned. Measure evidence coverage and noise separately before changing the answer prompt.",
+    "managed": "Knowledge Bases and its supported store execute retrieval; evaluation records whether required passages appeared. Retrieval success alone does not prove that the model used them faithfully.",
+    "extension": "Compare supported search modes, filters, candidate counts, and reranking on the same representative questions. Change ingestion when the missing passage was never indexed.",
+    "ownership": "Define expected evidence per question, inspect actual candidate/context content, and measure recall alongside relevance. Keep permissions and source versions consistent across comparisons.",
+    "capability": "Knowledge Bases Retrieve exposes candidates; supported vector/lexical/hybrid search and reranking address different retrieval boundaries. A golden dataset supplies the expected evidence.",
+    "constraint": "Required evidence must reach the permitted candidate set without overwhelming context with irrelevant passages."
   },
   {
     "id": "quality",
@@ -864,7 +1221,13 @@
     "title": "Correctness / faithfulness / relevance",
     "summary": "Correctness compares with references, faithfulness checks source support, and relevance checks whether the response answers the question.",
     "clue": "Correct evidence with an unsupported claim → faithfulness/context-use investigation.",
-    "trap": "A real citation or valid JSON does not prove source support."
+    "trap": "A real citation or valid JSON does not prove source support.",
+    "example": "An answer cites the correct refund policy but invents a guarantee the passage never makes. The citation exists; the additional claim still lacks evidence.",
+    "managed": "Eligible Bedrock evaluation capabilities run supported evaluations. A model judge supplies a judgment under its configured rubric; it does not replace an authoritative reference or business rule.",
+    "extension": "Use task-specific rubrics and supported custom metrics, with deterministic checks for objective contracts and calibrated human review for ambiguous judgments.",
+    "ownership": "Define correctness, source support, and relevance separately. Retain the question, evidence, response, and expected outcome so a good score can be challenged.",
+    "capability": "Bedrock evaluation where supported; deterministic application checks; calibrated human review. Grounding checks require their supported source/query/response contract.",
+    "constraint": "An answer must solve the task, stay supported by evidence, and address the actual question; these are separate tests."
   },
   {
     "id": "evaluators",
@@ -872,7 +1235,13 @@
     "title": "Automated / judge / human",
     "summary": "Use deterministic checks for objective contracts, calibrated judges for semantic scale, and experts for labels/high-risk nuance.",
     "clue": "Thousands of rubric-scored answers with a limited expert sample → calibrated judge plus targeted human review.",
-    "trap": "BLEU/ROUGE overlap is not semantic truth; judge scores can be biased or wrong."
+    "trap": "BLEU/ROUGE overlap is not semantic truth; judge scores can be biased or wrong.",
+    "example": "A release produces valid JSON but chooses the wrong contract category. Schema validation passes, while reference-label checks fail; an open-ended quality judge addresses a different question.",
+    "managed": "Bedrock evaluation supports eligible automated/model-judge and human workflows. Each evaluator measures its configured task; no single score proves every contract.",
+    "extension": "Add deterministic field/action checks and supported task-specific evaluation criteria. Calibrate judge results against labeled examples and human decisions.",
+    "ownership": "Own the rubric, reference quality, judge calibration, critical cohorts, and release thresholds. Use reviewers when the outcome cannot be settled by an objective check.",
+    "capability": "Bedrock evaluation for supported quality tasks; application validators for schemas and business rules; human evaluation for nuanced or consequential cases.",
+    "constraint": "Choose an evaluator that can actually test the required outcome, then verify agreement on representative examples."
   },
   {
     "id": "performance",
@@ -881,7 +1250,13 @@
     "summary": "Assess critical cohorts, actual tool outcomes, first-token/total/queue latency, and tokens/cost per successful outcome.",
     "clue": "Faster first text differs from lower total generation time.",
     "trap": "The cheapest invocation can be expensive per successful task if it fails or retries.",
-    "read": "#inference-modes"
+    "read": "#inference-modes",
+    "example": "Users see the first token quickly, but a long queue and repeated failed calls make the task slow and expensive. Measure the whole successful interaction.",
+    "managed": "CloudWatch exposes available service metrics; instrumented application traces attribute queue, retrieval, model, and transport time. Billing tools describe cost, not every request’s bottleneck.",
+    "extension": "Emit stage timing, token counts, retries, and outcome metrics. Compare eligible inference modes or capacity changes using the same workload and quality gate.",
+    "ownership": "Define first-token and completion targets separately, inspect latency distributions, and calculate cost per successful task including retries and failed attempts.",
+    "capability": "CloudWatch metrics/alarms and X-Ray/OpenTelemetry spans locate operational bottlenecks; eligible Bedrock inference modes address a measured capacity or delivery requirement.",
+    "constraint": "Meet measured end-to-end latency and cost targets without sacrificing the required quality or success rate."
   },
   {
     "id": "caching",
@@ -890,8 +1265,13 @@
     "summary": "Identify the reusable unit: exact scoped result, semantically equivalent answer, or supported identical prompt prefix.",
     "clue": "Stable system prefix with new answers → prompt caching.",
     "trap": "A prompt cache is not response reuse; response cache keys must include scope and version.",
-    "capability": "Eligible Bedrock prompt caching; scoped application result caches where valid.",
-    "read": "#cost-patterns"
+    "capability": "Bedrock prompt caching for eligible repeated prefixes; scoped application result caches for reusable answers. Choose by the unit of work being reused.",
+    "read": "#cost-patterns",
+    "example": "Two users ask the same words but have different document permissions. Reusing one complete answer across both is unsafe even when the text looks equivalent.",
+    "managed": "Eligible Bedrock prompt caching reuses supported identical prompt prefixes. It does not return a previously generated application answer.",
+    "extension": "An application result cache can reuse exact or semantically equivalent answers only when the complete scoped inputs and freshness rules make reuse valid.",
+    "ownership": "Own tenant/access isolation, input/configuration/version identity, expiry, and invalidation. Measure whether the answer remains valid before adopting semantic result reuse.",
+    "constraint": "Only reuse work whose input, permission scope, configuration, and freshness remain valid for the new request."
   },
   {
     "id": "rollout",
@@ -900,7 +1280,13 @@
     "summary": "Offline gates precede controlled exposure. Canary limits live exposure; A/B compares live outcomes; shadow compares isolated copied requests.",
     "clue": "Candidate output must not reach users and writes must not occur → isolated shadow.",
     "trap": "Hiding the candidate answer does not suppress production tool side effects.",
-    "read": "#quality-gate-decisions"
+    "read": "#quality-gate-decisions",
+    "example": "A candidate is ready for live comparison, but its refund tool could still write production records. Hiding its answer is insufficient to make shadow traffic safe.",
+    "managed": "Supported deployment/routing capabilities provide configured traffic exposure. They do not decide whether candidate tools may write or whether a cohort regression is acceptable.",
+    "extension": "Use canary for limited exposure, A/B for live outcome comparison, isolated shadow for copied requests, or blue/green for a controlled switch with rollback.",
+    "ownership": "Own offline approval gates, side-effect isolation, cohort thresholds, release identity, and a verified rollback target. Stop promotion when a critical cohort fails.",
+    "capability": "Eligible SageMaker deployment/traffic controls and application routing implement the selected rollout pattern; CloudWatch and evaluation signals inform rollback.",
+    "constraint": "Expose the candidate in the required way while containing side effects and preserving a compatible rollback release."
   },
   {
     "id": "diagnostics",
@@ -908,7 +1294,13 @@
     "title": "Review / diagnose",
     "summary": "Review a whole path forward to understand its responsibilities. Choose an observed symptom to investigate backwards through earlier boundaries.",
     "clue": "Find the first demonstrated inconsistency using versioned inputs, metrics, traces, and actual outputs.",
-    "trap": "Do not debug training loss for a routing defect, rerank an absent chunk, or use Guardrails as tenant authorization."
+    "trap": "Do not debug training loss for a routing defect, rerank an absent chunk, or use Guardrails as tenant authorization.",
+    "example": "A correct passage was indexed but never entered the candidates. Start from the observed answer and trace evidence backward; changing the training loss cannot repair this retrieval defect.",
+    "managed": "Managed services expose supported job status, retrieval output, inference metrics, and logs. Those records provide evidence for diagnosis, not an automatic root-cause verdict.",
+    "extension": "Instrument missing boundaries and run controlled comparisons using the same question, identity, data version, prompt, and model configuration.",
+    "ownership": "Find the first demonstrated mismatch, distinguish upstream absence from downstream misuse, and verify the proposed fix on the original failing cases.",
+    "capability": "Knowledge Bases retrieval output, CloudWatch, invocation/application logs, X-Ray/OpenTelemetry, and evaluation cases reveal different portions of the path.",
+    "constraint": "Locate the responsibility that first fails its contract before choosing a service, extension, or custom change."
   },
   {
     "id": "metrics",
@@ -917,7 +1309,12 @@
     "summary": "Track token counts, latency distributions, throttles/errors, queue age, and emitted quality/outcome signals.",
     "clue": "Operational threshold on InputTokenCount → metric alarm.",
     "trap": "Cost Explorer analyzes billing and Budgets alerts; neither is this runtime metric alarm.",
-    "capability": "CloudWatch metrics/alarms; configured custom application signals."
+    "capability": "CloudWatch metrics and alarms for runtime signals; Cost Explorer for billing analysis; AWS Budgets for configured budget alerts.",
+    "example": "A token-volume alarm must fire during a burst. A later billing alert may help manage spend, but cannot substitute for the requested runtime signal.",
+    "managed": "CloudWatch stores available service/custom metrics, evaluates configured alarms, and exposes operational trends. It cannot infer a business-quality signal that the application never emits.",
+    "extension": "Add scoped custom outcome/quality signals and stage timing when built-in metrics do not cover the requirement.",
+    "ownership": "Choose thresholds, dimensions, aggregation windows, and an actionable response. Correlate alarms with request/release identity rather than treating an average as universal.",
+    "constraint": "Use the signal and time window that match the operational requirement, including critical cohorts and tail behavior."
   },
   {
     "id": "audit",
@@ -926,7 +1323,12 @@
     "summary": "Record required AWS API activity with the appropriate event coverage; correlate caller, time, and operation.",
     "clue": "Who invoked or changed an AWS resource?",
     "trap": "Caller audit events are not the complete model input/output record.",
-    "capability": "AWS CloudTrail with required event coverage/selectors."
+    "capability": "AWS CloudTrail for caller/API audit; Bedrock invocation logging and application logs when permitted interaction content is also required.",
+    "example": "An investigator needs to identify who changed the inference configuration. The caller, operation, and timestamp are audit evidence; the complete prompt is a separate logging need.",
+    "managed": "CloudTrail records AWS API activity under the configured event coverage and selectors. Audit records are distinct from model interaction-content logs.",
+    "extension": "Configure the required event coverage and correlate events with application request/release identifiers where available.",
+    "ownership": "Own coverage verification, retention, access, and correlation. Do not promise complete prompt/answer evidence from caller audit events.",
+    "constraint": "Capture the required caller/resource changes with appropriate event coverage and protected retention."
   },
   {
     "id": "content-logs",
@@ -935,7 +1337,12 @@
     "summary": "Explicitly enable supported interaction-content logging where policy allows; protect destinations, retention, and sensitive inputs.",
     "clue": "Need the actual prompt and answer rather than only the caller.",
     "trap": "Logging is not enabled by assuming CloudTrail; logs can retain sensitive pre-masking input.",
-    "capability": "Bedrock Model Invocation Logging to protected CloudWatch Logs / S3, plus scoped application/tool logs."
+    "capability": "Bedrock Model Invocation Logging to CloudWatch Logs/S3 where supported and allowed; application logs for request/tool context; KMS and access controls protect destinations.",
+    "example": "The response masks an identifier, but an earlier prompt log still contains it. Inspect the stored input and logging point instead of assuming output redaction protected every copy.",
+    "managed": "Explicitly configured Bedrock invocation logging records supported interaction content to protected destinations. CloudTrail caller audit does not enable this content record.",
+    "extension": "Add scoped application/tool logs where the service record omits needed context; redact before persistence when the policy requires it.",
+    "ownership": "Own sensitive-input handling, permissions, retention, deletion, and destination protection. Check actual stored bytes, including content captured before masking.",
+    "constraint": "Keep sufficient diagnostic evidence without persisting content that violates the application’s privacy or retention requirements."
   },
   {
     "id": "traces",
@@ -944,7 +1351,12 @@
     "summary": "Instrument retrieval, model, and tool boundaries; retain relevant workflow/agent events and correlate them with request/version identity.",
     "clue": "Which stage consumed eight seconds or caused the tool failure?",
     "trap": "Uninstrumented stages and hidden model internals do not automatically become visible.",
-    "capability": "X-Ray / OpenTelemetry, emitted agent traces, tool logs, and workflow history."
+    "capability": "X-Ray/OpenTelemetry for instrumented stage spans; supported agent traces, Step Functions history, and tool logs for their respective execution evidence.",
+    "example": "A request takes eight seconds, but the model call takes one. Spans around retrieval, queueing, and tools can locate the remaining delay; a total timer cannot.",
+    "managed": "X-Ray/OpenTelemetry tooling handles emitted trace data; supported agent traces and workflow history expose their recorded events. Uninstrumented stages remain gaps.",
+    "extension": "Instrument retrieval, context assembly, model, transport, and tool boundaries; propagate correlation identifiers through asynchronous work.",
+    "ownership": "Own useful span boundaries, safe metadata, request/version attribution, and interpretation. Hidden model internals do not become visible merely by enabling tracing.",
+    "constraint": "Attribute latency or failure to the actual responsibility with correlated evidence across the full request path."
   },
   {
     "id": "training-records",
@@ -953,8 +1365,13 @@
     "summary": "Validate model-specific schemas, input/output alignment, labels, duplicate examples, and cohort coverage before a training job.",
     "clue": "Clean task examples matter more than raw record count.",
     "trap": "A successful schema check does not prove label correctness or prevent data leakage.",
-    "capability": "Approved S3 datasets; Glue quality/preparation and model-specific validation.",
-    "read": "#preprocessing"
+    "capability": "S3 datasets, Glue/Data Quality, and selected Bedrock customization or SageMaker training input validation cover storage, preparation, and format boundaries.",
+    "read": "#preprocessing",
+    "example": "Two nearly identical support messages have different reference labels, and a copied example appears in validation. A valid file format will not reveal either semantic defect.",
+    "managed": "S3 stores approved datasets; Glue and supported quality rules prepare/check records. The selected customization or training service validates its required input format.",
+    "extension": "Add model-specific schema, label-alignment, duplicate/leakage, and cohort checks before starting the training job.",
+    "ownership": "Own label definitions, correct targets, independent splits, and representative coverage. Fail or quarantine invalid records instead of merely producing a report.",
+    "constraint": "Training examples must be correctly supervised, compatible with the selected method, and separated from independent evaluation cases."
   },
   {
     "id": "training-config",
@@ -963,7 +1380,12 @@
     "summary": "Verify the supported base model/method, tokenizer and sequence format, learning rate, epochs, batch configuration, and available compute.",
     "clue": "Loss diverges after a learning-rate change → inspect the training configuration and data.",
     "trap": "More epochs or a higher learning rate is not a universal fix.",
-    "capability": "Eligible Bedrock customization settings or SageMaker training configuration."
+    "capability": "Eligible Bedrock customization settings or SageMaker training configuration; job logs/metrics and held-out evaluation determine whether a change helped.",
+    "example": "A previously stable job diverges after a learning-rate change. Compare the actual dataset and configuration rather than assuming more epochs will improve the model.",
+    "managed": "Eligible Bedrock customization exposes supported settings; SageMaker training provides the configured training environment and job execution under its contract.",
+    "extension": "Adjust supported learning rate, epochs, batch/sequence settings, or training implementation where permitted; change one hypothesis at a time.",
+    "ownership": "Own method/base compatibility, tokenizer/task format, configuration versions, and representative validation. Choose settings from measured behavior rather than a universal recipe.",
+    "constraint": "The training configuration must fit the supported model/method and improve the required held-out task without instability."
   },
   {
     "id": "training-runs",
@@ -972,7 +1394,12 @@
     "summary": "Compare available training and validation metrics over time, plus held-out task outputs; retain the job, dataset, configuration, and checkpoint versions.",
     "clue": "Training improves while held-out behavior worsens → investigate generalization, leakage, and overfitting.",
     "trap": "Low training loss is not proof of useful or safe production behavior.",
-    "capability": "Bedrock customization output metrics where available; SageMaker training logs/metrics."
+    "capability": "Available Bedrock customization metrics or SageMaker training logs/metrics, plus task evaluation, separate fit to training data from useful generalization.",
+    "example": "Training loss falls each epoch, but held-out classification gets worse. The model is fitting its training examples; production usefulness has not been established.",
+    "managed": "Bedrock customization exposes available output metrics; SageMaker training records configured logs/metrics. Availability depends on the selected job/method.",
+    "extension": "Compare training and validation curves with held-out task outputs, and inspect data/configuration changes when the trends disagree.",
+    "ownership": "Own independent evaluation, cohort analysis, and complete job/dataset/configuration lineage. Do not promote based only on the lowest training loss.",
+    "constraint": "Training progress must translate into better independent task behavior, including the critical cohorts used for promotion."
   },
   {
     "id": "checkpoint",
@@ -981,7 +1408,13 @@
     "summary": "Choose an artifact using independent task evaluation and critical-cohort gates, not merely the final epoch or lowest training loss.",
     "clue": "Original model beats the tuned candidate on held-out tasks → stop promotion and inspect the adaptation/data.",
     "trap": "A final training checkpoint is not automatically the best release.",
-    "read": "#evaluation"
+    "read": "#evaluation",
+    "example": "The last checkpoint has the lowest training loss but fails rare contract exceptions. An earlier candidate or the baseline may be the safer release.",
+    "managed": "Supported training workflows produce their artifacts/checkpoints; evaluation tooling measures configured tasks. Neither automatically selects the best business release.",
+    "extension": "Compare available candidate artifacts against the same independent baseline and critical-cohort tests before approval.",
+    "ownership": "Own artifact identity, held-out references, promotion thresholds, and rejection of regressions. Retain enough lineage to reproduce the comparison.",
+    "capability": "Eligible Bedrock/SageMaker customization artifacts and supported evaluation workflows; SageMaker Model Registry can record the approved package and evidence.",
+    "constraint": "Choose the evaluated artifact that meets release criteria, rather than automatically choosing the final epoch."
   },
   {
     "id": "lora",
@@ -990,11 +1423,13 @@
     "summary": "Train low-rank adapter weights while the base weights remain frozen. An unmerged adapter still needs its compatible base model at inference.",
     "clue": "Task adaptation with a smaller trainable artifact → evaluate supported LoRA.",
     "trap": "LoRA is a fine-tuning technique, not RAG, a standalone foundation model, or a guarantee of higher quality.",
-    "managed": "Eligible SageMaker customization and compatible serving capabilities support adapter workflows; check the selected model/runtime contract.",
-    "extension": "Use supported adapter training and serving integration rather than assuming arbitrary hot-swapping.",
-    "ownership": "Version and evaluate the adapter together with its base model, tokenizer, and serving configuration.",
-    "capability": "Supported LoRA training; compatible SageMaker adapter inference components where applicable.",
-    "read": "#wording-reflex"
+    "managed": "Eligible SageMaker training/serving capabilities support compatible adapter workflows. The selected model/runtime contract determines which adapter format and integration are supported.",
+    "extension": "Use supported low-rank adapter training and serving integration. Keep retrieval for changing facts and evaluate prompting before deciding that weight adaptation is needed.",
+    "ownership": "Own good supervision, compatible base/adapter/tokenizer versions, held-out evaluation, and deployment routing. A smaller trainable artifact does not remove those obligations.",
+    "capability": "Supported LoRA training and compatible SageMaker adapter inference components where applicable; evaluate the exact base-plus-adapter serving pair.",
+    "read": "#wording-reflex",
+    "example": "A support-classification task needs stable behavior adaptation. A small LoRA artifact can encode that adaptation, but an unmerged adapter still requires its compatible base at inference.",
+    "constraint": "Use a supported adapter workflow only when measured stable-task adaptation justifies it and the compatible pair can be served safely."
   },
   {
     "id": "lora-rank",
@@ -1002,7 +1437,13 @@
     "title": "Rank / scaling / dropout",
     "summary": "Rank changes adapter capacity and resource use; scaling and dropout alter the training behavior. Tune with representative validation rather than a universal setting.",
     "clue": "Insufficient adaptation capacity differs from memorization or bad labels.",
-    "trap": "Increasing rank does not repair wrong supervision and does not always improve generalization."
+    "trap": "Increasing rank does not repair wrong supervision and does not always improve generalization.",
+    "example": "An adapter misses difficult categories, so the team raises rank. That changes capacity and resource use, but conflicting labels may still be the real limitation.",
+    "managed": "The selected supported adapter-training implementation applies its rank, scaling, and dropout settings. Managed job execution does not determine the best values.",
+    "extension": "Compare supported settings with fixed data and representative validation, separating insufficient capacity from memorization or bad supervision.",
+    "ownership": "Own controlled experiments, label quality, resource measurements, and cohort results. Avoid assuming that increasing rank always improves generalization.",
+    "capability": "Supported LoRA training configuration and training/validation metrics; independent task evaluation measures the benefit of rank/scaling/dropout choices.",
+    "constraint": "Choose adapter settings that improve the required held-out behavior within resource limits, after checking supervision quality."
   },
   {
     "id": "lora-artifact",
@@ -1010,7 +1451,13 @@
     "title": "Adapter / base compatibility",
     "summary": "Track the exact base revision, adapter artifact, tokenizer/template, and supported serving format together. Check whether the adapter is merged or separately loaded.",
     "clue": "Small adapter file exists, but the request behaves like the base → check loading and routing.",
-    "trap": "An adapter is not a complete model; matching a model-family name alone is insufficient."
+    "trap": "An adapter is not a complete model; matching a model-family name alone is insufficient.",
+    "example": "A file is labeled with the right model family, yet loading fails or the output resembles the base. Verify exact revisions, format, tokenizer, and actual loading state.",
+    "managed": "Compatible SageMaker serving capabilities load artifacts under their runtime contract. An adapter file alone is not a complete foundation model.",
+    "extension": "Use the supported separately loaded adapter or merged-model path as appropriate; verify format and compatibility rather than assuming interchangeable deployment methods.",
+    "ownership": "Own the exact base revision, adapter artifact, tokenizer/template, serving format, and evaluated pair. Test that the live request really invokes it.",
+    "capability": "Compatible SageMaker adapter inference components or supported container serving; artifact/version records establish the deployed base-plus-adapter identity.",
+    "constraint": "The adapter must match its exact base and serving contract, and the actual request must reach the evaluated pair."
   },
   {
     "id": "registry",
@@ -1019,8 +1466,13 @@
     "summary": "Record approved versioned artifacts, metrics, lineage, and rollback targets. Keep approval separate from the explicit deployment action.",
     "clue": "Approved model package, unchanged live output → inspect endpoint deployment and request routing.",
     "trap": "Model Registry approval does not update an endpoint or load a LoRA adapter.",
-    "capability": "SageMaker Model Registry plus a governed deployment workflow.",
-    "read": "#wording-reflex"
+    "capability": "SageMaker Model Registry for package/version approval; an explicit deployment workflow and eligible endpoint/component operations for live serving changes.",
+    "read": "#wording-reflex",
+    "example": "A model package is approved, but users still receive the old behavior. Approval records a release decision; the serving route still needs an explicit deployment action.",
+    "managed": "SageMaker Model Registry records versioned packages, approval, and associated metadata. Registry state does not update an endpoint or load a LoRA adapter.",
+    "extension": "Connect approval to a governed deployment workflow that creates/updates the supported serving resources and verifies the intended route.",
+    "ownership": "Own complete release lineage, evaluation evidence, deployment authorization, and a compatible rollback target. Verify live version identity after promotion.",
+    "constraint": "Approval and live deployment must be separate, auditable actions tied to the same evaluated release."
   },
   {
     "id": "lora-serving",
@@ -1029,8 +1481,13 @@
     "summary": "Deploy the compatible base and selected adapter through a supported runtime. Verify the adapter identity actually invoked, loading status, authorization, and version attribution.",
     "clue": "Multiple task adapters share a base, but one tenant gets the wrong behavior → inspect adapter routing and access.",
     "trap": "Generic endpoint updates, merged-model releases, and adapter inference components have different deployment contracts.",
-    "capability": "Compatible SageMaker adapter inference components or supported container adapter serving.",
-    "read": "#wording-reflex"
+    "capability": "SageMaker adapter inference components where compatible, or supported container adapter serving; application authorization and route checks ensure the intended pair is invoked.",
+    "read": "#wording-reflex",
+    "example": "Two tenants share a base model but require different task adapters. If one sees the other’s behavior, inspect adapter routing and entitlement before retraining.",
+    "managed": "Compatible SageMaker adapter inference components or supported container runtimes serve the configured base/adapter pair under their deployment contract.",
+    "extension": "Use supported adapter loading/routing integration; distinguish separately loaded adapters from merged-model releases and ordinary endpoint updates.",
+    "ownership": "Own authorized routing, compatibility, readiness checks, release attribution, and coherent rollback. Test the real application request, not only a direct component call.",
+    "constraint": "Serve the correct authorized adapter/base pair and verify its identity through the actual production route."
   },
   {
     "id": "deployment-check",
@@ -1039,7 +1496,13 @@
     "summary": "Check actual endpoint/component readiness and send a version-attributed smoke request through the real application route. Verify rollback restores a compatible full release.",
     "clue": "Offline candidate passes but live behavior is old → inspect deployed identity and route.",
     "trap": "Artifact registration or a completed update request is not proof that the intended version serves users.",
-    "read": "#wording-reflex"
+    "read": "#wording-reflex",
+    "example": "The candidate passed offline tests, but a smoke request through the application returns the old version. Inspect endpoint/component readiness and routing, not the approval badge.",
+    "managed": "The hosting service exposes supported deployment/readiness state. A completed update request or registered artifact is not proof of the version reached by users.",
+    "extension": "Add version-attributed smoke checks and controlled rollback verification to the deployment workflow.",
+    "ownership": "Own real-route tests, identity correlation, critical behavior checks, and restoration of a compatible full release, including dependent prompts/adapters/configuration.",
+    "capability": "Eligible SageMaker endpoint/component status and deployment operations; application smoke requests, logs, and routing checks verify the live release.",
+    "constraint": "The intended evaluated release must serve the real application path, and rollback must restore a compatible working release."
   },
   {
     "id": "generation-config",
@@ -1048,7 +1511,13 @@
     "summary": "Check actual token limits, stop sequences, sampling configuration, supported API fields, tokenizer/template, and context truncation.",
     "clue": "Answer cuts off or differs from evaluation → inspect the actual inference payload/configuration.",
     "trap": "Lower temperature does not repair missing knowledge, a wrong adapter, or lost context.",
-    "read": "#model-prompt-decisions"
+    "read": "#model-prompt-decisions",
+    "example": "The evaluated answer was complete, but production stops midway through a JSON object. Compare the live token limit, stop sequence, prompt/template, and context truncation.",
+    "managed": "Bedrock or the selected SageMaker runtime applies supported inference parameters. Field names and supported controls depend on the chosen model/API.",
+    "extension": "Adjust supported generation/context settings and application context assembly, then rerun the same quality and completeness tests.",
+    "ownership": "Own the actual request payload, tokenizer/template, truncation policy, output validation, and configuration/version parity between evaluation and production.",
+    "capability": "Bedrock Converse or supported model invocation fields; configured SageMaker inference parameters; application validators check the resulting contract.",
+    "constraint": "The actual invocation must preserve necessary context and use supported settings that meet completeness and quality requirements."
   },
   {
     "id": "quantization",
@@ -1057,8 +1526,13 @@
     "summary": "Reduce weight precision where the model/runtime supports it; measure memory, latency, and critical task quality on the target serving configuration.",
     "clue": "A memory footprint requirement points to serving/model representation, not chunk size.",
     "trap": "Smaller weights are not automatically faster or equally accurate; adapter/runtime compatibility still matters.",
-    "capability": "Supported model/runtime quantization with measured endpoint benchmarks.",
-    "read": "#cost-patterns"
+    "capability": "Compatible SageMaker hosting/runtime configuration for supported quantization; measured endpoint benchmarks and held-out task evaluation establish serving fit.",
+    "read": "#cost-patterns",
+    "example": "A model no longer fits the target memory budget. Lower weight precision may help, but benchmark the actual runtime and rare-task quality before approving the smaller representation.",
+    "managed": "The chosen compatible hosting/runtime executes supported quantized representations. Reduced weight size does not guarantee lower latency or equal accuracy.",
+    "extension": "Use a supported quantization/runtime path and compare memory, latency, and quality on the intended serving configuration.",
+    "ownership": "Own compatibility checks, critical-cohort gates, endpoint benchmarks, and rollback to an evaluated representation. Verify adapter support if the release uses one.",
+    "constraint": "Meet the memory/serving requirement without assuming that smaller weights preserve speed, accuracy, or adapter compatibility."
   },
   {
     "id": "distillation",
@@ -1067,8 +1541,13 @@
     "summary": "Train an eligible smaller student from teacher-generated behavior using a supported workflow and representative tasks. Compare held-out quality, latency, and cost.",
     "clue": "Reduce serving cost for a defined task while preserving measured quality.",
     "trap": "Distillation is different from quantizing the same model or attaching a LoRA adapter.",
-    "capability": "Eligible Bedrock distillation or a controlled SageMaker training workflow.",
-    "read": "#cost-patterns"
+    "capability": "Eligible Bedrock distillation or SageMaker training; automated and human evaluation where appropriate test the smaller student’s task behavior.",
+    "read": "#cost-patterns",
+    "example": "A smaller student copies common teacher responses well but fails a rare policy exception. The lower serving cost cannot compensate for breaking a critical acceptance case.",
+    "managed": "Eligible Bedrock distillation or a controlled SageMaker workflow trains a student under the selected supported contract. Eligibility and task fit must be checked.",
+    "extension": "Use representative teacher/task examples and supported training controls; compare the student with the teacher/baseline on independent cohorts.",
+    "ownership": "Own dataset quality, held-out quality/latency/cost gates, critical-cohort acceptance, and a rollback release. Reject average gains that hide consequential failures.",
+    "constraint": "Reduce measured serving cost/latency while preserving the defined task quality, including critical cohorts."
   },
   {
     "id": "admission",
@@ -1077,7 +1556,13 @@
     "summary": "Inspect accepted request/token volume, queue age, timeouts, quotas, and team scope; pace accepted work against the real model capacity.",
     "clue": "429s or long queue waits under bursts → examine admission and capacity before tuning prompts.",
     "trap": "API request throttles, worker concurrency, and billing alerts are not interchangeable token-budget controls.",
-    "read": "#cost-patterns"
+    "read": "#cost-patterns",
+    "example": "A burst is accepted immediately, but workers issue too many model tokens and requests time out in the queue. Separate admission policy from actual downstream capacity.",
+    "managed": "API Gateway handles configured request controls; SQS buffers accepted work; workers and model services operate within their configured capacity/quotas.",
+    "extension": "Add scoped token/request admission, queue-age limits, and paced worker consumption appropriate to the workload.",
+    "ownership": "Own token accounting, fairness, accepted-work semantics, timeout/rejection behavior, and capacity measurements. Billing alerts do not enforce a runtime token budget.",
+    "capability": "API Gateway for request admission, SQS for decoupled backlog, bounded worker concurrency, and CloudWatch for queue/throttle signals; model capacity remains a separate limit.",
+    "constraint": "Accept and pace only the work the downstream system can complete within its latency, quota, and team-scope requirements."
   },
   {
     "id": "tool-validation",
@@ -1086,7 +1571,13 @@
     "summary": "Inspect the chosen tool and its parameters, caller scope, preconditions, approvals, and authoritative outcome. Reject invalid writes before execution.",
     "clue": "Valid JSON but unauthorized or invalid action → deterministic authorization/business validation.",
     "trap": "Schema conformance is not permission or transaction correctness.",
-    "read": "#serverless-vs-containers"
+    "read": "#serverless-vs-containers",
+    "example": "The model produces schema-valid refund arguments for a customer who is not eligible. The tool must reject the write before execution, regardless of fluent reasoning.",
+    "managed": "Eligible agent/tool integrations carry structured calls; IAM and service permissions limit supported operations. Schema validation does not establish business entitlement.",
+    "extension": "Place deterministic authorization, precondition checks, and required approval in the tool execution path before side effects.",
+    "ownership": "Own caller scope, transaction rules, authoritative result checks, and refusal of invalid writes. Never treat the model’s claim of success as the business record.",
+    "capability": "Agent tool/action integration plus IAM and application authorization; Lambda or suitable tool hosting applies deterministic business validation; Step Functions handles required durable approval.",
+    "constraint": "Every proposed action must be authorized and satisfy business preconditions before a side effect executes."
   },
   {
     "id": "recovery",
@@ -1095,6 +1586,12 @@
     "summary": "Correlate retries and duplicate deliveries with durable work identity, execution state, DLQs, and the authoritative business record.",
     "clue": "Timeout followed by duplicate payment → inspect idempotency and result reconciliation.",
     "trap": "A model response or queue acknowledgment does not prove a side effect completed exactly once.",
-    "read": "#step-functions"
+    "read": "#step-functions",
+    "example": "A payment call times out after the provider committed it. Blindly retrying creates a second payment; first reconcile the durable work identity with the authoritative outcome.",
+    "managed": "SQS and event delivery expose their delivery/retry contracts; Step Functions manages configured workflow state and retries. These do not guarantee exactly-once business effects.",
+    "extension": "Add durable idempotency, bounded retries, DLQ handling, and outcome reconciliation at the side-effect boundary.",
+    "ownership": "Own work identity, transaction status, duplicate prevention, compensation where required, and the final user-visible result. Acknowledgment is not proof of completed work.",
+    "capability": "SQS/EventBridge for decoupled delivery, Step Functions for explicit recovery state, and application idempotency/reconciliation against the authoritative business record.",
+    "constraint": "Recover failed or uncertain work without duplicating side effects or claiming an unverified completion."
   }
 ]

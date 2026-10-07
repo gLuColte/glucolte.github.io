@@ -241,3 +241,20 @@
 .aip-investigation>.aip-boundary-content { padding:0; margin-top:20px; }
 .aip-requirement-checklist ul { margin:8px 0 20px; padding-left:20px; font-size:13px; line-height:1.6; }
 .aip-requirement-checklist li { margin:8px 0; }
+
+/* A gentle cue makes the next interactive step easy to find. */
+.aip-map .aip-diagnostic-controls { padding:16px 20px 20px; background:var(--flow-soft); border-top:1px solid var(--line); border-left:3px solid var(--flow-blue); }
+.aip-map .aip-diagnostic-controls>label { color:var(--flow-blue); font-weight:600; margin:0 0 8px; }
+.aip-map .aip-diagnostic-controls>select { border-color:var(--flow-blue); background:var(--card); box-shadow:0 2px 8px rgba(37,99,235,.08); }
+.aip-map .aip-diagnostic-controls>select:hover { background:var(--flow-soft); }
+.aip-map .aip-diagnostic-controls>select:focus-visible { outline:3px solid var(--flow-blue); outline-offset:3px; }
+.aip-investigation { padding-top:20px; }
+.aip-stage-explanation { padding-top:2px; }
+.aip-situation-walkthrough { margin:20px 0; }
+.aip-situation-walkthrough ol { margin:8px 0; padding-left:23px; font-size:13px; line-height:1.7; }
+.aip-situation-walkthrough li { margin:10px 0; padding-left:3px; }
+.aip-situation-walkthrough li::marker { color:var(--flow-blue); font-weight:600; }
+.aip-situation-capabilities { margin:20px 0; }
+.aip-situation-capabilities ul { margin:8px 0; padding-left:23px; font-size:13px; line-height:1.7; }
+.aip-situation-capabilities li { margin:8px 0; }
+@media(max-width:600px) { .aip-map .aip-diagnostic-controls { padding:14px; } }

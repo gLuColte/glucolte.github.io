@@ -23,7 +23,7 @@ Use this **AWS Certified Generative AI Developer – Professional (AIP-C01)** re
 
 ## 0. GenAI Mindmap {#genai-mindmap}
 
-Start with the **requirements**, then compare models using approved representative data. The **model lifecycle** selects, optionally customizes, evaluates, deploys, and monitors the model. Prompt engineering and RAG shape the runtime context. The four supporting pillars apply throughout. Select a map box to study its purpose and decision boundary, then choose a related situation. Prompt → RAG → fine-tune is a starting heuristic, subject to the requirement and measured results.
+Start with the **requirements**, then compare models using approved representative data. The **model lifecycle** selects, optionally customizes, evaluates, deploys, and monitors the model. Prompt engineering and RAG shape the runtime context. The four supporting pillars apply throughout. Select a map box to understand its purpose and requirements, then choose a related situation to work through the evidence and decision boundary. Prompt → RAG → fine-tune is a starting heuristic, subject to the requirement and measured results.
 
 {% include genai-mindmap.html %}
 

@@ -1,6 +1,32 @@
 <div class="aip-map-fallback">
   <p>Map explanations are available below when interaction is unavailable.</p>
   {%- for node in site.data.aip_map_nodes %}{% assign concept = site.data.aip_concepts | where: 'id', node.concept | first %}
-  <details id="concept-{{ concept.id }}"><summary>{{ node.title | escape }}</summary><p>{{ concept.summary | escape }}</p>{% if concept.questions %}<ul>{% for question in concept.questions %}<li>{{ question | escape }}</li>{% endfor %}</ul>{% endif %}{% if concept.decision %}<p><strong>Decision to make:</strong> {{ concept.decision | escape }}</p>{% endif %}{% if concept.capability %}<p><strong>Capabilities:</strong> {{ concept.capability | escape }}</p>{% endif %}{% if concept.trap %}<p><strong>Decision boundary / trap:</strong> {{ concept.trap | escape }}</p>{% endif %}{% for situation in site.data.aip_stage_scenarios %}{% if situation.node == node.id %}<details><summary>{{ situation.title | escape }}</summary><p><strong>Situation:</strong> {{ situation.situation | escape }}</p><p><strong>What this means:</strong> {{ situation.meaning | escape }}</p><p><strong>Inspect the evidence:</strong> {{ situation.evidence | escape }}</p><p><strong>Decision boundary / trap:</strong> {{ situation.rule | escape }}</p></details>{% endif %}{% endfor %}</details>
+  <details id="concept-{{ concept.id }}">
+    <summary>{{ node.title | escape }}</summary>
+    <p><strong>Purpose:</strong> {{ concept.summary | escape }}</p>
+    {%- if concept.example %}<p><strong>Example:</strong> {{ concept.example | escape }}</p>{% endif %}
+    {%- if concept.questions %}<ul>{% for question in concept.questions %}<li>{{ question | escape }}</li>{% endfor %}</ul>{% endif %}
+    <p><strong>{% if concept.decision %}Decision to make{% else %}Requirement to satisfy{% endif %}:</strong> {{ concept.decision | default: concept.constraint | escape }}</p>
+    <details class="aip-layer-reasoning">
+      <summary>What is managed, what can be extended, and what must I own?</summary>
+      <p><strong>AWS manages:</strong> {{ concept.managed | escape }}</p>
+      <p><strong>Supported extension:</strong> {{ concept.extension | escape }}</p>
+      <p><strong>Custom ownership:</strong> {{ concept.ownership | escape }}</p>
+      <p><strong>AWS capabilities that fit:</strong> {{ concept.capability | escape }}</p>
+      <p><strong>Exam clue:</strong> {{ concept.clue | escape }}</p>
+      <p><strong>Boundary to remember:</strong> {{ concept.trap | escape }}</p>
+    </details>
+    {%- for situation in site.data.aip_stage_scenarios %}{% if situation.node == node.id %}
+    <details class="aip-static-situation">
+      <summary>{{ situation.title | escape }}</summary>
+      <p><strong>Situation:</strong> {{ situation.situation | escape }}</p>
+      <p><strong>What this means:</strong> {{ situation.meaning | escape }}</p>
+      <p><strong>Inspect the evidence:</strong> {{ situation.evidence | escape }}</p>
+      {%- if situation.walkthrough %}<strong>Walk through the decision</strong><ol>{% for step in situation.walkthrough %}<li>{{ step | escape }}</li>{% endfor %}</ol>{% endif %}
+      {%- if situation.capabilities %}<strong>AWS capabilities that fit</strong><ul>{% for capability in situation.capabilities %}<li>{{ capability | escape }}</li>{% endfor %}</ul>{% endif %}
+      <p><strong>Decision boundary / trap:</strong> {{ situation.rule | escape }}</p>
+    </details>
+    {%- endif %}{% endfor %}
+  </details>
   {%- endfor %}
 </div>
