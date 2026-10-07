@@ -4,7 +4,8 @@
   <details id="concept-{{ concept.id }}">
     <summary>{{ node.title | escape }}</summary>
     <p><strong>Purpose:</strong> {{ concept.summary | escape }}</p>
-    {%- if concept.example %}<p><strong>Example:</strong> {{ concept.example | escape }}</p>{% endif %}
+    {%- if concept.example %}{% unless concept.comparison %}<p><strong>Example:</strong> {{ concept.example | escape }}</p>{% endunless %}{% endif %}
+    {%- if concept.comparison %}{% include aip-model-comparison.html comparison=concept.comparison %}{% endif %}
     {%- if concept.questions %}<ul>{% for question in concept.questions %}<li>{{ question | escape }}</li>{% endfor %}</ul>{% endif %}
     <p><strong>{% if concept.decision %}Decision to make{% else %}Requirement to satisfy{% endif %}:</strong> {{ concept.decision | default: concept.constraint | escape }}</p>
     <details class="aip-layer-reasoning">
@@ -16,6 +17,9 @@
       <p><strong>Exam clue:</strong> {{ concept.clue | escape }}</p>
       <p><strong>Boundary to remember:</strong> {{ concept.trap | escape }}</p>
     </details>
+    {%- if concept.id == 'evaluation' %}{% assign cache_concept = site.data.aip_concepts | where: 'id', 'caching' | first %}
+    <details><summary>{{ cache_concept.title | escape }}</summary>{% include aip-model-comparison.html comparison=cache_concept.comparison %}</details>
+    {%- endif %}
     {%- for situation in site.data.aip_stage_scenarios %}{% if situation.node == node.id %}
     <details class="aip-static-situation">
       <summary>{{ situation.title | escape }}</summary>

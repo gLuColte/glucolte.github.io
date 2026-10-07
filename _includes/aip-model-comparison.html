@@ -1,0 +1,12 @@
+<section class="aip-model-comparison">
+  <table role="table">
+    <caption>{{ include.comparison.title | escape }}</caption>
+    <thead><tr>{% for heading in include.comparison.headers %}<th scope="col">{{ heading | escape }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for row in include.comparison.rows %}<tr role="row">{% for cell in row %}{% if forloop.first %}<th scope="row" role="rowheader">{{ cell | escape }}</th>{% else %}<td role="cell" data-label="{{ include.comparison.headers[forloop.index0] | escape }}">{% if cell.first %}<ul>{% for point in cell %}<li>{{ point | escape }}</li>{% endfor %}</ul>{% else %}{{ cell | escape }}{% endif %}</td>{% endif %}{% endfor %}</tr>{% endfor %}</tbody>
+  </table>
+  <p class="aip-comparison-note">{{ include.comparison.note | escape }}</p>
+  {%- if include.comparison.techniqueTitle %}<h4>{{ include.comparison.techniqueTitle | escape }}</h4>{% endif %}
+  {%- if include.comparison.techniques %}<dl>{% for technique in include.comparison.techniques %}<dt>{{ technique.title | escape }}</dt><dd>{{ technique.body | escape }}</dd>{% endfor %}</dl>{% endif %}
+  {%- if include.comparison.techniqueNote %}<p class="aip-comparison-note">{{ include.comparison.techniqueNote | escape }}</p>{% endif %}
+  <p class="aip-comparison-sources">AWS references: {% for source in include.comparison.sources %}{% unless forloop.first %} · {% endunless %}<a href="{{ source.url | escape }}">{{ source.title | escape }}</a>{% endfor %}</p>
+</section>

@@ -63,6 +63,26 @@
     });
   }
   function fieldBlock(label,copy){const section=make('div');section.append(make('h4',label),make('p',copy));return section;}
+  function comparisonBlock(comparison){
+    const section=make('section',undefined,'aip-model-comparison');
+    const table=make('table');table.setAttribute('role','table');table.append(make('caption',comparison.title));
+    const head=make('thead'),headRow=make('tr');
+    comparison.headers.forEach(label=>{const cell=make('th',label);cell.scope='col';headRow.append(cell);});head.append(headRow);table.append(head);
+    const body=make('tbody');
+    comparison.rows.forEach(cells=>{
+      const row=make('tr');row.setAttribute('role','row');
+      cells.forEach((copy,index)=>{
+        const cell=make(index?'td':'th');
+        if(Array.isArray(copy)){const list=make('ul');copy.forEach(point=>list.append(make('li',point)));cell.append(list);}else cell.textContent=copy;
+        cell.setAttribute('role',index?'cell':'rowheader');if(!index)cell.scope='row';else cell.dataset.label=comparison.headers[index];row.append(cell);
+      });body.append(row);
+    });table.append(body);section.append(table,make('p',comparison.note,'aip-comparison-note'));
+    if(comparison.techniqueTitle)section.append(make('h4',comparison.techniqueTitle));
+    if(comparison.techniques?.length){const definitions=make('dl');comparison.techniques.forEach(item=>definitions.append(make('dt',item.title),make('dd',item.body)));section.append(definitions);}
+    if(comparison.techniqueNote)section.append(make('p',comparison.techniqueNote,'aip-comparison-note'));
+    const sources=make('p',undefined,'aip-comparison-sources');sources.append(document.createTextNode('AWS references: '));
+    comparison.sources.forEach((source,index)=>{if(index)sources.append(document.createTextNode(' · '));const link=make('a',source.title);link.href=source.url;sources.append(link);});section.append(sources);return section;
+  }
   function renderInlineTraps(ids){
     const list=get('inline-traps');list.replaceChildren();
     // Keep exact distinctions available without rendering an unrelated full archive.
@@ -162,7 +182,8 @@
     // Keep the selected stage above the situation; choosing a case never changes it.
     const boundary=get('boundary-content');get('symptom-overlay').append(boundary);
     explanation.replaceChildren(make('h3',`Decisions at ${context.title}`),fieldBlock('Purpose',item.summary));
-    if(item.example)explanation.append(fieldBlock('Example',item.example));
+    if(item.example&&!item.comparison)explanation.append(fieldBlock('Example',item.example));
+    if(item.comparison)explanation.append(comparisonBlock(item.comparison));
     const children=data.concepts.filter(child=>child.parent===conceptId);
     if(children.length&&!['system','lifecycle'].includes(conceptId)){
       const hierarchy=make('nav',undefined,'aip-concept-links');hierarchy.setAttribute('aria-label','Related substeps');hierarchy.append(make('span','Substeps: '));

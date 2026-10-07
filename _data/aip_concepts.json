@@ -63,7 +63,87 @@
     "clue": "“The PDF condition disappeared during extraction” is a parsing/preprocessing problem before retrieval.",
     "trap": "Detection is not redaction, and accurate embeddings cannot restore missing extracted text.",
     "read": "#preprocessing",
-    "example": "A scanned table’s amount and exception must stay associated after extraction; a PII detector must be followed by verified redaction before indexing."
+    "example": "A scanned table’s amount and exception must stay associated after extraction; a PII detector must be followed by verified redaction before indexing.",
+    "comparison": {
+      "title": "Prepare the input: which capability fits?",
+      "headers": [
+        "Input / problem",
+        "Capability",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "Documents / tables",
+          [
+            "Textract",
+            "Preserve rows, fields, relationships"
+          ],
+          [
+            "Extraction ≠ correct interpretation",
+            "Validate downstream text/structure"
+          ]
+        ],
+        [
+          "Speech → text",
+          [
+            "Transcribe",
+            "Transcript needed downstream"
+          ],
+          [
+            "Transcript ≠ every media requirement",
+            "Check timestamps / meaning"
+          ]
+        ],
+        [
+          "Mixed media extraction",
+          [
+            "Bedrock Data Automation",
+            "Supported document / image / audio / video outputs"
+          ],
+          [
+            "Check input / output contract",
+            "Validate extracted meaning"
+          ]
+        ],
+        [
+          "ETL / data quality",
+          [
+            "Glue + Glue Data Quality",
+            "Transform; test configured rules"
+          ],
+          [
+            "Report ≠ gate",
+            "Explicitly fail / quarantine"
+          ]
+        ],
+        [
+          "Sensitive text",
+          [
+            "Comprehend PII detection",
+            "Apply and verify redaction"
+          ],
+          [
+            "Detected ≠ removed",
+            "Check actual index / log copies"
+          ]
+        ]
+      ],
+      "note": "Choose from the required prepared output. Parsing/chunking cannot recover facts already lost during extraction.",
+      "sources": [
+        {
+          "title": "Textract",
+          "url": "https://docs.aws.amazon.com/textract/latest/dg/what-is.html"
+        },
+        {
+          "title": "Data Automation",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/bda.html"
+        },
+        {
+          "title": "Glue quality rules",
+          "url": "https://docs.aws.amazon.com/glue/latest/dg/glue-data-quality.html"
+        }
+      ]
+    }
   },
   {
     "id": "ingestion",
@@ -78,7 +158,104 @@
     "clue": "“Custom chunk boundaries, managed retrieval retained” points to an ingestion extension.",
     "trap": "A Lambda ingestion transformation does not control query-time ranking.",
     "read": "#rag-trade-offs",
-    "example": "A manual’s rule, exception, source version, and access scope must survive parsing/chunking and be stored with compatible vectors before a question can retrieve it."
+    "example": "A manual’s rule, exception, source version, and access scope must survive parsing/chunking and be stored with compatible vectors before a question can retrieve it.",
+    "comparison": {
+      "title": "Chunking: which evidence boundary fits?",
+      "headers": [
+        "Strategy",
+        "How it works",
+        "When it fits",
+        "Boundary / cost"
+      ],
+      "rows": [
+        [
+          "Default",
+          [
+            "Sentence-aware splitting",
+            "Service default"
+          ],
+          [
+            "Simple starting baseline",
+            "No demonstrated special boundary need"
+          ],
+          [
+            "Verify rules + exceptions survive",
+            "Default ≠ quality guarantee"
+          ]
+        ],
+        [
+          "Fixed-size",
+          [
+            "Token size + overlap"
+          ],
+          [
+            "Predictable evidence units",
+            "Measured boundary tuning"
+          ],
+          [
+            "Overlap duplicates indexed material",
+            "Larger chunks can dilute precision"
+          ]
+        ],
+        [
+          "Semantic",
+          [
+            "Meaning / topic boundaries"
+          ],
+          [
+            "Topic transitions matter",
+            "Eligible KB configuration"
+          ],
+          [
+            "Additional FM processing cost",
+            "No automatic parent substitution"
+          ]
+        ],
+        [
+          "Hierarchical",
+          [
+            "Child match → parent context"
+          ],
+          [
+            "Focused match needs wider context"
+          ],
+          [
+            "More context tokens",
+            "Returned count can shrink"
+          ]
+        ],
+        [
+          "Custom",
+          [
+            "Knowledge Bases Lambda transformation",
+            "Domain-specific chunks / metadata"
+          ],
+          [
+            "Built-ins fail required boundaries",
+            "Supported ingestion extension"
+          ],
+          [
+            "Own hook / contract / tests",
+            "Does not control query-time ranking"
+          ]
+        ]
+      ],
+      "note": "Check KB type: fully managed KBs currently lack semantic chunking and Lambda ingestion hooks; those rows need an eligible configurable KB path. Custom chunking with the supported Lambda transformation uses NONE before the hook.",
+      "sources": [
+        {
+          "title": "Chunking",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-chunking.html"
+        },
+        {
+          "title": "Lambda transformation",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-custom-transformation.html"
+        },
+        {
+          "title": "Managed KB feature differences",
+          "url": "https://docs.aws.amazon.com/kendra/latest/dg/kendra-availability-change.html"
+        }
+      ]
+    }
   },
   {
     "id": "store",
@@ -93,7 +270,116 @@
     "clue": "“OpenSearch is the backing store” does not say who owns the rest of RAG.",
     "trap": "OpenSearch does not automatically mean custom RAG. A vector database is not an enterprise assistant.",
     "read": "#rag-trade-offs",
-    "example": "OpenSearch can be the backing store of managed Knowledge Bases RAG. Seeing the store name does not tell you who owns ingestion, retrieval, or citations."
+    "example": "OpenSearch can be the backing store of managed Knowledge Bases RAG. Seeing the store name does not tell you who owns ingestion, retrieval, or citations.",
+    "comparison": {
+      "title": "RAG manager, retriever, or backing store?",
+      "headers": [
+        "Component",
+        "Architecture role",
+        "Strong fit",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "Bedrock Knowledge Bases",
+          [
+            "Managed RAG coordination",
+            "Supported ingestion / retrieval / generation"
+          ],
+          [
+            "Reduce pipeline ownership",
+            "Supported store or managed-store path"
+          ],
+          [
+            "Not just a vector database",
+            "KB type sets extension/search contract"
+          ]
+        ],
+        [
+          "OpenSearch",
+          [
+            "Text / vector search index",
+            "Lexical / vector / hybrid capabilities"
+          ],
+          [
+            "Search / ranking / index controls",
+            "Eligible KB backing store"
+          ],
+          [
+            "OpenSearch ≠ custom RAG",
+            "Benchmark recall / latency / cost"
+          ]
+        ],
+        [
+          "Aurora PostgreSQL + pgvector",
+          [
+            "Relational data + vector search",
+            "SQL / transactional context"
+          ],
+          [
+            "Relational + vector requirements",
+            "Documented KB integration"
+          ],
+          [
+            "Validate schema / indexes / filters",
+            "Database ≠ complete RAG pipeline"
+          ]
+        ],
+        [
+          "RDS PostgreSQL + pgvector",
+          [
+            "PostgreSQL vector-search extension",
+            "Compatible application retrieval"
+          ],
+          [
+            "Existing relational workload",
+            "Supported engine / extension version"
+          ],
+          [
+            "General pgvector support ≠ KB integration",
+            "Do not assume Aurora’s contract applies"
+          ]
+        ],
+        [
+          "Kendra",
+          [
+            "Enterprise search / retriever",
+            "Connectors + supported document ACLs"
+          ],
+          [
+            "Organizational search",
+            "RAG passage retrieval too"
+          ],
+          [
+            "Not only human-facing search",
+            "Existing-customer availability / API limits"
+          ]
+        ]
+      ],
+      "note": "These are different architecture layers, not mutually exclusive substitutes. Derive access scope from trusted identity. Kendra is in maintenance and closed to new customers; existing-customer/exam scenarios still need its retrieval boundary.",
+      "sources": [
+        {
+          "title": "KB backing stores",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-setup.html"
+        },
+        {
+          "title": "Aurora + pgvector",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.VectorDB.html"
+        },
+        {
+          "title": "RDS PostgreSQL extensions",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.PostgreSQL.CommonDBATasks.Extensions.html"
+        },
+        {
+          "title": "Kendra role",
+          "url": "https://docs.aws.amazon.com/kendra/latest/dg/what-is-kendra.html"
+        },
+        {
+          "title": "Kendra availability",
+          "url": "https://docs.aws.amazon.com/kendra/latest/dg/kendra-availability-change.html"
+        }
+      ]
+    }
   },
   {
     "id": "user",
@@ -123,7 +409,86 @@
     "clue": "Absent candidate → retrieval/earlier evidence boundary. Present but poorly ordered → reranking.",
     "trap": "Reranking cannot recover material absent from its candidate input.",
     "read": "#rag-trade-offs",
-    "example": "If the passage is missing from candidates, inspect search/filters; if it is present but ordered badly, evaluate reranking before changing the generator."
+    "example": "If the passage is missing from candidates, inspect search/filters; if it is present but ordered badly, evaluate reranking before changing the generator.",
+    "comparison": {
+      "title": "Search coverage first; candidate order second",
+      "headers": [
+        "Method",
+        "Signal / job",
+        "When it fits",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "Vector / semantic",
+          [
+            "Meaning similarity",
+            "Compatible query/document vectors"
+          ],
+          [
+            "Paraphrases / conceptual questions"
+          ],
+          [
+            "Similarity ≠ exact ID or permission",
+            "Measure evidence recall"
+          ]
+        ],
+        [
+          "BM25 / lexical",
+          [
+            "Indexed terms / wording"
+          ],
+          [
+            "Names / codes / literal terms"
+          ],
+          [
+            "Analyzer matters",
+            "Exact IDs may need keyword/term filters"
+          ]
+        ],
+        [
+          "Hybrid",
+          [
+            "Semantic + lexical signals"
+          ],
+          [
+            "Meaning + exact identifiers"
+          ],
+          [
+            "KB/store/API support differs",
+            "Combine signals; measure relevance"
+          ]
+        ],
+        [
+          "Reranker",
+          [
+            "Reorder retrieved candidates"
+          ],
+          [
+            "Relevant evidence present but low-ranked"
+          ],
+          [
+            "Cannot recover absent candidates",
+            "Adds processing / latency cost"
+          ]
+        ]
+      ],
+      "note": "Candidate absence points upstream; poor ordering points to ranking. Fully managed KBs use hybrid retrieval; configurable search choices depend on the selected KB/store/API.",
+      "sources": [
+        {
+          "title": "KB retrieval",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-retrieve.html"
+        },
+        {
+          "title": "Search configuration",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html"
+        },
+        {
+          "title": "Exact term queries",
+          "url": "https://docs.opensearch.org/latest/query-dsl/term/term/"
+        }
+      ]
+    }
   },
   {
     "id": "prompt",
@@ -168,7 +533,87 @@
     "clue": "Earlier tokens while the user waits → streaming. Caller can leave → async; offline dataset → eligible batch.",
     "trap": "Streaming is not asynchronous. A job acknowledgment is not completed business work.",
     "read": "#inference-modes",
-    "example": "Earlier tokens while the caller waits calls for streaming; a job ID with later persisted results calls for background completion. Neither alone proves the business action succeeded."
+    "example": "Earlier tokens while the caller waits calls for streaming; a job ID with later persisted results calls for background completion. Neither alone proves the business action succeeded.",
+    "comparison": {
+      "title": "Choose the caller’s completion contract",
+      "headers": [
+        "Mode",
+        "Caller experience",
+        "Capability",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "Synchronous",
+          [
+            "Wait for complete bounded answer"
+          ],
+          [
+            "Converse / compatible InvokeModel"
+          ],
+          [
+            "Timeout ≠ durable job",
+            "Validate meaning / outcome"
+          ]
+        ],
+        [
+          "Streaming",
+          [
+            "Earlier tokens while waiting",
+            "Caller remains connected"
+          ],
+          [
+            "ConverseStream / supported streaming API",
+            "End-to-end streaming transport"
+          ],
+          [
+            "Streaming ≠ asynchronous",
+            "Check buffering / disconnects"
+          ]
+        ],
+        [
+          "Asynchronous",
+          [
+            "Accept job; return identity",
+            "Persist result / status later"
+          ],
+          [
+            "Queue / workflow + job state",
+            "Eligible SageMaker async inference"
+          ],
+          [
+            "Accepted ≠ completed",
+            "Recovery / notification required"
+          ]
+        ],
+        [
+          "Batch",
+          [
+            "Known offline dataset",
+            "Reconcile per-record outputs"
+          ],
+          [
+            "Eligible Bedrock batch",
+            "SageMaker Batch Transform"
+          ],
+          [
+            "Check model / input / Region support",
+            "Not interactive token delivery"
+          ]
+        ]
+      ],
+      "note": "Model output, citation, tool result, and durable business completion are different artifacts. Verify the authoritative outcome before claiming success.",
+      "sources": [
+        {
+          "title": "Bedrock inference",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/inference.html"
+        },
+        {
+          "title": "SageMaker inference modes",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html"
+        }
+      ]
+    }
   },
   {
     "id": "lifecycle",
@@ -198,7 +643,95 @@
     "clue": "Known durable sequence + wait/approval → Step Functions. Model chooses next tool from observations → agent.",
     "trap": "An agent framework does not replace durable workflow state or business authorization.",
     "read": "#serverless-vs-containers",
-    "example": "A model can diagnose which permitted tool to try, then a deterministic workflow can validate the proposal, wait for approval, and perform an idempotent write."
+    "example": "A model can diagnose which permitted tool to try, then a deterministic workflow can validate the proposal, wait for approval, and perform an idempotent write.",
+    "comparison": {
+      "title": "Who decides what happens next?",
+      "headers": [
+        "Component",
+        "Strong fit",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "Lambda",
+          [
+            "One bounded operation",
+            "External durable state"
+          ],
+          [
+            "15-minute conventional invocation limit",
+            "Not a long-lived workflow"
+          ]
+        ],
+        [
+          "Step Functions",
+          [
+            "Known states / branches / retries",
+            "Durable waits / approval"
+          ],
+          [
+            "Developer defines transitions",
+            "Check Standard vs Express contract"
+          ]
+        ],
+        [
+          "Agent",
+          [
+            "Model selects tools from observations"
+          ],
+          [
+            "Bound tools / iterations / tokens",
+            "Not business authorization or durable state"
+          ]
+        ],
+        [
+          "EventBridge",
+          [
+            "Events → independent targets"
+          ],
+          [
+            "Routing ≠ worker backlog",
+            "Delivery / duplicates need handling"
+          ]
+        ],
+        [
+          "SQS",
+          [
+            "Buffer work for paced consumers"
+          ],
+          [
+            "Queue ≠ token-rate admission",
+            "Idempotency / reconciliation required"
+          ]
+        ],
+        [
+          "Persistent runtime",
+          [
+            "Long-lived process / connection",
+            "Suitable ECS/Fargate or agent runtime"
+          ],
+          [
+            "External session state alone ≠ container need",
+            "Runtime hosting ≠ agent control loop"
+          ]
+        ]
+      ],
+      "note": "Compose these responsibilities when needed: agent proposes; backend validates; workflow approves; worker executes. AgentCore Runtime hosts agents; an eligible managed harness supplies the loop.",
+      "sources": [
+        {
+          "title": "Step Functions",
+          "url": "https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html"
+        },
+        {
+          "title": "Lambda limits",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html"
+        },
+        {
+          "title": "AgentCore Runtime",
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html"
+        }
+      ]
+    }
   },
   {
     "id": "security",
@@ -213,7 +746,97 @@
     "clue": "Tenant A must not retrieve tenant B’s documents → access/filtering before context.",
     "trap": "Guardrails is not authorization. Private transport or encryption does not establish entitlement or approved residency.",
     "read": "#security-controls",
-    "example": "A response filter can block harmful wording while still leaving another tenant’s passage in context. Access must be enforced before that passage is supplied."
+    "example": "A response filter can block harmful wording while still leaving another tenant’s passage in context. Access must be enforced before that passage is supplied.",
+    "comparison": {
+      "title": "Match the control to the protected boundary",
+      "headers": [
+        "Requirement",
+        "Control / capability",
+        "Does not substitute for"
+      ],
+      "rows": [
+        [
+          "Who is the caller?",
+          [
+            "Cognito / federation",
+            "Trusted identity context"
+          ],
+          [
+            "Authentication ≠ document/action permission"
+          ]
+        ],
+        [
+          "What may they access?",
+          [
+            "IAM + backend/data authorization",
+            "Trusted tenant / retrieval filters"
+          ],
+          [
+            "Guardrails ≠ authorization",
+            "Similarity ≠ entitlement"
+          ]
+        ],
+        [
+          "Protect bytes / secrets",
+          [
+            "KMS / encryption / TLS",
+            "Secrets Manager where needed"
+          ],
+          [
+            "Encryption ≠ tenant isolation",
+            "Encryption ≠ deletion"
+          ]
+        ],
+        [
+          "Private service path",
+          [
+            "Eligible VPC endpoints / PrivateLink",
+            "DNS + network + endpoint policy"
+          ],
+          [
+            "Private subnet alone ≠ private API",
+            "Private path ≠ allowed residency"
+          ]
+        ],
+        [
+          "Unsafe / sensitive content",
+          [
+            "Eligible Bedrock Guardrails",
+            "Applied PII handling"
+          ],
+          [
+            "Content filter ≠ business authority",
+            "Detection ≠ sanitized copies"
+          ]
+        ],
+        [
+          "Data governance",
+          [
+            "Lake Formation on integrated paths",
+            "IAM/SCP ceilings + approved destinations"
+          ],
+          [
+            "LF filters do not block direct S3 bypass",
+            "Permission ceiling does not grant access"
+          ]
+        ]
+      ],
+      "note": "Controls apply across source, index, request, tool, and log copies. Enforce access before evidence enters context; verify retention/deletion separately.",
+      "sources": [
+        {
+          "title": "Guardrails",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html"
+        },
+        {
+          "title": "Lake Formation permissions",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/lf-permissions-reference.html"
+        },
+        {
+          "title": "Bedrock VPC endpoints",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-interface-endpoints.html"
+        }
+      ]
+    }
   },
   {
     "id": "evaluation",
@@ -228,7 +851,84 @@
     "clue": "Missing evidence, noisy retrieval, and unsupported generated claims are different defects.",
     "trap": "High average quality, a real citation, or low latency can hide a critical cohort or unsafe side effect.",
     "read": "#evaluation",
-    "example": "An average score may rise while one critical cohort regresses. The release gate must inspect that subgroup and actual tool outcomes before promotion."
+    "example": "An average score may rise while one critical cohort regresses. The release gate must inspect that subgroup and actual tool outcomes before promotion.",
+    "comparison": {
+      "title": "Which quality boundary failed?",
+      "headers": [
+        "Measure",
+        "Question it answers",
+        "Evidence / trap"
+      ],
+      "rows": [
+        [
+          "Recall / coverage",
+          [
+            "Did required evidence reach candidates?"
+          ],
+          [
+            "Expected passages vs actual retrieval",
+            "Absent evidence ≠ reranking problem"
+          ]
+        ],
+        [
+          "Precision / relevance",
+          [
+            "How much retrieved material is useful?"
+          ],
+          [
+            "Inspect candidate noise + context",
+            "More results ≠ better answers"
+          ]
+        ],
+        [
+          "Correctness",
+          [
+            "Does the answer match task/reference?"
+          ],
+          [
+            "Golden cases + business assertions",
+            "Valid JSON ≠ correct decision"
+          ]
+        ],
+        [
+          "Faithfulness",
+          [
+            "Are claims supported by supplied evidence?"
+          ],
+          [
+            "Claim → supporting passage",
+            "Real citation ≠ supported claim"
+          ]
+        ],
+        [
+          "Safety / action validity",
+          [
+            "Is content/action permitted and safe?"
+          ],
+          [
+            "Safety tests + tool preconditions",
+            "Fluent success ≠ authorized write"
+          ]
+        ],
+        [
+          "Latency / cost",
+          [
+            "How fast/expensive is a successful task?"
+          ],
+          [
+            "Queue / first-token / total time",
+            "Cheap call ≠ cheap successful outcome"
+          ]
+        ]
+      ],
+      "note": "Use deterministic checks for objective contracts, calibrated judges for semantic scale, and humans for high-risk nuance. Block a critical-cohort regression even when averages improve.",
+      "sources": [
+        {
+          "title": "Bedrock evaluation",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html"
+        }
+      ]
+    }
   },
   {
     "id": "observability",
@@ -243,7 +943,71 @@
     "clue": "Who called → CloudTrail. Prompt/response → invocation logging. Trend → metrics. Slow stage → spans.",
     "trap": "Enabling Lambda tracing does not expose every uninstrumented SDK hop or hidden model internal.",
     "read": "#logging-boundary",
-    "example": "A total request duration cannot show whether queue wait, retrieval, generation, or a buffering hop caused the delay. Correlate evidence at those boundaries."
+    "example": "A total request duration cannot show whether queue wait, retrieval, generation, or a buffering hop caused the delay. Correlate evidence at those boundaries.",
+    "comparison": {
+      "title": "Which kind of evidence do you need?",
+      "headers": [
+        "Evidence",
+        "Capability",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "Trends / thresholds",
+          [
+            "CloudWatch metrics / alarms",
+            "Tokens / latency / throttles / queue age"
+          ],
+          [
+            "Emit custom quality signals",
+            "Billing alert ≠ runtime metric alarm"
+          ]
+        ],
+        [
+          "Caller / AWS API activity",
+          [
+            "CloudTrail",
+            "Configured event coverage"
+          ],
+          [
+            "Not complete prompt / response content"
+          ]
+        ],
+        [
+          "Prompt / response content",
+          [
+            "Explicit invocation logging",
+            "Protected CloudWatch Logs / S3"
+          ],
+          [
+            "Not enabled by CloudTrail",
+            "Pre-mask input may persist"
+          ]
+        ],
+        [
+          "Slow hop / failed action",
+          [
+            "X-Ray / OpenTelemetry spans",
+            "Agent/tool traces + workflow history"
+          ],
+          [
+            "Instrument and correlate stages",
+            "Hidden internals are not automatically visible"
+          ]
+        ]
+      ],
+      "note": "Protect scope, sensitive content, destinations, and retention. Correlate evidence with request, data, prompt, model/adapter, and release identity.",
+      "sources": [
+        {
+          "title": "Bedrock monitoring",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/monitoring.html"
+        },
+        {
+          "title": "Invocation logging",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html"
+        }
+      ]
+    }
   },
   {
     "id": "source-documents",
@@ -369,7 +1133,104 @@
     "managed": "Knowledge Bases applies the supported configured chunking strategy during ingestion.",
     "extension": "Choose supported size/overlap, semantic, hierarchical, or a Lambda transformation for required custom boundaries.",
     "ownership": "Evaluate representative boundary cases, recall/precision, context cost, and the supported store contract.",
-    "capability": "Knowledge Bases chunking and supported Lambda transformation changes evidence units before embedding, not runtime ranking."
+    "capability": "Knowledge Bases chunking and supported Lambda transformation changes evidence units before embedding, not runtime ranking.",
+    "comparison": {
+      "title": "Chunking: which evidence boundary fits?",
+      "headers": [
+        "Strategy",
+        "How it works",
+        "When it fits",
+        "Boundary / cost"
+      ],
+      "rows": [
+        [
+          "Default",
+          [
+            "Sentence-aware splitting",
+            "Service default"
+          ],
+          [
+            "Simple starting baseline",
+            "No demonstrated special boundary need"
+          ],
+          [
+            "Verify rules + exceptions survive",
+            "Default ≠ quality guarantee"
+          ]
+        ],
+        [
+          "Fixed-size",
+          [
+            "Token size + overlap"
+          ],
+          [
+            "Predictable evidence units",
+            "Measured boundary tuning"
+          ],
+          [
+            "Overlap duplicates indexed material",
+            "Larger chunks can dilute precision"
+          ]
+        ],
+        [
+          "Semantic",
+          [
+            "Meaning / topic boundaries"
+          ],
+          [
+            "Topic transitions matter",
+            "Eligible KB configuration"
+          ],
+          [
+            "Additional FM processing cost",
+            "No automatic parent substitution"
+          ]
+        ],
+        [
+          "Hierarchical",
+          [
+            "Child match → parent context"
+          ],
+          [
+            "Focused match needs wider context"
+          ],
+          [
+            "More context tokens",
+            "Returned count can shrink"
+          ]
+        ],
+        [
+          "Custom",
+          [
+            "Knowledge Bases Lambda transformation",
+            "Domain-specific chunks / metadata"
+          ],
+          [
+            "Built-ins fail required boundaries",
+            "Supported ingestion extension"
+          ],
+          [
+            "Own hook / contract / tests",
+            "Does not control query-time ranking"
+          ]
+        ]
+      ],
+      "note": "Check KB type: fully managed KBs currently lack semantic chunking and Lambda ingestion hooks; those rows need an eligible configurable KB path. Custom chunking with the supported Lambda transformation uses NONE before the hook.",
+      "sources": [
+        {
+          "title": "Chunking",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-chunking.html"
+        },
+        {
+          "title": "Lambda transformation",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-custom-transformation.html"
+        },
+        {
+          "title": "Managed KB feature differences",
+          "url": "https://docs.aws.amazon.com/kendra/latest/dg/kendra-availability-change.html"
+        }
+      ]
+    }
   },
   {
     "id": "chunk-default",
@@ -873,7 +1734,105 @@
     "extension": "Use a representative held-out dataset and consistent rubric/settings; route among evaluated eligible models where the requirements call for it.",
     "ownership": "Own the acceptance criteria, workload/cohort coverage, fair comparison, and support checks. Do not substitute model size or reputation for measured task fit.",
     "capability": "Bedrock inference/evaluation or compatible SageMaker hosting supports model comparison. AppConfig plus application routing can change approved model/cohort selection under its deployment/polling contract.",
-    "constraint": "The candidate must meet task/modality, context/output, safety, latency/cost, Region/API, and deployment requirements."
+    "constraint": "The candidate must meet task/modality, context/output, safety, latency/cost, Region/API, and deployment requirements.",
+    "comparison": {
+      "title": "Bedrock or SageMaker AI: which responsibility do you need to control?",
+      "headers": [
+        "Decision dimension",
+        "Amazon Bedrock",
+        "Amazon SageMaker AI"
+      ],
+      "rows": [
+        [
+          "Main fit",
+          [
+            "Managed FM / GenAI APIs",
+            "Less inference-infrastructure ownership"
+          ],
+          [
+            "Managed ML training / hosting",
+            "Deeper model / serving control"
+          ]
+        ],
+        [
+          "Models / customization",
+          [
+            "Supported models",
+            "Eligible tuning, CPT, distillation, import"
+          ],
+          [
+            "Compatible models / artifacts",
+            "Supported training code / adapters",
+            "Managed customization options too"
+          ]
+        ],
+        [
+          "Serving control",
+          [
+            "Supported API + capacity mode",
+            "No arbitrary GPU fleet / container"
+          ],
+          [
+            "Compatible container / instance choice",
+            "Endpoint / scaling configuration"
+          ]
+        ],
+        [
+          "Application capabilities",
+          [
+            "Knowledge Bases / Prompt Management",
+            "Guardrails + supported integrations"
+          ],
+          [
+            "Endpoint serves the model",
+            "Assemble retrieval / prompts / tools",
+            "Use managed or owned components"
+          ]
+        ],
+        [
+          "Effort / cost",
+          [
+            "Less hosting setup when supported",
+            "Model usage + capacity + feature costs"
+          ],
+          [
+            "Training / hosting + utilization",
+            "Configuration + scaling + operations"
+          ]
+        ],
+        [
+          "Exam clue",
+          [
+            "Managed FM API; minimize ownership",
+            "Custom chunking ≠ custom hosting"
+          ],
+          [
+            "Required container / GPU / scaling control",
+            "Custom weights alone ≠ SageMaker"
+          ]
+        ]
+      ],
+      "note": "Choose a model that passes representative task, modality, quality, safety, latency, cost, and Region/API requirements. Measure cost per successful task.",
+      "techniqueNote": "Both services are managed. Bedrock supports customization; SageMaker adds control where needed. Eligible SageMaker-trained models can be imported into Bedrock—training and serving choices can differ.",
+      "sources": [
+        {
+          "title": "AWS Bedrock / SageMaker decision guide",
+          "url": "https://docs.aws.amazon.com/decision-guides/latest/decision-guides/bedrock-or-sagemaker.html"
+        },
+        {
+          "title": "Bedrock customization",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html"
+        },
+        {
+          "title": "Custom model import",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html"
+        },
+        {
+          "title": "SageMaker inference choices",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html"
+        }
+      ]
+    }
   },
   {
     "id": "adapt",
@@ -893,7 +1852,7 @@
     "id": "model-customization",
     "parent": "lifecycle",
     "title": "Model customization / training (optional)",
-    "summary": "Change the model only for an evaluated need. Fine-tuning uses suitable labeled data; continued pre-training uses suitable unlabeled domain text where supported; distillation trains an eligible smaller student from teacher-generated behavior. LoRA is a fine-tuning technique, not a separate source of knowledge. An unchanged selected model can proceed to evaluation.",
+    "summary": "Change the model only for an evaluated need. Compare any adapted candidate with the unchanged baseline, then evaluate before deployment. An unchanged selected model can also proceed directly to evaluation.",
     "constraint": "Change weights only for a measured requirement with suitable data, supported method, demonstrated benefit, and a compatible release path.",
     "managed": "Eligible Bedrock customization/distillation/import features or SageMaker jobs/endpoints supply supported adaptation and deployment operations. Availability depends on model/method/Region/serving contract.",
     "extension": "Choose labeled-data tuning, supported unlabeled domain adaptation, or eligible teacher/student distillation for the measured requirement. LoRA changes adapter weights within a compatible tuning/serving setup.",
@@ -901,7 +1860,93 @@
     "capability": "Bedrock eligible customization/import/distillation or SageMaker model/adapter workflows addresses weight-level needs. Prompt Management and Knowledge Bases addresses separate instruction/evidence gaps.",
     "clue": "Stable behavior → fine-tuning; supported domain-text adaptation → continued pre-training; smaller student → distillation.",
     "trap": "RAG is not fine-tuning and neither is required for every model change.",
-    "example": "If clear instructions and correct evidence still fail a stable behavior requirement, test eligible adaptation and compare it with the unchanged baseline."
+    "example": "If clear instructions and correct evidence still fail a stable behavior requirement, test eligible adaptation and compare it with the unchanged baseline.",
+    "comparison": {
+      "title": "Which kind of model change fits?",
+      "headers": [
+        "Approach",
+        "Goal / data",
+        "When it fits",
+        "Techniques",
+        "Effort / cost"
+      ],
+      "rows": [
+        [
+          "Fine-tuning",
+          [
+            "Stable task / style / format",
+            "Labeled input → desired output"
+          ],
+          [
+            "Prompt + evidence already tested",
+            "Stable behavior gap remains"
+          ],
+          [
+            "Supervised fine-tuning (SFT)",
+            "Full-weight updates or LoRA (PEFT)"
+          ],
+          [
+            "Labels + training + release",
+            "LoRA: fewer trainable weights",
+            "Base still needed for inference"
+          ]
+        ],
+        [
+          "Continued pre-training",
+          [
+            "Domain language / patterns",
+            "Unlabeled domain text"
+          ],
+          [
+            "Measured domain gap",
+            "Suitable approved corpus"
+          ],
+          [
+            "Domain-adaptive pre-training (DAPT)",
+            "Self-supervised next-token prediction"
+          ],
+          [
+            "Corpus curation + token compute",
+            "Regression checks + release"
+          ]
+        ],
+        [
+          "Distillation",
+          [
+            "Smaller student; teacher behavior",
+            "Teacher responses → examples"
+          ],
+          [
+            "Teacher already passes the task",
+            "Lower serving latency / cost needed"
+          ],
+          [
+            "Response-based distillation",
+            "Teacher data → student SFT"
+          ],
+          [
+            "Teacher inference + student training",
+            "Critical-cohort evaluation"
+          ]
+        ]
+      ],
+      "note": "Compare held-out quality and full lifecycle cost. Smaller artifacts do not guarantee cheaper serving; changing weights does not create a live source lookup.",
+      "techniqueNote": "LoRA = weight-update technique. DAPT = domain-focused continued pre-training. Distillation = teacher-to-student transfer; it can use SFT. Check model/method/runtime support.",
+      "sources": [
+        {
+          "title": "AWS customization methods",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html"
+        },
+        {
+          "title": "Nova training objectives / recipes",
+          "url": "https://docs.aws.amazon.com/nova/latest/nova2-userguide/nova-model-training-job.html"
+        },
+        {
+          "title": "Bedrock distillation workflow",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-distillation.html"
+        }
+      ]
+    }
   },
   {
     "id": "prompt-engineering",
@@ -935,11 +1980,11 @@
     "id": "fine-tuning",
     "parent": "model-customization",
     "title": "Fine-tuning",
-    "summary": "Use suitable labeled training data for an evaluated stable behavior/task need when supported prompting is insufficient.",
+    "summary": "Supervised fine-tuning (SFT) learns from suitable inputs paired with desired outputs to improve an evaluated stable task or behavior. Full-weight tuning and supported LoRA are different ways to update weights during that learning.",
     "clue": "Consistent domain behavior with a demonstrated quality gain.",
     "trap": "Daily private-document refresh and citations are not implemented merely by changing weights.",
     "capability": "Supported Bedrock fine-tuning/customization or SageMaker adaptation plus independent evaluation and compatible serving.",
-    "example": "A clear evaluated prompt and correct evidence still fail a stable classification behavior; test eligible tuning against the unchanged model.",
+    "example": "For a case classifier, train on case text → approved category examples after defining the label boundary; test on independent cases rather than memorized training records.",
     "managed": "Eligible Bedrock customization or SageMaker jobs executes supported tuning/configuration contracts.",
     "extension": "Supply suitable approved labeled records or a compatible parameter-efficient method where supported.",
     "ownership": "Own data quality/splits, held-out benefit, artifact compatibility, approval, and deployment/rollback.",
@@ -949,13 +1994,13 @@
     "id": "continued-pretraining",
     "parent": "model-customization",
     "title": "Continued pre-training",
-    "summary": "Adapt eligible models on suitable unlabeled domain text where the model/feature supports it; evaluate against the original baseline.",
+    "summary": "Continue an eligible existing model’s training on suitable unlabeled domain text. For text LLMs, self-supervised next-token prediction learns from the text itself; it does not require explicit question/ideal-answer pairs. This extends an existing model rather than training a new foundation model from scratch.",
     "clue": "Domain adaptation differs from supervised instruction examples.",
     "trap": "This option is model-specific and not a real-time source lookup.",
     "capability": "Model-specific continued pre-training where eligible; retrieval remains the separate current-source capability.",
-    "example": "Adapting on unlabeled domain text may address a domain need, but a later policy change still needs current evidence.",
+    "example": "An approved technical corpus may help a model learn domain language. Compare held-out task results with the original baseline; later policy changes still need current evidence.",
     "managed": "Eligible Bedrock continued pre-training or a controlled SageMaker training path executes the supported method.",
-    "extension": "Supply approved suitable domain text and compare the supported adaptation with the original baseline.",
+    "extension": "Supply approved suitable domain text for the supported continued pre-training objective. This is often called domain-adaptive pre-training (DAPT); compare it with the unchanged baseline.",
     "ownership": "Own data approval, independent task evaluation, compatibility, lifecycle cost, and release support.",
     "constraint": "Verify method/model support and a measured domain benefit; do not treat weights as a live source lookup."
   },
@@ -999,7 +2044,65 @@
     "extension": "Compose explicit artifact promotion, canary/shadow/blue-green exposure where appropriate, version attribution, and smoke/rollback checks in the delivery workflow.",
     "ownership": "Own the approved model/base-adapter/template/settings combination, side-effect isolation, critical-cohort stop criteria, state compatibility, and tested rollback route.",
     "capability": "Registry → version/approval evidence. Serving deployment/router → actual invoked identity. Canary limits exposure; shadow isolates candidate output/side effects; blue-green switches prepared environments.",
-    "constraint": "Release the evaluated compatible configuration safely, prove its live identity, and preserve a working compatible rollback target."
+    "constraint": "Release the evaluated compatible configuration safely, prove its live identity, and preserve a working compatible rollback target.",
+    "comparison": {
+      "title": "Which rollout answers the release question?",
+      "headers": [
+        "Pattern",
+        "Purpose",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "A/B",
+          [
+            "Compare live outcomes between variants"
+          ],
+          [
+            "Real users exposed",
+            "Define cohorts / success criteria"
+          ]
+        ],
+        [
+          "Canary",
+          [
+            "Limit initial live exposure"
+          ],
+          [
+            "Watch regression / rollback signals",
+            "Small exposure still has real effects"
+          ]
+        ],
+        [
+          "Shadow",
+          [
+            "Copy requests; hide candidate answers"
+          ],
+          [
+            "Isolate tool writes / side effects",
+            "Hidden output ≠ safe execution"
+          ]
+        ],
+        [
+          "Blue/green",
+          [
+            "Separate current/candidate environments",
+            "Controlled traffic switch"
+          ],
+          [
+            "Keep compatible rollback target",
+            "Approval ≠ updated serving route"
+          ]
+        ]
+      ],
+      "note": "Evaluate and approve first. Verify the actual live model/adapter/prompt/configuration. Model Registry alone does not update an endpoint or hot-swap an adapter.",
+      "sources": [
+        {
+          "title": "SageMaker deployment guardrails",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/deployment-guardrails.html"
+        }
+      ]
+    }
   },
   {
     "id": "capacity",
@@ -1271,7 +2374,54 @@
     "managed": "Eligible Bedrock prompt caching reuses supported identical prompt prefixes. It does not return a previously generated application answer.",
     "extension": "An application result cache can reuse exact or semantically equivalent answers only when the complete scoped inputs and freshness rules make reuse valid.",
     "ownership": "Own tenant/access isolation, input/configuration/version identity, expiry, and invalidation. Measure whether the answer remains valid before adopting semantic result reuse.",
-    "constraint": "Only reuse work whose input, permission scope, configuration, and freshness remain valid for the new request."
+    "constraint": "Only reuse work whose input, permission scope, configuration, and freshness remain valid for the new request.",
+    "comparison": {
+      "title": "What exactly can be reused?",
+      "headers": [
+        "Cache",
+        "Reusable unit",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "Exact result",
+          [
+            "Same complete scoped input/configuration"
+          ],
+          [
+            "Include tenant / permissions / versions",
+            "Invalidate changed facts"
+          ]
+        ],
+        [
+          "Semantic result",
+          [
+            "Equivalent question; same valid answer"
+          ],
+          [
+            "Similarity alone is insufficient",
+            "Preserve scope / freshness"
+          ]
+        ],
+        [
+          "Prompt cache",
+          [
+            "Supported identical prompt prefix"
+          ],
+          [
+            "Eligible model / minimum / expiry rules",
+            "Reuses prompt work, not a stored answer"
+          ]
+        ]
+      ],
+      "note": "Define the reusable unit before choosing a cache. Compare measured savings with stale-answer, access-scope, and quality risks.",
+      "sources": [
+        {
+          "title": "Bedrock prompt caching",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html"
+        }
+      ]
+    }
   },
   {
     "id": "rollout",
@@ -1286,7 +2436,65 @@
     "extension": "Use canary for limited exposure, A/B for live outcome comparison, isolated shadow for copied requests, or blue/green for a controlled switch with rollback.",
     "ownership": "Own offline approval gates, side-effect isolation, cohort thresholds, release identity, and a verified rollback target. Stop promotion when a critical cohort fails.",
     "capability": "Eligible SageMaker deployment/traffic controls and application routing implement the selected rollout pattern; CloudWatch and evaluation signals inform rollback.",
-    "constraint": "Expose the candidate in the required way while containing side effects and preserving a compatible rollback release."
+    "constraint": "Expose the candidate in the required way while containing side effects and preserving a compatible rollback release.",
+    "comparison": {
+      "title": "Which rollout answers the release question?",
+      "headers": [
+        "Pattern",
+        "Purpose",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "A/B",
+          [
+            "Compare live outcomes between variants"
+          ],
+          [
+            "Real users exposed",
+            "Define cohorts / success criteria"
+          ]
+        ],
+        [
+          "Canary",
+          [
+            "Limit initial live exposure"
+          ],
+          [
+            "Watch regression / rollback signals",
+            "Small exposure still has real effects"
+          ]
+        ],
+        [
+          "Shadow",
+          [
+            "Copy requests; hide candidate answers"
+          ],
+          [
+            "Isolate tool writes / side effects",
+            "Hidden output ≠ safe execution"
+          ]
+        ],
+        [
+          "Blue/green",
+          [
+            "Separate current/candidate environments",
+            "Controlled traffic switch"
+          ],
+          [
+            "Keep compatible rollback target",
+            "Approval ≠ updated serving route"
+          ]
+        ]
+      ],
+      "note": "Evaluate and approve first. Verify the actual live model/adapter/prompt/configuration. Model Registry alone does not update an endpoint or hot-swap an adapter.",
+      "sources": [
+        {
+          "title": "SageMaker deployment guardrails",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/deployment-guardrails.html"
+        }
+      ]
+    }
   },
   {
     "id": "diagnostics",
@@ -1420,7 +2628,7 @@
     "id": "lora",
     "parent": "fine-tuning",
     "title": "LoRA / parameter-efficient tuning",
-    "summary": "Train low-rank adapter weights while the base weights remain frozen. An unmerged adapter still needs its compatible base model at inference.",
+    "summary": "LoRA is a parameter-efficient weight-update technique commonly used for fine-tuning: train low-rank adapter weights while the base stays frozen. SFT describes the learning objective; LoRA describes how weights change. An unmerged adapter needs its compatible base at inference.",
     "clue": "Task adaptation with a smaller trainable artifact → evaluate supported LoRA.",
     "trap": "LoRA is a fine-tuning technique, not RAG, a standalone foundation model, or a guarantee of higher quality.",
     "managed": "Eligible SageMaker training/serving capabilities support compatible adapter workflows. The selected model/runtime contract determines which adapter format and integration are supported.",
@@ -1538,14 +2746,14 @@
     "id": "distillation",
     "parent": "model-customization",
     "title": "Distillation",
-    "summary": "Train an eligible smaller student from teacher-generated behavior using a supported workflow and representative tasks. Compare held-out quality, latency, and cost.",
+    "summary": "Transfer teacher behavior to an eligible smaller student for a defined task. Bedrock uses generated or existing teacher responses to fine-tune the student; this is response-based distillation and can include supervised fine-tuning.",
     "clue": "Reduce serving cost for a defined task while preserving measured quality.",
     "trap": "Distillation is different from quantizing the same model or attaching a LoRA adapter.",
     "capability": "Eligible Bedrock distillation or SageMaker training; automated and human evaluation where appropriate test the smaller student’s task behavior.",
     "read": "#cost-patterns",
     "example": "A smaller student copies common teacher responses well but fails a rare policy exception. The lower serving cost cannot compensate for breaking a critical acceptance case.",
     "managed": "Eligible Bedrock distillation or a controlled SageMaker workflow trains a student under the selected supported contract. Eligibility and task fit must be checked.",
-    "extension": "Use representative teacher/task examples and supported training controls; compare the student with the teacher/baseline on independent cohorts.",
+    "extension": "Use representative teacher/task prompts and supported synthetic-data generation or response reuse, then train the student. Compare the student and accepted teacher/baseline on independent critical cohorts.",
     "ownership": "Own dataset quality, held-out quality/latency/cost gates, critical-cohort acceptance, and a rollback release. Reject average gains that hide consequential failures.",
     "constraint": "Reduce measured serving cost/latency while preserving the defined task quality, including critical cohorts."
   },
