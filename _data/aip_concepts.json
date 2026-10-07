@@ -680,8 +680,8 @@
             "Model selects tools from observations"
           ],
           [
-            "Bound tools / iterations / tokens",
-            "Not business authorization or durable state"
+            "Configure state / recovery / loop limits",
+            "Not business authorization"
           ]
         ],
         [
@@ -731,7 +731,10 @@
           "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html"
         }
       ]
-    }
+    },
+    "inlineConcepts": [
+      "agents"
+    ]
   },
   {
     "id": "security",
@@ -2165,16 +2168,161 @@
   {
     "id": "agents",
     "parent": "orchestration",
-    "title": "Model chooses next tool → Agent",
-    "summary": "The model reasons over observations to choose among permitted actions. Bound tools, time, iterations, tokens, and write authority.",
+    "title": "Agents / frameworks",
+    "summary": "An agent uses a model to choose the next permitted action, observes the tool result, and repeats until an answer or stopping condition. Choose the control pattern first, then how to implement the loop and where to host it.",
     "clue": "The next tool cannot be expressed as a known fixed sequence.",
     "trap": "Framework/runtime choice does not supply business authorization.",
-    "capability": "Compatible frameworks such as Strands or eligible AgentCore managed harness for the loop; IAM/backend controls for scope; durable workflows for required state/waits.",
+    "capability": "Strands and LangChain supply agent-loop abstractions; LangGraph supplies graph/state control. AgentCore Harness supplies a managed loop; AgentCore Runtime hosts compatible code-defined agents.",
     "example": "A diagnostic task chooses its next permitted tool from observations; a required refund approval still follows business policy.",
-    "managed": "An eligible managed harness or compatible framework runs the configured model/tool loop; AgentCore Runtime hosts code-defined agents.",
-    "extension": "Expose bounded well-described tools, scoped retrieval, and supported human-control points where the loop contract fits.",
-    "ownership": "Own permitted actions/arguments, iteration/time/token limits, validation, evaluation, and business side effects.",
-    "constraint": "Use dynamic tool selection only where the next action genuinely depends on observations, within enforced authority."
+    "managed": "AgentCore Harness supplies and runs a configured agent loop. AgentCore Runtime supplies hosting for your code; a handwritten loop or framework remains your implementation responsibility.",
+    "extension": "Configure an eligible managed harness with supported models, tools, and limits. When its contract does not fit, implement the needed loop or graph with compatible code or a framework.",
+    "ownership": "Own tool authorization, business preconditions, approval rules, side-effect idempotency, and acceptance tests. Configure limits and recovery even when a library or service runs the loop.",
+    "constraint": "Use dynamic tool selection only where the next action genuinely depends on observations, within enforced authority.",
+    "read": "/study/aiAgents#section-2-orchestration",
+    "comparison": {
+      "title": "What makes this an agent?",
+      "headers": [
+        "Control pattern",
+        "Who chooses the next step?",
+        "Boundary / trap"
+      ],
+      "rows": [
+        [
+          "Fixed workflow",
+          [
+            "Application defines steps and branches"
+          ],
+          [
+            "Model inside a step ≠ agent"
+          ]
+        ],
+        [
+          "One model/tool call",
+          [
+            "Model proposes; application checks and executes once"
+          ],
+          [
+            "Tool calling alone ≠ continuing agent loop"
+          ]
+        ],
+        [
+          "Agent loop",
+          [
+            "Model chooses permitted action from observations",
+            "Tool result → model → next action"
+          ],
+          [
+            "Enforce authorization / stopping limits"
+          ]
+        ],
+        [
+          "Hybrid",
+          [
+            "Application fixes mandatory checkpoints",
+            "Agent investigates between them"
+          ],
+          [
+            "Approval and business rules remain enforced checkpoints"
+          ]
+        ]
+      ],
+      "note": "For “Why was my refund rejected?”, the agent may choose which records to inspect next. Issuing a refund still requires enforced ownership, policy, and approval checks.",
+      "sources": [
+        {
+          "title": "AI Agents: control patterns",
+          "url": "/study/aiAgents#section-4-planning"
+        }
+      ]
+    },
+    "additionalComparisons": [
+      {
+        "title": "How will you build the loop?",
+        "headers": [
+          "Implementation",
+          "What it provides",
+          "Choose when / boundary"
+        ],
+        "rows": [
+          [
+            "Handwritten loop",
+            [
+              "Your code calls model / validates tools / repeats"
+            ],
+            [
+              "Precise custom control",
+              "Own state / retries / stopping / recovery"
+            ]
+          ],
+          [
+            "Strands Agents",
+            [
+              "SDK model/tool loop",
+              "Tools / hooks / coordination patterns"
+            ],
+            [
+              "Model-led tool use with configurable SDK control",
+              "Framework ≠ managed hosting"
+            ]
+          ],
+          [
+            "LangChain",
+            [
+              "Agent harness / model and tool integrations",
+              "Agents built on LangGraph"
+            ],
+            [
+              "Compose agent behavior with higher-level abstractions",
+              "Not limited to linear chains"
+            ]
+          ],
+          [
+            "LangGraph",
+            [
+              "Explicit nodes / edges / state",
+              "Checkpoints / human intervention"
+            ],
+            [
+              "Mix required steps with agentic investigation",
+              "Configure persistence and recovery"
+            ]
+          ],
+          [
+            "AgentCore Harness",
+            [
+              "AWS runs configured model/tool loop",
+              "Configure model / tools / memory / limits"
+            ],
+            [
+              "Supported managed contract meets the requirement",
+              "Custom graph or hooks → assess code-based runtime"
+            ]
+          ]
+        ],
+        "note": "These are implementation choices, not five separate agent types or required wrappers. LangGraph can contain an agent loop. Hosting is separate: AgentCore Runtime can host your own or framework-based code; AgentCore Harness runs a managed loop inside Runtime. Every option still needs enforced business authorization.",
+        "sources": [
+          {
+            "title": "AI Agents: examples and deeper explanation",
+            "url": "/study/aiAgents#section-2-orchestration"
+          },
+          {
+            "title": "Strands loop",
+            "url": "https://strandsagents.com/docs/user-guide/sdk/agents/agent-loop/"
+          },
+          {
+            "title": "LangChain",
+            "url": "https://docs.langchain.com/oss/python/langchain/overview"
+          },
+          {
+            "title": "LangGraph",
+            "url": "https://docs.langchain.com/oss/python/langgraph/overview"
+          },
+          {
+            "title": "AgentCore Harness vs Runtime",
+            "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-vs-runtime.html"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "events",

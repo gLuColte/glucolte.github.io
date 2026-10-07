@@ -6,6 +6,14 @@
     <p><strong>Purpose:</strong> {{ concept.summary | escape }}</p>
     {%- if concept.example %}{% unless concept.comparison %}<p><strong>Example:</strong> {{ concept.example | escape }}</p>{% endunless %}{% endif %}
     {%- if concept.comparison %}{% include aip-model-comparison.html comparison=concept.comparison %}{% endif %}
+    {%- for inline_id in concept.inlineConcepts %}{% assign inline_concept = site.data.aip_concepts | where: 'id', inline_id | first %}
+    <div id="concept-{{ inline_concept.id }}">
+      <h4>{{ inline_concept.title | escape }}</h4>
+      <p>{{ inline_concept.summary | escape }}</p>
+      {% include aip-model-comparison.html comparison=inline_concept.comparison %}
+      {% for comparison in inline_concept.additionalComparisons %}{% include aip-model-comparison.html comparison=comparison %}{% endfor %}
+    </div>
+    {%- endfor %}
     {%- if concept.questions %}<ul>{% for question in concept.questions %}<li>{{ question | escape }}</li>{% endfor %}</ul>{% endif %}
     <p><strong>{% if concept.decision %}Decision to make{% else %}Requirement to satisfy{% endif %}:</strong> {{ concept.decision | default: concept.constraint | escape }}</p>
     <details class="aip-layer-reasoning">

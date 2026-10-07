@@ -8,5 +8,5 @@
   {%- if include.comparison.techniqueTitle %}<h4>{{ include.comparison.techniqueTitle | escape }}</h4>{% endif %}
   {%- if include.comparison.techniques %}<dl>{% for technique in include.comparison.techniques %}<dt>{{ technique.title | escape }}</dt><dd>{{ technique.body | escape }}</dd>{% endfor %}</dl>{% endif %}
   {%- if include.comparison.techniqueNote %}<p class="aip-comparison-note">{{ include.comparison.techniqueNote | escape }}</p>{% endif %}
-  <p class="aip-comparison-sources">AWS references: {% for source in include.comparison.sources %}{% unless forloop.first %} · {% endunless %}<a href="{{ source.url | escape }}">{{ source.title | escape }}</a>{% endfor %}</p>
+  <p class="aip-comparison-sources">References: {% for source in include.comparison.sources %}{% unless forloop.first %} · {% endunless %}<a href="{{ source.url | escape }}">{{ source.title | escape }}</a>{% endfor %}</p>
 </section>

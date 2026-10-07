@@ -80,7 +80,7 @@
     if(comparison.techniqueTitle)section.append(make('h4',comparison.techniqueTitle));
     if(comparison.techniques?.length){const definitions=make('dl');comparison.techniques.forEach(item=>definitions.append(make('dt',item.title),make('dd',item.body)));section.append(definitions);}
     if(comparison.techniqueNote)section.append(make('p',comparison.techniqueNote,'aip-comparison-note'));
-    const sources=make('p',undefined,'aip-comparison-sources');sources.append(document.createTextNode('AWS references: '));
+    const sources=make('p',undefined,'aip-comparison-sources');sources.append(document.createTextNode('References: '));
     comparison.sources.forEach((source,index)=>{if(index)sources.append(document.createTextNode(' · '));const link=make('a',source.title);link.href=source.url;sources.append(link);});section.append(sources);return section;
   }
   function renderInlineTraps(ids){
@@ -184,7 +184,14 @@
     explanation.replaceChildren(make('h3',`Decisions at ${context.title}`),fieldBlock('Purpose',item.summary));
     if(item.example&&!item.comparison)explanation.append(fieldBlock('Example',item.example));
     if(item.comparison)explanation.append(comparisonBlock(item.comparison));
-    const children=data.concepts.filter(child=>child.parent===conceptId);
+    (item.additionalComparisons||[]).forEach(comparison=>explanation.append(comparisonBlock(comparison)));
+    (item.inlineConcepts||[]).forEach(id=>{
+      const inline=concepts.get(id);if(!inline)return;
+      explanation.append(fieldBlock(inline.title,inline.summary));
+      if(inline.comparison)explanation.append(comparisonBlock(inline.comparison));
+      (inline.additionalComparisons||[]).forEach(comparison=>explanation.append(comparisonBlock(comparison)));
+    });
+    const children=data.concepts.filter(child=>child.parent===conceptId&&!(item.inlineConcepts||[]).includes(child.id));
     if(children.length&&!['system','lifecycle'].includes(conceptId)){
       const hierarchy=make('nav',undefined,'aip-concept-links');hierarchy.setAttribute('aria-label','Related substeps');hierarchy.append(make('span','Substeps: '));
       children.forEach(child=>{const link=make('a',child.title);link.href='#concept-'+child.id;link.dataset.concept=child.id;link.addEventListener('click',event=>{event.preventDefault();showBoundary(child.id);});hierarchy.append(link);});explanation.append(hierarchy);
