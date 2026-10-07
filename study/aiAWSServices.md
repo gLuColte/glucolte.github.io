@@ -105,6 +105,9 @@ These are integration choices, not interchangeable capabilities. See the [AWS AP
 
 Use the cloud-neutral [serving and caching rules](/study/aiInfrastructure#101-serving-and-caching-decision-rules) to select a pattern. AWS details: [Provisioned Throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html), [batch inference](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference.html), and [inference profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles.html).
 
+<span id="cross-region-profile"></span>
+{% include bedrock-cross-region-profile.html %}
+
 ### 2.2 Application capabilities {#section-2-2-capabilities}
 
 | Capability | AWS-specific role |
@@ -761,6 +764,9 @@ Use a purpose-built API or packaged assistant when it already meets the task. Th
 | **Document text and structure** | Textract | Extract the text and table cells of a scanned invoice before downstream language analysis. |
 
 Comprehend entity detection assigns types to text spans. Key phrase extraction returns noun phrases and confidence scores; it does not require a predefined entity type and is not a generated summary. Use `DetectEntities` and `DetectKeyPhrases` for their respective tasks. [Comprehend entities](https://docs.aws.amazon.com/comprehend/latest/dg/how-entities.html) and [key phrases](https://docs.aws.amazon.com/comprehend/latest/dg/how-key-phrases.html).
+
+<span id="comprehend-sentiment"></span>
+{% include comprehend-sentiment.html %}
 
 Rekognition analyzes visual content, with capabilities including labels, faces, image text, and moderation. A face detection is not automatically identification of a named person. For a scanned contract, OCR followed by Comprehend can extract named parties; detecting objects in a photograph is a different task. [Rekognition visual labels](https://docs.aws.amazon.com/rekognition/latest/dg/labels.html).
 

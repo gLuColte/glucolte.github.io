@@ -1,0 +1,21 @@
+<details class="inference-details aip-purpose-concept">
+  <summary>Comprehend: DetectSentiment vs DetectTargetedSentiment</summary>
+  <p>Both are built-in, pre-trained APIs: no labeled training data, LLM prompt, or model hosting to maintain.</p>
+  <ul>
+    <li><code>DetectSentiment</code>: <strong>one overall label for the whole text</strong> — POSITIVE, NEGATIVE, NEUTRAL, or MIXED — plus scores for all four.</li>
+    <li><code>DetectTargetedSentiment</code>: <strong>sentiment for each detected entity mention</strong>, such as a product or feature, with scores and grouped mentions. It does not return one whole-review label.</li>
+  </ul>
+  <p>Review: “Great battery, terrible screen.” Illustrative results:</p>
+  <pre><code class="language-plaintext">DetectSentiment
+  Whole review → MIXED
+
+DetectTargetedSentiment
+  Battery → POSITIVE
+  Screen  → NEGATIVE</code></pre>
+  <aside class="technique-callout" aria-label="Exam Clue">
+    <strong>Exam Clue</strong>
+    <p>One label per review in DynamoDB + no prompt + no training data → <code>DetectSentiment</code>. Feedback about individual products/features → <code>DetectTargetedSentiment</code>.</p>
+  </aside>
+  <p><strong>Remember:</strong> Sentiment = whole text; Targeted = specific entities. More granular output is useful only when the task needs it.</p>
+  <p class="bedrock-token-note">AWS references: <a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-sentiment.html">Sentiment</a> · <a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-targeted-sentiment.html">Targeted sentiment</a>.</p>
+</details>

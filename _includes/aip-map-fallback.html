@@ -5,9 +5,13 @@
     <summary>{{ node.title | escape }}</summary>
     <p><strong>Purpose:</strong> {{ concept.summary | escape }}</p>
     {%- if concept.id == 'prompt' %}{% include converse-guard-content.html %}{% endif %}
+    {%- if concept.id == 'preprocess' %}
+    <details id="concept-pii-text"><summary>Text / PII → Comprehend</summary>{% include comprehend-sentiment.html %}</details>
+    {%- endif %}
     {%- if concept.example %}{% unless concept.comparison %}<p><strong>Example:</strong> {{ concept.example | escape }}</p>{% endunless %}{% endif %}
     {%- if concept.comparison %}{% include aip-model-comparison.html comparison=concept.comparison %}{% endif %}
     {%- if concept.id == 'model' %}
+    {% include bedrock-cross-region-profile.html %}
     <details id="concept-model-quotas">
       <summary>Quotas / Throttling</summary>
       <details id="concept-bedrock-token-admission">

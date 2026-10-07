@@ -11,4 +11,6 @@
 <script id="aip-study-data" type="application/json">{"nodes":{{ site.data.aip_map_nodes | jsonify }},"concepts":{{ site.data.aip_concepts | jsonify }},"diagnostics":{{ site.data.aip_diagnostics | jsonify }},"stageScenarios":{{ site.data.aip_stage_scenarios | jsonify }},"stageScenarioLinks":{{ site.data.aip_stage_scenario_links | jsonify }},"boundaryLinks":{{ site.data.aip_boundary_links | jsonify }},"traps":{{ site.data.aip_trap_tables | jsonify }}}</script>
 <template id="aip-bedrock-token-admission">{% include bedrock-token-admission.html %}<p><a href="/study/aiFundamentals#bedrock-token-admission">AI Fundamentals: output caps and token quotas</a></p></template>
 <template id="aip-converse-guard-content">{% include converse-guard-content.html %}</template>
+<template id="aip-comprehend-sentiment">{% include comprehend-sentiment.html %}</template>
+<template id="aip-cross-region-profile">{% include bedrock-cross-region-profile.html %}</template>
 <script src="{{ '/assets/aip-study-flow.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
