@@ -1,0 +1,8 @@
+{%- assign zone = site.data.aws_ai_service_map.zones | where: 'id', include.zone_id | first -%}
+<div class="aws-map aws-map__catalogue" aria-label="{{ zone.title }} service cards">
+  <div class="aws-map__groups">{%- for stage in zone.stages -%}
+    <div class="aws-map__group"><strong>{{ stage.title }}</strong><div class="aws-map__tiles">{%- for key in stage.keys -%}{%- assign card = site.data.aws_ai_service_map.cards[key] -%}
+      <a class="aws-map__tile" href="{{ card.read }}" data-service="{{ key }}" id="aws-service-{{ key }}"><img src="{{ '/study/assets/aws-architecture-icons/Arch_' | append: card.icon | append: '_64.svg' | relative_url }}" alt="" width="30" height="30" loading="lazy"><span>{{ card.name }}</span></a>
+    {%- endfor -%}</div></div>
+  {%- endfor -%}</div>
+</div>

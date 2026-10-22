@@ -1,0 +1,3545 @@
+{
+  "checked": "22 October 2026",
+  "groups": [
+    {
+      "id": "bedrock-tiers",
+      "zone": "life",
+      "keys": [
+        "bedrock",
+        "converse",
+        "invokemodel"
+      ],
+      "title": "Bedrock service tiers",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Standard (default)",
+          "Everyday interactive inference",
+          "Model input/output usage"
+        ],
+        [
+          "Priority",
+          "Higher scheduling priority for latency-sensitive requests",
+          "Premium usage rates"
+        ],
+        [
+          "Flex",
+          "Lower-priority, delay-tolerant work",
+          "Discounted usage rates"
+        ],
+        [
+          "Reserved",
+          "Sustained reserved input/output TPM; overflow uses Standard",
+          "Monthly capacity; 1- or 3-month commitment"
+        ]
+      ],
+      "note": "Service tiers differ from Provisioned Throughput. Check model/API/Region eligibility; Bedrock manages the GPU infrastructure.",
+      "sources": [
+        {
+          "title": "Service tier contracts",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/service-tiers-inference.html"
+        },
+        {
+          "title": "Bedrock rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        }
+      ],
+      "onPage": true,
+      "reference": {
+        "title": "Bedrock rates",
+        "url": "https://aws.amazon.com/bedrock/pricing/"
+      }
+    },
+    {
+      "id": "bedrock-custom-models",
+      "zone": "life",
+      "keys": [
+        "bedrock"
+      ],
+      "title": "Bedrock customized and imported model costs",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Fine-tuning / continued pre-training",
+          "Supported behavior/domain adaptation",
+          "Training, model storage, and serving"
+        ],
+        [
+          "Distillation",
+          "Supported teacher → smaller student",
+          "Teacher inference plus student training/serving"
+        ],
+        [
+          "Custom Model Import",
+          "Eligible external weights; managed copies may cold-start",
+          "Active CMUs in 5-minute windows plus storage"
+        ]
+      ],
+      "note": "Training and deployment are separate purchases. Verify the exact custom-model serving options.",
+      "sources": [
+        {
+          "title": "Customization",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/custom-model-fine-tuning.html"
+        },
+        {
+          "title": "Distillation cost boundaries",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-distillation.html"
+        },
+        {
+          "title": "Imported model billing",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/import-model-calculate-cost.html"
+        },
+        {
+          "title": "Model rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Model rates",
+        "url": "https://aws.amazon.com/bedrock/pricing/"
+      }
+    },
+    {
+      "id": "bedrock-capacity",
+      "zone": "run",
+      "keys": [
+        "bedrock",
+        "provthroughput",
+        "xregion"
+      ],
+      "title": "Bedrock capacity and delivery choices",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "On-demand",
+          "Variable live traffic; service quotas apply",
+          "Model usage at the selected tier"
+        ],
+        [
+          "Provisioned Throughput",
+          "Eligible sustained demand; invoke provisioned ARN",
+          "Model-unit capacity time, including idle capacity"
+        ],
+        [
+          "Batch inference",
+          "Offline S3 job; separate from StartAsyncInvoke",
+          "Applicable batch model usage"
+        ],
+        [
+          "Cross-Region profile",
+          "Routing across approved destinations; no Provisioned Throughput",
+          "Model usage at applicable profile rates"
+        ],
+        [
+          "Application inference profile",
+          "Usage attribution/tags; no reserved throughput",
+          "Underlying inference usage"
+        ],
+        [
+          "Latency-optimized (preview)",
+          "Supported models/Regions; may fall back to Standard latency",
+          "Rate for the latency mode actually served"
+        ]
+      ],
+      "note": "Streaming changes response delivery. A profile routes inference; it does not fail over your application or cancel capacity commitments.",
+      "sources": [
+        {
+          "title": "Provisioned Throughput",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html"
+        },
+        {
+          "title": "Batch jobs",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference.html"
+        },
+        {
+          "title": "Cross-Region contracts",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html"
+        },
+        {
+          "title": "Rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        },
+        {
+          "title": "Latency optimization",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/latency-optimized-inference.html"
+        }
+      ],
+      "onPage": true,
+      "reference": {
+        "title": "Rates",
+        "url": "https://aws.amazon.com/bedrock/pricing/"
+      }
+    },
+    {
+      "id": "sagemaker-hosting",
+      "zone": "life",
+      "keys": [
+        "sagemaker"
+      ],
+      "title": "SageMaker hosting: capacity, GPU, and cost",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Real-time",
+          "Interactive serving; chosen CPU/GPU instances",
+          "Running instances/storage, including idle capacity"
+        ],
+        [
+          "Asynchronous",
+          "CPU/GPU queue; up to 1 GB / 1 hour; configurable scale-to-zero",
+          "Running instances plus S3/data usage"
+        ],
+        [
+          "Batch Transform",
+          "CPU/GPU jobs over a known dataset",
+          "Job instances plus storage/data usage"
+        ],
+        [
+          "Serverless — on-demand",
+          "CPU only: NO GPU; cold starts; no VPC configuration/Data Capture",
+          "Memory × execution duration plus data; no idle compute"
+        ],
+        [
+          "Serverless — Provisioned Concurrency",
+          "CPU only: NO GPU; warm capacity; serverless exclusions remain",
+          "Warm capacity plus execution/data"
+        ]
+      ],
+      "note": "Provisioned Concurrency warms CPU environments. It does not add GPU support.",
+      "sources": [
+        {
+          "title": "Deployment options",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html"
+        },
+        {
+          "title": "Serverless exclusions",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/serverless-endpoints.html"
+        },
+        {
+          "title": "Async limits",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference.html"
+        },
+        {
+          "title": "SageMaker rates",
+          "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
+        }
+      ],
+      "onPage": true,
+      "reference": {
+        "title": "SageMaker rates",
+        "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
+      }
+    },
+    {
+      "id": "sagemaker-training",
+      "zone": "life",
+      "keys": [
+        "sagemaker",
+        "datawrangler",
+        "registry",
+        "neo",
+        "hybrid"
+      ],
+      "title": "SageMaker development and purchase options",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "On-demand training / Processing",
+          "Supported CPU/GPU jobs; tuning launches multiple jobs",
+          "Instance time and storage"
+        ],
+        [
+          "Managed Spot Training",
+          "Interruptible training; checkpoint/recover",
+          "Discounted Spot training compute"
+        ],
+        [
+          "Training plans",
+          "Reserve specified accelerated capacity/time windows",
+          "Upfront capacity plan"
+        ],
+        [
+          "Savings Plans",
+          "Commit to eligible usage spend; no GPU availability reservation",
+          "Committed spend with eligible discounts"
+        ],
+        [
+          "Studio / Data Wrangler / Canvas",
+          "Interactive preparation/building plus launched jobs",
+          "Session/app/job resources"
+        ],
+        [
+          "JumpStart / Registry / Neo",
+          "Starting models, versioning, compilation; not capacity tiers",
+          "Underlying resources and applicable model fees"
+        ],
+        [
+          "Outposts / Wavelength / EC2",
+          "Locality or infrastructure control",
+          "Purchased capacity or resource usage"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "SageMaker rates",
+          "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
+        },
+        {
+          "title": "Spot contracts",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html"
+        },
+        {
+          "title": "Savings Plans",
+          "url": "https://aws.amazon.com/savingsplans/ml-pricing/"
+        },
+        {
+          "title": "Outposts pricing",
+          "url": "https://aws.amazon.com/outposts/rack/pricing/"
+        },
+        {
+          "title": "Wavelength pricing",
+          "url": "https://aws.amazon.com/wavelength/pricing/"
+        },
+        {
+          "title": "Training plan contracts",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/reserve-capacity-with-training-plans.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "SageMaker rates",
+        "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
+      }
+    },
+    {
+      "id": "feature-store",
+      "zone": "life",
+      "keys": [
+        "sagemaker"
+      ],
+      "title": "Feature Store storage and throughput",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Standard online — on-demand",
+          "Variable low-latency reads/writes",
+          "Request units plus storage"
+        ],
+        [
+          "Standard online — provisioned",
+          "Predictable throughput; unused capacity billed",
+          "Provisioned read/write capacity plus storage"
+        ],
+        [
+          "In-memory online",
+          "Lower-latency store with minimum storage charge",
+          "Read/write units and hourly storage"
+        ],
+        [
+          "Offline",
+          "S3 historical features; can coexist with online",
+          "S3 and query/processing usage"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Feature Store rates",
+          "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
+        },
+        {
+          "title": "Store configurations",
+          "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/feature-store-storage-configurations.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Feature Store rates",
+        "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
+      }
+    },
+    {
+      "id": "configuration",
+      "zone": "life",
+      "keys": [
+        "appconfig",
+        "paramstore"
+      ],
+      "title": "Application configuration options",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Parameter Store Standard",
+          "Ordinary parameters, up to 4 KB",
+          "Standard storage/basic throughput at no charge"
+        ],
+        [
+          "Parameter Store Advanced",
+          "Up to 8 KB and parameter policies",
+          "Parameter-months and API interactions"
+        ],
+        [
+          "Higher throughput",
+          "Independent request-rate setting for either tier",
+          "Applicable interactions"
+        ],
+        [
+          "AppConfig",
+          "Validated configuration/flag rollout and retrieval",
+          "Requests and configurations received"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Parameter tiers",
+          "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html"
+        },
+        {
+          "title": "Systems Manager / AppConfig rates",
+          "url": "https://aws.amazon.com/systems-manager/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Systems Manager / AppConfig rates",
+        "url": "https://aws.amazon.com/systems-manager/pricing/"
+      }
+    },
+    {
+      "id": "delivery",
+      "zone": "life",
+      "keys": [
+        "cicd"
+      ],
+      "title": "Build and release billing",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "CodePipeline V1",
+          "Supported basic pipeline features",
+          "Active pipeline-month"
+        ],
+        [
+          "CodePipeline V2",
+          "Advanced trigger/release features",
+          "Billed action execution minutes"
+        ],
+        [
+          "CodeBuild on-demand",
+          "Elastic EC2- or Lambda-based builders",
+          "Compute minutes or seconds"
+        ],
+        [
+          "CodeBuild reserved",
+          "Allocated build fleet, including idle periods",
+          "Reserved compute time"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "CodePipeline pricing",
+          "url": "https://aws.amazon.com/codepipeline/pricing/"
+        },
+        {
+          "title": "CodeBuild pricing",
+          "url": "https://aws.amazon.com/codebuild/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "CodePipeline pricing",
+        "url": "https://aws.amazon.com/codepipeline/pricing/"
+      }
+    },
+    {
+      "id": "s3-classes",
+      "zone": "know",
+      "keys": [
+        "s3",
+        "s3gov"
+      ],
+      "title": "S3 object storage classes",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Standard",
+          "Frequent access, multi-AZ",
+          "Storage and requests"
+        ],
+        [
+          "Intelligent-Tiering",
+          "Changing access patterns; optional archive tiers",
+          "Storage, requests, monitoring"
+        ],
+        [
+          "Standard-IA / One Zone-IA",
+          "Infrequent immediate reads; One Zone uses one AZ",
+          "Storage, retrieval, minimum-duration rules"
+        ],
+        [
+          "Glacier Instant Retrieval",
+          "Rare reads needing milliseconds",
+          "Storage, retrieval, minimum-duration rules"
+        ],
+        [
+          "Glacier Flexible / Deep Archive",
+          "Restore before use; minutes–hours / hours",
+          "Storage, restore/retrieval, minimum duration"
+        ],
+        [
+          "Express One Zone",
+          "Single-AZ low-latency directory buckets",
+          "Express storage/request/data usage"
+        ]
+      ],
+      "note": "Lifecycle changes storage/expiry; Object Lock protects retained versions. Versions, replication, transitions, and early deletion can add cost.",
+      "sources": [
+        {
+          "title": "Storage class contracts",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html"
+        },
+        {
+          "title": "S3 rates",
+          "url": "https://aws.amazon.com/s3/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "S3 rates",
+        "url": "https://aws.amazon.com/s3/pricing/"
+      }
+    },
+    {
+      "id": "vector-stores",
+      "zone": "know",
+      "keys": [
+        "s3vectors",
+        "opensearch"
+      ],
+      "title": "Search and vector capacity",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "OpenSearch provisioned",
+          "Choose nodes/storage/search controls",
+          "Running instances/storage; optional commitments"
+        ],
+        [
+          "OpenSearch Serverless",
+          "Managed NextGen/Classic collections; capacity minimums vary",
+          "OCU compute and storage"
+        ],
+        [
+          "S3 Vectors",
+          "Separate vector buckets/indexes, not an object storage class",
+          "Vector storage, ingest, query/data usage"
+        ]
+      ],
+      "note": "Serverless does not universally mean zero idle cost. Compare required filters, integration, and measured recall/latency.",
+      "sources": [
+        {
+          "title": "OpenSearch rates",
+          "url": "https://aws.amazon.com/opensearch-service/pricing/"
+        },
+        {
+          "title": "S3 Vectors rates",
+          "url": "https://aws.amazon.com/s3/pricing/"
+        },
+        {
+          "title": "S3 Vectors contracts",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-vectors.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "OpenSearch rates",
+        "url": "https://aws.amazon.com/opensearch-service/pricing/"
+      }
+    },
+    {
+      "id": "aurora",
+      "zone": "know",
+      "keys": [
+        "aurora"
+      ],
+      "title": "Aurora compute and I/O pricing are separate choices",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Provisioned compute",
+          "Predictable DB instance demand",
+          "Instance time"
+        ],
+        [
+          "Serverless v2 compute",
+          "Variable demand within an ACU range; pause support varies",
+          "ACU time"
+        ],
+        [
+          "Standard storage configuration",
+          "Lower I/O cost share",
+          "Compute + storage + per-request I/O"
+        ],
+        [
+          "I/O-Optimized configuration",
+          "I/O-heavy eligible clusters",
+          "Different compute/storage rates; no in-Region read/write I/O fee"
+        ]
+      ],
+      "note": "Compute and I/O configuration are separate choices. Cross-Region replicated writes, backups, and other usage can still be billed.",
+      "sources": [
+        {
+          "title": "Aurora rates",
+          "url": "https://aws.amazon.com/rds/aurora/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Aurora rates",
+        "url": "https://aws.amazon.com/rds/aurora/pricing/"
+      }
+    },
+    {
+      "id": "neptune",
+      "zone": "know",
+      "keys": [
+        "neptune"
+      ],
+      "title": "Neptune database versus analytics compute",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Database — provisioned",
+          "Transactional graph DB instances",
+          "Instances, storage/I/O, backups"
+        ],
+        [
+          "Database — Serverless",
+          "Variable transactional graph demand",
+          "NCU time plus DB storage/I/O"
+        ],
+        [
+          "Analytics",
+          "Graph algorithms and supported Bedrock GraphRAG",
+          "Provisioned m-NCU time and applicable storage"
+        ]
+      ],
+      "note": "Database and Analytics have different capacity, pause, and API contracts.",
+      "sources": [
+        {
+          "title": "Neptune rates",
+          "url": "https://aws.amazon.com/neptune/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Neptune rates",
+        "url": "https://aws.amazon.com/neptune/pricing/"
+      }
+    },
+    {
+      "id": "kendra",
+      "zone": "know",
+      "keys": [
+        "kendra"
+      ],
+      "title": "Kendra index editions — existing customers",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "GenAI Enterprise",
+          "Supported generative-AI retrieval",
+          "Index hours, extra capacity, connectors"
+        ],
+        [
+          "Basic Enterprise",
+          "Production enterprise search with high availability",
+          "Index hours, extra capacity, connectors"
+        ],
+        [
+          "Basic Developer",
+          "Proof of concept; not production HA",
+          "Developer index hours and connectors"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Kendra editions and rates",
+          "url": "https://aws.amazon.com/kendra/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Kendra editions and rates",
+        "url": "https://aws.amazon.com/kendra/pricing/"
+      }
+    },
+    {
+      "id": "glue",
+      "zone": "know",
+      "keys": [
+        "glue"
+      ],
+      "title": "Glue execution and catalogue charges",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Standard execution",
+          "Time-sensitive supported ETL",
+          "DPU compute time"
+        ],
+        [
+          "Flex execution",
+          "Eligible batch jobs that can wait",
+          "Flex DPU compute time"
+        ],
+        [
+          "Crawlers / Data Quality / Catalog",
+          "Discovery, validation, metadata; separate components",
+          "Component compute, storage, requests"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Glue rates",
+          "url": "https://aws.amazon.com/glue/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Glue rates",
+        "url": "https://aws.amazon.com/glue/pricing/"
+      }
+    },
+    {
+      "id": "extraction",
+      "zone": "know",
+      "keys": [
+        "textract",
+        "bda"
+      ],
+      "title": "Document extraction options and meters",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Textract text detection",
+          "OCR text and geometry",
+          "Pages"
+        ],
+        [
+          "Textract analysis / specialized APIs",
+          "Forms, tables, queries, expense or ID fields",
+          "Pages by selected features/API"
+        ],
+        [
+          "BDA standard output",
+          "Supported document/media representations",
+          "Pages, images, or media duration"
+        ],
+        [
+          "BDA custom output",
+          "Blueprint-defined business fields",
+          "Applicable custom processing units"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Textract rates",
+          "url": "https://aws.amazon.com/textract/pricing/"
+        },
+        {
+          "title": "BDA rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        },
+        {
+          "title": "BDA contracts",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/bda.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Textract rates",
+        "url": "https://aws.amazon.com/textract/pricing/"
+      }
+    },
+    {
+      "id": "language-analysis",
+      "zone": "know",
+      "keys": [
+        "comprehend",
+        "medical"
+      ],
+      "title": "Language analysis: built-in versus custom capacity",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Comprehend built-in",
+          "Supported NLP/PII tasks",
+          "Text units by API"
+        ],
+        [
+          "Custom — asynchronous",
+          "Domain classification/entities in batches",
+          "Training/model management plus analyzed text"
+        ],
+        [
+          "Custom — real-time endpoint",
+          "Provisioned low-latency custom inference",
+          "Inference-unit time, including idle capacity"
+        ],
+        [
+          "Comprehend Medical",
+          "Clinical entities, PHI, ontology linking",
+          "Medical API-specific text units"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Comprehend rates",
+          "url": "https://aws.amazon.com/comprehend/pricing/"
+        },
+        {
+          "title": "Medical rates",
+          "url": "https://aws.amazon.com/comprehend/medical/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Comprehend rates",
+        "url": "https://aws.amazon.com/comprehend/pricing/"
+      }
+    },
+    {
+      "id": "rekognition",
+      "zone": "know",
+      "keys": [
+        "rekognition"
+      ],
+      "title": "Rekognition feature billing",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Pre-trained image APIs",
+          "Supported image/face features",
+          "Operations/images and face-vector storage"
+        ],
+        [
+          "Video analysis",
+          "Supported video features",
+          "Video duration and related usage"
+        ],
+        [
+          "Custom Labels",
+          "Custom visual classes/objects",
+          "Training and running inference-hours"
+        ]
+      ],
+      "note": "Stop unused Custom Labels inference capacity to avoid idle charges.",
+      "sources": [
+        {
+          "title": "Rekognition rates",
+          "url": "https://aws.amazon.com/rekognition/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Rekognition rates",
+        "url": "https://aws.amazon.com/rekognition/pricing/"
+      }
+    },
+    {
+      "id": "transcribe",
+      "zone": "know",
+      "keys": [
+        "transcribe"
+      ],
+      "title": "Transcribe modes and paid features",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Standard batch / streaming",
+          "Offline job versus live transcript",
+          "Audio duration at applicable volume rates"
+        ],
+        [
+          "Call Analytics",
+          "Supported post-call/realtime analysis",
+          "Audio duration plus selected add-ons"
+        ],
+        [
+          "Medical",
+          "Supported medical speech workflows",
+          "Medical audio duration"
+        ],
+        [
+          "Custom language model",
+          "Supported domain-language adaptation",
+          "Applicable custom-model processing"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Transcribe rates",
+          "url": "https://aws.amazon.com/transcribe/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Transcribe rates",
+        "url": "https://aws.amazon.com/transcribe/pricing/"
+      }
+    },
+    {
+      "id": "rag-cost",
+      "zone": "know",
+      "keys": [
+        "kb",
+        "embeddings",
+        "reranking"
+      ],
+      "title": "RAG preparation and query costs",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Customer-managed KB",
+          "Configure the backing store/pipeline",
+          "Parsing, embeddings, store, generation/reranking"
+        ],
+        [
+          "Managed KB",
+          "Managed parser, embedding and reranker included",
+          "Indexed storage and retrieval; optional models/services extra"
+        ],
+        [
+          "Embedding model",
+          "Encode source chunks and queries",
+          "Model-specific token/modality usage"
+        ],
+        [
+          "Reranking model",
+          "Reorder retrieved candidates",
+          "Requests/search units under document limits"
+        ],
+        [
+          "Parser / transformation",
+          "Default/model/BDA parser or Lambda",
+          "Selected parser/model/compute plus indexing"
+        ]
+      ],
+      "note": "Measure preparation/rebuild cost separately from retrieval and generation for each question.",
+      "sources": [
+        {
+          "title": "KB types",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html"
+        },
+        {
+          "title": "Parsing choices",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-advanced-parsing.html"
+        },
+        {
+          "title": "RAG component rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        },
+        {
+          "title": "Managed KB cost boundaries",
+          "url": "https://aws.amazon.com/blogs/machine-learning/build-enterprise-search-for-agents-with-amazon-bedrock-managed-knowledge-base/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "RAG component rates",
+        "url": "https://aws.amazon.com/bedrock/pricing/"
+      }
+    },
+    {
+      "id": "api-gateway",
+      "zone": "run",
+      "keys": [
+        "apigw"
+      ],
+      "title": "API Gateway API types",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "HTTP API",
+          "Simpler HTTP contract; no REST usage plans/response streaming",
+          "Requests and transfer"
+        ],
+        [
+          "REST API",
+          "Required REST features and supported streaming",
+          "Requests/transfer; optional cache capacity"
+        ],
+        [
+          "WebSocket API",
+          "Bidirectional messages and later server push",
+          "Message-size units and connection minutes"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "API Gateway rates",
+          "url": "https://aws.amazon.com/api-gateway/pricing/"
+        },
+        {
+          "title": "REST versus HTTP",
+          "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html"
+        },
+        {
+          "title": "Response streaming",
+          "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/response-transfer-mode.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "API Gateway rates",
+        "url": "https://aws.amazon.com/api-gateway/pricing/"
+      }
+    },
+    {
+      "id": "appsync",
+      "zone": "run",
+      "keys": [
+        "appsync"
+      ],
+      "title": "AppSync API products",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "GraphQL APIs",
+          "Queries/mutations, resolvers, subscriptions",
+          "Operations, updates, connection minutes"
+        ],
+        [
+          "GraphQL caching",
+          "Optional managed cache; scope keys by identity",
+          "Cache capacity time"
+        ],
+        [
+          "Events APIs",
+          "Event-channel pub/sub; separate from GraphQL",
+          "Event operations and connection minutes"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "AppSync rates",
+          "url": "https://aws.amazon.com/appsync/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "AppSync rates",
+        "url": "https://aws.amazon.com/appsync/pricing/"
+      }
+    },
+    {
+      "id": "dynamodb",
+      "zone": "run",
+      "keys": [
+        "dynamodb"
+      ],
+      "title": "DynamoDB capacity and table classes",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "On-demand capacity",
+          "Variable request volume",
+          "Read/write request units plus storage"
+        ],
+        [
+          "Provisioned capacity",
+          "Predictable traffic; optional Auto Scaling",
+          "Provisioned capacity time plus storage"
+        ],
+        [
+          "Standard table class",
+          "Normal active-table economics",
+          "Standard storage/read/write rates"
+        ],
+        [
+          "Standard-IA table class",
+          "Storage-heavy infrequent access",
+          "Lower storage, higher read/write rates"
+        ]
+      ],
+      "note": "Capacity mode and table class are independent. Backups, global tables, and optional integrations add cost.",
+      "sources": [
+        {
+          "title": "Capacity modes",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/capacity-mode.html"
+        },
+        {
+          "title": "Table classes",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.TableClasses.html"
+        },
+        {
+          "title": "DynamoDB rates",
+          "url": "https://aws.amazon.com/dynamodb/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "DynamoDB rates",
+        "url": "https://aws.amazon.com/dynamodb/pricing/"
+      }
+    },
+    {
+      "id": "prompt-features",
+      "zone": "run",
+      "keys": [
+        "promptmgmt",
+        "promptopt",
+        "routing",
+        "caching"
+      ],
+      "title": "Bedrock prompt features and billing",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Prompt Management / sampling",
+          "Version/configure the request; not capacity tiers",
+          "Invoked model/resources"
+        ],
+        [
+          "Simple Prompt Optimization",
+          "Supported model-specific rewrite",
+          "Optimizer input/output tokens"
+        ],
+        [
+          "Advanced Prompt Optimization",
+          "Dataset-driven rewrite/evaluation job",
+          "Rewriter/evaluator model usage"
+        ],
+        [
+          "Intelligent Prompt Routing",
+          "Choose within a supported model pair",
+          "Router requests plus chosen model inference"
+        ],
+        [
+          "Prompt caching",
+          "Reuse supported prefix processing",
+          "Cache writes, reads, and uncached tokens"
+        ]
+      ],
+      "note": "An application answer cache uses its own storage/compute and must enforce authorization/freshness.",
+      "sources": [
+        {
+          "title": "Prompt feature rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        },
+        {
+          "title": "Prompt caching",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html"
+        },
+        {
+          "title": "Routing contract",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-routing.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Prompt feature rates",
+        "url": "https://aws.amazon.com/bedrock/pricing/"
+      }
+    },
+    {
+      "id": "cloudfront",
+      "zone": "run",
+      "keys": [
+        "cloudfront"
+      ],
+      "title": "CloudFront plans",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Pay-as-you-go",
+          "Select features and pay for usage",
+          "Transfer, requests, selected features"
+        ],
+        [
+          "Free flat-rate",
+          "Small sites; basic included protections",
+          "No plan fee within plan terms"
+        ],
+        [
+          "Pro flat-rate",
+          "Larger allowance, logging, more WAF rules",
+          "Distribution-month"
+        ],
+        [
+          "Business flat-rate",
+          "Private origins and advanced protections",
+          "Distribution-month"
+        ],
+        [
+          "Premium flat-rate",
+          "Higher allowances, origin failover/routing features",
+          "Distribution-month"
+        ],
+        [
+          "Custom",
+          "Negotiated scale/features",
+          "Contract pricing"
+        ]
+      ],
+      "note": "Check plan allowances, exclusions, and included security/logging before adding those charges again.",
+      "sources": [
+        {
+          "title": "CloudFront plans and rates",
+          "url": "https://aws.amazon.com/cloudfront/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "CloudFront plans and rates",
+        "url": "https://aws.amazon.com/cloudfront/pricing/"
+      }
+    },
+    {
+      "id": "speech",
+      "zone": "run",
+      "keys": [
+        "lex",
+        "polly"
+      ],
+      "title": "Speech interfaces and voice engines",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Lex request/response",
+          "Turn-based text or speech",
+          "Requests by interface"
+        ],
+        [
+          "Lex streaming",
+          "Continuous conversational interface",
+          "Applicable streaming usage"
+        ],
+        [
+          "Polly Standard",
+          "Supported conventional voices",
+          "Standard characters synthesized"
+        ],
+        [
+          "Polly Neural",
+          "Supported neural voices",
+          "Neural characters synthesized"
+        ],
+        [
+          "Polly Long-Form",
+          "Supported narration voices",
+          "Long-Form characters synthesized"
+        ],
+        [
+          "Polly Generative",
+          "Supported expressive voices",
+          "Generative characters synthesized"
+        ]
+      ],
+      "note": "Voice, language, and Region support differ by Polly engine.",
+      "sources": [
+        {
+          "title": "Lex rates",
+          "url": "https://aws.amazon.com/lex/pricing/"
+        },
+        {
+          "title": "Polly rates",
+          "url": "https://aws.amazon.com/polly/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Lex rates",
+        "url": "https://aws.amazon.com/lex/pricing/"
+      }
+    },
+    {
+      "id": "step-functions",
+      "zone": "orch",
+      "keys": [
+        "stepfns"
+      ],
+      "title": "Step Functions workflow types",
+      "columns": [
+        "Workflow",
+        "Duration / semantics",
+        "Integration boundary",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Standard",
+          "Up to 1 year; exactly-once workflow model",
+          "Eligible .sync jobs and callback tokens",
+          "State transitions, including retries"
+        ],
+        [
+          "Asynchronous Express",
+          "Up to 5 minutes; at-least-once",
+          "No .sync or callback tokens",
+          "Requests + duration × memory"
+        ],
+        [
+          "Synchronous Express",
+          "Up to 5 minutes; at-most-once",
+          "Caller waits; no .sync or callback tokens",
+          "Requests + duration × memory"
+        ]
+      ],
+      "note": "Standard suits long waits/approvals; Express suits short high-volume work. Wait states fit within each time limit. Express lacks Distributed Map/Activities. External side effects and configured retries still require idempotency.",
+      "sources": [
+        {
+          "title": "Workflow contracts",
+          "url": "https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html"
+        },
+        {
+          "title": "Step Functions rates",
+          "url": "https://aws.amazon.com/step-functions/pricing/"
+        }
+      ],
+      "onPage": true,
+      "reference": {
+        "title": "Step Functions rates",
+        "url": "https://aws.amazon.com/step-functions/pricing/"
+      }
+    },
+    {
+      "id": "agentcore",
+      "zone": "orch",
+      "keys": [
+        "agentcore",
+        "agentidentity",
+        "mcp",
+        "multiagent"
+      ],
+      "title": "AgentCore components and framework costs",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Runtime / Browser / Code Interpreter",
+          "Hosted execution and isolated tools",
+          "Component compute"
+        ],
+        [
+          "Gateway / Policy / Memory",
+          "Tool connectivity, policy, memory",
+          "Component API/event/processing/storage usage"
+        ],
+        [
+          "Identity via Runtime / Gateway",
+          "Supported integrated credential management",
+          "No additional Identity charge"
+        ],
+        [
+          "Identity standalone",
+          "Supported OAuth/API-key credential retrieval",
+          "Successful credential requests"
+        ],
+        [
+          "MCP / Strands / Agent Squad",
+          "Protocol/frameworks; choose hosting separately",
+          "Hosting, models, tools, telemetry"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "AgentCore component rates",
+          "url": "https://aws.amazon.com/bedrock/agentcore/pricing/"
+        },
+        {
+          "title": "AgentCore components",
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "AgentCore component rates",
+        "url": "https://aws.amazon.com/bedrock/agentcore/pricing/"
+      }
+    },
+    {
+      "id": "bedrock-orchestration",
+      "zone": "orch",
+      "keys": [
+        "agents",
+        "flows"
+      ],
+      "title": "Bedrock orchestration charges",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Agents Classic",
+          "Existing supported workloads; migration restrictions",
+          "Underlying models/retrieval/tools"
+        ],
+        [
+          "Bedrock Flows",
+          "Visual node orchestration",
+          "Node transitions plus invoked services"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Bedrock rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        },
+        {
+          "title": "Agents Classic lifecycle",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Bedrock rates",
+        "url": "https://aws.amazon.com/bedrock/pricing/"
+      }
+    },
+    {
+      "id": "lambda",
+      "zone": "orch",
+      "keys": [
+        "lambda"
+      ],
+      "title": "Lambda capacity and execution choices",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "On-demand",
+          "Elastic conventional functions; cold starts possible",
+          "Requests + memory × duration"
+        ],
+        [
+          "Reserved concurrency",
+          "Allocate/cap concurrency; does not warm environments",
+          "No extra reservation fee; invocations billed"
+        ],
+        [
+          "Provisioned Concurrency",
+          "Preinitialized conventional environments",
+          "Warm capacity plus execution"
+        ],
+        [
+          "SnapStart",
+          "Supported snapshot/restore startup optimization",
+          "Applicable cache/restore plus invocation"
+        ],
+        [
+          "Managed Instances",
+          "Functions on managed EC2 capacity",
+          "Requests + EC2 + management fee"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Lambda rates and Managed Instances",
+          "url": "https://aws.amazon.com/lambda/pricing/"
+        },
+        {
+          "title": "Concurrency contracts",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Lambda rates and Managed Instances",
+        "url": "https://aws.amazon.com/lambda/pricing/"
+      }
+    },
+    {
+      "id": "eventbridge",
+      "zone": "orch",
+      "keys": [
+        "events"
+      ],
+      "title": "EventBridge products and event delivery",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Event bus",
+          "Route matching events; source/destination matters",
+          "Applicable events; archive/replay extra"
+        ],
+        [
+          "Pipes",
+          "Point-to-point filtering/batching/enrichment",
+          "Pipes requests plus connected services"
+        ],
+        [
+          "Scheduler",
+          "One-time/recurring invocations",
+          "Scheduled invocations plus targets"
+        ],
+        [
+          "S3 notifications",
+          "Configured object-event delivery",
+          "Destination and related service usage"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "EventBridge rates",
+          "url": "https://aws.amazon.com/eventbridge/pricing/"
+        },
+        {
+          "title": "S3 notification contracts",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventNotifications.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "EventBridge rates",
+        "url": "https://aws.amazon.com/eventbridge/pricing/"
+      }
+    },
+    {
+      "id": "messaging",
+      "zone": "orch",
+      "keys": [
+        "sqs"
+      ],
+      "title": "SQS and SNS message classes",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "SQS Standard",
+          "At-least-once; best-effort ordering",
+          "Requests in payload-size units"
+        ],
+        [
+          "SQS FIFO",
+          "Per-group ordering and deduplication",
+          "FIFO request/payload units"
+        ],
+        [
+          "SNS Standard",
+          "Fan-out to multiple endpoint types",
+          "Publishing and endpoint delivery"
+        ],
+        [
+          "SNS FIFO",
+          "Ordered fan-out to supported subscribers",
+          "Publish/subscription messages and payload"
+        ]
+      ],
+      "note": "Ordering/deduplication does not guarantee exactly-once business effects. Polling, retries, KMS, and transfer can add cost.",
+      "sources": [
+        {
+          "title": "SQS rates",
+          "url": "https://aws.amazon.com/sqs/pricing/"
+        },
+        {
+          "title": "SNS rates",
+          "url": "https://aws.amazon.com/sns/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "SQS rates",
+        "url": "https://aws.amazon.com/sqs/pricing/"
+      }
+    },
+    {
+      "id": "cognito",
+      "zone": "sec",
+      "keys": [
+        "cognito"
+      ],
+      "title": "Cognito user-pool plans and identity pools",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Lite",
+          "Core customer sign-in and supported federation",
+          "Active users by authentication category"
+        ],
+        [
+          "Essentials",
+          "Managed login, supported passwordless/passkeys, token customization",
+          "Active users at Essentials rates"
+        ],
+        [
+          "Plus",
+          "Adaptive authentication and threat protection",
+          "Active users at Plus rates"
+        ],
+        [
+          "Machine-to-machine",
+          "OAuth client-credentials API access",
+          "Applicable app clients/token requests"
+        ],
+        [
+          "Identity pools",
+          "Exchange identities for temporary AWS credentials",
+          "No extra identity-pool fee; resources still billed"
+        ]
+      ],
+      "note": "User-pool JWTs are not AWS access keys. Messaging/external IdP fees are separate.",
+      "sources": [
+        {
+          "title": "Cognito plan features and rates",
+          "url": "https://aws.amazon.com/cognito/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Cognito plan features and rates",
+        "url": "https://aws.amazon.com/cognito/pricing/"
+      }
+    },
+    {
+      "id": "identity-cost",
+      "zone": "sec",
+      "keys": [
+        "idc",
+        "iam",
+        "sts",
+        "lakeformation"
+      ],
+      "title": "Core identity controls versus paid authorization APIs",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "IAM / STS / Organizations SCPs",
+          "Role trust, temporary credentials, guardrails",
+          "Core service at no additional charge"
+        ],
+        [
+          "IAM Identity Center",
+          "Workforce SSO and permission sets",
+          "No additional Identity Center charge"
+        ],
+        [
+          "Lake Formation permissions",
+          "Integrated lake/table/row/column access",
+          "Permissions at no charge; processing/storage APIs separate"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "IAM FAQ",
+          "url": "https://aws.amazon.com/iam/faqs/"
+        },
+        {
+          "title": "Identity Center FAQ",
+          "url": "https://aws.amazon.com/iam/identity-center/faqs/"
+        },
+        {
+          "title": "Organizations rates",
+          "url": "https://aws.amazon.com/organizations/pricing/"
+        },
+        {
+          "title": "Lake Formation rates",
+          "url": "https://aws.amazon.com/lake-formation/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Organizations rates",
+        "url": "https://aws.amazon.com/organizations/pricing/"
+      }
+    },
+    {
+      "id": "authorization-analysis",
+      "zone": "sec",
+      "keys": [
+        "accessanalyzer",
+        "verified"
+      ],
+      "title": "Authorization decision and analysis pricing",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Access Analyzer external / validation",
+          "External-access findings and policy validation",
+          "No additional charge"
+        ],
+        [
+          "Access Analyzer internal / unused",
+          "In-account paths or stale IAM access",
+          "Monitored resources or IAM users/roles"
+        ],
+        [
+          "Access Analyzer custom checks",
+          "Custom criteria for policy changes",
+          "Check requests"
+        ],
+        [
+          "Verified Permissions single",
+          "Cedar application authorization",
+          "Authorization API calls"
+        ],
+        [
+          "Verified Permissions batch",
+          "Multiple supported decisions per request",
+          "Batch API calls, not each included decision"
+        ]
+      ],
+      "note": "The application enforces Verified Permissions results. Access Analyzer does not authorize runtime requests.",
+      "sources": [
+        {
+          "title": "Access Analyzer rates",
+          "url": "https://aws.amazon.com/iam/access-analyzer/pricing/"
+        },
+        {
+          "title": "Verified Permissions rates",
+          "url": "https://aws.amazon.com/verified-permissions/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Access Analyzer rates",
+        "url": "https://aws.amazon.com/iam/access-analyzer/pricing/"
+      }
+    },
+    {
+      "id": "private-endpoints",
+      "zone": "sec",
+      "keys": [
+        "vpce"
+      ],
+      "title": "VPC endpoint types and cost",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Gateway — S3 / DynamoDB",
+          "Route-table access to supported services",
+          "No additional gateway endpoint charge"
+        ],
+        [
+          "Interface — PrivateLink",
+          "Service ENIs; configure AZs/DNS/policies",
+          "Endpoint-AZ hours plus data"
+        ],
+        [
+          "Gateway Load Balancer",
+          "Traffic through virtual appliances; different endpoint type",
+          "Endpoint hours plus data"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "PrivateLink rates",
+          "url": "https://aws.amazon.com/privatelink/pricing/"
+        },
+        {
+          "title": "Gateway endpoints",
+          "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "PrivateLink rates",
+        "url": "https://aws.amazon.com/privatelink/pricing/"
+      }
+    },
+    {
+      "id": "keys-secrets",
+      "zone": "sec",
+      "keys": [
+        "kms"
+      ],
+      "title": "KMS key ownership and Secrets Manager",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "AWS-owned keys",
+          "Service-managed encryption where supported",
+          "No customer KMS key fee"
+        ],
+        [
+          "AWS-managed KMS keys",
+          "Service-created account key",
+          "No key storage fee; applicable KMS requests"
+        ],
+        [
+          "Customer-managed KMS keys",
+          "Own policy/lifecycle/sharing",
+          "Key-months and API usage"
+        ],
+        [
+          "Secrets Manager",
+          "Secret values/rotation; replicas are separate",
+          "Secret-months/API calls and related services"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "KMS rates",
+          "url": "https://aws.amazon.com/kms/pricing/"
+        },
+        {
+          "title": "Secrets Manager rates",
+          "url": "https://aws.amazon.com/secrets-manager/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "KMS rates",
+        "url": "https://aws.amazon.com/kms/pricing/"
+      }
+    },
+    {
+      "id": "waf",
+      "zone": "sec",
+      "keys": [
+        "waf"
+      ],
+      "title": "WAF base protection and paid additions",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Base web ACL / rules",
+          "Supported HTTP filtering",
+          "ACLs, rules, inspected requests"
+        ],
+        [
+          "Bot Control Common / Targeted",
+          "Different bot-detection coverage",
+          "Additional inspected requests"
+        ],
+        [
+          "Fraud / DDoS / CAPTCHA / Challenge",
+          "Optional abuse controls",
+          "Feature-specific usage"
+        ]
+      ],
+      "note": "Check CloudFront flat-rate bundles before counting included protection twice.",
+      "sources": [
+        {
+          "title": "WAF feature rates",
+          "url": "https://aws.amazon.com/waf/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "WAF feature rates",
+        "url": "https://aws.amazon.com/waf/pricing/"
+      }
+    },
+    {
+      "id": "sensitive-content",
+      "zone": "sec",
+      "keys": [
+        "macie",
+        "guardrails"
+      ],
+      "title": "Discovery and content-safety billing",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Macie bucket evaluation",
+          "Bucket-level visibility/exposure",
+          "Monitored buckets"
+        ],
+        [
+          "Macie automated discovery",
+          "Ongoing sampled eligible-object discovery",
+          "Object monitoring and inspected data"
+        ],
+        [
+          "Macie targeted job",
+          "Explicit selected-object scan",
+          "Inspected data"
+        ],
+        [
+          "Bedrock Guardrails",
+          "Selected content-safety policies",
+          "Enabled policy units; some filters have no extra charge"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Macie rates",
+          "url": "https://aws.amazon.com/macie/pricing/"
+        },
+        {
+          "title": "Guardrail policy rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Macie rates",
+        "url": "https://aws.amazon.com/macie/pricing/"
+      }
+    },
+    {
+      "id": "evaluation",
+      "zone": "eval",
+      "keys": [
+        "evaluations",
+        "human",
+        "clarify",
+        "modelcard"
+      ],
+      "title": "Evaluation and ML governance cost boundaries",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Bedrock automatic / judge",
+          "Candidate quality against the selected rubric",
+          "Candidate/judge model usage"
+        ],
+        [
+          "Human evaluation / Ground Truth / A2I",
+          "Configured human labeling/review",
+          "Tasks/objects, workforce/provider, related services"
+        ],
+        [
+          "Clarify / Model Monitor",
+          "Supported analysis and baseline checks",
+          "Processing/monitoring resources"
+        ],
+        [
+          "Model Cards / Dashboard",
+          "Governance records/status, not hosting tiers",
+          "Underlying model/monitoring resources"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Bedrock evaluation rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        },
+        {
+          "title": "SageMaker resource rates",
+          "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
+        },
+        {
+          "title": "Ground Truth rates",
+          "url": "https://aws.amazon.com/sagemaker/groundtruth/pricing/"
+        },
+        {
+          "title": "A2I rates",
+          "url": "https://aws.amazon.com/augmented-ai/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Bedrock evaluation rates",
+        "url": "https://aws.amazon.com/bedrock/pricing/"
+      }
+    },
+    {
+      "id": "cloudwatch-logs",
+      "zone": "eval",
+      "keys": [
+        "cloudwatch",
+        "invlog"
+      ],
+      "title": "CloudWatch Logs classes",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Standard",
+          "Fuller operational query/integration features",
+          "Ingestion, storage, query/features"
+        ],
+        [
+          "Infrequent Access",
+          "Rare queries; reduced features",
+          "Lower ingestion, applicable storage/query"
+        ],
+        [
+          "Delivery",
+          "Lambda → S3/Firehose; two-day retention; no Logs Insights",
+          "Delivery and destination usage"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Log class contracts",
+          "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html"
+        },
+        {
+          "title": "CloudWatch rates",
+          "url": "https://aws.amazon.com/cloudwatch/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "CloudWatch rates",
+        "url": "https://aws.amazon.com/cloudwatch/pricing/"
+      }
+    },
+    {
+      "id": "telemetry-cost",
+      "zone": "eval",
+      "keys": [
+        "cloudwatch",
+        "synthetics",
+        "tracing",
+        "cost"
+      ],
+      "title": "Operational telemetry and cost-tool meters",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "CloudWatch metrics / alarms",
+          "Health trends and alerts",
+          "Metric/API/alarm usage"
+        ],
+        [
+          "Synthetics",
+          "Configured journey checks",
+          "Canary runs plus Lambda/storage/logs"
+        ],
+        [
+          "OpenTelemetry / X-Ray / Signals",
+          "Instrumentation plus a selected trace backend",
+          "Backend ingestion, retention, queries"
+        ],
+        [
+          "Cost Explorer",
+          "Console cost views; API/granular options differ",
+          "Base console views free; paid API/data options"
+        ],
+        [
+          "Budgets / anomaly detection",
+          "Spend monitoring versus reports/actions",
+          "Applicable reports/actions/notifications"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "CloudWatch rates",
+          "url": "https://aws.amazon.com/cloudwatch/pricing/"
+        },
+        {
+          "title": "X-Ray rates",
+          "url": "https://aws.amazon.com/xray/pricing/"
+        },
+        {
+          "title": "Cost Explorer rates",
+          "url": "https://aws.amazon.com/aws-cost-management/aws-cost-explorer/pricing/"
+        },
+        {
+          "title": "Budgets rates",
+          "url": "https://aws.amazon.com/aws-cost-management/aws-budgets/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "CloudWatch rates",
+        "url": "https://aws.amazon.com/cloudwatch/pricing/"
+      }
+    },
+    {
+      "id": "cloudtrail",
+      "zone": "eval",
+      "keys": [
+        "cloudtrail"
+      ],
+      "title": "CloudTrail event history, trails, and Lake",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Event history",
+          "90 days of management activity",
+          "No extra event-history charge"
+        ],
+        [
+          "Trails — management",
+          "Ongoing audit delivery; first management copy included",
+          "Extra copies and destination usage"
+        ],
+        [
+          "Trails — data / Insights",
+          "Explicit data-event or anomaly coverage",
+          "Events and applicable analysis"
+        ],
+        [
+          "Lake",
+          "Retained queryable event store",
+          "Ingested/retained data and query scans"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "CloudTrail rates",
+          "url": "https://aws.amazon.com/cloudtrail/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "CloudTrail rates",
+        "url": "https://aws.amazon.com/cloudtrail/pricing/"
+      }
+    },
+    {
+      "id": "config-audit",
+      "zone": "eval",
+      "keys": [
+        "config",
+        "artifact",
+        "auditmanager"
+      ],
+      "title": "Configuration compliance and audit evidence",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Config continuous",
+          "Record supported resource changes",
+          "Continuous configuration items"
+        ],
+        [
+          "Config daily",
+          "Periodic state, not every intermediate change",
+          "Daily configuration items"
+        ],
+        [
+          "Config rules / packs",
+          "Technical compliance evaluation",
+          "Applicable evaluations"
+        ],
+        [
+          "Artifact",
+          "Retrieve AWS reports/agreements on demand",
+          "AWS reports at no additional charge"
+        ],
+        [
+          "Audit Manager",
+          "Existing supported framework assessments",
+          "Resource-assessment executions plus related services"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Config rates",
+          "url": "https://aws.amazon.com/config/pricing/"
+        },
+        {
+          "title": "Artifact FAQ",
+          "url": "https://aws.amazon.com/artifact/faq/"
+        },
+        {
+          "title": "Audit Manager rates",
+          "url": "https://aws.amazon.com/audit-manager/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Config rates",
+        "url": "https://aws.amazon.com/config/pricing/"
+      }
+    },
+    {
+      "id": "security-findings",
+      "zone": "eval",
+      "keys": [
+        "inspector",
+        "securityhub"
+      ],
+      "title": "Inspector and Security Hub coverage choices",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Inspector standalone",
+          "EC2, ECR, and Lambda vulnerability coverage",
+          "Coverage time, scans, or covered functions"
+        ],
+        [
+          "Inspector optional scans",
+          "Supported code, CIS, or CI/CD scanning",
+          "Feature-specific coverage/scans"
+        ],
+        [
+          "Security Hub Essentials",
+          "Specified posture/vulnerability/risk bundle",
+          "Supported monitored resources"
+        ],
+        [
+          "Security Hub add-ons / Extended",
+          "Optional threat/code/partner capabilities",
+          "Add-on/partner usage; Extended needs Essentials"
+        ],
+        [
+          "Standalone security capabilities",
+          "Independent service adoption",
+          "Applicable standalone service meters"
+        ]
+      ],
+      "note": "Avoid counting Inspector/CSPM again when included in the chosen Security Hub bundle.",
+      "sources": [
+        {
+          "title": "Inspector rates",
+          "url": "https://aws.amazon.com/inspector/pricing/"
+        },
+        {
+          "title": "Security Hub bundles and rates",
+          "url": "https://aws.amazon.com/security-hub/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Inspector rates",
+        "url": "https://aws.amazon.com/inspector/pricing/"
+      }
+    },
+    {
+      "id": "qbusiness",
+      "zone": "pkg",
+      "keys": [
+        "qbusiness"
+      ],
+      "title": "Q Business subscriptions and index capacity — existing customers",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Lite user",
+          "Q&A/upload; limited feature set",
+          "User-month plus index capacity"
+        ],
+        [
+          "Pro user",
+          "Supported plugins/Q Apps",
+          "Pro user-month plus index capacity"
+        ],
+        [
+          "Starter index",
+          "Single-AZ proof-of-concept capacity",
+          "Index-unit hours, even when empty"
+        ],
+        [
+          "Enterprise index",
+          "Three-AZ production capacity",
+          "Index-unit hours and applicable extra usage"
+        ]
+      ],
+      "note": "User subscription and index type are independent.",
+      "sources": [
+        {
+          "title": "Q Business subscription contracts",
+          "url": "https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/tiers.html"
+        },
+        {
+          "title": "Q Business pricing",
+          "url": "https://aws.amazon.com/q/business/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Q Business pricing",
+        "url": "https://aws.amazon.com/q/business/pricing/"
+      }
+    },
+    {
+      "id": "quick",
+      "zone": "pkg",
+      "keys": [
+        "quick"
+      ],
+      "title": "Amazon Quick plans",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Free",
+          "Individual exploration",
+          "Included usage; overage terms apply"
+        ],
+        [
+          "Plus",
+          "Teams up to 300; shared Spaces/admin",
+          "User subscription and applicable overages"
+        ],
+        [
+          "Max",
+          "Plus features with higher usage/storage allowances",
+          "User subscription and applicable overages"
+        ],
+        [
+          "Professional",
+          "Governed workforce, SSO/RBAC, dashboards",
+          "Users + account infrastructure fee/overages"
+        ],
+        [
+          "Enterprise",
+          "Adds authoring, complex automation, certified assets",
+          "Users + account infrastructure fee/overages"
+        ]
+      ],
+      "note": "Agent hours meter active AI work. Free/Plus/Max use email/social sign-in; Professional/Enterprise use an AWS account.",
+      "sources": [
+        {
+          "title": "Quick plan features and rates",
+          "url": "https://aws.amazon.com/quick/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Quick plan features and rates",
+        "url": "https://aws.amazon.com/quick/pricing/"
+      }
+    },
+    {
+      "id": "qdeveloper",
+      "zone": "pkg",
+      "keys": [
+        "qdeveloper"
+      ],
+      "title": "Q Developer plans and transformation usage",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Free",
+          "Individual use within included limits",
+          "No subscription fee within limits"
+        ],
+        [
+          "Pro",
+          "Higher allowances and organization controls",
+          "User-month"
+        ],
+        [
+          "Extra transformation",
+          "Beyond the included/pooled allowance",
+          "Applicable lines of code transformed"
+        ]
+      ],
+      "note": "",
+      "sources": [
+        {
+          "title": "Q Developer plans and rates",
+          "url": "https://aws.amazon.com/q/developer/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Q Developer plans and rates",
+        "url": "https://aws.amazon.com/q/developer/pricing/"
+      }
+    },
+    {
+      "id": "guardrail-tiers",
+      "zone": "sec",
+      "keys": [
+        "guardrails"
+      ],
+      "title": "Guardrail safeguard tiers",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Standard",
+          "Broader supported language/code/prompt-attack coverage; cross-Region",
+          "Selected policy units"
+        ],
+        [
+          "Classic",
+          "Established narrower coverage; no cross-Region safeguard inference",
+          "Selected policy units"
+        ]
+      ],
+      "note": "Safeguard tiers apply to supported policies, independently of inference tiers. Standard text content filters share the Classic rate; validate coverage and destinations.",
+      "sources": [
+        {
+          "title": "Safeguard contracts",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-tiers.html"
+        },
+        {
+          "title": "Policy rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Policy rates",
+        "url": "https://aws.amazon.com/bedrock/pricing/"
+      }
+    },
+    {
+      "id": "opensearch-storage",
+      "zone": "know",
+      "keys": [
+        "opensearch"
+      ],
+      "title": "OpenSearch domain storage tiers",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Hot",
+          "Writable active indexes; fastest tier",
+          "Nodes and provisioned storage/performance"
+        ],
+        [
+          "UltraWarm",
+          "Read-only less-active indexes; compatible nodes/engine",
+          "Warm node-hours and managed storage"
+        ],
+        [
+          "Cold",
+          "Detached history; attach to UltraWarm to query",
+          "Storage and compute when attached"
+        ]
+      ],
+      "note": "These are domain storage tiers, separate from Serverless capacity. Confirm k-NN engine/version support.",
+      "sources": [
+        {
+          "title": "UltraWarm contracts",
+          "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ultrawarm.html"
+        },
+        {
+          "title": "Vector compatibility",
+          "url": "https://aws.amazon.com/blogs/big-data/introducing-vector-search-with-ultrawarm-in-amazon-opensearch-service/"
+        },
+        {
+          "title": "Storage rates",
+          "url": "https://aws.amazon.com/opensearch-service/pricing/"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "Storage rates",
+        "url": "https://aws.amazon.com/opensearch-service/pricing/"
+      }
+    },
+    {
+      "id": "rds-postgres",
+      "zone": "know",
+      "keys": [
+        "aurora"
+      ],
+      "title": "RDS for PostgreSQL deployment and storage",
+      "columns": [
+        "Option",
+        "Use / constraint",
+        "Cost driver"
+      ],
+      "rows": [
+        [
+          "Single-AZ / Multi-AZ",
+          "Availability topology; standby read capability differs",
+          "Chosen instances/storage topology"
+        ],
+        [
+          "General Purpose gp3 / gp2",
+          "Ordinary I/O; gp3 performance configurable within limits",
+          "Provisioned GB and applicable extra performance"
+        ],
+        [
+          "Provisioned IOPS io2 / io1",
+          "Consistent I/O-intensive workloads",
+          "Provisioned GB/IOPS, including unused capacity"
+        ]
+      ],
+      "note": "Aurora I/O pricing differs. Backups, replicas, transfer, and Extended Support can add cost; pgvector is not a hosting tier.",
+      "sources": [
+        {
+          "title": "RDS PostgreSQL rates",
+          "url": "https://aws.amazon.com/rds/postgresql/pricing/"
+        },
+        {
+          "title": "Storage contracts",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html"
+        }
+      ],
+      "onPage": false,
+      "reference": {
+        "title": "RDS PostgreSQL rates",
+        "url": "https://aws.amazon.com/rds/postgresql/pricing/"
+      }
+    }
+  ],
+  "coverage": {
+    "bedrock": {
+      "groups": [
+        "bedrock-tiers",
+        "bedrock-custom-models",
+        "bedrock-capacity"
+      ],
+      "note": ""
+    },
+    "sagemaker": {
+      "groups": [
+        "sagemaker-hosting",
+        "sagemaker-training",
+        "feature-store"
+      ],
+      "note": "",
+      "rows": {
+        "sagemaker-training": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "neo": {
+      "groups": [
+        "sagemaker-training"
+      ],
+      "note": "",
+      "rows": {
+        "sagemaker-training": [
+          5
+        ]
+      }
+    },
+    "hybrid": {
+      "groups": [
+        "sagemaker-training"
+      ],
+      "note": "",
+      "rows": {
+        "sagemaker-training": [
+          6
+        ]
+      }
+    },
+    "registry": {
+      "groups": [
+        "sagemaker-training"
+      ],
+      "note": "",
+      "rows": {
+        "sagemaker-training": [
+          5
+        ]
+      }
+    },
+    "appconfig": {
+      "groups": [
+        "configuration"
+      ],
+      "note": "",
+      "rows": {
+        "configuration": [
+          3
+        ]
+      }
+    },
+    "paramstore": {
+      "groups": [
+        "configuration"
+      ],
+      "note": "",
+      "rows": {
+        "configuration": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "cicd": {
+      "groups": [
+        "delivery"
+      ],
+      "note": ""
+    },
+    "s3": {
+      "groups": [
+        "s3-classes"
+      ],
+      "note": ""
+    },
+    "glue": {
+      "groups": [
+        "glue"
+      ],
+      "note": ""
+    },
+    "datawrangler": {
+      "groups": [
+        "sagemaker-training"
+      ],
+      "note": "",
+      "rows": {
+        "sagemaker-training": [
+          0,
+          4
+        ]
+      }
+    },
+    "textract": {
+      "groups": [
+        "extraction"
+      ],
+      "note": "",
+      "rows": {
+        "extraction": [
+          0,
+          1
+        ]
+      }
+    },
+    "bda": {
+      "groups": [
+        "extraction"
+      ],
+      "note": "",
+      "rows": {
+        "extraction": [
+          2,
+          3
+        ]
+      },
+      "references": {
+        "extraction": {
+          "title": "BDA rates",
+          "url": "https://aws.amazon.com/bedrock/pricing/"
+        }
+      }
+    },
+    "transcribe": {
+      "groups": [
+        "transcribe"
+      ],
+      "note": ""
+    },
+    "comprehend": {
+      "groups": [
+        "language-analysis"
+      ],
+      "note": "",
+      "rows": {
+        "language-analysis": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "medical": {
+      "groups": [
+        "language-analysis"
+      ],
+      "note": "",
+      "rows": {
+        "language-analysis": [
+          3
+        ]
+      },
+      "references": {
+        "language-analysis": {
+          "title": "Medical rates",
+          "url": "https://aws.amazon.com/comprehend/medical/pricing/"
+        }
+      }
+    },
+    "rekognition": {
+      "groups": [
+        "rekognition"
+      ],
+      "note": ""
+    },
+    "kb": {
+      "groups": [
+        "rag-cost"
+      ],
+      "note": "",
+      "rows": {
+        "rag-cost": [
+          0,
+          1,
+          4
+        ]
+      }
+    },
+    "embeddings": {
+      "groups": [
+        "rag-cost"
+      ],
+      "note": "",
+      "rows": {
+        "rag-cost": [
+          2
+        ]
+      }
+    },
+    "opensearch": {
+      "groups": [
+        "vector-stores",
+        "opensearch-storage"
+      ],
+      "note": "",
+      "rows": {
+        "vector-stores": [
+          0,
+          1
+        ]
+      }
+    },
+    "aurora": {
+      "groups": [
+        "aurora",
+        "rds-postgres"
+      ],
+      "note": ""
+    },
+    "s3vectors": {
+      "groups": [
+        "vector-stores"
+      ],
+      "note": "",
+      "rows": {
+        "vector-stores": [
+          2
+        ]
+      },
+      "references": {
+        "vector-stores": {
+          "title": "S3 Vectors rates",
+          "url": "https://aws.amazon.com/s3/pricing/"
+        }
+      }
+    },
+    "neptune": {
+      "groups": [
+        "neptune"
+      ],
+      "note": ""
+    },
+    "kendra": {
+      "groups": [
+        "kendra"
+      ],
+      "note": ""
+    },
+    "reranking": {
+      "groups": [
+        "rag-cost"
+      ],
+      "note": "",
+      "rows": {
+        "rag-cost": [
+          3
+        ]
+      }
+    },
+    "apigw": {
+      "groups": [
+        "api-gateway"
+      ],
+      "note": "",
+      "rows": {}
+    },
+    "appsync": {
+      "groups": [
+        "appsync"
+      ],
+      "note": ""
+    },
+    "promptmgmt": {
+      "groups": [
+        "prompt-features"
+      ],
+      "note": "",
+      "rows": {
+        "prompt-features": [
+          0
+        ]
+      }
+    },
+    "promptopt": {
+      "groups": [
+        "prompt-features"
+      ],
+      "note": "",
+      "rows": {
+        "prompt-features": [
+          1,
+          2
+        ]
+      }
+    },
+    "converse": {
+      "groups": [
+        "bedrock-tiers"
+      ],
+      "note": "Converse and ConverseStream are API interfaces. The selected model, service tier, token/modality usage and capacity offering determine cost; streaming is not an additional GPU tier."
+    },
+    "invokemodel": {
+      "groups": [
+        "bedrock-tiers"
+      ],
+      "note": "InvokeModel and its streaming variant use the selected model/capacity rate. Native payload differences do not create a separate pricing plan."
+    },
+    "params": {
+      "groups": [
+        "prompt-features"
+      ],
+      "note": "Temperature/top-p/top-k are configuration, not paid plans. Output-token limits, model choice, reasoning settings and retries affect consumed inference usage.",
+      "rows": {
+        "prompt-features": [
+          0
+        ]
+      }
+    },
+    "dynamodb": {
+      "groups": [
+        "dynamodb"
+      ],
+      "note": ""
+    },
+    "lex": {
+      "groups": [
+        "speech"
+      ],
+      "note": "",
+      "rows": {
+        "speech": [
+          0,
+          1
+        ]
+      }
+    },
+    "polly": {
+      "groups": [
+        "speech"
+      ],
+      "note": "",
+      "rows": {
+        "speech": [
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "references": {
+        "speech": {
+          "title": "Polly rates",
+          "url": "https://aws.amazon.com/polly/pricing/"
+        }
+      }
+    },
+    "routing": {
+      "groups": [
+        "prompt-features"
+      ],
+      "note": "",
+      "rows": {
+        "prompt-features": [
+          3
+        ]
+      }
+    },
+    "caching": {
+      "groups": [
+        "prompt-features"
+      ],
+      "note": "",
+      "rows": {
+        "prompt-features": [
+          4
+        ]
+      }
+    },
+    "cloudfront": {
+      "groups": [
+        "cloudfront"
+      ],
+      "note": ""
+    },
+    "provthroughput": {
+      "groups": [
+        "bedrock-capacity"
+      ],
+      "note": "",
+      "rows": {
+        "bedrock-capacity": [
+          1
+        ]
+      }
+    },
+    "xregion": {
+      "groups": [
+        "bedrock-capacity"
+      ],
+      "note": "",
+      "rows": {
+        "bedrock-capacity": [
+          3,
+          4
+        ]
+      }
+    },
+    "agentcore": {
+      "groups": [
+        "agentcore"
+      ],
+      "note": "",
+      "rows": {
+        "agentcore": [
+          0,
+          1
+        ]
+      }
+    },
+    "agentidentity": {
+      "groups": [
+        "agentcore"
+      ],
+      "note": "",
+      "rows": {
+        "agentcore": [
+          2,
+          3
+        ]
+      }
+    },
+    "mcp": {
+      "groups": [
+        "agentcore"
+      ],
+      "note": "",
+      "rows": {
+        "agentcore": [
+          4
+        ]
+      }
+    },
+    "multiagent": {
+      "groups": [
+        "agentcore"
+      ],
+      "note": "",
+      "rows": {
+        "agentcore": [
+          4
+        ]
+      }
+    },
+    "agents": {
+      "groups": [
+        "bedrock-orchestration"
+      ],
+      "note": "",
+      "rows": {
+        "bedrock-orchestration": [
+          0
+        ]
+      }
+    },
+    "stepfns": {
+      "groups": [
+        "step-functions"
+      ],
+      "note": ""
+    },
+    "flows": {
+      "groups": [
+        "bedrock-orchestration"
+      ],
+      "note": "",
+      "rows": {
+        "bedrock-orchestration": [
+          1
+        ]
+      }
+    },
+    "lambda": {
+      "groups": [
+        "lambda"
+      ],
+      "note": ""
+    },
+    "events": {
+      "groups": [
+        "eventbridge"
+      ],
+      "note": "",
+      "rows": {
+        "eventbridge": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "sqs": {
+      "groups": [
+        "messaging"
+      ],
+      "note": ""
+    },
+    "cognito": {
+      "groups": [
+        "cognito"
+      ],
+      "note": ""
+    },
+    "idc": {
+      "groups": [
+        "identity-cost"
+      ],
+      "note": "",
+      "rows": {
+        "identity-cost": [
+          1
+        ]
+      },
+      "references": {
+        "identity-cost": {
+          "title": "Identity Center FAQ",
+          "url": "https://aws.amazon.com/iam/identity-center/faqs/"
+        }
+      }
+    },
+    "iam": {
+      "groups": [
+        "identity-cost"
+      ],
+      "note": "",
+      "rows": {
+        "identity-cost": [
+          0
+        ]
+      }
+    },
+    "vpce": {
+      "groups": [
+        "private-endpoints"
+      ],
+      "note": ""
+    },
+    "kms": {
+      "groups": [
+        "keys-secrets"
+      ],
+      "note": ""
+    },
+    "lakeformation": {
+      "groups": [
+        "identity-cost"
+      ],
+      "note": "",
+      "rows": {
+        "identity-cost": [
+          2
+        ]
+      },
+      "references": {
+        "identity-cost": {
+          "title": "Lake Formation rates",
+          "url": "https://aws.amazon.com/lake-formation/pricing/"
+        }
+      }
+    },
+    "s3gov": {
+      "groups": [
+        "s3-classes"
+      ],
+      "note": ""
+    },
+    "waf": {
+      "groups": [
+        "waf"
+      ],
+      "note": ""
+    },
+    "macie": {
+      "groups": [
+        "sensitive-content"
+      ],
+      "note": "",
+      "rows": {
+        "sensitive-content": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "guardrails": {
+      "groups": [
+        "sensitive-content",
+        "guardrail-tiers"
+      ],
+      "note": "",
+      "rows": {
+        "sensitive-content": [
+          3
+        ]
+      }
+    },
+    "evaluations": {
+      "groups": [
+        "evaluation"
+      ],
+      "note": "",
+      "rows": {
+        "evaluation": [
+          0,
+          1
+        ]
+      }
+    },
+    "human": {
+      "groups": [
+        "evaluation"
+      ],
+      "note": "",
+      "rows": {
+        "evaluation": [
+          1
+        ]
+      },
+      "references": {
+        "evaluation": {
+          "title": "A2I rates",
+          "url": "https://aws.amazon.com/augmented-ai/pricing/"
+        }
+      }
+    },
+    "clarify": {
+      "groups": [
+        "evaluation"
+      ],
+      "note": "",
+      "rows": {
+        "evaluation": [
+          2
+        ]
+      },
+      "references": {
+        "evaluation": {
+          "title": "SageMaker resource rates",
+          "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
+        }
+      }
+    },
+    "modelcard": {
+      "groups": [
+        "evaluation"
+      ],
+      "note": "",
+      "rows": {
+        "evaluation": [
+          3
+        ]
+      },
+      "references": {
+        "evaluation": {
+          "title": "SageMaker resource rates",
+          "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
+        }
+      }
+    },
+    "cloudwatch": {
+      "groups": [
+        "cloudwatch-logs",
+        "telemetry-cost"
+      ],
+      "note": "",
+      "rows": {
+        "telemetry-cost": [
+          0
+        ]
+      }
+    },
+    "synthetics": {
+      "groups": [
+        "telemetry-cost"
+      ],
+      "note": "",
+      "rows": {
+        "telemetry-cost": [
+          1
+        ]
+      }
+    },
+    "cost": {
+      "groups": [
+        "telemetry-cost"
+      ],
+      "note": "",
+      "rows": {
+        "telemetry-cost": [
+          3,
+          4
+        ]
+      },
+      "references": {
+        "telemetry-cost": {
+          "title": "Cost Explorer rates",
+          "url": "https://aws.amazon.com/aws-cost-management/aws-cost-explorer/pricing/"
+        }
+      }
+    },
+    "tracing": {
+      "groups": [
+        "telemetry-cost"
+      ],
+      "note": "",
+      "rows": {
+        "telemetry-cost": [
+          2
+        ]
+      },
+      "references": {
+        "telemetry-cost": {
+          "title": "X-Ray rates",
+          "url": "https://aws.amazon.com/xray/pricing/"
+        }
+      }
+    },
+    "cloudtrail": {
+      "groups": [
+        "cloudtrail"
+      ],
+      "note": ""
+    },
+    "invlog": {
+      "groups": [],
+      "note": "Opt-in capture uses supported CloudWatch/S3 destinations. Budget for destination ingestion, storage, delivery, and queries; check class support for the chosen source."
+    },
+    "config": {
+      "groups": [
+        "config-audit"
+      ],
+      "note": "",
+      "rows": {
+        "config-audit": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "qbusiness": {
+      "groups": [
+        "qbusiness"
+      ],
+      "note": ""
+    },
+    "quick": {
+      "groups": [
+        "quick"
+      ],
+      "note": ""
+    },
+    "qdeveloper": {
+      "groups": [
+        "qdeveloper"
+      ],
+      "note": ""
+    },
+    "sts": {
+      "groups": [
+        "identity-cost"
+      ],
+      "note": "",
+      "rows": {
+        "identity-cost": [
+          0
+        ]
+      }
+    },
+    "verified": {
+      "groups": [
+        "authorization-analysis"
+      ],
+      "note": "",
+      "rows": {
+        "authorization-analysis": [
+          3,
+          4
+        ]
+      },
+      "references": {
+        "authorization-analysis": {
+          "title": "Verified Permissions rates",
+          "url": "https://aws.amazon.com/verified-permissions/pricing/"
+        }
+      }
+    },
+    "accessanalyzer": {
+      "groups": [
+        "authorization-analysis"
+      ],
+      "note": "",
+      "rows": {
+        "authorization-analysis": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "artifact": {
+      "groups": [
+        "config-audit"
+      ],
+      "note": "",
+      "rows": {
+        "config-audit": [
+          3
+        ]
+      },
+      "references": {
+        "config-audit": {
+          "title": "Artifact FAQ",
+          "url": "https://aws.amazon.com/artifact/faq/"
+        }
+      }
+    },
+    "auditmanager": {
+      "groups": [
+        "config-audit"
+      ],
+      "note": "",
+      "rows": {
+        "config-audit": [
+          4
+        ]
+      },
+      "references": {
+        "config-audit": {
+          "title": "Audit Manager rates",
+          "url": "https://aws.amazon.com/audit-manager/pricing/"
+        }
+      }
+    },
+    "inspector": {
+      "groups": [
+        "security-findings"
+      ],
+      "note": "",
+      "rows": {
+        "security-findings": [
+          0,
+          1
+        ]
+      }
+    },
+    "securityhub": {
+      "groups": [
+        "security-findings"
+      ],
+      "note": "",
+      "rows": {
+        "security-findings": [
+          2,
+          3,
+          4
+        ]
+      },
+      "references": {
+        "security-findings": {
+          "title": "Security Hub bundles and rates",
+          "url": "https://aws.amazon.com/security-hub/pricing/"
+        }
+      }
+    }
+  }
+}

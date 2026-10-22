@@ -1,0 +1,17 @@
+  <dialog id="aws-map-dialog" class="aws-map aws-map__dialog" aria-labelledby="aws-card-title">
+    <div class="aws-map__dialog-head"><span id="aws-card-layer"></span><button type="button" data-close aria-label="Close service card">×</button></div>
+    <strong id="aws-card-title" role="heading" aria-level="3"></strong>
+    <p id="aws-card-role"></p>
+    <ul id="aws-card-details" class="aws-map__card-details"></ul>
+    <p class="aws-map__use"><strong>Use when</strong> <span id="aws-card-use"></span></p>
+    <div class="aws-map__boundary"><strong>Boundary</strong><p id="aws-card-boundary"></p></div>
+    <p id="aws-card-availability" class="aws-map__note" hidden></p>
+    <div id="aws-card-samples" class="aws-map__samples"></div>
+    <div id="aws-card-options" class="aws-map__options"></div>
+    <div class="aws-map__references"><a id="aws-card-decisions">Compare alternatives →</a><a id="aws-card-reading">Implementation notes →</a><a id="aws-card-docs">AWS documentation ↗</a></div>
+    <div class="aws-map__card-nav"><button type="button" id="aws-card-prev">← Previous</button><span id="aws-card-position"></span><button type="button" id="aws-card-next">Next →</button></div>
+    <p class="aws-map__note">← → browse cards · Esc closes</p>
+  </dialog>
+<script id="aws-map-data" type="application/json">{{ site.data.aws_ai_service_map | jsonify }}</script>
+<script id="aws-options-data" type="application/json">{{ site.data.aws_service_options | jsonify }}</script>
+<script src="{{ '/assets/aws-ai-service-map.js' | relative_url }}" defer></script>

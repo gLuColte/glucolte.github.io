@@ -350,10 +350,10 @@ Subnets = (Number of Tiers) × (Number of AZs)
 
 ## 13. Identity, Security & Governance Notes {#identity-security}
 
-- **SCPs** set maximum permissions; combine with IAM policies for effective rights. Remember that SCP evaluation is cumulative: Root SCPs apply to every OU/account, child OUs inherit parent SCPs, and explicit denies in any ancestor override everything beneath.
+- **SCPs** constrain applicable member-account principals; they do not grant permissions or constrain management-account users/roles. Root/OU/account policies form the permission ceiling, with applicable explicit denies taking precedence.
 - **Parameter Store vs Secrets Manager** – config/simple secrets vs sensitive secrets with rotation/integration.
-- **IAM role vs instance profile** – role = permission set; instance profile = container that attaches a role to EC2.
-- **Web identity federation** – OIDC/SAML apps call `AssumeRoleWithWebIdentity` for short-lived creds.
+- **IAM role vs instance profile** – role = an AWS identity with trust and permission policies; instance profile = the container that attaches a role to EC2.
+- **Federation to AWS credentials** – supported OIDC/web identities use `AssumeRoleWithWebIdentity`; direct IAM SAML federation uses `AssumeRoleWithSAML`. Both require configured provider/role trust. See the [identity flow reference](/study/aiAWSServices#identity-protocols).
 - **KMS** – central envelope encryption (EBS/S3/RDS); import external keys when compliance demands.
 - **Macie / GuardDuty / Inspector / Security Hub** – data classification, threat intel, vuln scanning, findings aggregation.
 - **AWS Config** – drift/compliance detection; remediate via Lambda/SSM (Config itself is read-only).

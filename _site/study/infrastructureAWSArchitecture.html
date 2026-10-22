@@ -434,10 +434,10 @@ Instances per AZ = 5 ÷ 5 = 1 instance per AZ
 <h2 id="identity-security">13. Identity, Security &amp; Governance Notes</h2>
 
 <ul>
-  <li><strong>SCPs</strong> set maximum permissions; combine with IAM policies for effective rights. Remember that SCP evaluation is cumulative: Root SCPs apply to every OU/account, child OUs inherit parent SCPs, and explicit denies in any ancestor override everything beneath.</li>
+  <li><strong>SCPs</strong> constrain applicable member-account principals; they do not grant permissions or constrain management-account users/roles. Root/OU/account policies form the permission ceiling, with applicable explicit denies taking precedence.</li>
   <li><strong>Parameter Store vs Secrets Manager</strong> – config/simple secrets vs sensitive secrets with rotation/integration.</li>
-  <li><strong>IAM role vs instance profile</strong> – role = permission set; instance profile = container that attaches a role to EC2.</li>
-  <li><strong>Web identity federation</strong> – OIDC/SAML apps call <code class="language-plaintext highlighter-rouge">AssumeRoleWithWebIdentity</code> for short-lived creds.</li>
+  <li><strong>IAM role vs instance profile</strong> – role = an AWS identity with trust and permission policies; instance profile = the container that attaches a role to EC2.</li>
+  <li><strong>Federation to AWS credentials</strong> – supported OIDC/web identities use <code class="language-plaintext highlighter-rouge">AssumeRoleWithWebIdentity</code>; direct IAM SAML federation uses <code class="language-plaintext highlighter-rouge">AssumeRoleWithSAML</code>. Both require configured provider/role trust. See the <a href="/study/aiAWSServices#identity-protocols">identity flow reference</a>.</li>
   <li><strong>KMS</strong> – central envelope encryption (EBS/S3/RDS); import external keys when compliance demands.</li>
   <li><strong>Macie / GuardDuty / Inspector / Security Hub</strong> – data classification, threat intel, vuln scanning, findings aggregation.</li>
   <li><strong>AWS Config</strong> – drift/compliance detection; remediate via Lambda/SSM (Config itself is read-only).</li>

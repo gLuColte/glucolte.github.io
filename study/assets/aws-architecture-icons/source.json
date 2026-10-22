@@ -1,0 +1,8 @@
+{
+  "publisher": "Amazon Web Services",
+  "source": "https://aws.amazon.com/architecture/icons/",
+  "package": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+  "release": "2026-07-31",
+  "family": "Architecture-Service-Icons / 64px SVG",
+  "note": "Original unmodified AWS SVG assets. Feature and grouped-service cards use their parent or representative service icon when no dedicated 64px service icon exists."
+}

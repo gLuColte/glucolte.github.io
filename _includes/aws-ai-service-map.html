@@ -1,0 +1,11 @@
+<link rel="stylesheet" href="{{ '/assets/aws-ai-service-map.css' | relative_url }}">
+<div id="service-map" class="aws-map aws-map__navigation" aria-label="AWS AI service reference controls">
+  <nav aria-label="Service map layers">{%- for zone in site.data.aws_ai_service_map.zones -%}<a href="#aws-map-{{ zone.id }}">{{ zone.title }}</a>{%- endfor -%}<a href="#aws-connected-examples">Connected examples</a></nav>
+  <div class="aws-map__toolbar" hidden>
+    <label for="aws-map-search">Find a service or requirement<input type="search" id="aws-map-search" placeholder="Try: approval, PII, cache…" autocomplete="off"></label>
+    <button type="button" id="aws-map-reset">Clear search</button>
+    <span id="aws-map-count" role="status" aria-live="polite"></span>
+  </div>
+  <p class="aws-map__empty" hidden>No matching cards. Try another term or clear the search.</p>
+  <noscript><p>Service cards link directly to their implementation notes.</p></noscript>
+</div>

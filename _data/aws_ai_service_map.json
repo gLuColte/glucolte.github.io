@@ -1,0 +1,2734 @@
+{
+  "cards": {
+    "bedrock": {
+      "name": "Amazon Bedrock",
+      "role": "Managed foundation-model APIs, supported customization/import, and GenAI application features.",
+      "boundary": "Choose from supported model contracts; instance and GPU selection are abstracted.",
+      "read": "#section-2-bedrock",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html",
+      "details": [
+        "Invoke compatible models through Converse or their native model API.",
+        "Add supported Knowledge Bases, Guardrails, prompt management, and evaluation capabilities.",
+        "Select model access, delivery, and capacity separately from application hosting."
+      ],
+      "useWhen": "A supported foundation model and managed GenAI features fit your application.",
+      "samples": [
+        "converse-request"
+      ]
+    },
+    "sagemaker": {
+      "name": "SageMaker AI",
+      "role": "Managed ML lifecycle and hosting with chosen containers, instances, and endpoint scaling.",
+      "boundary": "Owning serving configuration also means sizing and operating its capacity.",
+      "read": "#section-4-bedrock-sagemaker",
+      "icon": "Amazon-SageMaker-AI",
+      "doc": "https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html",
+      "details": [
+        "Prepare data, run training/tuning jobs, and register versioned model packages.",
+        "Choose real-time, asynchronous, batch, or CPU-only serverless inference; Serverless Provisioned Concurrency still has no GPU.",
+        "Configure serving resources, scaling, deployment verification, and monitoring."
+      ],
+      "useWhen": "You need control over the model artifact, serving container, GPU, or endpoint scaling.",
+      "samples": [
+        "sagemaker-flow",
+        "sagemaker-serverless"
+      ]
+    },
+    "neo": {
+      "name": "SageMaker Neo",
+      "role": "Compile supported models for a specified edge or cloud hardware target.",
+      "boundary": "Check model/operator and target support; compilation is different from providing edge infrastructure.",
+      "read": "#edge-hosting",
+      "icon": "Amazon-SageMaker-AI",
+      "doc": "https://docs.aws.amazon.com/sagemaker/latest/dg/neo.html",
+      "details": [
+        "Compile a supported trained model for a specified hardware/software target.",
+        "Check operator, framework, and target compatibility before choosing the path.",
+        "Deploy the compiled artifact through a compatible runtime; compilation does not host it."
+      ],
+      "useWhen": "A supported model must be optimized for a specific deployment target.",
+      "samples": [
+        "neo-flow"
+      ]
+    },
+    "hybrid": {
+      "name": "Outposts / Wavelength",
+      "role": "Outposts extends AWS infrastructure on premises; Wavelength places compute in supported carrier networks.",
+      "boundary": "Verify service availability and data paths; these products do not automatically keep every dependency local.",
+      "read": "#edge-hosting",
+      "icon": "AWS-Outposts-family",
+      "doc": "https://aws.amazon.com/outposts/",
+      "details": [
+        "Outposts places supported AWS infrastructure in your premises.",
+        "Wavelength places supported compute in carrier networks for mobile edge workloads.",
+        "Check where inference, data, identity, and every remote dependency actually run."
+      ],
+      "useWhen": "Infrastructure location or mobile-network latency is a hard requirement.",
+      "samples": [
+        "hybrid-flow"
+      ]
+    },
+    "registry": {
+      "name": "Model Registry",
+      "role": "Version model packages, evaluation evidence, and approval status.",
+      "boundary": "Approval does not update a live endpoint or load an adapter.",
+      "read": "#sagemaker-adapter-lifecycle",
+      "icon": "Amazon-SageMaker-AI",
+      "doc": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html",
+      "details": [
+        "Group related model packages and record a version for each candidate.",
+        "Attach evaluation evidence, artifact references, and approval status.",
+        "A separate release process creates or updates serving resources from the approved package."
+      ],
+      "useWhen": "A candidate model needs traceable versions and an explicit approval decision.",
+      "samples": [
+        "registry-flow"
+      ]
+    },
+    "appconfig": {
+      "name": "AWS AppConfig",
+      "role": "Deploy validated runtime configuration and feature variants with controlled rollout.",
+      "boundary": "The application must fetch and apply changes; propagation follows deployment and polling.",
+      "read": "#appconfig-routing",
+      "icon": "AWS-AppConfig",
+      "doc": "https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html",
+      "details": [
+        "Organize configuration profiles and deployment environments under an application.",
+        "Validate configuration and apply a deployment strategy with configured monitoring.",
+        "The application retrieves and applies the deployed version through an agent or API."
+      ],
+      "useWhen": "Model mappings, prompts, or feature flags must change through a controlled rollout.",
+      "samples": [
+        "routing-config"
+      ]
+    },
+    "paramstore": {
+      "name": "Parameter Store",
+      "role": "Store configuration values, including KMS-protected SecureString parameters.",
+      "boundary": "Use AppConfig for staged rollout and Secrets Manager for managed secret rotation.",
+      "read": "#appconfig-routing",
+      "icon": "AWS-Systems-Manager",
+      "doc": "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html",
+      "details": [
+        "Store named strings, string lists, or KMS-protected SecureString values.",
+        "Use parameter paths and IAM policies to separate environments and applications.",
+        "Read and apply the value in application code; storing it does not perform a rollout."
+      ],
+      "useWhen": "The application needs centrally stored configuration values with scoped access.",
+      "samples": [
+        "get-parameter"
+      ]
+    },
+    "cicd": {
+      "name": "CodePipeline / CodeBuild",
+      "role": "Automate builds, assertions, evaluation gates, release, and rollback.",
+      "boundary": "Define pass/fail criteria and approval explicitly; a completed job is not a quality decision.",
+      "read": "#shared-ai-components",
+      "icon": "AWS-CodePipeline",
+      "doc": "https://docs.aws.amazon.com/codepipeline/latest/userguide/welcome.html",
+      "details": [
+        "Build code and infrastructure from versioned source and artifacts.",
+        "Run schema/business assertions and held-out quality checks against a baseline.",
+        "Promote, verify, or roll back the actual prompt/model/configuration version."
+      ],
+      "useWhen": "Changes must pass repeatable checks before reaching the production route.",
+      "samples": [
+        "cicd-flow"
+      ]
+    },
+    "s3": {
+      "name": "Amazon S3",
+      "role": "Keep versioned source documents, evaluation sets, artifacts, and batch input/output.",
+      "boundary": "Source updates need downstream synchronization; object permissions do not authorize indexed copies.",
+      "read": "#source-lineage",
+      "icon": "Amazon-Simple-Storage-Service",
+      "doc": "",
+      "details": [
+        "Store source documents, training/evaluation datasets, and generated job outputs.",
+        "Track the bucket, key, and source version in downstream chunk metadata.",
+        "Connect source events to a controlled synchronization pipeline."
+      ],
+      "useWhen": "You need durable source files, versioned evidence, or batch artifacts.",
+      "samples": [
+        "get-source"
+      ]
+    },
+    "glue": {
+      "name": "AWS Glue",
+      "role": "Prepare datasets, catalog schemas, and evaluate Data Quality rules before ingestion or training.",
+      "boundary": "Configure failure/quarantine and preserve source versions; a catalog is not a retrieval index.",
+      "read": "#glue-quality-redaction",
+      "icon": "AWS-Glue",
+      "doc": "https://docs.aws.amazon.com/glue/latest/dg/tutorial-data-quality.html",
+      "details": [
+        "Crawlers and the Data Catalog describe supported source schemas and locations.",
+        "ETL jobs clean, transform, and write approved datasets.",
+        "Data Quality rules produce results; configure failure, quarantine, or remediation explicitly."
+      ],
+      "useWhen": "Data needs preparation, cataloging, and quality gates before ingestion or training.",
+      "samples": [
+        "quality-rules"
+      ]
+    },
+    "datawrangler": {
+      "name": "Data Wrangler / Processing",
+      "role": "Visual preparation in Data Wrangler; custom batch scripts in SageMaker Processing.",
+      "boundary": "Choose according to the required transformation and existing pipeline.",
+      "read": "#section-4-bedrock-sagemaker",
+      "icon": "Amazon-SageMaker-AI",
+      "doc": "https://docs.aws.amazon.com/sagemaker/latest/dg/processing-job.html",
+      "details": [
+        "Data Wrangler supports visual preparation and data insights.",
+        "Processing runs your scripts for preprocessing, evaluation, or batch transformations.",
+        "Record input/output artifacts so a pipeline can reproduce the preparation step."
+      ],
+      "useWhen": "Visual data preparation or custom SageMaker batch preprocessing fits the workflow.",
+      "samples": [
+        "datawrangler-flow"
+      ]
+    },
+    "textract": {
+      "name": "Amazon Textract",
+      "role": "Extract supported document text, forms, tables, queries, invoices, and ID fields.",
+      "boundary": "Select the analysis API; OCR alone does not reconstruct all document relationships.",
+      "read": "#recognition-extraction",
+      "icon": "Amazon-Textract",
+      "doc": "https://docs.aws.amazon.com/textract/latest/dg/what-is.html",
+      "details": [
+        "DetectDocumentText returns OCR text; AnalyzeDocument adds selected document features.",
+        "FORMS, TABLES, and QUERIES solve different extraction needs.",
+        "Use supported expense/ID APIs or asynchronous document operations where appropriate."
+      ],
+      "useWhen": "You need document structure such as forms, tables, or answers from supported files.",
+      "samples": [
+        "analyze-document"
+      ]
+    },
+    "bda": {
+      "name": "Bedrock Data Automation",
+      "role": "Convert supported documents and media into standard output or blueprint-defined fields.",
+      "boundary": "Validate fields before downstream writes; extraction does not create embeddings or orchestrate the application.",
+      "read": "#data-automation",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/bda.html",
+      "details": [
+        "Standard output provides supported document or media representations.",
+        "Custom blueprints define business fields inside the invoked project.",
+        "Configure input/output permissions and validate results before database or index writes."
+      ],
+      "useWhen": "Supported document/media input must become managed structured extraction output.",
+      "samples": [
+        "bda-invocation"
+      ]
+    },
+    "transcribe": {
+      "name": "Amazon Transcribe",
+      "role": "Convert supported speech to text with batch or streaming workflows.",
+      "boundary": "Preserve turns; speaker labels identify speakers, not verified business roles.",
+      "read": "#transcription-phi-pipeline",
+      "icon": "Amazon-Transcribe",
+      "doc": "",
+      "details": [
+        "Choose supported batch transcription or a streaming speech workflow.",
+        "Use diarization for mixed speakers; channel identification for separately recorded channels.",
+        "Preserve speaker turns and timestamps; verify any mapping to customer, doctor, or employee roles."
+      ],
+      "useWhen": "Speech must become searchable text or input to a voice application.",
+      "samples": [
+        "transcribe-job"
+      ]
+    },
+    "comprehend": {
+      "name": "Amazon Comprehend",
+      "role": "Analyze text entities, key phrases, sentiment, classification, and supported PII spans.",
+      "boundary": "Detection returns evidence; your pipeline must apply redaction where required.",
+      "read": "#recognition-extraction",
+      "icon": "Amazon-Comprehend",
+      "doc": "",
+      "details": [
+        "DetectSentiment labels the whole text; targeted sentiment examines entity mentions.",
+        "Entity/key-phrase detection extracts spans rather than producing a summary.",
+        "Custom classification categorizes documents; custom recognition identifies domain-specific entities."
+      ],
+      "useWhen": "Text needs entity, sentiment, classification, or supported sensitive-span analysis.",
+      "samples": [
+        "detect-pii",
+        "pii-result"
+      ]
+    },
+    "medical": {
+      "name": "Comprehend Medical",
+      "role": "Extract clinical entities and supported PHI from medical text.",
+      "boundary": "Verify entity coverage, offsets, and confidence before redacting or retaining audit data.",
+      "read": "#transcription-phi-pipeline",
+      "icon": "Amazon-Comprehend-Medical",
+      "doc": "",
+      "details": [
+        "Choose the supported clinical-entity or PHI operation for the task.",
+        "Apply offsets to the exact analyzed text; preserve encoding and text alignment.",
+        "Use confidence and coverage checks before redaction, indexing, or clinical downstream use."
+      ],
+      "useWhen": "Clinical text needs supported medical entities or PHI span detection.",
+      "samples": [
+        "detect-phi"
+      ]
+    },
+    "rekognition": {
+      "name": "Amazon Rekognition",
+      "role": "Analyze images and supported video for labels, moderation, faces, and other visual features.",
+      "boundary": "Use document extraction for forms/tables; availability varies by feature.",
+      "read": "#recognition-extraction",
+      "icon": "Amazon-Rekognition",
+      "doc": "https://docs.aws.amazon.com/rekognition/latest/dg/what-is.html",
+      "details": [
+        "Analyze supported labels, moderation categories, faces, and other visual features.",
+        "Select the image API or supported asynchronous video workflow.",
+        "Face detection locates a face; identity matching requires a separate supported setup."
+      ],
+      "useWhen": "Supported images or video need visual analysis or moderation.",
+      "samples": [
+        "image-labels"
+      ]
+    },
+    "kb": {
+      "name": "Bedrock Knowledge Bases",
+      "role": "Coordinate supported ingestion, embeddings, retrieval, and retrieval-plus-generation.",
+      "boundary": "Configure sync and trusted access filters; the backing store and connector limit available features.",
+      "read": "#kb-internals",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html",
+      "details": [
+        "Configure a data source, parser, chunking strategy, embedding model, and supported store.",
+        "Run and inspect ingestion jobs to keep indexed evidence current.",
+        "Retrieve returns candidates; the combined generation API depends on the Knowledge Base type."
+      ],
+      "useWhen": "You want a supported RAG pipeline inside an application you control.",
+      "samples": [
+        "retrieve-request",
+        "rag-request"
+      ]
+    },
+    "embeddings": {
+      "name": "Bedrock embedding models",
+      "role": "Encode compatible corpus and query inputs as vectors.",
+      "boundary": "Changing the embedding model requires a compatible rebuilt corpus index; equal dimensions are insufficient.",
+      "read": "#embedding-representations",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/titan-embedding-models.html",
+      "details": [
+        "Encode source chunks during ingestion and queries during retrieval.",
+        "Match the model, dimensions, and preprocessing across corpus and query paths.",
+        "Measure retrieval quality before reducing dimensions or switching models."
+      ],
+      "useWhen": "Documents and questions need a compatible vector representation for search.",
+      "samples": [
+        "titan-embedding"
+      ]
+    },
+    "opensearch": {
+      "name": "Amazon OpenSearch Service",
+      "role": "Provide lexical, vector, and hybrid search with index and ranking controls.",
+      "boundary": "Benchmark recall, filters, latency, and idle capacity; vector count alone does not decide the platform.",
+      "read": "#opensearch-hnsw-tuning",
+      "icon": "Amazon-OpenSearch-Service",
+      "doc": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/knn.html",
+      "details": [
+        "Define mappings and index supported text/vector fields.",
+        "Tune HNSW search/build effort and measure recall, memory, and latency.",
+        "For Serverless, check IAM, data-access, and network policies together."
+      ],
+      "useWhen": "Your search requirements need lexical, vector, hybrid, or ranking controls.",
+      "samples": [
+        "knn-search"
+      ]
+    },
+    "aurora": {
+      "name": "Aurora / RDS pgvector",
+      "role": "Keep supported vector indexes alongside PostgreSQL records and SQL queries.",
+      "boundary": "Transactions and relational integration can matter more than a blanket scale cutoff.",
+      "read": "#assistant-retriever-vector-store",
+      "icon": "Amazon-Aurora",
+      "doc": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.PostgreSQL.CommonDBATasks.Extensions.html",
+      "details": [
+        "Use pgvector types and supported indexes in PostgreSQL.",
+        "Combine relational predicates with the required similarity query.",
+        "Benchmark filtering, index behavior, concurrency, and operational cost on your workload."
+      ],
+      "useWhen": "Vector similarity belongs alongside PostgreSQL records, joins, or transactions.",
+      "samples": [
+        "pgvector-query"
+      ]
+    },
+    "s3vectors": {
+      "name": "Amazon S3 Vectors",
+      "role": "Store and query vectors in dedicated S3 vector buckets and indexes.",
+      "boundary": "Check filterable metadata, connector/search support, and latency requirements; vector buckets differ from ordinary S3 buckets.",
+      "read": "#assistant-retriever-vector-store",
+      "icon": "Amazon-Simple-Storage-Service",
+      "doc": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-vectors.html",
+      "details": [
+        "Create a vector bucket and an index with a compatible dimension and distance metric.",
+        "Write vectors with keys and supported metadata, then query using a compatible vector.",
+        "Choose filterable metadata deliberately and check connector-specific support."
+      ],
+      "useWhen": "Dedicated vector storage/query economics fit the required search contract.",
+      "samples": [
+        "vector-query"
+      ]
+    },
+    "neptune": {
+      "name": "Neptune Analytics / GraphRAG",
+      "role": "Retrieve using relationships between linked entities and supporting evidence.",
+      "boundary": "Use a measured multi-hop need; managed GraphRAG has its own chunking and graph-build contract.",
+      "read": "#kb-internals",
+      "icon": "Amazon-Neptune",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-build-graphs.html",
+      "details": [
+        "Represent linked entities and supporting evidence through a supported graph workflow.",
+        "Use graph relationships to complement similarity-based retrieval.",
+        "Check the managed GraphRAG graph-build and chunking contract before customization."
+      ],
+      "useWhen": "Relationships and multi-hop evidence matter to the question.",
+      "samples": [
+        "neptune-flow"
+      ]
+    },
+    "kendra": {
+      "name": "Amazon Kendra",
+      "role": "Enterprise search/retrieval with supported connectors and document ACLs.",
+      "boundary": "Maintenance mode: assess existing-customer eligibility and migration requirements.",
+      "read": "#kendra-search-analytics",
+      "icon": "Amazon-Kendra",
+      "doc": "https://docs.aws.amazon.com/kendra/latest/dg/kendra-availability-change.html",
+      "details": [
+        "Connect supported enterprise sources and synchronize content plus document ACLs.",
+        "Query or retrieve using the configured identity and access context.",
+        "Use search analytics and explicit feedback to investigate relevance gaps."
+      ],
+      "useWhen": "An existing eligible enterprise-search deployment needs retrieval and connector integration.",
+      "samples": [
+        "kendra-query"
+      ],
+      "availability": {
+        "text": "Closed to new customers; assess Knowledge Bases for a new application.",
+        "url": "https://docs.aws.amazon.com/kendra/latest/dg/kendra-availability-change.html"
+      }
+    },
+    "reranking": {
+      "name": "Bedrock reranking",
+      "role": "Rescore retrieved candidates so context selection can favor relevant evidence.",
+      "boundary": "Cannot recover a missing candidate; measure evidence retention after pruning.",
+      "read": "#kb-internals",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/rerank.html",
+      "details": [
+        "Submit a query and candidate sources to a supported reranking model.",
+        "Use relevance scores to select a measured context set.",
+        "Compare relevance and evidence loss before choosing a cutoff or result count."
+      ],
+      "useWhen": "Relevant evidence is retrieved but context selection needs better ordering.",
+      "samples": [
+        "rerank-request"
+      ]
+    },
+    "apigw": {
+      "name": "Amazon API Gateway",
+      "role": "Expose supported REST, HTTP, or WebSocket integrations with authentication and request controls.",
+      "boundary": "API keys and request throttles do not supply user authorization or a hard token-spend cap.",
+      "read": "#event-stream-controls",
+      "icon": "Amazon-API-Gateway",
+      "doc": "",
+      "details": [
+        "Choose REST, HTTP, or WebSocket according to the integration and client contract.",
+        "Configure authentication, validation, throttling, and observability for the entry point.",
+        "Supported REST proxy response streaming differs from WebSocket callbacks and HTTP APIs."
+      ],
+      "useWhen": "Clients need a managed API entry point with an appropriate transport and authorizer.",
+      "samples": [
+        "streaming-integration"
+      ]
+    },
+    "appsync": {
+      "name": "AWS AppSync",
+      "role": "Provide GraphQL APIs and supported real-time subscription/event delivery.",
+      "boundary": "Choose for the client interaction contract; still enforce record-level permissions.",
+      "read": "#event-stream-controls",
+      "icon": "AWS-AppSync",
+      "doc": "https://docs.aws.amazon.com/appsync/latest/devguide/what-is-appsync.html",
+      "details": [
+        "Define the GraphQL schema and map resolvers to supported data sources.",
+        "Use subscriptions for supported updates tied to the configured API contract.",
+        "Derive record scope from trusted identity and enforce it at the resolver/backend."
+      ],
+      "useWhen": "The client contract calls for GraphQL queries, mutations, or subscriptions.",
+      "samples": [
+        "graphql-contract"
+      ]
+    },
+    "promptmgmt": {
+      "name": "Bedrock Prompt Management",
+      "role": "Store reusable templates, variables, model settings, variants, and immutable versions.",
+      "boundary": "Versioning does not test, approve, or promote a prompt by itself.",
+      "read": "#model-prompt-controls",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html",
+      "details": [
+        "Define supported prompt variants, variables, and inference configuration.",
+        "Create an immutable version and invoke the intended version ARN.",
+        "Capture the rendered request and compare candidates before promoting the live route."
+      ],
+      "useWhen": "Templates and model settings need reusable, auditable prompt versions.",
+      "samples": [
+        "prompt-version"
+      ]
+    },
+    "promptopt": {
+      "name": "Bedrock Prompt Optimization",
+      "role": "Generate prompt revisions tailored to a supported target model.",
+      "boundary": "Evaluate quality and token cost; optimization does not change weights or retrieve facts.",
+      "read": "#model-prompt-controls",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-optimize.html",
+      "details": [
+        "Supply a supported prompt and target model to the optimization workflow.",
+        "Evaluate the proposed revision against the unchanged baseline.",
+        "Measure output quality and token cost; a longer revision can cost more."
+      ],
+      "useWhen": "A supported model may respond better to revised instructions or wording.",
+      "samples": [
+        "promptopt-flow"
+      ]
+    },
+    "converse": {
+      "name": "Converse / ConverseStream",
+      "role": "Use a common message interface across compatible models; stream supported responses.",
+      "boundary": "Model capabilities still vary; supply required conversation history on each call.",
+      "read": "#section-2-1-inference",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html",
+      "details": [
+        "Send user/assistant content in messages and common settings in inferenceConfig.",
+        "Read the returned message, usage, and stopReason.",
+        "ConverseStream emits events; the application must consume and forward them incrementally."
+      ],
+      "useWhen": "You want to compare compatible models while keeping one application message contract.",
+      "samples": [
+        "converse-request",
+        "converse-response"
+      ]
+    },
+    "invokemodel": {
+      "name": "InvokeModel / streaming",
+      "role": "Invoke a model using its native request and response contract.",
+      "boundary": "The client path must also forward stream events incrementally.",
+      "read": "#section-2-1-inference",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html",
+      "details": [
+        "Serialize the provider-specific request and decode its native response.",
+        "Parameter names and output fields depend on the selected model contract.",
+        "Use InvokeModelWithResponseStream when that model supports native streaming."
+      ],
+      "useWhen": "You need a supported model-native request body or model-specific capability.",
+      "samples": [
+        "native-messages"
+      ]
+    },
+    "params": {
+      "name": "Inference parameters",
+      "role": "Control supported sampling, output length, and stop conditions.",
+      "boundary": "A low temperature or valid JSON does not establish factual correctness.",
+      "read": "#model-prompt-controls",
+      "icon": "Amazon-Bedrock",
+      "doc": "",
+      "details": [
+        "Temperature and supported top-p/top-k settings affect sampling.",
+        "maxTokens limits output; inspect stopReason when an answer truncates.",
+        "Use supported stop sequences and task-based evaluation rather than universal presets."
+      ],
+      "useWhen": "Output length, variability, or stopping behavior needs controlled adjustment.",
+      "samples": [
+        "inference-config"
+      ]
+    },
+    "dynamodb": {
+      "name": "Amazon DynamoDB",
+      "role": "Persist scoped sessions, job status, ratings, and conditional idempotency records.",
+      "boundary": "TTL deletion is asynchronous; conditional writes must be part of a complete action/reconciliation design.",
+      "read": "#section-9-3-data",
+      "icon": "Amazon-DynamoDB",
+      "doc": "",
+      "details": [
+        "Choose partition/sort keys that express tenant, session, or action identity.",
+        "Use conditional writes for state transitions and duplicate-work protection.",
+        "Track logical expiry and reconcile external side effects after retries or partial failures."
+      ],
+      "useWhen": "The application needs scoped session state, job status, or idempotency records.",
+      "samples": [
+        "idempotency-write"
+      ]
+    },
+    "lex": {
+      "name": "Amazon Lex",
+      "role": "Build intent/slot-driven text and voice conversations with backend fulfillment.",
+      "boundary": "Choose the conversation contract deliberately; open-ended tool planning requires a different controller.",
+      "read": "#speech-bot-interfaces",
+      "icon": "Amazon-Lex",
+      "doc": "https://docs.aws.amazon.com/lexv2/latest/dg/what-is.html",
+      "details": [
+        "Define intents and slots for the supported text/voice interaction.",
+        "Collect required information before invoking backend fulfillment.",
+        "Validate and authorize the business action outside the conversational response."
+      ],
+      "useWhen": "The conversation follows known intents, required slots, and fulfillment rules.",
+      "samples": [
+        "recognize-text"
+      ]
+    },
+    "polly": {
+      "name": "Amazon Polly",
+      "role": "Synthesize speech from text using supported voices and delivery modes.",
+      "boundary": "Measure the whole voice pipeline; a streaming hop does not guarantee an end-to-end latency target.",
+      "read": "#speech-bot-interfaces",
+      "icon": "Amazon-Polly",
+      "doc": "https://docs.aws.amazon.com/polly/latest/dg/what-is.html",
+      "details": [
+        "Select an engine, voice, language, and output format that work together.",
+        "Supply plain text or supported SSML for speech synthesis.",
+        "Measure buffering and playback alongside upstream transcription and generation."
+      ],
+      "useWhen": "Text must become speech in a supported voice and audio format.",
+      "samples": [
+        "synthesize-speech"
+      ]
+    },
+    "routing": {
+      "name": "Intelligent Prompt Routing",
+      "role": "Route each request between a supported pair of models according to predicted quality.",
+      "boundary": "Managed routing support is model-family specific; custom cascading needs your own escalation policy.",
+      "read": "#routing-caching-capacity",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-routing.html",
+      "details": [
+        "Invoke the supported prompt router through its modelId/ARN.",
+        "The managed router selects between its configured model options.",
+        "A custom easy-first cascade requires application calls and an evaluated escalation rule."
+      ],
+      "useWhen": "A supported managed model pair can handle mixed request difficulty.",
+      "samples": [
+        "router-request"
+      ]
+    },
+    "caching": {
+      "name": "Prompt / response caching",
+      "role": "Reuse a shared prefix with Bedrock prompt caching; reuse answers through an application cache.",
+      "boundary": "Answer caches require entitlement, version, policy, and freshness checks; semantic matches can be wrong.",
+      "read": "#routing-caching-capacity",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html",
+      "details": [
+        "Prompt caching marks supported stable prefixes; inference still generates the answer.",
+        "Exact/semantic answer caches are application-managed and reuse finished responses.",
+        "Revalidate authorization, source versions, model/prompt policy, and expiry on cache hits."
+      ],
+      "useWhen": "Repeated prefix processing or safely reusable answers dominate request cost.",
+      "samples": [
+        "cache-checkpoint",
+        "answer-cache"
+      ]
+    },
+    "cloudfront": {
+      "name": "Amazon CloudFront",
+      "role": "Cache eligible shared content near clients and protect supported origins.",
+      "boundary": "Personalized or permission-sensitive answers need correct cache keys and access policy.",
+      "read": "#routing-caching-capacity",
+      "icon": "Amazon-CloudFront",
+      "doc": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html",
+      "details": [
+        "Configure an origin, cache policy, TTLs, and any required origin access controls.",
+        "Include all response-varying values in the caching design.",
+        "Invalidate or version stale content; avoid cross-user reuse of private answers."
+      ],
+      "useWhen": "Eligible shared content can be cached near users.",
+      "samples": [
+        "shared-cache"
+      ]
+    },
+    "provthroughput": {
+      "name": "Provisioned Throughput",
+      "role": "Reserve eligible model capacity when measured sustained use justifies it.",
+      "boundary": "Invoke the provisioned resource and account for idle/commitment charges; capacity is not an end-to-end latency guarantee.",
+      "read": "#section-2-1-inference",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html",
+      "details": [
+        "Select an eligible model, model-unit capacity, and commitment contract.",
+        "Invoke the provisioned resource ARN rather than an unrelated on-demand model ID.",
+        "Monitor utilization, throttling, and idle cost independently of application compute."
+      ],
+      "useWhen": "Measured sustained use justifies supported reserved model capacity.",
+      "samples": [
+        "provisioned-model"
+      ]
+    },
+    "xregion": {
+      "name": "Cross-Region inference",
+      "role": "Use a supported inference profile to route eligible model requests across its destination Regions.",
+      "boundary": "Validate every destination; model routing does not fail over your application.",
+      "read": "#cross-region-profile",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html",
+      "details": [
+        "Pass the inference profile ID/ARN as modelId.",
+        "Approve the source/destination permissions and applicable organizational policies.",
+        "Check geographic/global scope separately from application disaster recovery."
+      ],
+      "useWhen": "Eligible inference may use every destination in an approved profile.",
+      "samples": [
+        "profile-model"
+      ]
+    },
+    "agentcore": {
+      "name": "Bedrock AgentCore",
+      "role": "Host custom agents or use a managed harness with modular memory, tools, identity, and observability.",
+      "boundary": "The chosen controller owns planning; business APIs still enforce authority.",
+      "read": "#section-3-agentcore",
+      "icon": "Amazon-Bedrock-AgentCore",
+      "doc": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html",
+      "details": [
+        "Runtime hosts compatible code; a managed harness can own supported agent execution.",
+        "Gateway connects supported tools; Identity brokers configured credentials.",
+        "Add scoped memory, policy, and telemetry according to the workload."
+      ],
+      "useWhen": "An agent needs supported hosting, tool connectivity, identity, or managed execution components.",
+      "samples": [
+        "agentcore-flow"
+      ]
+    },
+    "agentidentity": {
+      "name": "AgentCore Identity",
+      "role": "Support agent identity and authorized access to supported downstream credentials.",
+      "boundary": "Runtime/Gateway inbound authentication and outbound credential brokerage are configured separately. Target business rules still apply.",
+      "read": "#identity-path-agent",
+      "icon": "Amazon-Bedrock-AgentCore",
+      "doc": "",
+      "details": [
+        "Configure Runtime/Gateway inbound trust separately from outbound credential access.",
+        "Associate supported credential providers and permissions with the intended agent workflow.",
+        "Keep user consent, credential scope, and target application authorization explicit."
+      ],
+      "useWhen": "An agent needs configured inbound identity or delegated access to downstream services.",
+      "samples": [
+        "agentidentity-flow"
+      ]
+    },
+    "mcp": {
+      "name": "MCP tool integration",
+      "role": "Standardize tool discovery and calls through a supported MCP client/server transport.",
+      "boundary": "MCP is a protocol; hosting, user identity, and action permissions remain design decisions.",
+      "read": "#section-3-1-agentcore-boundary",
+      "icon": "Amazon-Bedrock-AgentCore",
+      "doc": "",
+      "details": [
+        "A client discovers available tool names, input schemas, and descriptions.",
+        "Calls exchange structured arguments and results over a supported transport.",
+        "Choose hosting, identity validation, and per-tool authority independently of the protocol."
+      ],
+      "useWhen": "Agents need a common contract to discover and call tools.",
+      "samples": [
+        "tool-arguments"
+      ]
+    },
+    "multiagent": {
+      "name": "Strands / Agent Squad",
+      "role": "Implement custom agent collaboration or specialist request routing.",
+      "boundary": "Use the required coordination pattern; multiple agents add handoff and evaluation work.",
+      "read": "#section-3-1-agentcore-boundary",
+      "icon": "Amazon-Bedrock-AgentCore",
+      "doc": "",
+      "details": [
+        "Use Strands for a custom agent implementation and supported collaboration patterns.",
+        "Use Agent Squad where specialist routing/orchestration fits the application.",
+        "Define handoff contracts, scoped context, termination, and end-to-end task evaluation."
+      ],
+      "useWhen": "Specialist routing or collaboration improves a measured task enough to justify coordination.",
+      "samples": [
+        "multiagent-flow"
+      ]
+    },
+    "agents": {
+      "name": "Bedrock Agents Classic",
+      "role": "Run existing managed agents with instructions, action groups, knowledge bases, and traces.",
+      "boundary": "Closed to new customers; AWS directs new implementations toward AgentCore.",
+      "read": "#agent-trace-controls",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html",
+      "details": [
+        "Configure instructions, action groups, and Knowledge Base integrations.",
+        "Promote versions/aliases and invoke the intended agent alias.",
+        "Enable supported traces to inspect tool calls, observations, and orchestration events."
+      ],
+      "useWhen": "You maintain an existing eligible Bedrock Agents Classic application.",
+      "samples": [
+        "invoke-classic"
+      ],
+      "availability": {
+        "text": "Agents Classic is closed to new customers; check AgentCore migration guidance.",
+        "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html"
+      }
+    },
+    "stepfns": {
+      "name": "AWS Step Functions",
+      "role": "Persist explicit workflow states, branching, retries, and supported service integrations.",
+      "boundary": "Choose Standard for long approvals or callback task tokens; Express has a different duration/integration contract.",
+      "read": "#step-functions-controls",
+      "icon": "AWS-Step-Functions",
+      "doc": "https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html",
+      "details": [
+        "Use Choice for branching, Map for a collection, and Parallel for independent branches.",
+        "Standard supports long workflows and supported callback task-token integrations.",
+        "Express supports short workflows and Wait states, with no .sync or callback task tokens."
+      ],
+      "useWhen": "The business process has explicit states, retries, or durable approval waits.",
+      "samples": [
+        "state-machine"
+      ]
+    },
+    "flows": {
+      "name": "Bedrock Flows",
+      "role": "Build versioned visual GenAI pipelines using supported nodes and conditions.",
+      "boundary": "Use a durable workflow for broader business state and long approval waits.",
+      "read": "#bedrock-flow-wiring",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/flows.html",
+      "details": [
+        "Connect prompt/model, retrieval, condition, and supported integration nodes.",
+        "Wire both the original input and intermediate results to downstream consumers.",
+        "Version the flow and invoke its intended alias; evaluate malformed/unknown branches."
+      ],
+      "useWhen": "A visual GenAI pipeline fits the supported node and branching contract.",
+      "samples": [
+        "flows-flow"
+      ]
+    },
+    "lambda": {
+      "name": "AWS Lambda",
+      "role": "Run bounded handlers, tool adapters, validation, and ingestion transformations.",
+      "boundary": "Reserved concurrency caps concurrency; provisioned concurrency initializes environments. Neither reserves model capacity.",
+      "read": "#section-9-2-compute",
+      "icon": "AWS-Lambda",
+      "doc": "",
+      "details": [
+        "Run application code without maintaining a long-lived server.",
+        "Reserved concurrency allocates/caps concurrent execution; provisioned concurrency initializes environments.",
+        "Externalize durable job state and make retried side effects safe."
+      ],
+      "useWhen": "A bounded event handler, validator, or tool adapter fits the execution contract.",
+      "samples": [
+        "tool-event"
+      ]
+    },
+    "events": {
+      "name": "EventBridge / S3 events",
+      "role": "Route matching events or schedules to supported targets.",
+      "boundary": "Check source-to-target integration support; routing does not perform the target work.",
+      "read": "#event-delivery-controls",
+      "icon": "Amazon-EventBridge",
+      "doc": "",
+      "details": [
+        "Enable the source and define event-pattern or schedule matching.",
+        "S3 direct notifications and EventBridge rules have different destination contracts.",
+        "Configure target permissions, failure handling, and downstream idempotency."
+      ],
+      "useWhen": "Events need filtering, fan-out, scheduling, or delivery to a supported target.",
+      "samples": [
+        "s3-pattern"
+      ]
+    },
+    "sqs": {
+      "name": "Amazon SQS / SNS",
+      "role": "SQS retains work for consumers; SNS fans notifications out to subscribers.",
+      "boundary": "Configure pacing, retries, dead-letter handling, and idempotency; a queue alone is not a token-rate limiter.",
+      "read": "#event-delivery-controls",
+      "icon": "Amazon-Simple-Queue-Service",
+      "doc": "",
+      "details": [
+        "SQS buffers work until consumers process and acknowledge it.",
+        "SNS fans notifications out to supported subscriptions, including queues.",
+        "Tune consumer pacing, visibility timeout, retries, DLQ, and duplicate handling."
+      ],
+      "useWhen": "Work must survive bursts or one event must reach several subscribers.",
+      "samples": [
+        "queue-message"
+      ]
+    },
+    "cognito": {
+      "name": "Amazon Cognito",
+      "role": "User pools authenticate application users and issue tokens; identity pools exchange supported identities for temporary AWS credentials.",
+      "boundary": "User-pool JWTs and temporary IAM-role credentials are different artifacts. Application resource authorization still applies.",
+      "read": "#identity-path-app",
+      "icon": "Amazon-Cognito",
+      "doc": "",
+      "details": [
+        "User pools authenticate users directly or through supported external identity providers.",
+        "Validate issuer, audience/client, expiry, signature, and the required token type.",
+        "Add an identity pool only when the supported client needs temporary AWS credentials."
+      ],
+      "useWhen": "Customers or application users need sign-in, federation, and tokens for your application.",
+      "samples": [
+        "cognito-flow",
+        "cognito-token"
+      ]
+    },
+    "idc": {
+      "name": "IAM Identity Center",
+      "role": "Provide workforce federation, account access, and permission sets.",
+      "boundary": "Permission sets configure account-role policies; document ACLs and business entitlements need their own mapping.",
+      "read": "#identity-path-workforce",
+      "icon": "AWS-IAM-Identity-Center",
+      "doc": "",
+      "details": [
+        "Federate a corporate identity provider or use a supported identity source.",
+        "Assign users/groups to accounts and permission sets.",
+        "Account access creates an assigned IAM role session with temporary AWS credentials."
+      ],
+      "useWhen": "Employees need centrally assigned access to AWS accounts or supported applications.",
+      "samples": [
+        "idc-flow"
+      ]
+    },
+    "iam": {
+      "name": "AWS IAM / Organizations SCPs",
+      "role": "IAM grants scoped AWS permissions; applicable SCPs constrain the account permission ceiling.",
+      "boundary": "An SCP never grants access; neither control replaces business record authorization.",
+      "read": "#identity-architecture",
+      "icon": "AWS-Identity-and-Access-Management",
+      "doc": "",
+      "details": [
+        "Identity/resource policies participate in the applicable AWS permission evaluation.",
+        "Role trust determines who may assume a role; permission policies determine its allowed actions.",
+        "Permissions boundaries, session policies, and applicable SCPs restrict available permissions."
+      ],
+      "useWhen": "A principal needs permission to call an AWS action on a resource.",
+      "samples": [
+        "iam-statement",
+        "oidc-trust"
+      ]
+    },
+    "vpce": {
+      "name": "VPC endpoints / PrivateLink",
+      "role": "Reach supported AWS APIs over private interface endpoints.",
+      "boundary": "Private routing needs the correct service endpoint, DNS, network access, and IAM policy.",
+      "read": "#private-inference",
+      "icon": "AWS-PrivateLink",
+      "doc": "",
+      "details": [
+        "Select the correct interface service, such as bedrock-runtime for model inference.",
+        "Configure ENIs, DNS, HTTPS reachability, and endpoint policy.",
+        "Use identity/resource permissions as well; private connectivity is not an access grant."
+      ],
+      "useWhen": "Supported AWS API traffic needs an explicitly controlled private network path.",
+      "samples": [
+        "vpce-flow"
+      ]
+    },
+    "kms": {
+      "name": "KMS / Secrets Manager",
+      "role": "Manage encryption keys and protected credentials with supported rotation.",
+      "boundary": "Key policy, decryption rights, and secret use are separate from user entitlement.",
+      "read": "#key-secret-controls",
+      "icon": "AWS-Key-Management-Service",
+      "doc": "",
+      "details": [
+        "KMS manages encryption keys, key policies, and supported cryptographic operations.",
+        "Secrets Manager stores protected credentials and supports configured rotation.",
+        "Grant only the key/secret operations the workload needs and avoid raw values in logs."
+      ],
+      "useWhen": "You need controlled encryption-key use or managed protected credentials.",
+      "samples": [
+        "kms-flow"
+      ]
+    },
+    "lakeformation": {
+      "name": "AWS Lake Formation",
+      "role": "Apply supported fine-grained lake permissions through integrated query engines.",
+      "boundary": "Independent direct S3 access can bypass those filters; remove bypass paths.",
+      "read": "#section-9-1-entry",
+      "icon": "AWS-Lake-Formation",
+      "doc": "https://docs.aws.amazon.com/lake-formation/latest/dg/access-control-underlying-data.html",
+      "details": [
+        "Register supported lake locations and define the intended grants/data filters.",
+        "Query through an integrated engine using the authorized identity.",
+        "Remove independent source access that would bypass the lake permission path."
+      ],
+      "useWhen": "Supported lake query engines need table, column, or row-level data permissions.",
+      "samples": [
+        "lakeformation-flow"
+      ]
+    },
+    "s3gov": {
+      "name": "S3 Object Lock / Lifecycle",
+      "role": "Apply supported immutable retention/legal hold and age-based transition or expiry.",
+      "boundary": "WORM retention and routine expiry solve different requirements; coordinate derived copies and legal holds.",
+      "read": "#retention-controls",
+      "icon": "Amazon-Simple-Storage-Service",
+      "doc": "",
+      "details": [
+        "Object Lock supplies supported WORM retention and legal-hold controls.",
+        "Lifecycle rules transition or expire eligible objects/versions according to age.",
+        "Coordinate retention across sources, derived indexes, caches, backups, and audit records."
+      ],
+      "useWhen": "Stored objects need immutable retention/legal hold or age-based lifecycle management.",
+      "samples": [
+        "retention-contract"
+      ]
+    },
+    "waf": {
+      "name": "AWS WAF",
+      "role": "Filter supported HTTP requests for abuse, bots, and common web attacks.",
+      "boundary": "Check entry-point integration; web filtering does not establish semantic prompt safety.",
+      "read": "#section-9-1-entry",
+      "icon": "AWS-WAF",
+      "doc": "",
+      "details": [
+        "Attach a web ACL to a supported protected resource.",
+        "Evaluate configured managed/custom rules and supported rate-based controls.",
+        "Investigate sampled requests and metrics without treating web filtering as model authorization."
+      ],
+      "useWhen": "A supported HTTP entry point needs web-request filtering or abuse controls.",
+      "samples": [
+        "waf-flow"
+      ]
+    },
+    "macie": {
+      "name": "Amazon Macie",
+      "role": "Discover supported sensitive data in eligible ordinary S3 objects and report findings.",
+      "boundary": "Findings do not redact content; review skipped objects and unsupported vector buckets.",
+      "read": "#source-audit",
+      "icon": "Amazon-Macie",
+      "doc": "https://docs.aws.amazon.com/macie/latest/user/discovery-supported-storage.html",
+      "details": [
+        "Use automated discovery or configured classification jobs for supported coverage.",
+        "Review findings plus skipped, unsupported, or failed objects.",
+        "Send confirmed issues to a separate remediation/redaction workflow."
+      ],
+      "useWhen": "Eligible ordinary S3 objects need sensitive-data discovery and classification.",
+      "samples": [
+        "macie-flow"
+      ]
+    },
+    "guardrails": {
+      "name": "Bedrock Guardrails",
+      "role": "Apply supported content, topic, word, PII, grounding, and reasoning policies.",
+      "boundary": "Verify coverage at each input/output stage; prompt-attack checks do not assess toolResult content.",
+      "read": "#guardrails-controls",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-prompt-attack.html",
+      "details": [
+        "Select content, topic, word, sensitive-information, grounding, or reasoning policies as supported.",
+        "Attach the intended guardrail version to inference or call ApplyGuardrail separately.",
+        "Consume the returned action, assessments, and permitted/sanitized content in application code."
+      ],
+      "useWhen": "Supported model-content risks need configured checks at input/output boundaries.",
+      "samples": [
+        "guardrail-call"
+      ]
+    },
+    "evaluations": {
+      "name": "Bedrock Evaluations",
+      "role": "Evaluate supported model or RAG outputs using automated, judge, or human methods.",
+      "boundary": "Choose the metric and reference data for the failed quality; define release thresholds outside job completion.",
+      "read": "#bedrock-flows-evaluation",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html",
+      "details": [
+        "Choose programmatic metrics, an LLM judge, or human review for the target behavior.",
+        "Keep prompts, references, rubrics, and critical cohorts versioned and comparable.",
+        "Inspect the report and enforce promotion thresholds outside job completion."
+      ],
+      "useWhen": "A model, prompt, or RAG change needs measured quality evidence.",
+      "samples": [
+        "evaluations-flow"
+      ]
+    },
+    "human": {
+      "name": "Ground Truth / A2I",
+      "role": "Create training labels or route selected predictions to human review.",
+      "boundary": "Existing-customer availability applies; model-comparison evaluation is a separate workflow.",
+      "read": "#labeling-human-review",
+      "icon": "Amazon-SageMaker-Ground-Truth",
+      "doc": "https://docs.aws.amazon.com/sagemaker/latest/dg/sms.html",
+      "details": [
+        "Ground Truth creates labels for supported training tasks.",
+        "A2I routes selected supported predictions into a configured human loop.",
+        "Define the workforce, work team, instructions, and downstream handling of reviewed results."
+      ],
+      "useWhen": "An existing eligible workflow needs training labels or human prediction review.",
+      "samples": [
+        "human-flow"
+      ],
+      "availability": {
+        "text": "Ground Truth/A2I have existing-customer restrictions; check workforce and service availability.",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-use-augmented-ai-a2i-human-review-loops.html"
+      }
+    },
+    "clarify": {
+      "name": "Clarify / Model Monitor",
+      "role": "Analyze bias/explanations and run supported production data/model drift checks.",
+      "boundary": "Existing-customer availability applies; drift is a signal to investigate, not proof of lower task accuracy.",
+      "read": "#model-governance",
+      "icon": "Amazon-SageMaker-AI",
+      "doc": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor.html",
+      "details": [
+        "Clarify analyzes configured bias metrics and feature-attribution explanations.",
+        "Model Monitor compares supported captured data/results with configured baselines.",
+        "Model-quality checks need ground truth; investigate drift against actual task performance."
+      ],
+      "useWhen": "An existing eligible deployment needs supported bias, explanation, or monitoring workflows.",
+      "samples": [
+        "clarify-flow"
+      ],
+      "availability": {
+        "text": "Clarify and Model Monitor are closed to new customers.",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-availability-change.html"
+      }
+    },
+    "modelcard": {
+      "name": "Model Cards / Dashboard",
+      "role": "Document model use, limitations, and evidence; inspect governance and monitoring coverage.",
+      "boundary": "Documentation and a dashboard do not automatically configure quality checks.",
+      "read": "#model-governance",
+      "icon": "Amazon-SageMaker-AI",
+      "doc": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-cards.html",
+      "details": [
+        "Document intended use, training/evaluation information, limitations, and risks.",
+        "Record the model version and evidence used for the release decision.",
+        "Use the dashboard to inspect governance/monitoring status, then configure missing controls."
+      ],
+      "useWhen": "Reviewers need model purpose, limitations, evidence, and monitoring coverage in one place.",
+      "samples": [
+        "modelcard-flow"
+      ]
+    },
+    "cloudwatch": {
+      "name": "Amazon CloudWatch",
+      "role": "Collect metrics/logs and alert on operational trends such as tokens, latency, and errors.",
+      "boundary": "Aggregate health does not explain answer quality or every slow dependency.",
+      "read": "#token-monitoring",
+      "icon": "Amazon-CloudWatch",
+      "doc": "",
+      "details": [
+        "Inspect requests, token counts, latency, throttles, and failures with appropriate dimensions.",
+        "Use Logs Insights to investigate enabled structured application/invocation logs.",
+        "Attach actionable alarms and correlate service metrics with request/version identifiers."
+      ],
+      "useWhen": "You need runtime metrics, logs, dashboards, and operational alarms.",
+      "samples": [
+        "token-query"
+      ]
+    },
+    "synthetics": {
+      "name": "CloudWatch Synthetics",
+      "role": "Replay configured user journeys to detect availability and latency failures.",
+      "boundary": "Pair workflow checks with representative answer and tool-outcome evaluation.",
+      "read": "#invocation-diagnostics",
+      "icon": "Amazon-CloudWatch",
+      "doc": "",
+      "details": [
+        "Run a configured canary against the required application path.",
+        "Assert expected behavior and retain evidence of failures.",
+        "Use separate representative evaluations for answer quality beyond that journey."
+      ],
+      "useWhen": "A repeatable user journey should be checked for availability and latency.",
+      "samples": [
+        "synthetics-flow"
+      ]
+    },
+    "cost": {
+      "name": "AWS cost tools",
+      "role": "Analyze billed spend with Cost Explorer; alert through Budgets and Cost Anomaly Detection.",
+      "boundary": "Billing signals and API request throttles do not implement a hard team token budget.",
+      "read": "#token-monitoring",
+      "icon": "AWS-Cost-Explorer",
+      "doc": "",
+      "details": [
+        "Cost Explorer groups supported billing data by the required dimensions/tags.",
+        "Budgets and Cost Anomaly Detection provide configured cost notifications.",
+        "Combine billing with application attribution; enforce hard admission limits in your own path."
+      ],
+      "useWhen": "You need billed-cost analysis, budget notifications, or unusual-spend investigation.",
+      "samples": [
+        "cost-flow"
+      ]
+    },
+    "tracing": {
+      "name": "OpenTelemetry / X-Ray",
+      "role": "Trace request stages, dependency latency, and errors with application instrumentation.",
+      "boundary": "Instrument each relevant call and stream consumption; prefer current OpenTelemetry guidance.",
+      "read": "#invocation-diagnostics",
+      "icon": "AWS-X-Ray",
+      "doc": "",
+      "details": [
+        "Create correlated spans around each relevant SDK call and logical stage.",
+        "Measure streaming consumption as well as request initiation.",
+        "Use OpenTelemetry/ADOT and the configured exporter/backend to inspect failures and latency."
+      ],
+      "useWhen": "A request spans model, retrieval, tool, and application dependencies.",
+      "samples": [
+        "tracing-flow"
+      ]
+    },
+    "cloudtrail": {
+      "name": "AWS CloudTrail",
+      "role": "Record supported AWS API activity and caller context for audit.",
+      "boundary": "Enable relevant data events; source API access alone does not describe returned retrieval evidence.",
+      "read": "#cloudtrail-events",
+      "icon": "AWS-CloudTrail",
+      "doc": "",
+      "details": [
+        "Record management activity and explicitly enable the required data-event coverage.",
+        "Inspect identity, action, resource, time, and result context.",
+        "Correlate API evidence with application records for the document, answer, or business action."
+      ],
+      "useWhen": "Investigations need supported AWS API activity and caller evidence.",
+      "samples": [
+        "trail-event"
+      ]
+    },
+    "invlog": {
+      "name": "Model invocation logging",
+      "role": "Capture supported model request/response records in configured CloudWatch/S3 destinations.",
+      "boundary": "Opt in deliberately: raw sensitive content can be captured before masking.",
+      "read": "#invocation-diagnostics",
+      "icon": "Amazon-Bedrock",
+      "doc": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html",
+      "details": [
+        "Opt in through the invocation-logging configuration and choose destinations/modalities.",
+        "Inspect operation, model, caller identity, payload references, and token counts.",
+        "Set access, encryption, retention, and delivery monitoring before capturing sensitive content."
+      ],
+      "useWhen": "You need supported model request/response records for controlled diagnostics.",
+      "samples": [
+        "invocation-record"
+      ]
+    },
+    "config": {
+      "name": "AWS Config",
+      "role": "Record resource configurations/history and evaluate configured compliance rules.",
+      "boundary": "Resource configuration checks differ from AppConfig deployments and framework audit evidence.",
+      "read": "#security-compliance-map",
+      "icon": "AWS-Config",
+      "doc": "",
+      "details": [
+        "Record supported resource configuration items and changes.",
+        "Evaluate selected rules or conformance packs and investigate noncompliance.",
+        "Connect findings to an authorized remediation process where appropriate."
+      ],
+      "useWhen": "Resource configuration history or rule-based configuration compliance is required.",
+      "samples": [
+        "config-flow"
+      ]
+    },
+    "qbusiness": {
+      "name": "Amazon Q Business",
+      "role": "Packaged enterprise assistant with connected content and configured identity/access integration.",
+      "boundary": "Closed to new customers; assess Amazon Quick and documented migration gaps.",
+      "read": "#assistant-retriever-vector-store",
+      "icon": "Amazon-Q",
+      "doc": "https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/qbusiness-availability-change.html",
+      "details": [
+        "Connect supported enterprise sources and synchronize content/access information.",
+        "Configure user identity and evaluate the returned content under real entitlements.",
+        "Assess current availability and migration requirements before extending the deployment."
+      ],
+      "useWhen": "An existing eligible deployment needs a packaged enterprise assistant experience.",
+      "samples": [
+        "qbusiness-flow"
+      ],
+      "availability": {
+        "text": "Closed to new customers; check Amazon Quick and migration guidance.",
+        "url": "https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/qbusiness-availability-change.html"
+      }
+    },
+    "quick": {
+      "name": "Amazon Quick",
+      "role": "Managed work assistant for connected data, analysis, workflows, and agentic actions.",
+      "boundary": "Assess connector, identity, authorization, and migration requirements for the actual workload.",
+      "read": "#section-12-service-map",
+      "icon": "Amazon-Quick",
+      "doc": "https://docs.aws.amazon.com/quick/latest/userguide/what-is.html",
+      "details": [
+        "Evaluate the supported connected-data, analysis, workflow, and assistant capabilities.",
+        "Configure identity, connector permissions, and authorized downstream actions.",
+        "Test access preservation and feature gaps for the actual migration/workflow."
+      ],
+      "useWhen": "A supported managed employee experience fits better than building the complete application.",
+      "samples": [
+        "quick-flow"
+      ]
+    },
+    "qdeveloper": {
+      "name": "Amazon Q Developer",
+      "role": "Assist supported development, transformation, review, and repository workflows.",
+      "boundary": "An issue URL is not repository authorization; verify current interfaces and lifecycle guidance.",
+      "read": "#q-developer-capabilities",
+      "icon": "Amazon-Q",
+      "doc": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/what-is.html",
+      "details": [
+        "Distinguish transformation, code/security review, and issue implementation workflows.",
+        "Authorize the specific repository/integration rather than relying on an issue URL.",
+        "Review generated changes and tests; check interface availability and lifecycle notices."
+      ],
+      "useWhen": "A supported development, modernization, or repository workflow fits the task.",
+      "samples": [
+        "qdeveloper-flow"
+      ],
+      "availability": {
+        "text": "Feature availability differs by integration; the Q Developer IDE plugin ends support on 30 April 2027.",
+        "url": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/q-developer-ide-end-of-support.html"
+      }
+    },
+    "sts": {
+      "name": "AWS STS",
+      "role": "Issue temporary AWS credentials for an authorized role session using supported trust mechanisms.",
+      "boundary": "A federation token must satisfy provider and role trust; resulting credentials remain subject to AWS authorization.",
+      "read": "#identity-path-external",
+      "icon": "AWS-Identity-and-Access-Management",
+      "doc": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html",
+      "details": [
+        "AssumeRole uses an authorized AWS principal; SAML and web identity use their matching federation APIs.",
+        "Configure the provider and role trust, including relevant identity/token conditions.",
+        "Use the returned access key, secret, session token, and expiry through an authorized AWS SDK call."
+      ],
+      "useWhen": "External automation, such as CI, must call AWS without stored long-lived access keys.",
+      "samples": [
+        "web-identity",
+        "oidc-trust"
+      ]
+    },
+    "verified": {
+      "name": "Amazon Verified Permissions",
+      "role": "Evaluate fine-grained application access using Cedar policies and trusted principal/resource context.",
+      "boundary": "The application enforces ALLOW/DENY; a decision is not a login session or AWS credentials.",
+      "read": "#identity-path-business",
+      "icon": "Amazon-Verified-Permissions",
+      "doc": "https://docs.aws.amazon.com/verifiedpermissions/latest/userguide/what-is-avp.html",
+      "details": [
+        "Define principal, action, resource, and context under a Cedar schema/policy store.",
+        "Evaluate trusted identity/resource facts against policies.",
+        "Enforce the decision in the backend before reading data or executing the business action."
+      ],
+      "useWhen": "An authenticated application needs fine-grained user/resource/action decisions.",
+      "samples": [
+        "authorization-request"
+      ]
+    },
+    "accessanalyzer": {
+      "name": "IAM Access Analyzer",
+      "role": "Validate IAM policies and analyze configured external, internal, or unused access.",
+      "boundary": "Findings help review permissions; Access Analyzer is not the per-request authorizer.",
+      "read": "#identity-architecture",
+      "icon": "AWS-Identity-and-Access-Management",
+      "doc": "https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html",
+      "details": [
+        "Validate policy syntax and supported security checks.",
+        "Use the configured analyzer type for supported external, internal, or unused-access findings.",
+        "Review and fix the relevant policy; a finding does not enforce the application request."
+      ],
+      "useWhen": "IAM policies or configured access relationships need review before or after deployment.",
+      "samples": [
+        "validate-policy"
+      ]
+    },
+    "artifact": {
+      "name": "AWS Artifact",
+      "role": "Retrieve AWS compliance reports, certifications, and agreements on demand.",
+      "boundary": "AWS assurance evidence is different from continuous auditing of your workloads.",
+      "read": "#security-compliance-map",
+      "icon": "AWS-Artifact",
+      "doc": "https://docs.aws.amazon.com/artifact/latest/ug/what-is-aws-artifact.html",
+      "details": [
+        "Retrieve available AWS assurance documents and applicable agreements on demand.",
+        "Check the report scope, reporting period, and relevant AWS services.",
+        "Combine AWS evidence with the customer controls you must operate and document."
+      ],
+      "useWhen": "Auditors need AWS-provided compliance reports or agreements.",
+      "samples": [
+        "artifact-flow"
+      ]
+    },
+    "auditmanager": {
+      "name": "AWS Audit Manager",
+      "role": "Collect configured evidence against selected framework controls for assessments and audit review.",
+      "boundary": "Evidence is not certification; check existing-account/Region eligibility and supported data sources.",
+      "read": "#security-compliance-map",
+      "icon": "AWS-Audit-Manager",
+      "doc": "https://docs.aws.amazon.com/audit-manager/latest/userguide/what-is.html",
+      "details": [
+        "Select a framework and assessment scope, including the applicable accounts/services.",
+        "Collect supported automated evidence and add/review manual evidence as needed.",
+        "Organize the assessment report and retain reviewer decisions; evidence alone is not certification."
+      ],
+      "useWhen": "An existing eligible assessment needs evidence mapped to framework controls.",
+      "samples": [
+        "auditmanager-flow"
+      ],
+      "availability": {
+        "text": "Maintenance mode restricts new setup; existing organization exceptions have specific scope.",
+        "url": "https://docs.aws.amazon.com/audit-manager/latest/userguide/audit-manager-availability-change.html"
+      }
+    },
+    "inspector": {
+      "name": "Amazon Inspector",
+      "role": "Continuously assess supported workloads for applicable vulnerabilities and unintended exposure.",
+      "boundary": "Resource eligibility and scan coverage differ; review and remediate findings.",
+      "read": "#security-compliance-map",
+      "icon": "Amazon-Inspector",
+      "doc": "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html",
+      "details": [
+        "Enable the applicable scanning type for supported compute/container workloads.",
+        "Review resource/package context, severity, and remediation guidance in findings.",
+        "Prioritize fixes and verify scan coverage instead of assuming every resource is assessed."
+      ],
+      "useWhen": "Supported workloads need vulnerability and exposure assessment.",
+      "samples": [
+        "inspector-flow"
+      ]
+    },
+    "securityhub": {
+      "name": "AWS Security Hub",
+      "role": "Centralize and prioritize supported findings; CSPM supplies posture checks and service integrations.",
+      "boundary": "A findings view is different from raw API logs or proof of compliance.",
+      "read": "#security-compliance-map",
+      "icon": "AWS-Security-Hub",
+      "doc": "https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub-v2.html",
+      "details": [
+        "Enable the required accounts, Regions, service integrations, and posture capabilities.",
+        "Triage supported findings by severity, resource context, and workflow state.",
+        "Route response work and verify remediation with the originating controls."
+      ],
+      "useWhen": "Security teams need supported findings and posture signals in a central workflow.",
+      "samples": [
+        "securityhub-flow"
+      ]
+    }
+  },
+  "zones": [
+    {
+      "id": "life",
+      "title": "Model lifecycle",
+      "flow": "Select → adapt if needed → evaluate → release → monitor",
+      "stages": [
+        {
+          "title": "Hosting",
+          "keys": [
+            "bedrock",
+            "sagemaker",
+            "neo",
+            "hybrid"
+          ]
+        },
+        {
+          "title": "Version and release",
+          "keys": [
+            "registry",
+            "appconfig",
+            "paramstore",
+            "cicd"
+          ]
+        }
+      ],
+      "choice": {
+        "title": "Choose the model platform",
+        "rows": [
+          {
+            "need": "Managed model APIs",
+            "decision": "Use supported models through a managed runtime.",
+            "keys": [
+              "bedrock"
+            ]
+          },
+          {
+            "need": "Control GPU, container, or scaling",
+            "decision": "Choose the hosting mode around the workload.",
+            "keys": [
+              "sagemaker"
+            ]
+          },
+          {
+            "need": "Device or local infrastructure",
+            "decision": "Check compilation targets and infrastructure separately.",
+            "keys": [
+              "neo",
+              "hybrid"
+            ]
+          }
+        ]
+      },
+      "notes": "aws-service-notes/life.md",
+      "notesSummary": "Hosting, endpoint modes, customization, adapters, and safe releases",
+      "moreChoices": [
+        {
+          "title": "Choose the adaptation lever",
+          "rows": [
+            {
+              "need": "Instructions or format are unclear",
+              "decision": "Revise the prompt; compare on held-out tasks.",
+              "keys": [
+                "promptmgmt",
+                "promptopt"
+              ]
+            },
+            {
+              "need": "Private/current facts are missing",
+              "decision": "Retrieve authorized evidence.",
+              "keys": [
+                "kb"
+              ]
+            },
+            {
+              "need": "Stable behavior needs adaptation",
+              "decision": "Evaluate supported tuning/distillation after simpler changes.",
+              "keys": [
+                "bedrock",
+                "sagemaker"
+              ]
+            }
+          ],
+          "id": "quality-gap",
+          "foot": ""
+        }
+      ],
+      "decisionAliases": [
+        "configuration-choice"
+      ]
+    },
+    {
+      "id": "know",
+      "title": "Knowledge and data",
+      "flow": "Source → prepare → ingest → store → retrieve",
+      "stages": [
+        {
+          "title": "Source and preparation",
+          "keys": [
+            "s3",
+            "glue",
+            "datawrangler"
+          ]
+        },
+        {
+          "title": "Extract and analyze",
+          "keys": [
+            "textract",
+            "bda",
+            "transcribe",
+            "comprehend",
+            "medical",
+            "rekognition"
+          ]
+        },
+        {
+          "title": "Ingest and search",
+          "keys": [
+            "kb",
+            "embeddings",
+            "opensearch",
+            "aurora",
+            "s3vectors",
+            "neptune",
+            "kendra",
+            "reranking"
+          ]
+        }
+      ],
+      "choice": {
+        "title": "Choose who owns retrieval",
+        "rows": [
+          {
+            "need": "Integrated RAG in your app",
+            "decision": "Managed ingestion/retrieval integration.",
+            "keys": [
+              "kb"
+            ]
+          },
+          {
+            "need": "Search/ranking control",
+            "decision": "Lexical, vector, or supported hybrid search.",
+            "keys": [
+              "opensearch"
+            ]
+          },
+          {
+            "need": "Vectors with SQL/transactions",
+            "decision": "Evaluate pgvector with relational data.",
+            "keys": [
+              "aurora"
+            ]
+          },
+          {
+            "need": "Vector storage/query economics",
+            "decision": "Check required filters, latency, and integration.",
+            "keys": [
+              "s3vectors"
+            ]
+          },
+          {
+            "need": "Relationship-heavy evidence",
+            "decision": "Use supported graph retrieval/analytics.",
+            "keys": [
+              "neptune"
+            ]
+          },
+          {
+            "need": "Existing enterprise search",
+            "decision": "Check connectors, ACL sync, and eligibility.",
+            "keys": [
+              "kendra"
+            ]
+          }
+        ]
+      },
+      "notes": "aws-service-notes/know.md",
+      "notesSummary": "Extraction APIs, chunking, retrieval filters, indexing, and freshness",
+      "moreChoices": [
+        {
+          "title": "Choose the extraction output",
+          "rows": [
+            {
+              "need": "OCR/forms/tables or business fields",
+              "decision": "OCR/document structure versus semantic blueprint extraction.",
+              "keys": [
+                "textract",
+                "bda"
+              ]
+            },
+            {
+              "need": "Speech or visual content",
+              "decision": "Transcript versus image/video analysis.",
+              "keys": [
+                "transcribe",
+                "rekognition"
+              ]
+            },
+            {
+              "need": "Text entities or sensitive spans",
+              "decision": "General NLP versus clinical entities/PHI.",
+              "keys": [
+                "comprehend",
+                "medical"
+              ]
+            }
+          ],
+          "id": "extraction-choice",
+          "foot": ""
+        }
+      ],
+      "decisionAliases": [
+        "rag-diagnosis"
+      ]
+    },
+    {
+      "id": "run",
+      "title": "Runtime and inference",
+      "flow": "User/API → retrieval → prompt/context → model → response",
+      "stages": [
+        {
+          "title": "Interface and context",
+          "keys": [
+            "apigw",
+            "appsync",
+            "promptmgmt",
+            "promptopt",
+            "converse",
+            "invokemodel",
+            "params",
+            "dynamodb",
+            "lex",
+            "polly"
+          ]
+        },
+        {
+          "title": "Reuse, routing, and capacity",
+          "keys": [
+            "routing",
+            "caching",
+            "cloudfront",
+            "provthroughput",
+            "xregion"
+          ]
+        }
+      ],
+      "choice": {
+        "title": "Choose the runtime building block",
+        "rows": [
+          {
+            "need": "Common model message format",
+            "decision": "Use a compatible shared message API.",
+            "keys": [
+              "converse"
+            ]
+          },
+          {
+            "need": "Provider-native payload",
+            "decision": "Use the supported model-specific contract.",
+            "keys": [
+              "invokemodel"
+            ]
+          },
+          {
+            "need": "Reuse repeated work",
+            "decision": "Separate prompt processing from cached answers.",
+            "keys": [
+              "caching"
+            ]
+          },
+          {
+            "need": "Mixed request difficulty",
+            "decision": "Use a supported router or measured escalation.",
+            "keys": [
+              "routing"
+            ]
+          },
+          {
+            "need": "Sustained/burst model demand",
+            "decision": "Compare reserved capacity and approved routing.",
+            "keys": [
+              "provthroughput",
+              "xregion"
+            ]
+          },
+          {
+            "need": "Client/API delivery",
+            "decision": "Choose HTTP streaming, WebSocket, or GraphQL contract.",
+            "keys": [
+              "apigw",
+              "appsync"
+            ]
+          }
+        ]
+      },
+      "notes": "aws-service-notes/run.md",
+      "notesSummary": "Invocation APIs, capacity, caching, streaming, and application state",
+      "moreChoices": [],
+      "decisionAliases": [
+        "output-diagnosis",
+        "capacity-choice",
+        "latency-diagnosis",
+        "delivery-choice"
+      ]
+    },
+    {
+      "id": "orch",
+      "title": "Orchestration",
+      "flow": "Choose who controls progress, then add durability and recovery",
+      "stages": [
+        {
+          "title": "Agent execution and tools",
+          "keys": [
+            "agentcore",
+            "agentidentity",
+            "mcp",
+            "multiagent",
+            "agents"
+          ]
+        },
+        {
+          "title": "Explicit workflows and events",
+          "keys": [
+            "stepfns",
+            "flows",
+            "lambda",
+            "events",
+            "sqs"
+          ]
+        }
+      ],
+      "choice": {
+        "title": "Choose who controls progress",
+        "rows": [
+          {
+            "need": "Model chooses actions",
+            "decision": "Bound the agent loop and tool authority.",
+            "keys": [
+              "agentcore",
+              "multiagent"
+            ]
+          },
+          {
+            "need": "Known states, waits, or approval",
+            "decision": "Use durable workflow state and recovery.",
+            "keys": [
+              "stepfns"
+            ]
+          },
+          {
+            "need": "Visual prompt pipeline",
+            "decision": "Wire supported nodes and conditions.",
+            "keys": [
+              "flows"
+            ]
+          },
+          {
+            "need": "One bounded handler",
+            "decision": "Externalize persistent state.",
+            "keys": [
+              "lambda"
+            ]
+          },
+          {
+            "need": "Route events / buffer work",
+            "decision": "Routing delivers events; queues retain work.",
+            "keys": [
+              "events",
+              "sqs"
+            ]
+          },
+          {
+            "need": "Expose supported existing tools",
+            "decision": "Check Gateway adapters before building a server.",
+            "keys": [
+              "agentcore",
+              "mcp"
+            ]
+          }
+        ]
+      },
+      "notes": "aws-service-notes/orch.md",
+      "notesSummary": "AgentCore, MCP, Step Functions, Flows, events, and recovery",
+      "moreChoices": [],
+      "decisionAliases": [
+        "mcp-hosting",
+        "event-choice",
+        "recovery-choice"
+      ]
+    },
+    {
+      "id": "sec",
+      "title": "Security and governance",
+      "flow": "Identity → resource/data authorization → private paths → safe content and retention",
+      "stages": [
+        {
+          "title": "Identity and access",
+          "keys": [
+            "cognito",
+            "idc",
+            "iam",
+            "vpce",
+            "kms",
+            "lakeformation",
+            "sts",
+            "verified",
+            "accessanalyzer"
+          ]
+        },
+        {
+          "title": "Content and data controls",
+          "keys": [
+            "s3gov",
+            "waf",
+            "macie",
+            "guardrails"
+          ]
+        }
+      ],
+      "choice": {
+        "title": "Choose the protection boundary",
+        "rows": [
+          {
+            "need": "Authenticate / federate / authorize",
+            "decision": "Follow the principal and target in the access diagram below.",
+            "keys": [
+              "cognito",
+              "idc",
+              "sts",
+              "verified"
+            ]
+          },
+          {
+            "need": "Document/business data access",
+            "decision": "Enforce trusted user scope at retrieval and actions.",
+            "keys": [
+              "kb",
+              "lakeformation"
+            ]
+          },
+          {
+            "need": "Private network path",
+            "decision": "Configure endpoint, DNS, network rules, and IAM.",
+            "keys": [
+              "vpce"
+            ]
+          },
+          {
+            "need": "Model content risks",
+            "decision": "Apply selected content policies.",
+            "keys": [
+              "guardrails"
+            ]
+          },
+          {
+            "need": "Sensitive source data",
+            "decision": "Discover, then explicitly sanitize.",
+            "keys": [
+              "macie",
+              "comprehend"
+            ]
+          },
+          {
+            "need": "Retain/protect stored copies",
+            "decision": "Set retention, key, and credential controls.",
+            "keys": [
+              "s3gov",
+              "kms"
+            ]
+          }
+        ]
+      },
+      "notes": "aws-service-notes/sec.md",
+      "notesSummary": "Access paths, protocols, private endpoints, redaction, and retention",
+      "guide": {
+        "href": "#identity-decision-tree",
+        "text": "Interactive access decision tree: application users, employees, external workloads, AWS workloads, business authorization, and AI agents."
+      },
+      "moreChoices": [],
+      "decisionAliases": [
+        "identity-checks"
+      ]
+    },
+    {
+      "id": "eval",
+      "title": "Evaluation and operations",
+      "flow": "Prove quality before release; collect the evidence needed in production",
+      "stages": [
+        {
+          "title": "Quality and governance",
+          "keys": [
+            "evaluations",
+            "human",
+            "clarify",
+            "modelcard"
+          ]
+        },
+        {
+          "title": "Production evidence",
+          "keys": [
+            "cloudwatch",
+            "synthetics",
+            "cost",
+            "tracing",
+            "cloudtrail",
+            "invlog",
+            "config",
+            "artifact",
+            "auditmanager",
+            "inspector",
+            "securityhub"
+          ]
+        }
+      ],
+      "choice": {
+        "title": "Choose evidence for the question",
+        "rows": [
+          {
+            "need": "Useful, supported answer?",
+            "decision": "Held-out retrieval/answer/task evaluation.",
+            "keys": [
+              "evaluations"
+            ]
+          },
+          {
+            "need": "Who called an API?",
+            "decision": "Supported account/API events.",
+            "keys": [
+              "cloudtrail"
+            ]
+          },
+          {
+            "need": "What input/output was captured?",
+            "decision": "Opt-in payload capture with access/retention rules.",
+            "keys": [
+              "invlog"
+            ]
+          },
+          {
+            "need": "Slow, failing, or throttled?",
+            "decision": "Metrics locate trends; spans locate stages.",
+            "keys": [
+              "cloudwatch",
+              "tracing"
+            ]
+          },
+          {
+            "need": "Did a known journey break?",
+            "decision": "Exercise the configured user/API journey.",
+            "keys": [
+              "synthetics"
+            ]
+          },
+          {
+            "need": "What was billed?",
+            "decision": "Inspect cost and configured budget alerts.",
+            "keys": [
+              "cost"
+            ]
+          },
+          {
+            "need": "Compliant configuration or audit evidence?",
+            "decision": "Use the evidence map below to select the control.",
+            "keys": [
+              "config",
+              "artifact",
+              "auditmanager"
+            ]
+          }
+        ]
+      },
+      "notes": "aws-service-notes/eval.md",
+      "notesSummary": "Evaluation metrics, regression gates, traces, logs, and audit evidence",
+      "moreChoices": [],
+      "decisionAliases": [
+        "quality-or-operations",
+        "trustworthy-output"
+      ]
+    },
+    {
+      "id": "pkg",
+      "title": "Packaged assistants",
+      "flow": "Choose a supported product when its workflow fits",
+      "stages": [
+        {
+          "title": "Work and development",
+          "keys": [
+            "qbusiness",
+            "quick",
+            "qdeveloper"
+          ]
+        }
+      ],
+      "choice": {
+        "title": "Choose product or application ownership",
+        "rows": [
+          {
+            "need": "Packaged employee experience",
+            "decision": "Check product workflow, connectors, and permissions.",
+            "keys": [
+              "quick",
+              "qbusiness"
+            ]
+          },
+          {
+            "need": "Custom experience and tools",
+            "decision": "Own application behavior and authorization.",
+            "keys": [
+              "bedrock",
+              "agentcore"
+            ]
+          },
+          {
+            "need": "Development/modernization",
+            "decision": "Use supported developer workflows.",
+            "keys": [
+              "qdeveloper"
+            ]
+          }
+        ]
+      },
+      "notes": "aws-service-notes/pkg.md",
+      "notesSummary": "Employee assistants, developer workflows, and service availability",
+      "moreChoices": [],
+      "decisionAliases": []
+    }
+  ],
+  "examples": [
+    {
+      "title": "Documents with approval",
+      "need": "A known batch of reports needs extraction, analysis, and a human decision.",
+      "steps": [
+        [
+          "events",
+          "Object-created event"
+        ],
+        [
+          "stepfns",
+          "Standard + Map"
+        ],
+        [
+          "bda",
+          "Extract and validate"
+        ],
+        [
+          "bedrock",
+          "Analyze"
+        ],
+        [
+          "stepfns",
+          "Callback approval"
+        ]
+      ],
+      "boundary": "Map iterates the reports; approval waits in the workflow. The final business write needs authorization and idempotency."
+    },
+    {
+      "title": "A maintenance action",
+      "need": "An agent diagnoses a pump and proposes a work order.",
+      "steps": [
+        [
+          "agentcore",
+          "Run the agent"
+        ],
+        [
+          "mcp",
+          "Read permitted evidence"
+        ],
+        [
+          "stepfns",
+          "Approve a proposed write"
+        ],
+        [
+          "dynamodb",
+          "Track durable action identity"
+        ]
+      ],
+      "boundary": "The maintenance API authorizes the exact plant/action and reconciles retries. Conversation memory is not the plant record."
+    },
+    {
+      "title": "Fresh, governed knowledge",
+      "need": "New manuals must become searchable without indexing invalid or sensitive text.",
+      "steps": [
+        [
+          "s3",
+          "Version the source"
+        ],
+        [
+          "glue",
+          "Validate and redact"
+        ],
+        [
+          "kb",
+          "Pace sync and inspect failures"
+        ],
+        [
+          "reranking",
+          "Select useful context"
+        ]
+      ],
+      "boundary": "Compare retrieval before generation. A reranker cannot fix missing ingestion, and metadata scope must come from trusted identity."
+    },
+    {
+      "title": "A voice assistant",
+      "need": "Users speak and receive incremental spoken replies.",
+      "steps": [
+        [
+          "transcribe",
+          "Preserve speaker turns"
+        ],
+        [
+          "converse",
+          "Stream generated text"
+        ],
+        [
+          "polly",
+          "Synthesize speech"
+        ],
+        [
+          "dynamodb",
+          "Persist scoped state/ratings"
+        ]
+      ],
+      "boundary": "Choose a compatible streaming path at every hop and measure end-to-end latency; use WebSockets when bidirectional push is required."
+    },
+    {
+      "title": "Promote a candidate safely",
+      "need": "A prompt/model change must pass quality checks and reach the intended route.",
+      "steps": [
+        [
+          "cicd",
+          "Evaluate held-out cases"
+        ],
+        [
+          "registry",
+          "Approve model artifact"
+        ],
+        [
+          "sagemaker",
+          "Deploy and verify"
+        ],
+        [
+          "appconfig",
+          "Roll out route/config"
+        ]
+      ],
+      "boundary": "Prompt-only changes may not need a model package. Verify the actual live version; sandbox shadow writes and retain a compatible rollback target."
+    }
+  ],
+  "samples": {
+    "sagemaker-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Prepare data → train/tune → evaluate\n→ approve model package\n→ create/update endpoint → verify live route",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "neo-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Trained model + supported target\n→ compilation job → compiled artifact\n→ compatible edge/device runtime",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "hybrid-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "On-premises requirement → evaluate Outposts\nMobile carrier edge → evaluate Wavelength\nCheck all data and service dependencies",
+      "note": "Infrastructure location does not prove that every application dependency is local."
+    },
+    "registry-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Candidate artifact + evaluation evidence\n→ model package version → approval\n→ release pipeline → verified endpoint",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "cicd-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Commit → build → held-out evaluation\n→ business/schema assertions → release gate\n→ deploy → verify actual route → monitor",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "datawrangler-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Raw dataset → Data Wrangler preparation\n→ Processing script → versioned S3 output\n→ training or evaluation pipeline",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "neptune-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Question → entity/relationship retrieval\n→ supporting graph-linked evidence\n→ grounded answer + source references",
+      "note": "Conceptual GraphRAG path; managed Knowledge Bases has its own graph-build and retrieval contract."
+    },
+    "agentcore-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Authenticated request → authorized agent\n→ model/tool planning → scoped tool call\n→ validated result → response + telemetry",
+      "note": "Select Runtime/managed harness, Gateway, Identity, and memory components according to the workload."
+    },
+    "agentidentity-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Inbound: trusted identity → agent access\nOutbound: agent + scoped request\n→ configured credential provider → target API",
+      "note": "Inbound authentication, outbound credential access, and target business authorization are separate checks."
+    },
+    "multiagent-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Request → supervisor/router\n→ selected specialist + scoped context\n→ validated handoff/result → final response",
+      "note": "Define allowed tools, termination, and task-completion evaluation across all handoffs."
+    },
+    "flows-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Flow input → draft prompt → classifier\n→ deterministic condition\n→ polish / review branch → flow output",
+      "note": "Pass the original draft as well as the classification to downstream nodes; handle malformed classifications."
+    },
+    "cognito-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "User → user pool / external IdP\n→ ID token for client + access token for API\n→ API validates token → application policy",
+      "note": "User-pool tokens are not AWS access keys. An identity pool adds an optional temporary-credential exchange."
+    },
+    "idc-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Employee → corporate IdP\n→ SAML federation → Identity Center\n→ assigned account/permission set\n→ temporary role credentials → signed AWS API",
+      "note": "SCIM provisions users/groups; SAML federates sign-in. A permission set does not define document ACLs."
+    },
+    "vpce-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Workload → private DNS\n→ bedrock-runtime endpoint ENI\n→ endpoint + IAM policy checks\n→ supported model API",
+      "note": "Configure network reachability and the correct service endpoint. A private endpoint does not grant IAM permission."
+    },
+    "kms-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Application role → authorized secret read\n→ required KMS decrypt permission\n→ use credential for intended target\n→ redact logs + rotate as configured",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "lakeformation-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Trusted query identity → integrated engine\n→ Lake Formation grants/data filters\n→ permitted table/column/row result",
+      "note": "Remove direct source paths that could bypass the integrated permission check."
+    },
+    "waf-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "HTTP request → supported protected resource\n→ web ACL rules / abuse controls\n→ application authentication + authorization",
+      "note": "Web-request filtering and model-content policies have different responsibilities."
+    },
+    "macie-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Eligible S3 objects → discovery/job\n→ sensitive-data findings + coverage review\n→ verified remediation/redaction workflow",
+      "note": "A finding does not alter the object. Review skipped and unsupported objects."
+    },
+    "evaluations-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Versioned prompts + references + rubric\n→ candidate/baseline outputs → evaluation job\n→ report → critical-cohort thresholds\n→ promote or halt",
+      "note": "This is a release workflow, not a CreateEvaluationJob request. The input schema depends on the chosen evaluation type."
+    },
+    "human-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Ground Truth: source data → labeling task\n→ work team → training labels\nA2I: selected prediction → human loop\n→ reviewed result → application handling",
+      "note": "Existing-customer eligibility applies. Reviewed results do not automatically retrain the model."
+    },
+    "clarify-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Before release: held-out data → bias analysis\n→ report → configured release threshold\nProduction: captured data → baseline comparison\n→ drift signal → task-quality investigation",
+      "note": "Existing-customer eligibility applies; analysis completion is not the pass/fail gate."
+    },
+    "modelcard-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Model/version → intended use + limitations\n→ evaluation evidence + risks\n→ documented release decision\n→ governance/monitoring coverage review",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "synthetics-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Scheduled canary → sign-in/API journey\n→ assert expected response/workflow\n→ latency/failure evidence → alarm",
+      "note": "A smoke check covers its configured journey; use representative datasets for broader quality evaluation."
+    },
+    "cost-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Billing data + supported allocation tags\n→ Cost Explorer analysis\n→ budget/anomaly notification\n→ investigation + application admission policy",
+      "note": "Billing alerts are not synchronous hard token-budget enforcement."
+    },
+    "tracing-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "request_id + deployed_version\n└─ API span\n   ├─ retrieval span\n   ├─ model call + stream-consumption span\n   └─ authorized tool span",
+      "note": "Conceptual span hierarchy; sanitize attributes and configure an OpenTelemetry exporter/backend."
+    },
+    "config-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Resource change → configuration record\n→ selected rule evaluation\n→ compliant/noncompliant finding\n→ authorized remediation + verification",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "qbusiness-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Employee sign-in → connected enterprise data\n→ synchronized document ACLs\n→ permitted retrieved answer",
+      "note": "For existing eligible deployments; assess availability and migration feature gaps."
+    },
+    "quick-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Employee identity → connected work data\n→ authorized analysis / workflow / assistant\n→ permitted answer or downstream action",
+      "note": "Check supported connectors, entitlements, and action permissions for the actual product workflow."
+    },
+    "qdeveloper-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Authorized repository + task\n→ supported transformation / review / change\n→ inspect diff → run checks\n→ normal review and release process",
+      "note": "Conceptual development workflow; verify current integration availability and lifecycle guidance."
+    },
+    "artifact-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Auditor request → AWS Artifact\n→ select report + period + scope\n→ retrieve available assurance document\n→ combine with customer-control evidence",
+      "note": "Artifact supplies AWS assurance documents on demand; it does not continuously scan customer infrastructure."
+    },
+    "auditmanager-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Selected framework + assessment scope\n→ supported automated/manual evidence\n→ reviewer assessment → audit report",
+      "note": "Check existing-account/Region eligibility. Evidence collection does not certify compliance."
+    },
+    "inspector-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Supported workload + enabled scan type\n→ vulnerability/exposure assessment\n→ prioritized finding → remediation\n→ verify fix and scan coverage",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "securityhub-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Supported security services + posture checks\n→ centralized findings + resource context\n→ triage/prioritize → response workflow\n→ verify remediation at source",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "converse-request": {
+      "title": "Converse request",
+      "format": "JSON · Bedrock Runtime SDK arguments",
+      "code": "{\n  \"modelId\": \"MODEL_OR_PROFILE_ID\",\n  \"messages\": [{\"role\": \"user\", \"content\": [{\"text\": \"Summarize this evidence.\"}]}],\n  \"inferenceConfig\": {\"maxTokens\": 256},\n  \"serviceTier\": {\"type\": \"default\"}\n}",
+      "note": "Illustrative values. modelId is an SDK argument / HTTP path parameter. Optional serviceTier uses default (Standard), priority, flex, or reserved for compatible models; Reserved requires configured capacity.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html"
+    },
+    "converse-response": {
+      "title": "What to read from the response",
+      "format": "JSON · illustrative response excerpt",
+      "code": "{\n  \"output\": {\n    \"message\": {\"role\": \"assistant\", \"content\": [{\"text\": \"Summary of the supplied evidence.\"}]}\n  },\n  \"usage\": {\"inputTokens\": 40, \"outputTokens\": 12},\n  \"stopReason\": \"end_turn\"\n}",
+      "note": "Token counts and text are illustrative; check stopReason as well as the returned content.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html"
+    },
+    "native-messages": {
+      "title": "Native Messages request body",
+      "format": "JSON · Anthropic Messages body for InvokeModel",
+      "code": "{\n  \"anthropic_version\": \"bedrock-2023-05-31\",\n  \"max_tokens\": 256,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": [{\"type\": \"text\", \"text\": \"Summarize this evidence.\"}]\n    }\n  ]\n}",
+      "note": "Serialize this as the InvokeModel body and choose a supported Anthropic modelId. Other model families use different payloads.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-messages.html"
+    },
+    "inference-config": {
+      "title": "Supported output controls",
+      "format": "JSON · Converse request fragment",
+      "code": "{\"inferenceConfig\": {\"maxTokens\": 256, \"stopSequences\": [\"END_OF_ANSWER\"]}}",
+      "note": "Merge into a compatible Converse request. Select sampling settings by evaluation; output length cannot enlarge the context window.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InferenceConfiguration.html"
+    },
+    "routing-config": {
+      "title": "Versioned model configuration",
+      "format": "JSON · application-owned configuration",
+      "code": "{\n  \"model_id\": \"APPROVED_MODEL_ID\",\n  \"prompt_version\": \"v7\",\n  \"guardrail_id\": \"APPROVED_GUARDRAIL_ID\",\n  \"guardrail_version\": \"3\",\n  \"max_output_tokens\": 256\n}",
+      "note": "Example configuration content, not an AppConfig API request. Validate, deploy, retrieve, and enforce it in the application."
+    },
+    "get-parameter": {
+      "title": "GetParameter",
+      "format": "JSON · SSM SDK arguments",
+      "code": "{\"Name\": \"/genai/prod/model-id\", \"WithDecryption\": true}",
+      "note": "Use an existing parameter and scoped ssm:GetParameter permission; encrypted values also require the applicable KMS access.",
+      "source": "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_GetParameter.html"
+    },
+    "get-source": {
+      "title": "Read a specific source version",
+      "format": "JSON · S3 SDK GetObject arguments",
+      "code": "{\n  \"Bucket\": \"example-source-bucket\",\n  \"Key\": \"manuals/pump.pdf\",\n  \"VersionId\": \"SOURCE_VERSION_ID\"\n}",
+      "note": "Use an accessible versioned object. Carry its identity into derived chunk metadata; indexed access needs separate authorization.",
+      "source": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html"
+    },
+    "quality-rules": {
+      "title": "Gate the approved dataset",
+      "format": "DQDL · rule set",
+      "code": "Rules = [\n  ColumnExists \"review_text\",\n  IsComplete \"review_text\",\n  ColumnLength \"review_text\" > 0\n]",
+      "note": "Configure pipeline failure or quarantine based on results. Trim or separately test whitespace-only strings.",
+      "source": "https://docs.aws.amazon.com/glue/latest/dg/dqdl-rule-types.html"
+    },
+    "analyze-document": {
+      "title": "AnalyzeDocument",
+      "format": "JSON · request body",
+      "code": "{\n  \"Document\": {\"S3Object\": {\"Bucket\": \"example-source-bucket\", \"Name\": \"invoice.png\"}},\n  \"FeatureTypes\": [\"FORMS\", \"TABLES\", \"QUERIES\"],\n  \"QueriesConfig\": {\"Queries\": [{\"Text\": \"What is the invoice total?\"}]}\n}",
+      "note": "Use supported input and permissions. Inspect Blocks, relationships, and confidence; use an appropriate async API for longer documents.",
+      "source": "https://docs.aws.amazon.com/textract/latest/APIReference/API_AnalyzeDocument.html"
+    },
+    "transcribe-job": {
+      "title": "StartTranscriptionJob",
+      "format": "JSON · request body",
+      "code": "{\n  \"TranscriptionJobName\": \"support-call-example\",\n  \"LanguageCode\": \"en-US\",\n  \"Media\": {\"MediaFileUri\": \"s3://example-audio-bucket/call.wav\"},\n  \"Settings\": {\"ShowSpeakerLabels\": true, \"MaxSpeakerLabels\": 2},\n  \"OutputBucketName\": \"example-transcript-bucket\"\n}",
+      "note": "Use an accessible media object and output destination. Speaker labels do not establish business roles.",
+      "source": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_StartTranscriptionJob.html"
+    },
+    "detect-pii": {
+      "title": "DetectPiiEntities",
+      "format": "JSON · request body",
+      "code": "{\"LanguageCode\": \"en\", \"Text\": \"Email support@example.com\"}",
+      "note": "Synthetic text. Detection returns spans; your application must apply and verify redaction.",
+      "source": "https://docs.aws.amazon.com/comprehend/latest/APIReference/API_DetectPiiEntities.html"
+    },
+    "pii-result": {
+      "title": "How returned spans are used",
+      "format": "JSON · illustrative response excerpt",
+      "code": "{\"Entities\": [{\"Type\": \"EMAIL\", \"BeginOffset\": 6, \"EndOffset\": 25, \"Score\": 0.99}]}",
+      "note": "Illustrative result for the exact synthetic input above. Apply offsets to the same analyzed text.",
+      "source": "https://docs.aws.amazon.com/comprehend/latest/APIReference/API_DetectPiiEntities.html"
+    },
+    "detect-phi": {
+      "title": "DetectPHI",
+      "format": "JSON · request body",
+      "code": "{\"Text\": \"Patient Maya visited on 2026-06-01.\"}",
+      "note": "Synthetic clinical text. Verify supported entity types and offsets before applying redaction.",
+      "source": "https://docs.aws.amazon.com/comprehend-medical/latest/api/API_DetectPHI.html"
+    },
+    "image-labels": {
+      "title": "DetectLabels",
+      "format": "JSON · request body",
+      "code": "{\n  \"Image\": {\"S3Object\": {\"Bucket\": \"example-image-bucket\", \"Name\": \"pump.jpg\"}},\n  \"MaxLabels\": 5,\n  \"MinConfidence\": 80\n}",
+      "note": "Illustrative label count/threshold, not a universal preset. Check image support and S3 permissions.",
+      "source": "https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectLabels.html"
+    },
+    "retrieve-request": {
+      "title": "Retrieve authorized candidates",
+      "format": "JSON · Bedrock Agent Runtime SDK arguments",
+      "code": "{\n  \"knowledgeBaseId\": \"KB_ID\",\n  \"retrievalQuery\": {\"text\": \"How do I restart this pump?\"},\n  \"retrievalConfiguration\": {\n    \"vectorSearchConfiguration\": {\n      \"numberOfResults\": 5,\n      \"filter\": {\"equals\": {\"key\": \"tenant_id\", \"value\": \"tenant-a\"}}\n    }\n  }\n}",
+      "note": "Derive tenant-a from trusted backend identity. Require indexed metadata and supported filtering; this example uses vectorSearchConfiguration.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html"
+    },
+    "rag-request": {
+      "title": "RetrieveAndGenerate",
+      "format": "JSON · request body for a supported Knowledge Base",
+      "code": "{\n  \"input\": {\"text\": \"Summarize the approved pump manual.\"},\n  \"retrieveAndGenerateConfiguration\": {\n    \"type\": \"KNOWLEDGE_BASE\",\n    \"knowledgeBaseConfiguration\": {\n      \"knowledgeBaseId\": \"KB_ID\",\n      \"modelArn\": \"SUPPORTED_MODEL_OR_PROFILE_ARN\",\n      \"retrievalConfiguration\": {\n        \"vectorSearchConfiguration\": {\"filter\": {\"equals\": {\"key\": \"tenant_id\", \"value\": \"tenant-a\"}}}\n      }\n    }\n  }\n}",
+      "note": "Use the appropriate tenant scope and supported model. RetrieveAndGenerate does not support managed Knowledge Bases; select the API for the KB type.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html"
+    },
+    "titan-embedding": {
+      "title": "Titan Text Embeddings V2 body",
+      "format": "JSON · native InvokeModel body",
+      "code": "{\n  \"inputText\": \"Inspect pump bearings before restarting.\",\n  \"dimensions\": 512,\n  \"normalize\": true\n}",
+      "note": "Use the compatible Titan V2 model and match corpus/query configuration. The returned embedding length follows the supported dimension choice.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/titan-embedding-models.html"
+    },
+    "knn-search": {
+      "title": "Vector candidate search",
+      "format": "JSON · OpenSearch _search body",
+      "code": "{\"size\": 3, \"query\": {\"knn\": {\"embedding\": {\"vector\": [0.12, 0.34, 0.56], \"k\": 3}}}}",
+      "note": "The three-number vector is illustrative. Match the configured knn_vector field dimension/engine and add your supported trusted filter.",
+      "source": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/knn.html"
+    },
+    "pgvector-query": {
+      "title": "Similarity with a tenant predicate",
+      "format": "SQL · parameterized query",
+      "code": "SELECT id, content\nFROM chunks\nWHERE tenant_id = $1\nORDER BY embedding <=> $2::vector\nLIMIT 5;",
+      "note": "Bind trusted tenant scope and a compatible query vector. The cosine-distance operator requires pgvector; benchmark the selected index/filter behavior.",
+      "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.VectorDB.html"
+    },
+    "kendra-query": {
+      "title": "Query with an attribute constraint",
+      "format": "JSON · request body",
+      "code": "{\n  \"IndexId\": \"INDEX_ID\",\n  \"QueryText\": \"pump restart procedure\",\n  \"AttributeFilter\": {\"EqualsTo\": {\"Key\": \"tenant_id\", \"Value\": {\"StringValue\": \"tenant-a\"}}}\n}",
+      "note": "For an existing eligible index with the custom field configured. Derive scope server-side; attribute filters do not replace required ACL/user-context integration.",
+      "source": "https://docs.aws.amazon.com/kendra/latest/APIReference/API_Query.html"
+    },
+    "rerank-request": {
+      "title": "Rerank existing candidates",
+      "format": "JSON · request body",
+      "code": "{\n  \"queries\": [{\"type\": \"TEXT\", \"textQuery\": {\"text\": \"pump restart\"}}],\n  \"sources\": [\n    {\n      \"type\": \"INLINE\",\n      \"inlineDocumentSource\": {\n        \"type\": \"TEXT\",\n        \"textDocument\": {\"text\": \"Inspect bearings before restarting.\"}\n      }\n    }\n  ],\n  \"rerankingConfiguration\": {\n    \"type\": \"BEDROCK_RERANKING_MODEL\",\n    \"bedrockRerankingConfiguration\": {\n      \"modelConfiguration\": {\"modelArn\": \"SUPPORTED_RERANKER_ARN\"},\n      \"numberOfResults\": 1\n    }\n  }\n}",
+      "note": "Supply actual retrieved candidates and an eligible model ARN. Use returned relevance/index information to select context.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Rerank.html"
+    },
+    "streaming-integration": {
+      "title": "Enable a supported streaming integration",
+      "format": "JSON · REST API integration fragment",
+      "code": "{\"type\": \"AWS_PROXY\", \"responseTransferMode\": \"STREAM\"}",
+      "note": "Fragment only: configure the supported integration URI/method and end-to-end streaming path. This is not an HTTP API setting.",
+      "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/response-transfer-mode.html"
+    },
+    "graphql-contract": {
+      "title": "Application GraphQL schema",
+      "format": "GraphQL · illustrative schema fragment",
+      "code": "type Answer {\n  requestId: ID!\n  text: String!\n}\n\ntype Query {\n  answer(requestId: ID!): Answer\n}",
+      "note": "Application-owned schema: configure resolvers and authorization. Enforce ownership of requestId at the backend."
+    },
+    "prompt-version": {
+      "title": "Invoke an existing prompt version",
+      "format": "JSON · Converse SDK arguments",
+      "code": "{\n  \"modelId\": \"arn:aws:bedrock:REGION:ACCOUNT_ID:prompt/PROMPT_ID:7\",\n  \"promptVariables\": {\"question\": {\"text\": \"How do I restart the pump?\"}}\n}",
+      "note": "The prompt must define question and its model/settings. With a prompt ARN, configure inference/system/tool fields in Prompt Management, not conflicting request fields.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html"
+    },
+    "promptopt-flow": {
+      "title": "Example workflow",
+      "format": "Flow · conceptual",
+      "code": "Baseline prompt + supported target model\n→ optimization job → proposed revision\n→ same held-out tasks → compare quality/cost\n→ promote a version only if it passes",
+      "note": "Conceptual sequence; configure each service and its permissions separately."
+    },
+    "idempotency-write": {
+      "title": "Claim a new application action",
+      "format": "JSON · DynamoDB SDK PutItem arguments",
+      "code": "{\n  \"TableName\": \"ActionState\",\n  \"Item\": {\"pk\": {\"S\": \"tenant-a#action-123\"}, \"status\": {\"S\": \"PENDING\"}},\n  \"ConditionExpression\": \"attribute_not_exists(pk)\"\n}",
+      "note": "Illustrative table design. Handle conditional failure, tenant scope, external side effects, and reconciliation; the write alone is not exactly-once execution.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_PutItem.html"
+    },
+    "recognize-text": {
+      "title": "RecognizeText",
+      "format": "JSON · Lex Runtime V2 SDK arguments",
+      "code": "{\n  \"botId\": \"BOT_ID\",\n  \"botAliasId\": \"ALIAS_ID\",\n  \"localeId\": \"en_US\",\n  \"sessionId\": \"session-123\",\n  \"text\": \"Book a maintenance visit\"\n}",
+      "note": "Use a deployed bot/alias with configured intents and fulfillment permissions.",
+      "source": "https://docs.aws.amazon.com/lexv2/latest/APIReference/API_runtime_RecognizeText.html"
+    },
+    "synthesize-speech": {
+      "title": "SynthesizeSpeech",
+      "format": "JSON · request body",
+      "code": "{\n  \"Text\": \"The maintenance request is ready for review.\",\n  \"OutputFormat\": \"mp3\",\n  \"VoiceId\": \"Joanna\",\n  \"Engine\": \"standard\"\n}",
+      "note": "Example voice/engine selection; verify availability and language/engine compatibility in the chosen Region.",
+      "source": "https://docs.aws.amazon.com/polly/latest/dg/API_SynthesizeSpeech.html"
+    },
+    "router-request": {
+      "title": "Invoke the supported prompt router",
+      "format": "JSON · Converse SDK arguments",
+      "code": "{\n  \"modelId\": \"SUPPORTED_PROMPT_ROUTER_ARN\",\n  \"messages\": [{\"role\": \"user\", \"content\": [{\"text\": \"Summarize this paragraph.\"}]}]\n}",
+      "note": "Use an existing supported router. A custom cascade instead makes application-controlled sequential calls.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-routing.html"
+    },
+    "cache-checkpoint": {
+      "title": "Mark a supported reusable prefix",
+      "format": "JSON · Converse message-content fragment",
+      "code": "{\n  \"content\": [\n    {\"text\": \"LONG_STABLE_REFERENCE_CONTEXT\"},\n    {\"cachePoint\": {\"type\": \"default\"}},\n    {\"text\": \"What changed in this case?\"}\n  ]\n}",
+      "note": "Place inside a compatible message. The real prefix must meet model-specific minimum/expiry rules; this placeholder is not a cacheable-length example.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html"
+    },
+    "answer-cache": {
+      "title": "Validate before reusing an answer",
+      "format": "Pseudocode · application answer cache",
+      "code": "key = tenant + entitlements + corpus_version\n    + model_prompt_policy_version + request\nhit = cache.lookup(key)\nif hit and still_authorized(hit) and fresh(hit):\n    return hit.answer",
+      "note": "Conceptual key construction, not production hashing code. A semantic hit also needs task-tested equivalence; similarity alone is not authorization."
+    },
+    "shared-cache": {
+      "title": "Choose the cache boundary",
+      "format": "Flow · conceptual",
+      "code": "Shared public reference → cacheable response\nPrivate tenant answer → explicit cache policy\nUser entitlement changes → invalidate/revalidate",
+      "note": "Conceptual examples, not a CloudFront distribution configuration."
+    },
+    "provisioned-model": {
+      "title": "Invoke the reserved resource",
+      "format": "JSON · Converse SDK arguments",
+      "code": "{\n  \"modelId\": \"arn:aws:bedrock:REGION:ACCOUNT_ID:provisioned-model/RESOURCE_ID\",\n  \"messages\": [{\"role\": \"user\", \"content\": [{\"text\": \"Summarize this evidence.\"}]}]\n}",
+      "note": "Use a supported ready provisioned resource. Calling the base model ID instead does not direct traffic to this reservation.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/prov-thru-use.html"
+    },
+    "profile-model": {
+      "title": "Invoke the approved profile",
+      "format": "JSON · Converse SDK arguments",
+      "code": "{\n  \"modelId\": \"APPROVED_INFERENCE_PROFILE_ID\",\n  \"messages\": [{\"role\": \"user\", \"content\": [{\"text\": \"Summarize this evidence.\"}]}]\n}",
+      "note": "Approve the actual destination list and applicable IAM/SCP route. An application inference profile can add supported usage attribution.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html"
+    },
+    "tool-arguments": {
+      "title": "A tool call with bounded arguments",
+      "format": "JSON · application tool arguments",
+      "code": "{\"asset_id\": \"pump-17\", \"operation\": \"read_health\"}",
+      "note": "Example arguments for an application-defined tool, not a complete MCP JSON-RPC envelope. Derive user/plant scope from trusted runtime context."
+    },
+    "invoke-classic": {
+      "title": "InvokeAgent with trace enabled",
+      "format": "JSON · Bedrock Agent Runtime SDK arguments",
+      "code": "{\n  \"agentId\": \"AGENT_ID\",\n  \"agentAliasId\": \"ALIAS_ID\",\n  \"sessionId\": \"session-123\",\n  \"inputText\": \"Check pump-17 health.\",\n  \"enableTrace\": true\n}",
+      "note": "Existing eligible Classic deployment only. Consume the returned event stream; trace observations do not replace business API authorization.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html"
+    },
+    "state-machine": {
+      "title": "A deterministic approval branch",
+      "format": "JSON · Amazon States Language definition",
+      "code": "{\n  \"StartAt\": \"CheckApproval\",\n  \"States\": {\n    \"CheckApproval\": {\n      \"Type\": \"Choice\",\n      \"Choices\": [{\"Variable\": \"$.approved\", \"BooleanEquals\": true, \"Next\": \"Approved\"}],\n      \"Default\": \"Rejected\"\n    },\n    \"Approved\": {\"Type\": \"Succeed\"},\n    \"Rejected\": {\"Type\": \"Fail\", \"Error\": \"ApprovalRejected\"}\n  }\n}",
+      "note": "The trusted prior step must obtain the approval decision. This branch alone does not implement authentication or a human callback wait.",
+      "source": "https://docs.aws.amazon.com/step-functions/latest/dg/state-choice.html"
+    },
+    "tool-event": {
+      "title": "A scoped tool-handler input",
+      "format": "JSON · application-owned event",
+      "code": "{\"request_id\": \"req-123\", \"asset_id\": \"pump-17\", \"requested_action\": \"read_health\"}",
+      "note": "Application event, not an AWS API request. Authenticate and derive tenant/plant entitlements from a trusted context before executing the action."
+    },
+    "s3-pattern": {
+      "title": "Match an S3 object-created event",
+      "format": "JSON · EventBridge event pattern",
+      "code": "{\n  \"source\": [\"aws.s3\"],\n  \"detail-type\": [\"Object Created\"],\n  \"detail\": {\n    \"bucket\": {\"name\": [\"example-source-bucket\"]},\n    \"object\": {\"key\": [{\"prefix\": \"approved/\"}]}\n  }\n}",
+      "note": "Enable S3 EventBridge delivery, then configure a supported target and its permissions. A matching rule does not perform the ingestion itself.",
+      "source": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/ev-events.html"
+    },
+    "queue-message": {
+      "title": "SendMessage",
+      "format": "JSON · SQS SDK arguments",
+      "code": "{\n  \"QueueUrl\": \"https://sqs.REGION.amazonaws.com/ACCOUNT_ID/QUEUE_NAME\",\n  \"MessageBody\": \"{\\\"source_key\\\":\\\"approved/manual.pdf\\\",\\\"source_version\\\":\\\"v3\\\"}\"\n}",
+      "note": "Standard-queue example. Configure consumers, retries, visibility, and deduplication/idempotency; limit concurrency/tokens in the worker.",
+      "source": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SendMessage.html"
+    },
+    "iam-statement": {
+      "title": "Scope an AWS model permission",
+      "format": "JSON · IAM permission statement",
+      "code": "{\n  \"Effect\": \"Allow\",\n  \"Action\": [\"bedrock:InvokeModel\"],\n  \"Resource\": \"arn:aws:bedrock:REGION::foundation-model/MODEL_ID\"\n}",
+      "note": "Permission statement only; place it in an applicable policy. Streaming needs its own action, and inference profiles need their additional profile/destination contract.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/inference-prereq.html"
+    },
+    "retention-contract": {
+      "title": "Keep the obligations separate",
+      "format": "Flow · conceptual",
+      "code": "Immutable retention/legal hold → Object Lock\nAge-based transition/expiry → Lifecycle\nDerived copies → their own retention/delete plan",
+      "note": "Retention/legal holds can prevent eligible deletion; deleting a source does not automatically remove indexed or cached copies."
+    },
+    "guardrail-call": {
+      "title": "ApplyGuardrail independently",
+      "format": "JSON · Bedrock Runtime SDK arguments",
+      "code": "{\n  \"guardrailIdentifier\": \"GUARDRAIL_ID\",\n  \"guardrailVersion\": \"3\",\n  \"source\": \"INPUT\",\n  \"content\": [{\"text\": {\"text\": \"Text to assess before inference.\"}}]\n}",
+      "note": "Configure policies first and inspect action/output. This assesses supported content; it does not invoke a model or grant tool permissions.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ApplyGuardrail.html"
+    },
+    "token-query": {
+      "title": "Inspect captured token trends",
+      "format": "CloudWatch Logs Insights · query",
+      "code": "fields @timestamp, input.inputTokenCount, output.outputTokenCount\n| stats avg(input.inputTokenCount) as avgInput,\n        avg(output.outputTokenCount) as avgOutput\n  by bin(1h)",
+      "note": "Run against enabled invocation logs with these fields. Metrics and billing answer different operational questions.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html"
+    },
+    "trail-event": {
+      "title": "What an API audit record tells you",
+      "format": "JSON · illustrative event excerpt",
+      "code": "{\n  \"eventSource\": \"bedrock.amazonaws.com\",\n  \"eventName\": \"Converse\",\n  \"userIdentity\": {\"type\": \"AssumedRole\"},\n  \"awsRegion\": \"us-east-1\"\n}",
+      "note": "Illustrative subset, not a complete record. Verify event coverage/type; this does not contain the full answer or prove document-level access.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/logging-using-cloudtrail.html"
+    },
+    "invocation-record": {
+      "title": "Invocation-log record fields",
+      "format": "JSON · illustrative log excerpt",
+      "code": "{\n  \"operation\": \"Converse\",\n  \"modelId\": \"MODEL_ID\",\n  \"identity\": {\"arn\": \"APPLICATION_ROLE_ARN\"},\n  \"input\": {\"inputTokenCount\": 40},\n  \"output\": {\"outputTokenCount\": 12}\n}",
+      "note": "Logging is opt-in. Actual fields/payload delivery depend on the operation, modality, and configured destinations.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html"
+    },
+    "web-identity": {
+      "title": "AssumeRoleWithWebIdentity",
+      "format": "JSON · STS SDK arguments",
+      "code": "{\n  \"RoleArn\": \"arn:aws:iam::ACCOUNT_ID:role/ExternalWorkloadRole\",\n  \"RoleSessionName\": \"build-123\",\n  \"WebIdentityToken\": \"TRUSTED_OIDC_TOKEN\",\n  \"DurationSeconds\": 900\n}",
+      "note": "Role trust must accept the configured OIDC provider and relevant claims. A SAML assertion instead uses AssumeRoleWithSAML.",
+      "source": "https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithWebIdentity.html"
+    },
+    "authorization-request": {
+      "title": "IsAuthorized",
+      "format": "JSON · request body",
+      "code": "{\n  \"policyStoreId\": \"POLICY_STORE_ID\",\n  \"principal\": {\"entityType\": \"App::User\", \"entityId\": \"maya\"},\n  \"action\": {\"actionType\": \"App::Action\", \"actionId\": \"read\"},\n  \"resource\": {\"entityType\": \"App::Document\", \"entityId\": \"manual-17\"}\n}",
+      "note": "Use your Cedar schema, policies, and trusted entity/context facts. Enforce the returned ALLOW/DENY; this is not user sign-in.",
+      "source": "https://docs.aws.amazon.com/verifiedpermissions/latest/apireference/API_IsAuthorized.html"
+    },
+    "validate-policy": {
+      "title": "ValidatePolicy",
+      "format": "JSON · IAM Access Analyzer SDK arguments",
+      "code": "{\n  \"policyType\": \"IDENTITY_POLICY\",\n  \"policyDocument\": \"{\\\"Version\\\":\\\"2012-10-17\\\",\\\"Statement\\\":[{\\\"Effect\\\":\\\"Allow\\\",\\\"Action\\\":\\\"s3:GetObject\\\",\\\"Resource\\\":\\\"arn:aws:s3:::example-bucket/approved/*\\\"}]}\"\n}",
+      "note": "Review returned findings and test effective access. Validation is not per-request authorization.",
+      "source": "https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ValidatePolicy.html"
+    },
+    "bda-invocation": {
+      "title": "InvokeDataAutomationAsync",
+      "format": "JSON · Bedrock Data Automation Runtime SDK arguments",
+      "code": "{\n  \"inputConfiguration\": {\n    \"s3Uri\": \"s3://example-input-bucket/invoice.pdf\"\n  },\n  \"outputConfiguration\": {\n    \"s3Uri\": \"s3://example-output-bucket/bda/\"\n  },\n  \"dataAutomationConfiguration\": {\n    \"dataAutomationProjectArn\": \"PROJECT_ARN\",\n    \"stage\": \"LIVE\"\n  },\n  \"dataAutomationProfileArn\": \"DATA_AUTOMATION_PROFILE_ARN\"\n}",
+      "note": "Use a configured project, supported file, profile ARN, and permissions. Inspect asynchronous status before consuming output; extraction does not create embeddings.",
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/bda-document-processing-cli.html"
+    },
+    "vector-query": {
+      "title": "QueryVectors",
+      "format": "JSON · S3 Vectors request body",
+      "code": "{\n  \"vectorBucketName\": \"example-vectors\",\n  \"indexName\": \"manuals\",\n  \"queryVector\": {\n    \"float32\": [\n      0.12,\n      0.34,\n      0.56\n    ]\n  },\n  \"topK\": 3,\n  \"filter\": {\n    \"tenant_id\": \"tenant-a\"\n  },\n  \"returnMetadata\": true\n}",
+      "note": "Three values illustrate the shape; match the real index dimension/model. Derive filter scope from trusted identity. Filtering or returned metadata needs both QueryVectors and GetVectors permissions.",
+      "source": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_S3VectorBuckets_QueryVectors.html"
+    },
+    "cognito-token": {
+      "title": "What the API validates",
+      "format": "JSON · illustrative decoded access-token claims",
+      "code": "{\n  \"iss\": \"https://cognito-idp.REGION.amazonaws.com/POOL_ID\",\n  \"sub\": \"USER_ID\",\n  \"client_id\": \"APP_CLIENT_ID\",\n  \"token_use\": \"access\",\n  \"scope\": \"manuals/read\",\n  \"exp\": 2000000000\n}",
+      "note": "Decoded claims only, not a complete or usable signed JWT. Validate signature, trusted issuer, client/token type, expiry, and required scopes. This token is not an AWS access key.",
+      "source": "https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-access-token.html"
+    },
+    "oidc-trust": {
+      "title": "The role must also trust the workload",
+      "format": "JSON · IAM role trust-policy statement",
+      "code": "{\n  \"Effect\": \"Allow\",\n  \"Principal\": {\n    \"Federated\": \"arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com\"\n  },\n  \"Action\": \"sts:AssumeRoleWithWebIdentity\",\n  \"Condition\": {\n    \"StringEquals\": {\n      \"token.actions.githubusercontent.com:aud\": \"sts.amazonaws.com\",\n      \"token.actions.githubusercontent.com:sub\": \"repo:example-org/example-repo:ref:refs/heads/main\"\n    }\n  }\n}",
+      "note": "GitHub Actions example. Configure the OIDC provider and the exact permitted audience/subject; environment-based subjects differ. Trust permits the exchange; role permission policies still govern AWS actions.",
+      "source": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html"
+    },
+    "sagemaker-serverless": {
+      "title": "Serverless endpoint configuration with warm capacity",
+      "format": "JSON · CreateEndpointConfig SDK arguments",
+      "code": "{\n  \"EndpointConfigName\": \"cpu-classifier-config\",\n  \"ProductionVariants\": [\n    {\n      \"VariantName\": \"AllTraffic\",\n      \"ModelName\": \"cpu-classifier\",\n      \"ServerlessConfig\": {\n        \"MemorySizeInMB\": 6144,\n        \"MaxConcurrency\": 10,\n        \"ProvisionedConcurrency\": 2\n      }\n    }\n  ]\n}",
+      "note": "ModelName must reference a compatible model created first. CreateEndpoint deploys this configuration. Omit ProvisionedConcurrency for on-demand serverless; keeping it adds warm-capacity charges. Both use CPU, with no InstanceType/GPU selection.",
+      "source": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariantServerlessConfig.html"
+    }
+  }
+}

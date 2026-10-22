@@ -1,5 +1,6 @@
-<details class="inference-details aip-purpose-concept">
-  <summary>Cross-Region inference profile — routing and IAM</summary>
+{% if include.inline %}<section class="aws-map__reference">
+  <strong class="aws-map__topic-title" role="heading" aria-level="4">Cross-Region inference profile — routing and IAM</strong>{% else %}<details class="inference-details aip-purpose-concept">
+  <summary>Cross-Region inference profile — routing and IAM</summary>{% endif %}
   <p>An <strong>inference profile</strong> is a Bedrock resource identifying a model and its routing destinations. For a cross-Region call, pass the profile ID/ARN as <code>modelId</code>; Bedrock chooses a destination Region to run inference.</p>
   <pre><code class="language-plaintext">Example routing:
 Lambda in Region A
@@ -20,4 +21,4 @@ Cross-Region profile
   </aside>
   <p><strong>Remember:</strong> profile + all model Regions + profile condition. Source-only permissions miss destinations; omitting the condition permits direct calls. Replace the old wildcard Allow so it cannot bypass this restriction.</p>
   <p class="bedrock-token-note">Use the chosen profile's actual Region list; IAM/SCPs must permit its route. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/geographic-cross-region-inference.html">AWS geographic routing and permissions</a>.</p>
-</details>
+{% if include.inline %}</section>{% else %}</details>{% endif %}

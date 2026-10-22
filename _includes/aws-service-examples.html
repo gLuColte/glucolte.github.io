@@ -1,0 +1,3 @@
+<div class="aws-map aws-map__examples">
+    {%- for example in site.data.aws_ai_service_map.examples -%}<details><summary>{{ example.title }}</summary><p>{{ example.need }}</p><ol class="aws-map__steps">{%- for step in example.steps -%}{%- assign card = site.data.aws_ai_service_map.cards[step[0]] -%}<li><a href="{{ card.read }}" data-service="{{ step[0] }}"><strong>{{ card.name }}</strong><span>{{ step[1] }}</span></a></li>{%- endfor -%}</ol><p>{{ example.boundary }}</p></details>{%- endfor -%}
+</div>
