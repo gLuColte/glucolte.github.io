@@ -1,0 +1,6 @@
+{%- assign cluster_chooser = site.data.aws_ai_service_map.choosers[include.id] -%}
+<div class="aws-map__chooser" id="aws-choice-{{ include.id }}">
+  <strong class="aws-map__chooser-title">{{ cluster_chooser.title }}</strong>
+  {% include aws-service-tree.html tree=cluster_chooser %}
+  {%- if cluster_chooser.foot != empty %}<p class="aws-map__chooser-foot">{{ cluster_chooser.foot }}</p>{% endif -%}
+</div>

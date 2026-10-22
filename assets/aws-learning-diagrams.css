@@ -7,7 +7,7 @@
 .aws-learn [data-kind="access"]{--al-color:var(--al-green);--al-fill:var(--al-green-bg)}
 .aws-learn [data-kind="audit"]{--al-color:var(--al-orange);--al-fill:var(--al-orange-bg)}
 .aws-learn [data-kind="system"]{--al-color:var(--al-grey);--al-fill:var(--al-grey-bg)}
-.content .aws-learn h4{font-size:19px;line-height:1.3;margin:0 0 8px}
+.content .aws-learn h3{font-size:18px;line-height:1.3;margin:0 0 8px}
 .aws-learn p{font-size:13px;line-height:1.6;margin:8px 0 12px}
 .aws-learn :is(button,input,select,summary,a):focus-visible{outline:3px solid var(--al-blue);outline-offset:3px}
 .al-header{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}

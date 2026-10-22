@@ -228,4 +228,8 @@
 <url>
 <loc>http://localhost:4000/tmp.html</loc>
 </url>
+<url>
+<loc>http://localhost:4000/genaiProExam.html</loc>
+<lastmod>2026-10-18T06:09:45+11:00</lastmod>
+</url>
 </urlset>

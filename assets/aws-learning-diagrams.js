@@ -133,10 +133,12 @@
     gates.hidden = false;
     renderGates();
   }
-  function route() {
-    if (location.hash.startsWith('#identity-path-')) showPath(location.hash.slice('#identity-path-'.length));
-    if (location.hash.startsWith('#protocol-')) showProtocol(location.hash.slice('#protocol-'.length));
+  function revealConcept(id) {
+    if (id.startsWith('identity-path-')) showPath(id.slice('identity-path-'.length));
+    if (id.startsWith('protocol-')) showProtocol(id.slice('protocol-'.length));
   }
+  document.addEventListener('aws-learning:reveal', event => revealConcept(event.detail.id || ''));
+  function route() {revealConcept(location.hash.slice(1));}
   window.addEventListener('hashchange', route);
   route();
 })();

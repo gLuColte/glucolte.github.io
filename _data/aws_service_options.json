@@ -48,11 +48,11 @@
           "url": "https://aws.amazon.com/bedrock/pricing/"
         }
       ],
-      "onPage": true,
       "reference": {
         "title": "Bedrock rates",
         "url": "https://aws.amazon.com/bedrock/pricing/"
-      }
+      },
+      "inNotes": true
     },
     {
       "id": "bedrock-custom-models",
@@ -102,11 +102,11 @@
           "url": "https://aws.amazon.com/bedrock/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Model rates",
         "url": "https://aws.amazon.com/bedrock/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "bedrock-capacity",
@@ -177,11 +177,11 @@
           "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/latency-optimized-inference.html"
         }
       ],
-      "onPage": true,
       "reference": {
         "title": "Rates",
         "url": "https://aws.amazon.com/bedrock/pricing/"
-      }
+      },
+      "inNotes": true
     },
     {
       "id": "sagemaker-hosting",
@@ -241,11 +241,11 @@
           "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
         }
       ],
-      "onPage": true,
       "reference": {
         "title": "SageMaker rates",
         "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
-      }
+      },
+      "inNotes": true
     },
     {
       "id": "sagemaker-training",
@@ -327,11 +327,11 @@
           "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/reserve-capacity-with-training-plans.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "SageMaker rates",
         "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "feature-store",
@@ -378,11 +378,11 @@
           "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/feature-store-storage-configurations.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Feature Store rates",
         "url": "https://aws.amazon.com/sagemaker/ai/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "configuration",
@@ -430,11 +430,11 @@
           "url": "https://aws.amazon.com/systems-manager/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Systems Manager / AppConfig rates",
         "url": "https://aws.amazon.com/systems-manager/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "delivery",
@@ -481,11 +481,11 @@
           "url": "https://aws.amazon.com/codebuild/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "CodePipeline pricing",
         "url": "https://aws.amazon.com/codepipeline/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "s3-classes",
@@ -543,11 +543,11 @@
           "url": "https://aws.amazon.com/s3/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "S3 rates",
         "url": "https://aws.amazon.com/s3/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "vector-stores",
@@ -594,11 +594,11 @@
           "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-vectors.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "OpenSearch rates",
         "url": "https://aws.amazon.com/opensearch-service/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "aurora",
@@ -641,11 +641,11 @@
           "url": "https://aws.amazon.com/rds/aurora/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Aurora rates",
         "url": "https://aws.amazon.com/rds/aurora/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "neptune",
@@ -683,11 +683,11 @@
           "url": "https://aws.amazon.com/neptune/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Neptune rates",
         "url": "https://aws.amazon.com/neptune/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "kendra",
@@ -725,11 +725,11 @@
           "url": "https://aws.amazon.com/kendra/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Kendra editions and rates",
         "url": "https://aws.amazon.com/kendra/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "glue",
@@ -767,11 +767,11 @@
           "url": "https://aws.amazon.com/glue/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Glue rates",
         "url": "https://aws.amazon.com/glue/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "extraction",
@@ -823,11 +823,11 @@
           "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/bda.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Textract rates",
         "url": "https://aws.amazon.com/textract/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "language-analysis",
@@ -875,11 +875,11 @@
           "url": "https://aws.amazon.com/comprehend/medical/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Comprehend rates",
         "url": "https://aws.amazon.com/comprehend/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "rekognition",
@@ -917,11 +917,11 @@
           "url": "https://aws.amazon.com/rekognition/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Rekognition rates",
         "url": "https://aws.amazon.com/rekognition/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "transcribe",
@@ -964,11 +964,11 @@
           "url": "https://aws.amazon.com/transcribe/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Transcribe rates",
         "url": "https://aws.amazon.com/transcribe/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "rag-cost",
@@ -1030,11 +1030,11 @@
           "url": "https://aws.amazon.com/blogs/machine-learning/build-enterprise-search-for-agents-with-amazon-bedrock-managed-knowledge-base/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "RAG component rates",
         "url": "https://aws.amazon.com/bedrock/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "api-gateway",
@@ -1080,11 +1080,11 @@
           "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/response-transfer-mode.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "API Gateway rates",
         "url": "https://aws.amazon.com/api-gateway/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "appsync",
@@ -1122,11 +1122,11 @@
           "url": "https://aws.amazon.com/appsync/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "AppSync rates",
         "url": "https://aws.amazon.com/appsync/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "dynamodb",
@@ -1177,11 +1177,11 @@
           "url": "https://aws.amazon.com/dynamodb/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "DynamoDB rates",
         "url": "https://aws.amazon.com/dynamodb/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "prompt-features",
@@ -1240,11 +1240,11 @@
           "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-routing.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Prompt feature rates",
         "url": "https://aws.amazon.com/bedrock/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "cloudfront",
@@ -1297,11 +1297,11 @@
           "url": "https://aws.amazon.com/cloudfront/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "CloudFront plans and rates",
         "url": "https://aws.amazon.com/cloudfront/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "speech",
@@ -1359,11 +1359,11 @@
           "url": "https://aws.amazon.com/polly/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Lex rates",
         "url": "https://aws.amazon.com/lex/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "step-functions",
@@ -1409,11 +1409,11 @@
           "url": "https://aws.amazon.com/step-functions/pricing/"
         }
       ],
-      "onPage": true,
       "reference": {
         "title": "Step Functions rates",
         "url": "https://aws.amazon.com/step-functions/pricing/"
-      }
+      },
+      "inNotes": true
     },
     {
       "id": "agentcore",
@@ -1468,11 +1468,11 @@
           "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "AgentCore component rates",
         "url": "https://aws.amazon.com/bedrock/agentcore/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "bedrock-orchestration",
@@ -1510,11 +1510,11 @@
           "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Bedrock rates",
         "url": "https://aws.amazon.com/bedrock/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "lambda",
@@ -1566,11 +1566,11 @@
           "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Lambda rates and Managed Instances",
         "url": "https://aws.amazon.com/lambda/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "eventbridge",
@@ -1617,11 +1617,11 @@
           "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventNotifications.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "EventBridge rates",
         "url": "https://aws.amazon.com/eventbridge/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "messaging",
@@ -1668,11 +1668,11 @@
           "url": "https://aws.amazon.com/sns/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "SQS rates",
         "url": "https://aws.amazon.com/sqs/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "cognito",
@@ -1720,11 +1720,11 @@
           "url": "https://aws.amazon.com/cognito/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Cognito plan features and rates",
         "url": "https://aws.amazon.com/cognito/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "identity-cost",
@@ -1777,11 +1777,11 @@
           "url": "https://aws.amazon.com/lake-formation/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Organizations rates",
         "url": "https://aws.amazon.com/organizations/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "authorization-analysis",
@@ -1834,11 +1834,11 @@
           "url": "https://aws.amazon.com/verified-permissions/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Access Analyzer rates",
         "url": "https://aws.amazon.com/iam/access-analyzer/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "private-endpoints",
@@ -1880,11 +1880,11 @@
           "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "PrivateLink rates",
         "url": "https://aws.amazon.com/privatelink/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "keys-secrets",
@@ -1931,11 +1931,11 @@
           "url": "https://aws.amazon.com/secrets-manager/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "KMS rates",
         "url": "https://aws.amazon.com/kms/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "waf",
@@ -1973,11 +1973,11 @@
           "url": "https://aws.amazon.com/waf/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "WAF feature rates",
         "url": "https://aws.amazon.com/waf/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "sensitive-content",
@@ -2025,11 +2025,11 @@
           "url": "https://aws.amazon.com/bedrock/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Macie rates",
         "url": "https://aws.amazon.com/macie/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "evaluation",
@@ -2087,11 +2087,11 @@
           "url": "https://aws.amazon.com/augmented-ai/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Bedrock evaluation rates",
         "url": "https://aws.amazon.com/bedrock/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "cloudwatch-logs",
@@ -2134,11 +2134,11 @@
           "url": "https://aws.amazon.com/cloudwatch/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "CloudWatch rates",
         "url": "https://aws.amazon.com/cloudwatch/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "telemetry-cost",
@@ -2201,11 +2201,11 @@
           "url": "https://aws.amazon.com/aws-cost-management/aws-budgets/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "CloudWatch rates",
         "url": "https://aws.amazon.com/cloudwatch/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "cloudtrail",
@@ -2248,11 +2248,11 @@
           "url": "https://aws.amazon.com/cloudtrail/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "CloudTrail rates",
         "url": "https://aws.amazon.com/cloudtrail/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "config-audit",
@@ -2310,11 +2310,11 @@
           "url": "https://aws.amazon.com/audit-manager/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Config rates",
         "url": "https://aws.amazon.com/config/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "security-findings",
@@ -2367,11 +2367,11 @@
           "url": "https://aws.amazon.com/security-hub/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Inspector rates",
         "url": "https://aws.amazon.com/inspector/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "qbusiness",
@@ -2418,11 +2418,11 @@
           "url": "https://aws.amazon.com/q/business/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Q Business pricing",
         "url": "https://aws.amazon.com/q/business/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "quick",
@@ -2470,11 +2470,11 @@
           "url": "https://aws.amazon.com/quick/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Quick plan features and rates",
         "url": "https://aws.amazon.com/quick/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "qdeveloper",
@@ -2512,11 +2512,11 @@
           "url": "https://aws.amazon.com/q/developer/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Q Developer plans and rates",
         "url": "https://aws.amazon.com/q/developer/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "guardrail-tiers",
@@ -2553,11 +2553,11 @@
           "url": "https://aws.amazon.com/bedrock/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Policy rates",
         "url": "https://aws.amazon.com/bedrock/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "opensearch-storage",
@@ -2603,11 +2603,11 @@
           "url": "https://aws.amazon.com/opensearch-service/pricing/"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "Storage rates",
         "url": "https://aws.amazon.com/opensearch-service/pricing/"
-      }
+      },
+      "inNotes": false
     },
     {
       "id": "rds-postgres",
@@ -2649,11 +2649,11 @@
           "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html"
         }
       ],
-      "onPage": false,
       "reference": {
         "title": "RDS PostgreSQL rates",
         "url": "https://aws.amazon.com/rds/postgresql/pricing/"
-      }
+      },
+      "inNotes": false
     }
   ],
   "coverage": {

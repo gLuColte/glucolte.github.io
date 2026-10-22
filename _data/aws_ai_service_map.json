@@ -1418,505 +1418,420 @@
     {
       "id": "life",
       "title": "Model lifecycle",
-      "flow": "Select → adapt if needed → evaluate → release → monitor",
+      "flow": "Select → customize → evaluate → release → monitor",
       "stages": [
         {
-          "title": "Hosting",
+          "id": "select-customize",
+          "title": "Select & customize",
+          "boundary": "As-is or customize? Evaluate the unchanged baseline first.",
+          "keys": [],
+          "chooser": "gap",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "hosting",
+          "title": "Where the model runs",
+          "boundary": "Both host; choose by the control you need.",
           "keys": [
             "bedrock",
             "sagemaker",
             "neo",
             "hybrid"
-          ]
+          ],
+          "chooser": "hosting",
+          "guides": [],
+          "wide": false
         },
         {
-          "title": "Version and release",
+          "id": "release",
+          "title": "Release & rollback",
+          "boundary": "Approved ≠ deployed; retain a compatible rollback.",
           "keys": [
+            "cicd",
             "registry",
             "appconfig",
-            "paramstore",
-            "cicd"
-          ]
+            "paramstore"
+          ],
+          "chooser": "config",
+          "guides": [],
+          "wide": false
         }
       ],
-      "choice": {
-        "title": "Choose the model platform",
-        "rows": [
-          {
-            "need": "Managed model APIs",
-            "decision": "Use supported models through a managed runtime.",
-            "keys": [
-              "bedrock"
-            ]
-          },
-          {
-            "need": "Control GPU, container, or scaling",
-            "decision": "Choose the hosting mode around the workload.",
-            "keys": [
-              "sagemaker"
-            ]
-          },
-          {
-            "need": "Device or local infrastructure",
-            "decision": "Check compilation targets and infrastructure separately.",
-            "keys": [
-              "neo",
-              "hybrid"
-            ]
-          }
-        ]
-      },
       "notes": "aws-service-notes/life.md",
       "notesSummary": "Hosting, endpoint modes, customization, adapters, and safe releases",
-      "moreChoices": [
-        {
-          "title": "Choose the adaptation lever",
-          "rows": [
-            {
-              "need": "Instructions or format are unclear",
-              "decision": "Revise the prompt; compare on held-out tasks.",
-              "keys": [
-                "promptmgmt",
-                "promptopt"
-              ]
-            },
-            {
-              "need": "Private/current facts are missing",
-              "decision": "Retrieve authorized evidence.",
-              "keys": [
-                "kb"
-              ]
-            },
-            {
-              "need": "Stable behavior needs adaptation",
-              "decision": "Evaluate supported tuning/distillation after simpler changes.",
-              "keys": [
-                "bedrock",
-                "sagemaker"
-              ]
-            }
-          ],
-          "id": "quality-gap",
-          "foot": ""
-        }
-      ],
       "decisionAliases": [
-        "configuration-choice"
-      ]
+        "configuration-choice",
+        "quality-gap"
+      ],
+      "navLabel": "Lifecycle"
     },
     {
       "id": "know",
-      "title": "Knowledge and data",
-      "flow": "Source → prepare → ingest → store → retrieve",
+      "title": "Knowledge / data flow",
+      "flow": "Source → preprocess → ingest → store → retrieve",
       "stages": [
         {
-          "title": "Source and preparation",
+          "id": "source",
+          "title": "Source & prepare",
+          "boundary": "A catalogue describes data; ingestion builds search evidence.",
           "keys": [
             "s3",
             "glue",
             "datawrangler"
-          ]
+          ],
+          "chooser": "prepare",
+          "guides": [],
+          "wide": false
         },
         {
-          "title": "Extract and analyze",
+          "id": "extract",
+          "title": "Preprocess / extract",
+          "boundary": "Preserve meaning and structure before chunking.",
           "keys": [
             "textract",
-            "bda",
             "transcribe",
+            "rekognition",
             "comprehend",
             "medical",
-            "rekognition"
-          ]
+            "bda"
+          ],
+          "chooser": "extract",
+          "guides": [],
+          "wide": false
         },
         {
-          "title": "Ingest and search",
+          "id": "ingestion",
+          "title": "Ingestion",
+          "boundary": "Document → parse → chunk → metadata → embed → index.",
           "keys": [
             "kb",
-            "embeddings",
+            "embeddings"
+          ],
+          "chooser": "ingest",
+          "guides": [
+            "chunking"
+          ],
+          "wide": false
+        },
+        {
+          "id": "store",
+          "title": "Knowledge store",
+          "boundary": "Choose by search needs, relationships, consistency, and cost.",
+          "keys": [
             "opensearch",
             "aurora",
             "s3vectors",
             "neptune",
-            "kendra",
+            "kendra"
+          ],
+          "chooser": "vector",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "retrieval",
+          "title": "Retrieval & debug",
+          "boundary": "Find the first broken stage before changing the model.",
+          "keys": [
             "reranking"
-          ]
+          ],
+          "chooser": "rag",
+          "guides": [],
+          "wide": false
         }
       ],
-      "choice": {
-        "title": "Choose who owns retrieval",
-        "rows": [
-          {
-            "need": "Integrated RAG in your app",
-            "decision": "Managed ingestion/retrieval integration.",
-            "keys": [
-              "kb"
-            ]
-          },
-          {
-            "need": "Search/ranking control",
-            "decision": "Lexical, vector, or supported hybrid search.",
-            "keys": [
-              "opensearch"
-            ]
-          },
-          {
-            "need": "Vectors with SQL/transactions",
-            "decision": "Evaluate pgvector with relational data.",
-            "keys": [
-              "aurora"
-            ]
-          },
-          {
-            "need": "Vector storage/query economics",
-            "decision": "Check required filters, latency, and integration.",
-            "keys": [
-              "s3vectors"
-            ]
-          },
-          {
-            "need": "Relationship-heavy evidence",
-            "decision": "Use supported graph retrieval/analytics.",
-            "keys": [
-              "neptune"
-            ]
-          },
-          {
-            "need": "Existing enterprise search",
-            "decision": "Check connectors, ACL sync, and eligibility.",
-            "keys": [
-              "kendra"
-            ]
-          }
-        ]
-      },
       "notes": "aws-service-notes/know.md",
       "notesSummary": "Extraction APIs, chunking, retrieval filters, indexing, and freshness",
-      "moreChoices": [
-        {
-          "title": "Choose the extraction output",
-          "rows": [
-            {
-              "need": "OCR/forms/tables or business fields",
-              "decision": "OCR/document structure versus semantic blueprint extraction.",
-              "keys": [
-                "textract",
-                "bda"
-              ]
-            },
-            {
-              "need": "Speech or visual content",
-              "decision": "Transcript versus image/video analysis.",
-              "keys": [
-                "transcribe",
-                "rekognition"
-              ]
-            },
-            {
-              "need": "Text entities or sensitive spans",
-              "decision": "General NLP versus clinical entities/PHI.",
-              "keys": [
-                "comprehend",
-                "medical"
-              ]
-            }
-          ],
-          "id": "extraction-choice",
-          "foot": ""
-        }
-      ],
       "decisionAliases": [
-        "rag-diagnosis"
-      ]
+        "rag-diagnosis",
+        "extraction-choice"
+      ],
+      "navLabel": "Knowledge"
     },
     {
       "id": "run",
-      "title": "Runtime and inference",
+      "title": "Runtime / inference flow",
       "flow": "User/API → retrieval → prompt/context → model → response",
       "stages": [
         {
-          "title": "Interface and context",
+          "id": "front-door",
+          "title": "Front door & streaming",
+          "boundary": "Match the transport to the client exchange.",
           "keys": [
             "apigw",
-            "appsync",
+            "appsync"
+          ],
+          "chooser": "stream",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "prompt",
+          "title": "Prompt / context",
+          "boundary": "Management stores versions; optimization proposes revisions.",
+          "keys": [
             "promptmgmt",
-            "promptopt",
+            "promptopt"
+          ],
+          "chooser": "prompt",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "inference",
+          "title": "Model inference",
+          "boundary": "Shared versus native request; evaluate sampling changes.",
+          "keys": [
             "converse",
             "invokemodel",
-            "params",
+            "params"
+          ],
+          "chooser": "params",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "session",
+          "title": "Session state, bots & voice",
+          "boundary": "The model only sees state you pass.",
+          "keys": [
             "dynamodb",
             "lex",
             "polly"
-          ]
+          ],
+          "chooser": "session",
+          "guides": [],
+          "wide": false
         },
         {
-          "title": "Reuse, routing, and capacity",
+          "id": "reuse",
+          "title": "Cost levers",
+          "boundary": "Cache what repeats; route by measured difficulty.",
           "keys": [
             "routing",
             "caching",
-            "cloudfront",
+            "cloudfront"
+          ],
+          "chooser": "cost",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "capacity",
+          "title": "Capacity & Regions",
+          "boundary": "Reserve, spread, or stay on-demand within policy.",
+          "keys": [
             "provthroughput",
             "xregion"
-          ]
+          ],
+          "chooser": "capacity",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "latency",
+          "title": "Slow versus starved",
+          "boundary": "Response delivery and model capacity are different.",
+          "keys": [],
+          "chooser": "latency",
+          "guides": [],
+          "wide": true
         }
       ],
-      "choice": {
-        "title": "Choose the runtime building block",
-        "rows": [
-          {
-            "need": "Common model message format",
-            "decision": "Use a compatible shared message API.",
-            "keys": [
-              "converse"
-            ]
-          },
-          {
-            "need": "Provider-native payload",
-            "decision": "Use the supported model-specific contract.",
-            "keys": [
-              "invokemodel"
-            ]
-          },
-          {
-            "need": "Reuse repeated work",
-            "decision": "Separate prompt processing from cached answers.",
-            "keys": [
-              "caching"
-            ]
-          },
-          {
-            "need": "Mixed request difficulty",
-            "decision": "Use a supported router or measured escalation.",
-            "keys": [
-              "routing"
-            ]
-          },
-          {
-            "need": "Sustained/burst model demand",
-            "decision": "Compare reserved capacity and approved routing.",
-            "keys": [
-              "provthroughput",
-              "xregion"
-            ]
-          },
-          {
-            "need": "Client/API delivery",
-            "decision": "Choose HTTP streaming, WebSocket, or GraphQL contract.",
-            "keys": [
-              "apigw",
-              "appsync"
-            ]
-          }
-        ]
-      },
       "notes": "aws-service-notes/run.md",
       "notesSummary": "Invocation APIs, capacity, caching, streaming, and application state",
-      "moreChoices": [],
       "decisionAliases": [
         "output-diagnosis",
         "capacity-choice",
         "latency-diagnosis",
         "delivery-choice"
-      ]
+      ],
+      "navLabel": "Runtime"
     },
     {
       "id": "orch",
-      "title": "Orchestration",
-      "flow": "Choose who controls progress, then add durability and recovery",
+      "title": "Pillar · Orchestration",
+      "flow": "Who chooses the next step? State · retries · approvals",
       "stages": [
         {
-          "title": "Agent execution and tools",
+          "id": "driver",
+          "title": "Who drives the next step",
+          "boundary": "Known states, model-selected actions, or one bounded handler.",
+          "keys": [
+            "agents",
+            "multiagent",
+            "stepfns",
+            "flows",
+            "lambda"
+          ],
+          "chooser": "driver",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "events",
+          "title": "Events & queues",
+          "boundary": "React, schedule, and buffer; retain workflow state separately.",
+          "keys": [
+            "events",
+            "sqs"
+          ],
+          "chooser": "events",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "agent-platform",
+          "title": "Your agent platform",
+          "boundary": "Code + identity + bounded tools.",
           "keys": [
             "agentcore",
             "agentidentity",
-            "mcp",
-            "multiagent",
-            "agents"
-          ]
+            "mcp"
+          ],
+          "chooser": "mcphost",
+          "guides": [],
+          "wide": false
         },
         {
-          "title": "Explicit workflows and events",
-          "keys": [
-            "stepfns",
-            "flows",
-            "lambda",
-            "events",
-            "sqs"
-          ]
+          "id": "recovery",
+          "title": "When things fail",
+          "boundary": "Retry ≠ re-plan ≠ circuit breaker; make side effects safe.",
+          "keys": [],
+          "chooser": "resilience",
+          "guides": [],
+          "wide": true
         }
       ],
-      "choice": {
-        "title": "Choose who controls progress",
-        "rows": [
-          {
-            "need": "Model chooses actions",
-            "decision": "Bound the agent loop and tool authority.",
-            "keys": [
-              "agentcore",
-              "multiagent"
-            ]
-          },
-          {
-            "need": "Known states, waits, or approval",
-            "decision": "Use durable workflow state and recovery.",
-            "keys": [
-              "stepfns"
-            ]
-          },
-          {
-            "need": "Visual prompt pipeline",
-            "decision": "Wire supported nodes and conditions.",
-            "keys": [
-              "flows"
-            ]
-          },
-          {
-            "need": "One bounded handler",
-            "decision": "Externalize persistent state.",
-            "keys": [
-              "lambda"
-            ]
-          },
-          {
-            "need": "Route events / buffer work",
-            "decision": "Routing delivers events; queues retain work.",
-            "keys": [
-              "events",
-              "sqs"
-            ]
-          },
-          {
-            "need": "Expose supported existing tools",
-            "decision": "Check Gateway adapters before building a server.",
-            "keys": [
-              "agentcore",
-              "mcp"
-            ]
-          }
-        ]
-      },
       "notes": "aws-service-notes/orch.md",
       "notesSummary": "AgentCore, MCP, Step Functions, Flows, events, and recovery",
-      "moreChoices": [],
       "decisionAliases": [
         "mcp-hosting",
         "event-choice",
         "recovery-choice"
-      ]
+      ],
+      "navLabel": "Orchestration"
     },
     {
       "id": "sec",
-      "title": "Security and governance",
-      "flow": "Identity → resource/data authorization → private paths → safe content and retention",
+      "title": "Pillar · Security / governance",
+      "flow": "Identity · access · isolation · content safety",
       "stages": [
         {
-          "title": "Identity and access",
+          "id": "caller",
+          "title": "Who is the caller?",
+          "boundary": "App users, workforce users, workloads, and agents.",
           "keys": [
             "cognito",
-            "idc",
+            "idc"
+          ],
+          "chooser": "identity",
+          "guides": [
+            "access",
+            "protocols"
+          ],
+          "wide": false
+        },
+        {
+          "id": "permissions",
+          "title": "What may they call?",
+          "boundary": "AWS API permission and record entitlement are separate.",
+          "keys": [
             "iam",
-            "vpce",
-            "kms",
-            "lakeformation",
             "sts",
             "verified",
             "accessanalyzer"
-          ]
+          ],
+          "chooser": "authorize",
+          "guides": [
+            "identity"
+          ],
+          "wide": false
         },
         {
-          "title": "Content and data controls",
+          "id": "private",
+          "title": "Private path",
+          "boundary": "Configure connectivity and permission at their own boundaries.",
           "keys": [
+            "vpce"
+          ],
+          "chooser": "private",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "data-controls",
+          "title": "Data controls",
+          "boundary": "Keys, lake permissions, retention, HTTP protection, sensitive data.",
+          "keys": [
+            "kms",
+            "lakeformation",
             "s3gov",
             "waf",
-            "macie",
+            "macie"
+          ],
+          "chooser": "protect",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "content",
+          "title": "Content safety",
+          "boundary": "Filter content; authorize documents and tools separately.",
+          "keys": [
             "guardrails"
-          ]
+          ],
+          "chooser": "safety",
+          "guides": [],
+          "wide": false
         }
       ],
-      "choice": {
-        "title": "Choose the protection boundary",
-        "rows": [
-          {
-            "need": "Authenticate / federate / authorize",
-            "decision": "Follow the principal and target in the access diagram below.",
-            "keys": [
-              "cognito",
-              "idc",
-              "sts",
-              "verified"
-            ]
-          },
-          {
-            "need": "Document/business data access",
-            "decision": "Enforce trusted user scope at retrieval and actions.",
-            "keys": [
-              "kb",
-              "lakeformation"
-            ]
-          },
-          {
-            "need": "Private network path",
-            "decision": "Configure endpoint, DNS, network rules, and IAM.",
-            "keys": [
-              "vpce"
-            ]
-          },
-          {
-            "need": "Model content risks",
-            "decision": "Apply selected content policies.",
-            "keys": [
-              "guardrails"
-            ]
-          },
-          {
-            "need": "Sensitive source data",
-            "decision": "Discover, then explicitly sanitize.",
-            "keys": [
-              "macie",
-              "comprehend"
-            ]
-          },
-          {
-            "need": "Retain/protect stored copies",
-            "decision": "Set retention, key, and credential controls.",
-            "keys": [
-              "s3gov",
-              "kms"
-            ]
-          }
-        ]
-      },
       "notes": "aws-service-notes/sec.md",
       "notesSummary": "Access paths, protocols, private endpoints, redaction, and retention",
-      "guide": {
-        "href": "#identity-decision-tree",
-        "text": "Interactive access decision tree: application users, employees, external workloads, AWS workloads, business authorization, and AI agents."
-      },
-      "moreChoices": [],
       "decisionAliases": [
         "identity-checks"
-      ]
+      ],
+      "navLabel": "Security"
     },
     {
       "id": "eval",
-      "title": "Evaluation and operations",
-      "flow": "Prove quality before release; collect the evidence needed in production",
+      "title": "Pillar · Evaluation & observability",
+      "flow": "Quality before release + evidence from production",
       "stages": [
         {
-          "title": "Quality and governance",
+          "id": "quality",
+          "title": "Prove quality",
+          "boundary": "Held-out data + rubric + critical-cohort release gates.",
           "keys": [
             "evaluations",
             "human",
             "clarify",
             "modelcard"
-          ]
+          ],
+          "chooser": "reliable",
+          "guides": [],
+          "wide": false
         },
         {
-          "title": "Production evidence",
+          "id": "production",
+          "title": "Watch production",
+          "boundary": "Choose evidence that answers the operational question.",
           "keys": [
             "cloudwatch",
             "synthetics",
             "cost",
-            "tracing",
+            "tracing"
+          ],
+          "chooser": "observe",
+          "guides": [],
+          "wide": false
+        },
+        {
+          "id": "audit",
+          "title": "Security, compliance & audit",
+          "boundary": "AWS assurance and customer workload evidence have different owners.",
+          "keys": [
             "cloudtrail",
             "invlog",
             "config",
@@ -1924,120 +1839,45 @@
             "auditmanager",
             "inspector",
             "securityhub"
-          ]
+          ],
+          "chooser": "audit",
+          "guides": [
+            "security"
+          ],
+          "wide": true
         }
       ],
-      "choice": {
-        "title": "Choose evidence for the question",
-        "rows": [
-          {
-            "need": "Useful, supported answer?",
-            "decision": "Held-out retrieval/answer/task evaluation.",
-            "keys": [
-              "evaluations"
-            ]
-          },
-          {
-            "need": "Who called an API?",
-            "decision": "Supported account/API events.",
-            "keys": [
-              "cloudtrail"
-            ]
-          },
-          {
-            "need": "What input/output was captured?",
-            "decision": "Opt-in payload capture with access/retention rules.",
-            "keys": [
-              "invlog"
-            ]
-          },
-          {
-            "need": "Slow, failing, or throttled?",
-            "decision": "Metrics locate trends; spans locate stages.",
-            "keys": [
-              "cloudwatch",
-              "tracing"
-            ]
-          },
-          {
-            "need": "Did a known journey break?",
-            "decision": "Exercise the configured user/API journey.",
-            "keys": [
-              "synthetics"
-            ]
-          },
-          {
-            "need": "What was billed?",
-            "decision": "Inspect cost and configured budget alerts.",
-            "keys": [
-              "cost"
-            ]
-          },
-          {
-            "need": "Compliant configuration or audit evidence?",
-            "decision": "Use the evidence map below to select the control.",
-            "keys": [
-              "config",
-              "artifact",
-              "auditmanager"
-            ]
-          }
-        ]
-      },
       "notes": "aws-service-notes/eval.md",
       "notesSummary": "Evaluation metrics, regression gates, traces, logs, and audit evidence",
-      "moreChoices": [],
       "decisionAliases": [
         "quality-or-operations",
         "trustworthy-output"
-      ]
+      ],
+      "navLabel": "Evaluate"
     },
     {
       "id": "pkg",
-      "title": "Packaged assistants",
-      "flow": "Choose a supported product when its workflow fits",
+      "title": "Packaged apps",
+      "flow": "Buy versus build",
       "stages": [
         {
-          "title": "Work and development",
+          "id": "assistants",
+          "title": "Packaged assistants",
+          "boundary": "Product workflow versus custom application ownership.",
           "keys": [
             "qbusiness",
             "quick",
             "qdeveloper"
-          ]
+          ],
+          "chooser": "product",
+          "guides": [],
+          "wide": false
         }
       ],
-      "choice": {
-        "title": "Choose product or application ownership",
-        "rows": [
-          {
-            "need": "Packaged employee experience",
-            "decision": "Check product workflow, connectors, and permissions.",
-            "keys": [
-              "quick",
-              "qbusiness"
-            ]
-          },
-          {
-            "need": "Custom experience and tools",
-            "decision": "Own application behavior and authorization.",
-            "keys": [
-              "bedrock",
-              "agentcore"
-            ]
-          },
-          {
-            "need": "Development/modernization",
-            "decision": "Use supported developer workflows.",
-            "keys": [
-              "qdeveloper"
-            ]
-          }
-        ]
-      },
       "notes": "aws-service-notes/pkg.md",
       "notesSummary": "Employee assistants, developer workflows, and service availability",
-      "moreChoices": [],
-      "decisionAliases": []
+      "decisionAliases": [],
+      "navLabel": "Packaged"
     }
   ],
   "examples": [
@@ -2729,6 +2569,1175 @@
       "code": "{\n  \"EndpointConfigName\": \"cpu-classifier-config\",\n  \"ProductionVariants\": [\n    {\n      \"VariantName\": \"AllTraffic\",\n      \"ModelName\": \"cpu-classifier\",\n      \"ServerlessConfig\": {\n        \"MemorySizeInMB\": 6144,\n        \"MaxConcurrency\": 10,\n        \"ProvisionedConcurrency\": 2\n      }\n    }\n  ]\n}",
       "note": "ModelName must reference a compatible model created first. CreateEndpoint deploys this configuration. Omit ProvisionedConcurrency for on-demand serverless; keeping it adds warm-capacity charges. Both use CPU, with no InstanceType/GPU selection.",
       "source": "https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariantServerlessConfig.html"
+    }
+  },
+  "choosers": {
+    "qualifier": {
+      "title": "Architecture before services",
+      "question": "What are you trying to minimize?",
+      "options": [
+        {
+          "when": "Operating effort",
+          "then": "Prefer managed capabilities when their controls fit.",
+          "keys": []
+        },
+        {
+          "when": "Application changes",
+          "then": "Keep a compatible client/API boundary; change behind it.",
+          "keys": []
+        },
+        {
+          "when": "Development effort",
+          "then": "Use supported features and integrations before custom code.",
+          "keys": []
+        }
+      ],
+      "foot": "First meet latency, scale, residency, security, and availability requirements. Then compare what your team must operate, change, or build."
+    },
+    "gap": {
+      "title": "Close a quality gap — which lever?",
+      "question": "What is actually missing?",
+      "options": [
+        {
+          "when": "Instructions, format, examples",
+          "then": "Prompt engineering",
+          "keys": [
+            "promptmgmt",
+            "promptopt"
+          ]
+        },
+        {
+          "when": "Current/private facts + citations",
+          "then": "Retrieve authorized evidence (RAG)",
+          "keys": [
+            "kb"
+          ]
+        },
+        {
+          "when": "Stable behavior or style",
+          "then": "Supported fine-tuning / LoRA",
+          "keys": [
+            "bedrock",
+            "sagemaker"
+          ]
+        },
+        {
+          "when": "Broad domain language",
+          "then": "Eligible continued pre-training on unlabelled data",
+          "keys": [
+            "bedrock",
+            "sagemaker"
+          ]
+        },
+        {
+          "when": "Smaller model, measured task quality",
+          "then": "Supported distillation; evaluate the student",
+          "keys": [
+            "bedrock",
+            "sagemaker"
+          ]
+        },
+        {
+          "when": "Messy / mixed-format inputs",
+          "then": "Extract → normalize → reformat if needed",
+          "keys": [
+            "bda",
+            "textract",
+            "comprehend",
+            "lambda"
+          ]
+        }
+      ],
+      "foot": "Start with the unchanged model as a baseline, then prompt → RAG → justified customization. Tuning is not a source-refresh pipeline; quantization is a separate compression technique."
+    },
+    "hosting": {
+      "title": "Where does the model run?",
+      "question": "Which control matters?",
+      "options": [
+        {
+          "when": "Managed model APIs",
+          "then": "Supported base, customized, or imported models",
+          "keys": [
+            "bedrock"
+          ]
+        },
+        {
+          "when": "GPU / container / endpoint control",
+          "then": "Choose the serving mode",
+          "keys": [
+            "sagemaker"
+          ],
+          "sub": {
+            "question": "Which delivery pattern?",
+            "options": [
+              {
+                "when": "Interactive",
+                "then": "Real-time endpoint",
+                "keys": []
+              },
+              {
+                "when": "Large / long queued request",
+                "then": "Asynchronous Inference",
+                "keys": []
+              },
+              {
+                "when": "Intermittent CPU inference",
+                "then": "Serverless; no GPU, even with Provisioned Concurrency",
+                "keys": []
+              },
+              {
+                "when": "Dataset offline",
+                "then": "Batch Transform",
+                "keys": []
+              }
+            ]
+          }
+        },
+        {
+          "when": "Device compilation",
+          "then": "Check supported hardware targets",
+          "keys": [
+            "neo"
+          ]
+        },
+        {
+          "when": "Local infrastructure / host control",
+          "then": "Trace every dependency and data location",
+          "keys": [
+            "hybrid"
+          ]
+        }
+      ],
+      "foot": "Both Bedrock and SageMaker host models. The fork is the control you need. Open a card for capacity, GPU, and billing comparisons."
+    },
+    "config": {
+      "title": "Release, configuration, or compliance?",
+      "question": "What changes?",
+      "options": [
+        {
+          "when": "Build and promote a release",
+          "then": "Automate checks and deployment",
+          "keys": [
+            "cicd"
+          ]
+        },
+        {
+          "when": "Approved model version",
+          "then": "Register evidence; deploy and verify separately",
+          "keys": [
+            "registry"
+          ]
+        },
+        {
+          "when": "Runtime setting / feature flag",
+          "then": "Validate, roll out, monitor, roll back",
+          "keys": [
+            "appconfig"
+          ]
+        },
+        {
+          "when": "Read a stored value",
+          "then": "Parameter tiers / throughput are separate choices",
+          "keys": [
+            "paramstore"
+          ]
+        },
+        {
+          "when": "Credential with rotation",
+          "then": "Use Secrets Manager",
+          "keys": [
+            "kms"
+          ]
+        },
+        {
+          "when": "Resource compliance",
+          "then": "Record/evaluate resource configuration",
+          "keys": [
+            "config"
+          ]
+        }
+      ],
+      "foot": "Approved ≠ deployed. Retain a compatible rollback and evaluate the actual application route."
+    },
+    "prepare": {
+      "title": "Prepare the right source",
+      "question": "Which responsibility?",
+      "options": [
+        {
+          "when": "Source documents / artifacts",
+          "then": "Version objects and preserve lineage",
+          "keys": [
+            "s3"
+          ]
+        },
+        {
+          "when": "ETL, catalogue, quality rules",
+          "then": "Validate or quarantine before indexing",
+          "keys": [
+            "glue"
+          ]
+        },
+        {
+          "when": "ML preparation / processing",
+          "then": "Visual transformations or processing jobs",
+          "keys": [
+            "datawrangler"
+          ]
+        }
+      ],
+      "foot": "A Data Catalog describes data; it is not the vector index. Source updates still need ingestion."
+    },
+    "extract": {
+      "title": "Choose extraction from the output",
+      "question": "What is the input?",
+      "options": [
+        {
+          "when": "PDF / scan",
+          "then": "Text, forms, tables, queries, expense/ID APIs",
+          "keys": [
+            "textract"
+          ]
+        },
+        {
+          "when": "Semantic business fields / media",
+          "then": "Supported output or custom blueprint",
+          "keys": [
+            "bda"
+          ]
+        },
+        {
+          "when": "Audio",
+          "then": "Transcribe; distinguish speakers from recorded channels",
+          "keys": [
+            "transcribe"
+          ]
+        },
+        {
+          "when": "Image / video",
+          "then": "Supported visual analysis",
+          "keys": [
+            "rekognition"
+          ]
+        },
+        {
+          "when": "Text entities, sentiment, PII",
+          "then": "General NLP; apply any required redaction",
+          "keys": [
+            "comprehend"
+          ]
+        },
+        {
+          "when": "Clinical entities / PHI",
+          "then": "Supported medical APIs",
+          "keys": [
+            "medical"
+          ]
+        }
+      ],
+      "foot": "Readable is not always faithful: preserve tables, meaning, and source references before chunking."
+    },
+    "ingest": {
+      "title": "Build searchable evidence",
+      "question": "Which preparation decision?",
+      "options": [
+        {
+          "when": "Managed ingestion / retrieval",
+          "then": "Choose the supported KB and source contract",
+          "keys": [
+            "kb"
+          ]
+        },
+        {
+          "when": "Chunk boundaries / overlap / parents",
+          "then": "Compare five strategies",
+          "keys": [],
+          "guide": "chunking"
+        },
+        {
+          "when": "Document/query representation",
+          "then": "Use compatible embedding models and versions",
+          "keys": [
+            "embeddings"
+          ]
+        }
+      ],
+      "foot": "Ingestion: parse → chunk → metadata → embed → index. Retrieval and reranking happen for each query."
+    },
+    "vector": {
+      "title": "Choose a store or retriever",
+      "question": "What does the workload need?",
+      "options": [
+        {
+          "when": "Lexical/vector/hybrid search controls",
+          "then": "Evaluate index, ranking, and capacity options",
+          "keys": [
+            "opensearch"
+          ]
+        },
+        {
+          "when": "Vectors + relational transactions",
+          "then": "Supported PostgreSQL/pgvector integration",
+          "keys": [
+            "aurora"
+          ]
+        },
+        {
+          "when": "Vector storage/query economics",
+          "then": "Check filters, connectors, and measured latency",
+          "keys": [
+            "s3vectors"
+          ]
+        },
+        {
+          "when": "Relationships / multi-hop evidence",
+          "then": "Supported graph retrieval/analytics",
+          "keys": [
+            "neptune"
+          ]
+        },
+        {
+          "when": "Existing enterprise search",
+          "then": "Check eligibility, ACL sync, and connectors",
+          "keys": [
+            "kendra"
+          ]
+        }
+      ],
+      "foot": "Benchmark recall, latency, filtering, synchronization, and total cost. There is no universal vector-count cutoff."
+    },
+    "rag": {
+      "title": "Wrong RAG answer — find the first broken stage",
+      "question": "Is the right evidence in Retrieve results?",
+      "options": [
+        {
+          "when": "No: recall miss",
+          "then": "Source → extraction → sync → chunks → embeddings → trusted filters",
+          "keys": [
+            "kb",
+            "embeddings"
+          ],
+          "guide": "chunking"
+        },
+        {
+          "when": "Yes, but buried",
+          "then": "Measure reranking and context selection",
+          "keys": [
+            "reranking"
+          ]
+        },
+        {
+          "when": "Exact IDs / multi-part questions",
+          "then": "Test supported hybrid search or decomposition",
+          "keys": [
+            "opensearch",
+            "kb"
+          ]
+        },
+        {
+          "when": "Stale / unauthorized results",
+          "then": "Fix metadata, sync, deletion, and user scope",
+          "keys": [
+            "s3",
+            "kb"
+          ]
+        },
+        {
+          "when": "Correct context, wrong answer",
+          "then": "Inspect prompt, model behavior, output cap, evaluation",
+          "keys": [
+            "promptmgmt",
+            "evaluations"
+          ]
+        }
+      ],
+      "foot": "A reranker cannot recover an absent candidate. Fix retrieval before attributing every failure to the model."
+    },
+    "stream": {
+      "title": "How does the answer reach the client?",
+      "question": "Which exchange?",
+      "options": [
+        {
+          "when": "One incremental response",
+          "then": "Supported REST API streaming integration + model events",
+          "keys": [
+            "apigw",
+            "converse"
+          ]
+        },
+        {
+          "when": "Bidirectional / push later",
+          "then": "WebSocket; manage connection and job state",
+          "keys": [
+            "apigw"
+          ]
+        },
+        {
+          "when": "GraphQL subscriptions",
+          "then": "Use the configured subscription/auth contract",
+          "keys": [
+            "appsync"
+          ]
+        }
+      ],
+      "foot": "For API Gateway, response streaming is REST-only. HTTP APIs do not provide that feature; check the whole transport path."
+    },
+    "prompt": {
+      "title": "Store a prompt or improve it?",
+      "question": "Which job?",
+      "options": [
+        {
+          "when": "Templates, variables, versions",
+          "then": "Prompt Management",
+          "keys": [
+            "promptmgmt"
+          ]
+        },
+        {
+          "when": "Model-specific rewrite / optimization",
+          "then": "Evaluate the proposed candidate before release",
+          "keys": [
+            "promptopt"
+          ]
+        }
+      ],
+      "foot": "Versioning and optimization do not themselves approve a production release."
+    },
+    "params": {
+      "title": "Choose the API, then tune output",
+      "question": "What needs attention?",
+      "options": [
+        {
+          "when": "Shared message format",
+          "then": "Converse / ConverseStream",
+          "keys": [
+            "converse"
+          ]
+        },
+        {
+          "when": "Provider-native body",
+          "then": "InvokeModel / streaming",
+          "keys": [
+            "invokemodel"
+          ]
+        },
+        {
+          "when": "Inconsistent / repetitive output",
+          "then": "Tune supported sampling on representative tasks",
+          "keys": [
+            "params"
+          ]
+        },
+        {
+          "when": "Cut off mid-answer",
+          "then": "Inspect stopReason and the output-token limit",
+          "keys": [
+            "converse",
+            "params"
+          ]
+        },
+        {
+          "when": "Input exceeds context",
+          "then": "Select evidence or split/synthesize; parameters cannot enlarge it",
+          "keys": [
+            "kb"
+          ]
+        },
+        {
+          "when": "Too long / expensive",
+          "then": "Concise format, tested output cap, context pruning",
+          "keys": [
+            "params",
+            "reranking"
+          ]
+        }
+      ],
+      "foot": "No universal temperature/top-p preset guarantees quality. Check model-specific fields and token limits."
+    },
+    "session": {
+      "title": "State, fixed intents, or speech?",
+      "question": "What does the application need?",
+      "options": [
+        {
+          "when": "Session / job / idempotency state",
+          "then": "Persist scoped records and enforce expiry",
+          "keys": [
+            "dynamodb"
+          ]
+        },
+        {
+          "when": "Fixed intents and slots",
+          "then": "Build the supported bot interaction",
+          "keys": [
+            "lex"
+          ]
+        },
+        {
+          "when": "Text → speech",
+          "then": "Choose a supported voice engine",
+          "keys": [
+            "polly"
+          ]
+        }
+      ],
+      "foot": "These can compose. The model only receives the conversation state you include in the request."
+    },
+    "cost": {
+      "title": "Cut repeated work or route by difficulty",
+      "question": "What repeats?",
+      "options": [
+        {
+          "when": "Long shared prefix",
+          "then": "Prompt caching",
+          "keys": [
+            "caching"
+          ]
+        },
+        {
+          "when": "Interchangeable authorized answers",
+          "then": "Exact/semantic application cache with versioned keys",
+          "keys": [
+            "caching"
+          ]
+        },
+        {
+          "when": "Public shared responses",
+          "then": "Use a deliberate CDN cache policy",
+          "keys": [
+            "cloudfront"
+          ]
+        },
+        {
+          "when": "Mixed easy/hard requests",
+          "then": "Supported managed routing, or a tested custom cascade",
+          "keys": [
+            "routing"
+          ]
+        },
+        {
+          "when": "Too much retrieved context",
+          "then": "Rerank/select evidence and measure loss",
+          "keys": [
+            "reranking"
+          ]
+        }
+      ],
+      "foot": "Cache keys and hits must respect tenant permissions, source versions, model/prompt configuration, and deletion."
+    },
+    "capacity": {
+      "title": "Choose capacity within the residency boundary",
+      "question": "Traffic and processing location?",
+      "options": [
+        {
+          "when": "Low / variable live demand",
+          "then": "Supported on-demand inference",
+          "keys": [
+            "bedrock"
+          ]
+        },
+        {
+          "when": "Sustained eligible demand",
+          "then": "Compare reserved service tier and Provisioned Throughput",
+          "keys": [
+            "provthroughput",
+            "bedrock"
+          ]
+        },
+        {
+          "when": "Burst capacity across approved Regions",
+          "then": "Supported geographic/global profile; approve every destination",
+          "keys": [
+            "xregion"
+          ]
+        },
+        {
+          "when": "Exactly one Region",
+          "then": "Verify the regional model path and all dependencies",
+          "keys": [
+            "bedrock"
+          ]
+        },
+        {
+          "when": "Delay-tolerant offline dataset",
+          "then": "Supported batch job, separate from one async invocation",
+          "keys": [
+            "bedrock",
+            "sagemaker"
+          ]
+        }
+      ],
+      "foot": "Capacity, service tiers, routing profiles, and streaming are different choices. Reservations can incur idle/commitment charges."
+    },
+    "latency": {
+      "title": "Slow response or insufficient throughput?",
+      "question": "Where is time or capacity lost?",
+      "options": [
+        {
+          "when": "Slow first useful output",
+          "then": "Measure retrieval, model time-to-first-token, transport buffering",
+          "keys": [
+            "tracing",
+            "converse"
+          ]
+        },
+        {
+          "when": "Cold start",
+          "then": "Check warm model and compute capacity separately",
+          "keys": [
+            "sagemaker",
+            "lambda"
+          ]
+        },
+        {
+          "when": "Independent stages in sequence",
+          "then": "Parallelize safely within quotas",
+          "keys": [
+            "stepfns"
+          ]
+        },
+        {
+          "when": "Bursts exceed capacity",
+          "then": "Pace work; review concurrency, tokens, quotas, capacity",
+          "keys": [
+            "sqs",
+            "provthroughput"
+          ]
+        }
+      ],
+      "foot": "Streaming improves incremental delivery; it does not by itself add model throughput."
+    },
+    "driver": {
+      "title": "Who chooses the next step?",
+      "question": "Is the path known in advance?",
+      "options": [
+        {
+          "when": "Known states / approvals / long waits",
+          "then": "Step Functions Standard; callbacks and eligible .sync jobs",
+          "keys": [
+            "stepfns"
+          ]
+        },
+        {
+          "when": "Short, high-volume workflow",
+          "then": "Express ≤5 minutes; no callback tokens/.sync",
+          "keys": [
+            "stepfns"
+          ]
+        },
+        {
+          "when": "Visual GenAI pipeline",
+          "then": "Supported nodes and deterministic conditions",
+          "keys": [
+            "flows"
+          ]
+        },
+        {
+          "when": "Model selects actions / specialists",
+          "then": "Bound the agent loop, authority, and iterations",
+          "keys": [
+            "agentcore",
+            "multiagent"
+          ]
+        },
+        {
+          "when": "One bounded handler",
+          "then": "Externalize durable state",
+          "keys": [
+            "lambda"
+          ]
+        },
+        {
+          "when": "Existing Classic agent",
+          "then": "Check existing-customer and migration guidance",
+          "keys": [
+            "agents"
+          ]
+        }
+      ],
+      "foot": "Express allows Wait states within its five-minute limit. External writes still need safe retry/idempotency behavior."
+    },
+    "events": {
+      "title": "Route events or retain work?",
+      "question": "What arrives?",
+      "options": [
+        {
+          "when": "S3 event → supported direct target",
+          "then": "Configure notifications for Lambda, SNS, or standard SQS",
+          "keys": [
+            "events"
+          ]
+        },
+        {
+          "when": "Filter / fan-out / start workflow",
+          "then": "S3 EventBridge delivery + rule + supported target",
+          "keys": [
+            "events"
+          ]
+        },
+        {
+          "when": "Bursty model/index work",
+          "then": "Queue + paced consumers, visibility timeout, DLQ",
+          "keys": [
+            "sqs"
+          ]
+        },
+        {
+          "when": "Ordered business steps / waits",
+          "then": "Use a workflow controller",
+          "keys": [
+            "stepfns"
+          ]
+        }
+      ],
+      "foot": "Direct S3 notifications do not target Step Functions or SQS FIFO. A delivered event is not proof that downstream work succeeded."
+    },
+    "mcphost": {
+      "title": "Connect tools or host code?",
+      "question": "What do you already have?",
+      "options": [
+        {
+          "when": "Supported API / Lambda tools",
+          "then": "Evaluate Gateway adapters before building a server",
+          "keys": [
+            "agentcore",
+            "mcp"
+          ]
+        },
+        {
+          "when": "Compatible agent / MCP server code",
+          "then": "Evaluate Runtime hosting",
+          "keys": [
+            "agentcore"
+          ]
+        },
+        {
+          "when": "Agent inbound/outbound credentials",
+          "then": "Configure supported trust and credential flows",
+          "keys": [
+            "agentidentity"
+          ]
+        },
+        {
+          "when": "Custom execution/state needs",
+          "then": "Choose a suitable runtime and own its operations",
+          "keys": [
+            "lambda"
+          ]
+        }
+      ],
+      "foot": "Runtime hosts; Gateway connects; MCP standardizes tool interaction. The target still authorizes each action."
+    },
+    "resilience": {
+      "title": "Recover from the actual failure",
+      "question": "Which failure?",
+      "options": [
+        {
+          "when": "Transient failure / throttling",
+          "then": "Bound retries with backoff, deadlines, idempotency",
+          "keys": [
+            "stepfns"
+          ]
+        },
+        {
+          "when": "Sustained dependency failure",
+          "then": "Circuit breaker + explicitly permitted fallback/degradation",
+          "keys": [
+            "dynamodb"
+          ]
+        },
+        {
+          "when": "Runaway agent work",
+          "then": "Bound iterations, tool authority, tokens, time",
+          "keys": [
+            "agentcore",
+            "stepfns"
+          ]
+        },
+        {
+          "when": "Candidate release regresses",
+          "then": "Halt promotion or roll back a compatible approved version",
+          "keys": [
+            "registry",
+            "appconfig"
+          ]
+        }
+      ],
+      "foot": "Retry, agent re-planning, circuit breaking, and rollback solve different failures."
+    },
+    "identity": {
+      "title": "Choose the caller path",
+      "question": "Who or what needs access?",
+      "options": [
+        {
+          "when": "Customers / SaaS / mobile users",
+          "then": "User-pool sign-in/federation → JWT → application authorization",
+          "keys": [
+            "cognito"
+          ]
+        },
+        {
+          "when": "Employees accessing AWS",
+          "then": "Corporate IdP → Identity Center → assigned role/permission set",
+          "keys": [
+            "idc"
+          ]
+        },
+        {
+          "when": "External workload",
+          "then": "Trusted OIDC assertion → STS → temporary role credentials",
+          "keys": [
+            "sts"
+          ]
+        },
+        {
+          "when": "AWS-native workload",
+          "then": "IAM role → SDK temporary credentials → AWS API",
+          "keys": [
+            "iam"
+          ]
+        },
+        {
+          "when": "AI agent",
+          "then": "Check inbound caller trust and outbound tool credentials",
+          "keys": [
+            "agentidentity"
+          ]
+        }
+      ],
+      "foot": "Cognito, workforce SSO, and OIDC can compose. Choose by principal, target, trust, and authorization needs."
+    },
+    "authorize": {
+      "title": "Authentication is not permission",
+      "question": "Which access question?",
+      "options": [
+        {
+          "when": "May this principal assume the role?",
+          "then": "Role trust + supported federation checks",
+          "keys": [
+            "sts",
+            "iam"
+          ]
+        },
+        {
+          "when": "May this AWS session call the API?",
+          "then": "Identity/resource/session policies and guardrails",
+          "keys": [
+            "iam"
+          ]
+        },
+        {
+          "when": "May this user read the record / act?",
+          "then": "Application/business policy; enforce the result",
+          "keys": [
+            "verified"
+          ]
+        },
+        {
+          "when": "Who could access, or what is unused?",
+          "then": "Configured analysis and policy checks",
+          "keys": [
+            "accessanalyzer"
+          ]
+        }
+      ],
+      "foot": "A JWT is not an AWS access key. Temporary AWS credentials normally sign AWS requests with SigV4. SCPs and permission boundaries limit permissions; they do not grant them."
+    },
+    "private": {
+      "title": "Private connectivity and enforcement",
+      "question": "Which requirement?",
+      "options": [
+        {
+          "when": "Private route to a supported service",
+          "then": "Correct endpoint, DNS, and network rules",
+          "keys": [
+            "vpce"
+          ]
+        },
+        {
+          "when": "Restrict who/where may call",
+          "then": "Applicable IAM, resource, endpoint, and organizational policies",
+          "keys": [
+            "iam"
+          ]
+        }
+      ],
+      "foot": "The pipe and the permission are separate. An endpoint policy does not grant access or automatically close every other path."
+    },
+    "protect": {
+      "title": "Choose the data control",
+      "question": "What must be protected?",
+      "options": [
+        {
+          "when": "Encryption key / stored credential",
+          "then": "KMS / Secrets Manager",
+          "keys": [
+            "kms"
+          ]
+        },
+        {
+          "when": "Integrated lake/table/row/column access",
+          "then": "Lake Formation; prevent bypass paths",
+          "keys": [
+            "lakeformation"
+          ]
+        },
+        {
+          "when": "Immutability / expiry",
+          "then": "Object Lock / Lifecycle; include derived copies",
+          "keys": [
+            "s3gov"
+          ]
+        },
+        {
+          "when": "Supported HTTP abuse",
+          "then": "WAF rules and selected managed protections",
+          "keys": [
+            "waf"
+          ]
+        },
+        {
+          "when": "Sensitive data in S3",
+          "then": "Discover eligible objects; sanitize separately",
+          "keys": [
+            "macie"
+          ]
+        }
+      ],
+      "foot": "Data discovery, retention, network protection, and authorization address different obligations."
+    },
+    "safety": {
+      "title": "Content safety or action authority?",
+      "question": "What must be controlled?",
+      "options": [
+        {
+          "when": "Supported model-content risks",
+          "then": "Selected Guardrails policies; handle block/mask results",
+          "keys": [
+            "guardrails"
+          ]
+        },
+        {
+          "when": "Which document/tool is permitted",
+          "then": "Enforce application and AWS permissions",
+          "keys": [
+            "verified",
+            "iam"
+          ]
+        }
+      ],
+      "foot": "Guardrails does not authorize access. Treat retrieved/tool content as untrusted and validate proposed actions outside the model."
+    },
+    "reliable": {
+      "title": "Prove quality before release",
+      "question": "What must the output satisfy?",
+      "options": [
+        {
+          "when": "Relevant, supported answer",
+          "then": "Held-out retrieval/answer evaluation and rubrics",
+          "keys": [
+            "evaluations"
+          ]
+        },
+        {
+          "when": "Required schema / exact business values",
+          "then": "Validate structure; use authorized deterministic tools",
+          "keys": [
+            "lambda"
+          ]
+        },
+        {
+          "when": "Uncertain / high-impact result",
+          "then": "Calibrated fallback or supported human review",
+          "keys": [
+            "human"
+          ]
+        },
+        {
+          "when": "Bias, drift, intended use",
+          "then": "Supported analysis/monitoring and governance records",
+          "keys": [
+            "clarify",
+            "modelcard"
+          ]
+        }
+      ],
+      "foot": "Compare baseline/candidate on the same important cohorts. A citation, model confidence, or completed evaluation job alone does not prove correctness."
+    },
+    "observe": {
+      "title": "Quality or runtime health?",
+      "question": "What is the symptom?",
+      "options": [
+        {
+          "when": "Wrong / inconsistent answers",
+          "then": "Task, retrieval, answer-quality evaluation",
+          "keys": [
+            "evaluations"
+          ]
+        },
+        {
+          "when": "Tokens, failures, latency trends",
+          "then": "Metrics and alarms",
+          "keys": [
+            "cloudwatch"
+          ]
+        },
+        {
+          "when": "Which dependency/stage is slow?",
+          "then": "Instrumented spans and correlation IDs",
+          "keys": [
+            "tracing"
+          ]
+        },
+        {
+          "when": "Known user/API journey broke",
+          "then": "Configured canary plus output/tool assertions",
+          "keys": [
+            "synthetics"
+          ]
+        },
+        {
+          "when": "Unusual billed spend",
+          "then": "Cost Explorer, Budgets, anomaly detection",
+          "keys": [
+            "cost"
+          ]
+        }
+      ],
+      "foot": "Operational health and answer quality need different evidence. Instrument the application, retrieval, model, and tools together."
+    },
+    "audit": {
+      "title": "Select the evidence, not just a security label",
+      "question": "What do you need to know?",
+      "options": [
+        {
+          "when": "AWS compliance reports / agreements",
+          "then": "Retrieve AWS evidence on demand",
+          "keys": [
+            "artifact"
+          ]
+        },
+        {
+          "when": "Customer framework assessment",
+          "then": "Configured evidence collection; eligibility applies",
+          "keys": [
+            "auditmanager"
+          ]
+        },
+        {
+          "when": "Resource configuration / rule compliance",
+          "then": "Configurations, changes, evaluations",
+          "keys": [
+            "config"
+          ]
+        },
+        {
+          "when": "Who called which API?",
+          "then": "Supported account/API events",
+          "keys": [
+            "cloudtrail"
+          ]
+        },
+        {
+          "when": "What prompt/response was captured?",
+          "then": "Opt-in supported content logging",
+          "keys": [
+            "invlog"
+          ]
+        },
+        {
+          "when": "Workload vulnerabilities",
+          "then": "Supported workload coverage/scans",
+          "keys": [
+            "inspector"
+          ]
+        },
+        {
+          "when": "Prioritized combined security findings",
+          "then": "Supported services and selected bundle/coverage",
+          "keys": [
+            "securityhub"
+          ]
+        }
+      ],
+      "foot": "Artifact is not a continuous workload auditor. Configure collection, review findings, and resolve issues; see the shared-responsibility guide."
+    },
+    "product": {
+      "title": "Buy an experience or build an application?",
+      "question": "Which ownership fits?",
+      "options": [
+        {
+          "when": "Packaged employee experience",
+          "then": "Check connectors, identity, permissions, and plan",
+          "keys": [
+            "quick"
+          ]
+        },
+        {
+          "when": "Existing Q Business workload",
+          "then": "Check subscription/index choices and migration",
+          "keys": [
+            "qbusiness"
+          ]
+        },
+        {
+          "when": "Developer assistance / modernization",
+          "then": "Supported development and transformation workflows",
+          "keys": [
+            "qdeveloper"
+          ]
+        },
+        {
+          "when": "Custom UX and business tools",
+          "then": "Own the application and authorization",
+          "keys": [
+            "bedrock",
+            "agentcore"
+          ]
+        }
+      ],
+      "foot": ""
+    }
+  },
+  "overviewChooser": "qualifier",
+  "learningGuides": {
+    "chunking": {
+      "title": "RAG chunking strategies",
+      "short": "Chunking strategies",
+      "purpose": "Boundaries, overlap, parents, metadata",
+      "target": "rag-chunking-explorer",
+      "kind": "data",
+      "keywords": "default fixed size semantic hierarchical custom Lambda ingestion query"
+    },
+    "access": {
+      "title": "Authentication decision tree",
+      "short": "Access decision tree",
+      "purpose": "Six principal / target access paths",
+      "target": "identity-decision-tree",
+      "kind": "identity",
+      "keywords": "authentication authorization OIDC Cognito employees workforce IAM STS agents Verified Permissions"
+    },
+    "protocols": {
+      "title": "Identity protocols",
+      "short": "Identity protocols",
+      "purpose": "JWT · OAuth · OIDC · SAML · STS",
+      "target": "identity-protocols",
+      "kind": "federation",
+      "keywords": "issuer subject audience expiry signature token exchange temporary credentials"
+    },
+    "identity": {
+      "title": "AWS authentication & authorization",
+      "short": "Identity architecture",
+      "purpose": "Trust → credentials → permission",
+      "target": "identity-architecture",
+      "kind": "access",
+      "keywords": "Entra Okta Cognito IAM Identity Center STS Organizations SCP Access Analyzer Verified Permissions AgentCore Identity"
+    },
+    "security": {
+      "title": "AWS security, compliance & auditing",
+      "short": "Security / audit map",
+      "purpose": "Responsibility, findings, evidence",
+      "target": "security-compliance-map",
+      "kind": "audit",
+      "keywords": "Artifact Audit Manager Config CloudTrail Inspector Macie Security Hub AppConfig shared responsibility"
     }
   }
 }

@@ -1,13 +1,7 @@
-<span id="identity-access-guide"></span>
 <span id="section-9-supporting-services"></span>
 <span id="section-11-checklist"></span>
-{% include aws-identity-decisions.html %}
 
-<span id="identity-core-guide"></span>
-{% include aws-identity-overview.html %}
-
-<span id="identity-protocol-guide"></span>
-{% include aws-identity-protocols.html %}
+**Identity guides:** [Choose the access path](#identity-decision-tree) · [Protocols and tokens](#identity-protocols) · [Trust and authorization](#identity-architecture).
 
 ##### Private paths and data permissions {#section-9-1-entry}
 

@@ -1,0 +1,2 @@
+{%- assign chip_card = site.data.aws_ai_service_map.cards[include.key] -%}
+<a class="aws-map__chip" href="{{ chip_card.read }}" data-service="{{ include.key }}"><img src="{{ '/study/assets/aws-architecture-icons/Arch_' | append: chip_card.icon | append: '_64.svg' | relative_url }}" alt="" width="15" height="15" loading="lazy"><span>{{ chip_card.name | remove_first: 'Amazon ' | remove_first: 'AWS ' }}</span></a>

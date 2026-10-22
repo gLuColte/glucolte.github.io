@@ -1,0 +1,12 @@
+<dialog id="aws-reference-dialog" class="aws-map aws-map__dialog aws-map__dialog--reference" aria-label="AWS architecture reference">
+  <div class="aws-map__dialog-head"><span id="aws-reference-label">Architecture reference</span><button type="button" data-close-reference aria-label="Close architecture reference">×</button></div>
+{% for reference_zone in site.data.aws_ai_service_map.zones %}
+  <section id="aws-notes-{{ reference_zone.id }}" data-reference-panel="notes-{{ reference_zone.id }}" data-title="{{ reference_zone.title | escape }} · implementation notes" markdown="1">
+
+#### {{ reference_zone.title }} · implementation notes
+
+{% include {{ reference_zone.notes }} %}
+
+  </section>
+{% endfor %}
+</dialog>

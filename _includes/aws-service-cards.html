@@ -1,8 +1,15 @@
 {%- assign zone = site.data.aws_ai_service_map.zones | where: 'id', include.zone_id | first -%}
 <div class="aws-map aws-map__catalogue" aria-label="{{ zone.title }} service cards">
   <div class="aws-map__groups">{%- for stage in zone.stages -%}
-    <div class="aws-map__group"><strong>{{ stage.title }}</strong><div class="aws-map__tiles">{%- for key in stage.keys -%}{%- assign card = site.data.aws_ai_service_map.cards[key] -%}
+    <section class="aws-map__group{% if stage.wide %} aws-map__group--wide{% endif %}" id="aws-cluster-{{ stage.id }}" aria-label="{{ stage.title }}">
+      <div class="aws-map__cluster-head"><strong>{{ stage.title }}</strong><p>{{ stage.boundary }}</p></div>
+      {%- if stage.keys != empty or stage.guides != empty %}<div class="aws-map__tiles">{%- for key in stage.keys -%}{%- assign card = site.data.aws_ai_service_map.cards[key] -%}
       <a class="aws-map__tile" href="{{ card.read }}" data-service="{{ key }}" id="aws-service-{{ key }}"><img src="{{ '/study/assets/aws-architecture-icons/Arch_' | append: card.icon | append: '_64.svg' | relative_url }}" alt="" width="30" height="30" loading="lazy"><span>{{ card.name }}</span></a>
-    {%- endfor -%}</div></div>
+      {%- endfor -%}{%- for key in stage.guides -%}{%- assign guide = site.data.aws_ai_service_map.learningGuides[key] -%}
+      <a class="aws-map__tile aws-map__tile--guide" href="#{{ guide.target }}" data-guide="{{ key }}" data-kind="{{ guide.kind }}"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8h8M8 12h3m-3 4h8m-1-5 3 3m0-3-3 3"/></svg><span>{{ guide.short }}</span><small>On this page ↓</small></a>
+      {%- endfor -%}</div>{% endif %}
+      {%- if stage.chooser %}{% include aws-service-chooser.html id=stage.chooser %}{% endif -%}
+    </section>
   {%- endfor -%}</div>
+  <p class="aws-map__zone-foot"><a href="#aws-notes-{{ zone.id }}">Implementation notes →</a></p>
 </div>

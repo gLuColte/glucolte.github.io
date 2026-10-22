@@ -35,13 +35,7 @@ tag:
 
 # AWS AI Services
 
-Understand **what each service does, when to use it, and its request/response shape**. Open a card for capability bullets, a payload/workflow example, and relevant tier/capacity choices. AWS links provide setup details and current rates.
-
-**Visual guides:** [Choose an access path](#identity-decision-tree) · [Identity and tokens](#identity-protocols) · [RAG chunking](#rag-chunking-explorer) · [Security and auditing](#security-compliance-map).
-
-**Core comparisons:** [Bedrock tiers](#aws-options-bedrock-tiers) · [SageMaker hosting / GPU support](#aws-options-sagemaker-hosting) · [Step Functions Standard / Express](#aws-options-step-functions). Other comparisons stay in the service cards. Swipe wide tables sideways on small screens.
-
-**Part 7 of 7:** [Infrastructure and evaluation](/study/aiInfrastructure) → **AWS AI Services** → [certification practice](/study/aiGenAIProfessional#default-architecture).
+**Architecture before services.** Find the layer that owns the problem. Each cluster keeps related tiles beside one **if this → choose that** tree. Open a service tile for its role, payload/workflow, capacity options, and AWS references. Interactive diagrams sit within their related sections.
 
 <span id="section-1-decisions"></span>
 <span id="agent-layer-map"></span>
@@ -54,159 +48,138 @@ Understand **what each service does, when to use it, and its request/response sh
 <section class="aws-service-section" data-zone="life" markdown="1">
 
 <span id="aws-heading-life"></span>
+<span id="aws-decisions-life"></span>
+<span id="aws-choice-configuration-choice"></span>
+<span id="aws-choice-quality-gap"></span>
 
 ## 1. Model lifecycle {#aws-map-life}
 
-Select → adapt if needed → evaluate → release → monitor
+Select → customize → evaluate → release → monitor
 
 {% include aws-service-cards.html zone_id="life" %}
-
-#### Decision Making {#aws-decisions-life}
-
-{% include aws-service-decisions.md zone_id="life" %}
-
-#### Implementation Notes {#aws-notes-life}
-
-{% include aws-service-notes/life.md %}
 
 </section>
 
 <section class="aws-service-section" data-zone="know" markdown="1">
 
 <span id="aws-heading-know"></span>
+<span id="aws-decisions-know"></span>
+<span id="aws-choice-rag-diagnosis"></span>
+<span id="aws-choice-extraction-choice"></span>
 
-## 2. Knowledge and data {#aws-map-know}
+## 2. Knowledge / data flow {#aws-map-know}
 
-Source → prepare → ingest → store → retrieve
+Source → preprocess → ingest → store → retrieve
 
 {% include aws-service-cards.html zone_id="know" %}
 
-#### Decision Making {#aws-decisions-know}
-
-{% include aws-service-decisions.md zone_id="know" %}
-
-#### Implementation Notes {#aws-notes-know}
-
-{% include aws-service-notes/know.md %}
+<span id="chunking-implementation"></span>
+{% include aws-chunking-explorer.html %}
 
 </section>
 
 <section class="aws-service-section" data-zone="run" markdown="1">
 
 <span id="aws-heading-run"></span>
+<span id="aws-decisions-run"></span>
+<span id="aws-choice-output-diagnosis"></span>
+<span id="aws-choice-capacity-choice"></span>
+<span id="aws-choice-latency-diagnosis"></span>
+<span id="aws-choice-delivery-choice"></span>
 
-## 3. Runtime and inference {#aws-map-run}
+## 3. Runtime / inference flow {#aws-map-run}
 
 User/API → retrieval → prompt/context → model → response
 
 {% include aws-service-cards.html zone_id="run" %}
-
-#### Decision Making {#aws-decisions-run}
-
-{% include aws-service-decisions.md zone_id="run" %}
-
-#### Implementation Notes {#aws-notes-run}
-
-{% include aws-service-notes/run.md %}
 
 </section>
 
 <section class="aws-service-section" data-zone="orch" markdown="1">
 
 <span id="aws-heading-orch"></span>
+<span id="aws-decisions-orch"></span>
+<span id="aws-choice-mcp-hosting"></span>
+<span id="aws-choice-event-choice"></span>
+<span id="aws-choice-recovery-choice"></span>
 
-## 4. Orchestration {#aws-map-orch}
+## 4. Pillar · Orchestration {#aws-map-orch}
 
-Choose who controls progress, then add durability and recovery
+Who chooses the next step? State · retries · approvals
 
 {% include aws-service-cards.html zone_id="orch" %}
-
-#### Decision Making {#aws-decisions-orch}
-
-{% include aws-service-decisions.md zone_id="orch" %}
-
-#### Implementation Notes {#aws-notes-orch}
-
-{% include aws-service-notes/orch.md %}
 
 </section>
 
 <section class="aws-service-section" data-zone="sec" markdown="1">
 
 <span id="aws-heading-sec"></span>
+<span id="aws-decisions-sec"></span>
+<span id="aws-choice-identity-checks"></span>
 
-## 5. Security and governance {#aws-map-sec}
+## 5. Pillar · Security / governance {#aws-map-sec}
 
-Identity → resource/data authorization → private paths → safe content and retention
+Identity · access · isolation · content safety
 
 {% include aws-service-cards.html zone_id="sec" %}
 
-#### Decision Making {#aws-decisions-sec}
+<span id="identity-access-guide"></span>
+{% include aws-identity-decisions.html %}
 
-{% include aws-service-decisions.md zone_id="sec" %}
+<span id="identity-protocol-guide"></span>
+{% include aws-identity-protocols.html %}
 
-#### Implementation Notes {#aws-notes-sec}
-
-{% include aws-service-notes/sec.md %}
+<span id="identity-core-guide"></span>
+{% include aws-identity-overview.html %}
 
 </section>
 
 <section class="aws-service-section" data-zone="eval" markdown="1">
 
 <span id="aws-heading-eval"></span>
+<span id="aws-decisions-eval"></span>
+<span id="aws-choice-quality-or-operations"></span>
+<span id="aws-choice-trustworthy-output"></span>
 
-## 6. Evaluation and operations {#aws-map-eval}
+## 6. Pillar · Evaluation & observability {#aws-map-eval}
 
-Prove quality before release; collect the evidence needed in production
+Quality before release + evidence from production
 
 {% include aws-service-cards.html zone_id="eval" %}
 
-#### Decision Making {#aws-decisions-eval}
-
-{% include aws-service-decisions.md zone_id="eval" %}
-
-#### Implementation Notes {#aws-notes-eval}
-
-{% include aws-service-notes/eval.md %}
+<span id="audit-manager"></span>
+{% include aws-security-evidence.html %}
 
 </section>
 
 <section class="aws-service-section" data-zone="pkg" markdown="1">
 
 <span id="aws-heading-pkg"></span>
+<span id="aws-decisions-pkg"></span>
 
-## 7. Packaged assistants {#aws-map-pkg}
+## 7. Packaged apps {#aws-map-pkg}
 
-Choose a supported product when its workflow fits
+Buy versus build
 
 {% include aws-service-cards.html zone_id="pkg" %}
-
-#### Decision Making {#aws-decisions-pkg}
-
-{% include aws-service-decisions.md zone_id="pkg" %}
-
-#### Implementation Notes {#aws-notes-pkg}
-
-{% include aws-service-notes/pkg.md %}
 
 </section>
 
 <span id="aws-connected-examples-heading"></span>
 
-## Connected examples {#aws-connected-examples}
+## Connected architectures {#aws-connected-examples}
 
-Trace how the services cooperate. Each step opens the same service card used above.
+Trace the handoffs. Each node opens the same service card used in the clusters.
 
 {% include aws-service-examples.html %}
-
+{% include aws-service-reference-dialog.html %}
 {% include aws-service-dialog.html %}
-
 
 <span id="section-13-practice-traps"></span>
 <span id="101-high-value-aip-c01-comparison-rules"></span>
 
-## Official references {#official-references}
+## References and practice {#official-references}
 
-Reviewed **{{ site.data.aws_service_options.checked }}**. Use the AWS links beside each concept/card to check current model, Region, availability, limits, and pricing. Card notices highlight existing-customer and lifecycle restrictions.
+Cards and guides link to AWS for current contracts, limits, availability, and rates. Capacity comparisons include [Bedrock tiers](#aws-options-bedrock-tiers), [SageMaker hosting/GPU support](#aws-options-sagemaker-hosting), and [Step Functions modes](#aws-options-step-functions). Reviewed **{{ site.data.aws_service_options.checked }}**.
 
-For certification practice, use the [exam guide and architecture mindmap](/study/aiGenAIProfessional#genai-mindmap); AWS's [exam scope](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html) and [service list](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/aip-01-in-scope-services.html) define coverage.
+**Study sequence:** [Infrastructure and evaluation](/study/aiInfrastructure) → **AWS AI Services** → [AIP-C01 architecture and practice](/study/aiGenAIProfessional#genai-mindmap). AWS's [exam scope](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html) defines certification coverage.

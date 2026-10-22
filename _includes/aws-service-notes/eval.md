@@ -41,8 +41,7 @@ CloudTrail records supported API activity. Correlate it with application/source 
 
 Ground Truth creates training labels; A2I routes predictions for review. <span id="model-governance"></span>Model Cards document intended use/limits; Clarify supports bias/explanations; Model Monitor checks configured baselines. Review and drift findings require an explicit application/release response. Check the availability notices in these cards.
 
-<span id="audit-manager"></span>
-{% include aws-security-evidence.html %}
+[Explore AWS versus customer responsibilities and evidence paths](#security-compliance-map) in the security/audit guide.
 
 Audit Manager has restrictions on new setup; follow its [availability guidance](https://docs.aws.amazon.com/audit-manager/latest/userguide/audit-manager-availability-change.html). Evidence collection supports an audit; the customer still selects controls and resolves findings.
 

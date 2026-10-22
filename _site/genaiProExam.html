@@ -1,14 +1,1269 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AWS AI service map has moved</title>
-  <link rel="canonical" href="http://localhost:4000/study/aiAWSServices">
-  <meta http-equiv="refresh" content="0; url=/study/aiAWSServices#service-map">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AIP-C01 · GenAI Pro — Study Map</title>
+<style>
+  :root{
+    --bg:#0b1017; --panel:#141b24; --panel2:#1b2430; --border:#2a3542;
+    --text:#e6edf3; --muted:#9aa7b4; --accent:#58a6ff; --accent2:#d2a8ff;
+    --good:#3fb950; --warn:#e3b341; --trap:#ff7b72; --chip:#1d2630;
+    --shadow:0 10px 40px rgba(0,0,0,.55); --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.45;}
+  b{color:#fff;}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:#0b1017;border:1px solid var(--border);border-radius:4px;padding:0 4px;}
+
+  /* header */
+  header{padding:10px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#10161e,#0b1017);position:sticky;top:0;z-index:50;}
+  .hrow{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+  header h1{margin:0;font-size:15px;white-space:nowrap;}
+  nav.nav{display:flex;gap:13px;flex:1 1 auto;flex-wrap:wrap;}
+  nav.nav a{color:var(--muted);font-size:12px;text-decoration:none;}
+  nav.nav a:hover{color:var(--text);}
+  .search{position:relative;flex:0 1 260px;}
+  .search input{width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px 6px 28px;font-size:13px;outline:none;}
+  .search input:focus{border-color:var(--accent);}
+  .search::before{content:"⌕";position:absolute;left:9px;top:4px;color:var(--muted);font-size:15px;}
+  .search kbd{position:absolute;right:8px;top:6px;font-size:10px;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:0 5px;}
+  .flagtgl{font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer;user-select:none;}
+  main{max-width:1480px;margin:0 auto;padding:14px 16px 60px;}
+  .hint{color:var(--muted);font-size:12px;margin:2px 0 14px;}
+  .hint b{color:var(--text);}
+
+  /* zones & clusters */
+  .zonesec{margin:0 0 26px;scroll-margin-top:64px;}
+  .zoneh{display:flex;align-items:baseline;gap:10px;margin:0 0 10px;}
+  .zoneh h2{margin:0;font-size:16px;}
+  .zoneh span{font-size:12px;color:var(--muted);}
+  .clusters{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(470px,1fr));align-items:start;}
+  .cluster{background:var(--panel);border:1px solid var(--border);border-top:2px solid;border-radius:var(--radius);padding:11px 13px 12px;min-width:0;}
+  .cluster.zwide{grid-column:1/-1;}
+  .zchooser{margin-bottom:12px;}
+  .st-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:7px;}
+  .st-name{font-size:12.5px;font-weight:700;}
+  .st-bound{font-size:11px;color:var(--muted);}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:7px;}
+  .tile{position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:9px 5px 8px;text-align:center;cursor:pointer;transition:all .12s;display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .tile:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 16px rgba(88,166,255,.22);}
+  .tile img{width:30px;height:30px;}
+  .tile .tnm{font-size:10.5px;font-weight:600;line-height:1.2;word-break:break-word;}
+  .tile.flag::after{content:"⚑";position:absolute;top:2px;right:5px;font-size:11px;color:var(--warn);}
+  .dim{opacity:.18;filter:grayscale(1);}
+  .hit{border-color:var(--warn)!important;box-shadow:0 0 0 1px var(--warn);}
+
+  /* chooser (decision tree) */
+  .chooser{margin-top:11px;border-top:1px dashed var(--border);padding-top:9px;}
+  .zchooser .chooser{margin-top:0;border-top:none;padding-top:0;}
+  .chlbl{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--good);font-weight:700;margin-bottom:6px;}
+  .tq{display:inline-block;background:var(--panel2);border:1px solid var(--border);border-radius:999px;padding:3px 11px;font-size:12px;font-weight:600;}
+  .tbr{border-left:2px solid var(--border);margin:4px 0 0 12px;padding-left:0;}
+  .tb{position:relative;display:grid;grid-template-columns:minmax(120px,42%) 1fr;gap:2px 10px;padding:5px 0 5px 16px;align-items:start;}
+  .tb::before{content:"";position:absolute;left:0;top:14px;width:11px;border-top:2px solid var(--border);}
+  .tif{font-size:12px;color:var(--warn);}
+  .tthen{font-size:12px;}
+  .tthen::before{content:"→ ";color:var(--muted);}
+  .tthen span{margin-right:4px;}
+  .tthen .chip{margin:2px 4px 1px 0;vertical-align:middle;}
+  .tx{grid-column:2;font-size:11px;color:var(--trap);}
+  .tsub{grid-column:1/-1;margin-top:2px;}
+  .tfoot{margin-top:9px;font-size:11.5px;color:var(--muted);border-top:1px dashed var(--border);padding-top:7px;}
+  .chip{display:inline-flex;align-items:center;gap:4px;background:var(--chip);border:1px solid var(--border);border-radius:6px;padding:1px 6px 1px 3px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;}
+  .chip:hover{border-color:var(--accent);}
+  .chip img{width:15px;height:15px;}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.68);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:36px 14px;overflow-y:auto;}
+  .overlay.open{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;max-width:820px;width:100%;box-shadow:var(--shadow);animation:zoom .16s ease;}
+  @keyframes zoom{from{opacity:0;transform:scale(.97);}to{opacity:1;transform:scale(1);}}
+  .mhead{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;}
+  .mhead img{width:42px;height:42px;background:#fff1;border-radius:8px;}
+  .mhead h2{margin:0;font-size:17px;}
+  .mhead .tag{font-size:12px;color:var(--muted);}
+  .btn{background:var(--chip);border:1px solid var(--border);color:var(--text);border-radius:8px;height:30px;padding:0 10px;cursor:pointer;font-size:13px;}
+  .btn:hover{border-color:var(--accent);}
+  .btn.on{color:var(--warn);border-color:var(--warn);}
+  .mhead .sp{margin-left:auto;display:flex;gap:6px;}
+  .mbody{padding:14px 18px 6px;}
+  .mbody h4{margin:14px 0 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);}
+  .mbody h4:first-child{margin-top:0;}
+  ul.does{margin:0;padding:0;list-style:none;display:grid;gap:4px;}
+  ul.does li{font-size:13px;padding-left:16px;position:relative;}
+  ul.does li::before{content:"▸";position:absolute;left:2px;color:var(--good);}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+  .g2>div{border-radius:8px;padding:8px 11px;font-size:12.5px;}
+  .g2 h5{margin:0 0 4px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;}
+  .g2 ul{margin:0;padding-left:16px;} .g2 li{margin:2px 0;}
+  .ok{background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.3);} .ok h5{color:var(--good);}
+  .no{background:rgba(255,123,114,.07);border:1px solid rgba(255,123,114,.3);} .no h5{color:var(--trap);}
+  .trap{background:rgba(255,123,114,.09);border-left:3px solid var(--trap);padding:8px 12px;border-radius:6px;margin:12px 0 0;font-size:13px;}
+  .facts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .fact{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;text-align:center;}
+  .fact b{display:block;font-size:15px;color:var(--warn);}
+  .fact span{font-size:10.5px;color:var(--muted);}
+  .pairs{display:flex;gap:6px;flex-wrap:wrap;}
+  .pair{background:var(--chip);border:1px solid var(--border);border-radius:7px;padding:3px 8px;font-size:11.5px;color:var(--muted);}
+  .pair b{color:var(--accent2);}
+  .mfoot{display:flex;justify-content:space-between;align-items:center;padding:10px 18px 14px;border-top:1px solid var(--border);margin-top:12px;font-size:11.5px;color:var(--muted);}
+  .lnk{font-size:10.5px;font-weight:700;color:var(--accent);background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.45);border-radius:5px;padding:1px 7px;cursor:pointer;white-space:nowrap;display:inline-block;margin:2px 4px 2px 0;}
+  .lnk:hover{background:var(--accent);color:#06244d;}
+  .lnk.tree{color:var(--good);background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.45);}
+  .lnk.tree:hover{background:var(--good);color:#04260f;}
+
+  /* tables */
+  .cmp{width:100%;border-collapse:collapse;font-size:12px;display:block;overflow-x:auto;}
+  .cmp th,.cmp td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top;}
+  .cmp th{background:var(--panel2);color:var(--accent);font-size:11px;}
+  .cmp tbody tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+  .cmp td:first-child{font-weight:700;color:var(--accent2);white-space:nowrap;}
+  pre.code{margin:0;padding:7px 8px;background:#0b1017;border:1px solid var(--border);border-radius:6px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;line-height:1.4;color:#c9d4e0;white-space:pre;overflow-x:auto;max-width:360px;}
+  pre.code .k{color:#79c0ff;} pre.code .s{color:#7ee787;} pre.code .c{color:#8b949e;}
+
+  /* scenarios */
+  .scns{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));align-items:start;}
+  .scn{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;}
+  .scn h3{margin:0;font-size:14px;}
+  .scn .q{color:var(--muted);font-size:12px;margin-top:2px;}
+  .flow{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap;margin:11px 0 9px;}
+  .fnode{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:6px 9px;display:flex;align-items:center;gap:7px;cursor:pointer;}
+  .fnode:hover{border-color:var(--accent);}
+  .fnode img{width:22px;height:22px;}
+  .fnode b{display:block;font-size:11.5px;color:var(--accent);}
+  .fnode span{font-size:10.5px;color:var(--muted);}
+  .arrow{color:var(--muted);align-self:center;}
+  .ladder{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin:11px 0 9px;}
+  .ladder .fnode{justify-content:flex-start;}
+  .why{margin:0;padding-left:17px;font-size:12.5px;} .why li{margin:2px 0;}
+
+  .footnote{color:var(--muted);font-size:11px;margin-top:26px;border-top:1px solid var(--border);padding-top:12px;}
+  @media (max-width:620px){ .g2{grid-template-columns:1fr;} .tb{grid-template-columns:1fr;} .tx{grid-column:1;} .clusters,.scns{grid-template-columns:1fr;} }
+</style>
 </head>
 <body>
-  <p>The interactive map is now part of <a href="/study/aiAWSServices#service-map">AWS AI Services</a>.</p>
-  <p>For the exam blueprint and practice, use the <a href="/study/aiGenAIProfessional">AIP-C01 decision guide</a>.</p>
+<header>
+  <div class="hrow">
+    <h1>AIP-C01 · GenAI Professional</h1>
+    <nav class="nav">
+      <a href="#life">Lifecycle</a><a href="#know">Knowledge</a><a href="#run">Runtime</a>
+      <a href="#orch">Orchestration</a><a href="#sec">Security</a><a href="#eval">Evaluate</a>
+      <a href="#pkg">Packaged</a><a href="#scn">Scenarios</a>
+    </nav>
+    <label class="flagtgl"><input type="checkbox" id="onlyFlag"> ⚑ flagged</label>
+    <div class="search"><input id="q" placeholder="Search services, traps…" autocomplete="off"><kbd>/</kbd></div>
+  </div>
+</header>
+<main>
+<p class="hint" style="font-size:13px;margin-bottom:4px"><b>ARCHITECTURE BEFORE SERVICES</b> — one system; find the layer that owns the problem. Three flows (model lifecycle · knowledge/data · runtime) + four pillars applied across them.</p>
+<p class="hint">Click a <b>tile</b> for its card · the <b style="color:var(--good)">🌳 chooser</b> under each group says which alternative wins when · <b>⚑</b> flag weak spots (<b>f</b>) · <b>/</b> search · <b>← →</b> step through cards</p>
+<div class="cluster" style="border-top-color:var(--warn);margin-bottom:16px" id="qual"></div>
+<div id="map"></div>
+
+<section class="zonesec" id="scn">
+  <div class="zoneh" style="color:var(--accent2)"><h2>🧩 Scenarios</h2><span>exam-shaped builds — click any node for its card</span></div>
+  <div class="scns" id="scenarios"></div>
+</section>
+
+<div class="footnote">Study aid for AWS Certified Generative AI — Professional (AIP-C01). Not an official AWS resource. ⚠ = newer/evolving — verify near exam day. Icons © AWS.</div>
+</main>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+
+<script>
+/* ================= ICONS ================= */
+const IB="https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/";
+const ICON={
+  bedrock:"ArtificialIntelligence/Bedrock.png", agentcore:"ArtificialIntelligence/BedrockAgentCore.png",
+  sagemaker:"ArtificialIntelligence/SageMakerAI.png", smmodel:"ArtificialIntelligence/SageMakerAIModel.png",
+  smtrain:"ArtificialIntelligence/SageMakerAITrain.png", textract:"ArtificialIntelligence/Textract.png",
+  transcribe:"ArtificialIntelligence/Transcribe.png", comprehend:"ArtificialIntelligence/Comprehend.png",
+  rekognition:"ArtificialIntelligence/Rekognition.png", lex:"ArtificialIntelligence/Lex.png",
+  polly:"ArtificialIntelligence/Polly.png", q:"ArtificialIntelligence/Q.png",
+  lambda:"Compute/Lambda.png", stepfns:"ApplicationIntegration/StepFunctions.png",
+  eventbridge:"ApplicationIntegration/EventBridge.png", appsync:"ApplicationIntegration/AppSync.png",
+  apigw:"NetworkingContentDelivery/APIGateway.png", vpce:"NetworkingContentDelivery/VPCEndpoints.png",
+  dynamodb:"Database/DynamoDB.png", aurora:"Database/Aurora.png",
+  opensearch:"Analytics/OpenSearchService.png", glue:"Analytics/Glue.png",
+  s3:"Storage/SimpleStorageService.png",
+  cloudwatch:"ManagementGovernance/CloudWatch.png", cloudtrail:"ManagementGovernance/CloudTrail.png",
+  config:"ManagementGovernance/Config.png", organizations:"ManagementGovernance/Organizations.png",
+  appconfig:"ManagementGovernance/AppConfig.png", paramstore:"ManagementGovernance/SystemsManagerParameterStore.png",
+  xray:"DeveloperTools/XRay.png", codepipeline:"DeveloperTools/CodePipeline.png",
+  kendra:"ArtificialIntelligence/Kendra.png", a2i:"ArtificialIntelligence/AugmentedAIA2I.png",
+  neptune:"Database/Neptune.png", sqs:"ApplicationIntegration/SimpleQueueService.png",
+  outposts:"Compute/Outpostsfamily.png", cloudfront:"NetworkingContentDelivery/CloudFront.png",
+  kms:"SecurityIdentityCompliance/KeyManagementService.png", waf:"SecurityIdentityCompliance/WAF.png",
+  costexplorer:"CloudFinancialManagement/CostExplorer.png", grafana:"ManagementGovernance/ManagedGrafana.png",
+  iam:"SecurityIdentityCompliance/IdentityandAccessManagement.png", cognito:"SecurityIdentityCompliance/Cognito.png",
+  idc:"SecurityIdentityCompliance/IAMIdentityCenter.png", macie:"SecurityIdentityCompliance/Macie.png"
+};
+const icon=k=>IB+(ICON[k]||ICON.bedrock);
+
+/* ================= SERVICE CARDS =================
+   One home per fact: cross-service "which one when" lives ONLY in the cluster chooser (TREES);
+   a card holds the service's own features, signals, trap, numbers and reference tables.
+   does = what it is · pick = signals FOR it · x = distractors · trap = the one-liner
+   facts = numbers (also feed the Exam-day list) · pairs = [role, partner] · links = reference tables (id) or trees ("t:id") */
+const S={
+  /* ---- Generation ---- */
+  modelstrategy:{icon:"smmodel",name:"Model strategy",tag:"Decide FIRST: use as-is or customize?",
+    does:["Off-the-shelf FM = default: fastest, cheapest","Prompting + RAG = runtime fixes, no weight change","Customize only for a **measured, durable** gap","Modality (text vs image/audio/video in) is a hard requirement"],
+    trap:"'Use the biggest/most famous model' isn't a strategy — pick by measured accuracy + modality + latency + cost on **your** data.",
+    pairs:[["If customizing","Training approach"],["Then where","Bedrock vs SageMaker"],["Prove it","Held-out eval"]]},
+  custompath:{icon:"smtrain",name:"Training approach",tag:"If customizing: pre-train · fine-tune · distill",
+    does:["**Continued pre-training** — UNLABELED domain text → domain vocabulary","**Fine-tuning** (post-training, LoRA) — LABELED examples → behavior/style/format","**Distillation** — teacher → smaller student, keeps quality, cheaper/faster"],
+    x:["Distillation ≠ quantization ≠ LoRA","Raw unstructured files as training input"],
+    pick:["Bedrock fine-tuning input = **JSONL in S3** (chat data in Converse messages format)"],
+    trap:"A finished training job ≠ improvement — compare vs baseline on held-out data."},
+  walens:{icon:"bedrock",name:"Well-Architected GenAI Lens",tile:"WA GenAI Lens",tag:"Standard design review for GenAI",
+    does:["WA Tool lens: GenAI-specific best practices across the pillars","Standardized components for consistent builds","Proof of concept on Bedrock before full build"],
+    trap:"'Consistent implementation across teams' → WA GenAI Lens over an ad-hoc internal standard."},
+  bedrock:{icon:"bedrock",name:"Amazon Bedrock",tag:"Managed FM inference + hosting, no instances",
+    does:["One API → many FMs (Anthropic, Nova, Meta, Mistral, Cohere…)","**Hosts** base, fine-tuned & imported models (Custom Model Import)","Built-in KB · Agents · Guardrails · Flows · Prompt Mgmt · Evaluations"],
+    pick:["Swap/compare models behind one API"],
+    trap:"'Bedrock can't host' is **wrong** — both host. The Bedrock-vs-SageMaker fork is **control**, not hosting.",
+    pairs:[["Private path","VPC endpoint + SCP"],["Invoke perm","bedrock:InvokeModel*"],["Safety","Guardrails"],["Grounding","Knowledge Bases"]],
+    links:["bedrockserving","bedrocktiers"]},
+  sagemaker:{icon:"sagemaker",name:"SageMaker AI",tag:"Serving & training with full infra control",
+    does:["Endpoints: Real-time · Async · Serverless · Batch Transform","You pick container, instance, GPU, autoscaling","JumpStart (open/HF models) · Clarify (bias) · Pipelines"],
+    pick:["Time-to-first-token: preload model + min instances > 0 + streaming"],
+    x:["Lazy loading / min instances 0 / Async for live chat"],
+    trap:"Endpoint type is chosen by **payload + processing time + GPU**, not by the model.",
+    facts:[["~25 MB · 60 s","Real-time"],["~1 GB · ≤1 hr","Async ⚠"],["CPU only","Serverless"]],
+    links:["smendpoints","smgpu"]},
+  neo:{icon:"sagemaker",name:"SageMaker Neo",tag:"Compile a model for edge / on-prem",
+    does:["Compiles a model for specific target hardware","Runs inference on-prem / edge / device","Hybrid = cloud SageMaker endpoint + Neo at edge + Lambda routing"],
+    pick:["'on-premises', 'edge', 'device', 'hybrid'"],
+    trap:"Neo = optimize the **model** for a device. Outposts/Wavelength = the **infrastructure**. Geographic profile = still AWS Regions."},
+  hybrid:{icon:"outposts",name:"Outposts · Wavelength",tile:"Outposts / Wavelength",tag:"AWS infrastructure on-prem or at the 5G edge",
+    does:["**Outposts** — AWS racks in your data center; data stays on-prem","**Wavelength** — AWS compute inside 5G carrier networks (mobile edge)","Secure routing between Region and on-prem resources"],
+    pick:["Jurisdiction / compliance: data can't leave the premises","Ultra-low latency for mobile devices"],
+    trap:"On-prem infra → Outposts. 5G edge → Wavelength. Compile the model for a device → Neo."},
+  converse:{icon:"bedrock",name:"Converse API",tile:"Converse",tag:"Unified multi-turn call — portable, streamable",
+    does:["Same message shape for every model — swap without rewrite","Tool use + multi-turn; params in inferenceConfig","**ConverseStream** — same contract, token-by-token (low time-to-first-token)"],
+    pick:["Many SDKs + multi-turn chat → Converse + IAM roles"],
+    trap:"Stateless — pass previous turns in messages[]; process memory doesn't survive Lambda invocations. Streaming improves **latency**, not throughput.",
+    pairs:[["Persist turns","DynamoDB"]],
+    links:["invokeapi"]},
+  invokemodel:{icon:"bedrock",name:"InvokeModel API",tile:"InvokeModel",tag:"Model-native single call — streamable",
+    does:["Each model's own request/response body","Max control of model-specific params","How custom/imported models are called","**InvokeModelWithResponseStream** — native body, streamed tokens"],
+    trap:"Native body = less portable. True streaming = the *Stream API **+** a streaming transport — buffered InvokeModel behind REST = all-at-once.",
+    links:["invokeapi","t:stream"]},
+  params:{icon:"bedrock",name:"Inference parameters",tag:"temperature · top-p/top-k · maxTokens · stop",
+    does:["**temperature** ↓ = consistent · ↑ = creative","**top-p / top-k** — shrink the sampling pool","**maxTokens** — caps length + cost (stopReason = max_tokens)","**stopSequences** — halt when a phrase appears (stopReason = stop_sequence)","**Latency-optimized** model versions for time-sensitive apps"],
+    x:["Retraining to fix randomness","'Stop at X' in the prompt (model may ignore it)","Extremes for 'balanced': temp 0.9 + no limits · temp 0.2 + top-k 4 · diversity params disabled"],
+    trap:"Inconsistent output is a sampling-parameter problem first. A/B test parameter changes.",
+    links:["sampling"]},
+  promptmgmt:{icon:"bedrock",name:"Prompt Management",tag:"Store & version prompt templates",
+    does:["**System instructions** (role) + **{{variables}}** in the user message template","**Compare versions** side by side + built-in **test** — no deployment needed","Create a **version** = locked snapshot → invoke by ARN via Bedrock APIs","Governance: approval (IAM) + CloudTrail usage + CloudWatch Logs"],
+    pick:["Catalog + template + version + compare + test, least ops → all built in"],
+    x:["S3 JSON templates + Lambda substitution/versioning (rebuilds the feature)","Naming conventions instead of real versions","Deploying each version to staging to test it","Static prompt per document type (no variables)"],
+    trap:"Saved version ≠ version actually invoked in prod — capture the rendered request first. Management stores; it never rewrites.",
+    pairs:[["Flip which is live","AppConfig"],["Improve wording","Prompt Optimization"]]},
+  promptopt:{icon:"bedrock",name:"Prompt Optimization",tag:"Auto-rewrite a prompt for a target model ⚠",
+    does:["Rewrites your prompt for a model's conventions → better quality","No weight change, no retrieval"],
+    x:["Not a cost lever (longer prompt can cost more)","≠ prompt routing / caching ≠ RAG query rewriting","≠ Prompt Management (that stores + versions, never rewrites)"],
+    trap:"Quality lever, not a cost/latency lever."},
+  promptrouting:{icon:"bedrock",name:"Intelligent Prompt Routing",tag:"Bedrock picks cheap vs strong model per request",
+    does:["Managed router **within one family** (e.g. Haiku ↔ Sonnet)","Call the router ARN as modelId — one call"],
+    x:["Routing Claude vs Llama vs Mistral (cross-provider)"],
+    trap:"Haiku/Sonnet/Opus are size tiers of **one** family — that's what routing chooses between."},
+  cascade:{icon:"bedrock",name:"Model cascading",tag:"YOU chain small → big model",
+    does:["Lambda calls small model; system prompt: 'reply TOO_COMPLEX if hard'","Lambda inspects → re-invokes larger model with the same query","Triage model may answer + self-score, or only classify complexity — both count as cascading"],
+    pick:["You want control of the escalate condition"],
+    trap:"Cascading = **you** orchestrate sequential calls. Routing = Bedrock-managed, single call."},
+  caching:{icon:"bedrock",name:"Caching",tag:"Reuse work → cut latency & cost",
+    does:["**Prompt caching** — Bedrock-native cachePoint on a long shared prefix","**Semantic cache** — embed query → vector match → reuse answer","**Exact cache** — key→value you build (ElastiCache/DynamoDB)"],
+    pick:["Reworded questions + low latency → semantic cache in **MemoryDB / ElastiCache for Valkey**"],
+    x:["Storing text pairs (no embeddings) → can't match by meaning","Exact-key cache → misses rewordings"],
+    trap:"Bedrock prompt caching ≠ ElastiCache: it reuses **prefix processing only** — the suffix still runs inference; it never reuses finished answers. Response-cache keys need tenant + source-version + model/prompt config, not just a question hash.",
+    links:["caching"]},
+  tokens:{icon:"bedrock",name:"Token efficiency",tag:"Spend fewer tokens, keep quality",
+    does:["Track tokens: usage in response · CloudWatch InputTokenCount","Context pruning: relevant chunks + recent turns; summarize old history","Prompt compression · concise output format · maxTokens","**Batch inference** (S3 → S3) for non-real-time work"],
+    pick:["Alert **before** the limit → estimate tokens pre-call → CloudWatch metric → alarm"],
+    x:["API Gateway throttling or Guardrails for token quotas","Waiting for throttling errors (reactive)","Running every model and picking the best"],
+    trap:"Biggest wins: fewer retrieved chunks (rerank → small top-k) + capped output. Batch for anything not interactive."},
+  cloudfront:{icon:"cloudfront",name:"CloudFront edge caching",tile:"CloudFront",tag:"Cache identical responses at the edge",
+    does:["Cache repeated, non-personalized responses near users","Lambda@Edge for light request logic","Fronts API Gateway; pairs with WAF"],
+    trap:"Only for identical, non-personalized answers. Reworded questions → semantic cache."},
+  provthroughput:{icon:"bedrock",name:"Provisioned Throughput",tag:"Reserve dedicated model capacity",
+    does:["Buy model units → guaranteed throughput + steady latency","Required for some custom/imported models"],
+    x:["On a cross-Region inference profile (profiles don't support PT) ⚠","Lambda provisioned concurrency to 'reserve' model capacity (that warms Lambda, not Bedrock)"],
+    trap:"Idle PT while on-demand throttles = code still calls the base model ID → invoke the **provisioned model ARN**. Refuses fixed hourly cost → on-demand cross-Region profile."},
+  xregion:{icon:"bedrock",name:"Cross-Region inference",tag:"Inference profiles spread load across Regions",
+    does:["Call a profile ID instead of a model ID","Scopes: single-Region · **geographic** (EU/US) · **global**"],
+    pick:["Cross-Region failover of **your app** → EventBridge + Lambda or **Route 53 health checks** (a profile broadens model capacity; it does not fail your app over)"],
+    x:["Combining a profile with Provisioned Throughput (profiles don't support PT) ⚠"],
+    trap:"Global profile routes **worldwide** — it is not a data-residency control.",
+    links:["profilescope"]},
+
+  /* ---- Knowledge / RAG ---- */
+  glue:{icon:"glue",name:"AWS Glue",tag:"ETL · Data Catalog · Data Quality",
+    does:["**Crawler** — scans S3/DBs, infers schema → writes tables to the Data Catalog (re-run on a schedule to catch changes)","**Data Catalog** — central metadata: where data came from, schema, versions → lineage + governance","**ETL jobs** (serverless Spark) — clean/transform, e.g. raw transcripts → **JSONL** for fine-tuning","**Data Quality in ETL jobs** — DQDL rules **filter out** failing records in-flight, before Bedrock","**Data Quality on the Catalog** — rules + **ML anomaly detection** over time; scores → EventBridge alerts"],
+    pick:["Track origin + transformations + only approved data, least ops → crawler + Catalog + Glue ETL","Validate + catch anomalies before the FM, least ops → Glue DQ (ETL filter **+** Catalog anomaly alerts)"],
+    x:["Athena SQL + Lambda for quality checks (custom code to maintain)","Step Functions + Lambda validators + DynamoDB (bespoke)","Data Wrangler / Model Monitor for pipeline validation (model-side tools)","EMR Spark (works, but you build lineage + Catalog wiring)","Athena SQL on unstructured text (SQL is for structured data; no lineage on its own)","Raw S3 straight into a training job (wrong format, no governance)"],
+    trap:"Data Catalog ≠ vector store ≠ retrieval index. Glue is **upstream** prep. Add Lake Formation for column-level grants."},
+  datawrangler:{icon:"sagemaker",name:"Data Wrangler · Processing",tile:"Data Wrangler / Processing",tag:"SageMaker data prep + batch jobs",
+    does:["**Data Wrangler** — visual prep + data-quality insights","**Processing** — run your scripts at scale (preprocess, batch-embed, multimodal)"],
+    trap:"Glue = ETL + catalog + quality rules · Data Wrangler = visual prep · Processing = custom batch jobs."},
+  s3:{icon:"s3",name:"Amazon S3 (source)",tag:"Authoritative source documents",
+    does:["Source of truth for RAG"],
+    trap:"Stale/missing in the source → nothing downstream can fix it. Fix the source first."},
+  textract:{icon:"textract",name:"Amazon Textract",tag:"Documents → text, forms, tables, answers",
+    does:["DetectDocumentText = OCR only","AnalyzeDocument: **FORMS · TABLES · QUERIES** · SIGNATURES · LAYOUT","AnalyzeExpense (invoices) · AnalyzeID (IDs)","Async for multi-page; BLOCKS + relationships + confidence"],
+    x:["DetectDocumentText when you need key-values/tables","**HTML documents** — Textract is for scans/PDFs/images; parse HTML in code or BDA"],
+    trap:"Image of a **form** → Textract, not Rekognition.",
+    links:["textractapis"]},
+  transcribe:{icon:"transcribe",name:"Amazon Transcribe",tag:"Speech → text",
+    does:["Batch + streaming (~100 ms chunks)","Diarization (ShowSpeakerLabels) · ChannelIdentification","Custom vocabulary · language ID · PII redaction","Call Analytics: sentiment + categories"],
+    trap:"Two speakers on **one** channel → diarization. **Separate** channels (stereo) → ChannelIdentification.",
+    facts:[["~100 ms","Transcribe stream chunks"]],
+    links:["transcribefeat"]},
+  rekognition:{icon:"rekognition",name:"Amazon Rekognition",tag:"Image & video analysis",
+    does:["Labels · moderation · faces · text-in-image · PPE","Video via async Start*/Get*","Custom Labels for your own objects"],
+    x:["Document forms/tables → Textract","Model text I/O moderation → Guardrails"],
+    trap:"Moderate uploaded images → DetectModerationLabels. Not a direct S3 notification target → via EventBridge."},
+  comprehend:{icon:"comprehend",name:"Amazon Comprehend",tag:"NLP on text",
+    does:["Sentiment · **Targeted** sentiment (per entity)","Entities · key phrases · language","DetectPiiEntities","Custom classification / entity recognition"],
+    pick:["Your own product names / taxonomy → **custom** entity recognizer","Intent recognition in chat","**Input-quality trio**: Comprehend **extracts** entities · Lambda **normalizes** · Bedrock **reformats** text → consistent FM input"],
+    x:["Built-in entities for company-specific products (COMMERCIAL_ITEM doesn't know your catalog)","Judging answer faithfulness (use an eval / judge model)"],
+    trap:"Detecting PII ≠ preventing it — redact **before** storing/indexing.",
+    links:["comprehendfeat"]},
+  bda:{icon:"bedrock",name:"Bedrock Data Automation",tag:"Multimodal → structured JSON",
+    does:["One API for docs, images, audio, video — auto-detects modality","Standard output or custom **blueprint** fields","Output = JSON in S3 (docs → markdown)"],
+    pick:["Mixed media, least ops · multimodal RAG prep","Split one value into parts, reused across fields → **transformation + custom type**","Many doc types, auto-detect type → **ONE project + one blueprint per type**; BDA picks the blueprint"],
+    x:["Separate project per doc type expecting BDA to pick the project (it can't — you invoke one project)","Rekognition Custom Labels to classify docs first (extra model + code)","BDA 'embeds' — no, embedding is a separate step","S3 event → BDA directly / BDA as orchestrator","Normalization / validation / aliases to split a field"],
+    trap:"Blueprint field ops: **extract** (get) → **normalize** (standardize) → **transform** (split/restructure) → **validate** (check). Only transform splits.",
+    links:["bdafields","bdasetup"]},
+  kb:{icon:"bedrock",name:"Bedrock Knowledge Bases",tag:"Managed RAG: ingest → chunk → embed → index → retrieve",
+    does:["Data sources: S3 · **web crawler** · Confluence · SharePoint · Salesforce · custom; sync on a schedule","Chunking options + Lambda transform","**Retrieve** (chunks) · **RetrieveAndGenerate** (answer + citations)","**Metadata filtering**: S3 sidecar `file.metadata.json` → indexed on sync → `filter` at query time **pre-filters** before similarity","Vector stores: OpenSearch Serverless/Managed · Aurora pgvector · Neptune Analytics · S3 Vectors · Pinecone · MongoDB Atlas · Redis Enterprise"],
+    pick:["Managed RAG, least ops","Keep fresh: S3 event / schedule → **StartIngestionJob** (incremental sync)","Public website/forum as source → **web crawler** + OpenSearch Serverless ⚠ (store support varies)","Monitor ingestion → KB logging to **CloudWatch Logs / S3 / Firehose** → Logs Insights"],
+    x:["Custom pipeline to monitor ingestion","Reranker for a chunk that was never ingested","Two audiences, one KB + query-time masking → leaks via context/citations; use **separate KBs**","Migrate to OpenSearch just to get filters (KB has them natively)"],
+    trap:"Ingestion statuses to query: RESOURCE_IGNORED · EMBEDDING_FAILED · INDEXING_FAILED.",
+    links:["ragorder","retrieve"]},
+  chunking:{icon:"bedrock",name:"Chunking strategy",tag:"How docs split before embedding",
+    does:["Fixed · Semantic · **Hierarchical** (child match, parent context) · None","Custom via KB Lambda transform (set strategy to **NONE** first)"],
+    pick:["Manuals/legal → hierarchical · financial reports → semantic","**HTML with hierarchy + highly variable lengths** → custom **Lambda chunking** (e.g. LangChain via a Lambda layer, strategy = NONE) — preserves article ↔ paragraph relationships at any length","Rule split from its exception → resize/overlap or hierarchical","**Silent** missing content, no error → truncation: chunk + overlap + monitor InputTokenCount","'Consider ALL data' + context exceeded → **map-reduce**: process each chunk, final call synthesizes (+ RAG to fetch relevant slices)"],
+    x:["Built-in **hierarchical** with parent/child sizes set from the **average** length — variable paragraphs split wrong and break the hierarchy","**Semantic** chunking when the structure itself must survive (it prioritizes meaning over structure)","Textract to parse HTML (scans/PDFs/images only)","Bigger-window model / summarize first (drops detail)","Truncating 'less important' data (breaks 'consider all')","additionalModelRequestFields to raise the context window (it's fixed per model)","Raising timeout / adding compute","Cutting overlap 'for latency'"],
+    trap:"Bigger chunks ≠ better. Measure recall."},
+  embeddings:{icon:"bedrock",name:"Embedding models",tag:"Text/image → vectors (Titan, Cohere)",
+    does:["Titan Text V1/V2 · Titan Multimodal G1 · Cohere Embed"],
+    trap:"Query + corpus must use the **same model** — same dimension isn't enough. New model → re-embed the corpus.",
+    facts:[["256 · 512 · 1024","Titan V2 dims"],["1,536","Titan G1 dims (fixed)"]]},
+  opensearch:{icon:"opensearch",name:"OpenSearch",tag:"Vector + keyword + hybrid search",
+    does:["Vector, lexical, **hybrid** search at scale","**Neural plugin** — zero embedding code: connector to a Bedrock embedding model → ingest pipeline (text_embedding processor) auto-embeds docs → **neural query** auto-embeds the query text + runs k-NN","Keep Postgres as source of truth → DMS CDC / zero-ETL sync; searchable in ~1 s","Scale: sharding · multi-index per domain · hierarchical indexes","Serverless: data access policies · bills minimum OCUs even when idle"],
+    x:["HNSW (approximate) when small dataset + max accuracy → exact index","Keyword analyzers for natural-language queries (no semantic understanding)","'Strong consistency / ACID' stems — search is near-real-time (refresh ~1 s), no transactions → pgvector","A KB just to search (KB = RAG; adds ingestion + generation overhead)"],
+    trap:"AOSS **403** = missing **data-plane** permission (aoss:APIAccessAll / data access policy) — an IAM identity policy alone isn't enough.",
+    facts:[["403","AOSS = missing data access policy"]]},
+  aurora:{icon:"aurora",name:"Aurora pgvector",tag:"Postgres as a vector store",
+    does:["Vectors next to existing relational data","**ACID / strong consistency** + full SQL metadata filtering"],
+    x:["Hundreds of millions of vectors + tight latency + peak scaling — even if data is already in Postgres"],
+    trap:"Named tripwire: **pgvector vs OpenSearch**. Already on Postgres **and** moderate scale → pgvector. Scale beats 'already on Postgres' → OpenSearch.",
+    facts:[["strong · ~1 s · eventual","Aurora · OpenSearch refresh · DynamoDB default"]]},
+  s3vectors:{icon:"s3",name:"S3 Vectors",tag:"Low-cost vector storage in S3",
+    does:["Vector buckets + indexes; KB vector store option","**Serverless, pay per use** — no compute idling; scales to billions of vectors","Metadata can be **filterable** or non-filterable"],
+    x:["Option says 'non-filterable metadata' but the stem filters by date/type → eliminate","Web crawler as data source (not supported)","Macie to find PII in it (Macie = traditional S3 buckets only)"],
+    trap:"**Filterable or eliminate.** Also: **no web crawler** data source, and **Macie can't scan vector buckets**."},
+  neptune:{icon:"neptune",name:"Neptune (GraphRAG)",tile:"Neptune",tag:"Graph store for relationship-heavy RAG",
+    does:["Neptune Analytics = KB vector store + **GraphRAG**","Multi-hop questions across linked entities"],
+    x:["Neptune as a 'better vector store'"],
+    trap:"Relationships / ownership chains / dependencies / multi-hop → GraphRAG. Plain similarity → vector store."},
+  kendra:{icon:"kendra",name:"Amazon Kendra",tag:"Managed enterprise search / retriever",
+    does:["ML-ranked search over many connectors","Retrieve API → passages for RAG","Honors document ACLs","⚠ **Maintenance mode — closed to new customers**; valid only where an index already exists"],
+    x:["Need vector/hybrid tuning control → OpenSearch"],
+    trap:"Kendra = managed retriever · KB = managed RAG pipeline · Q Business = packaged assistant. New builds → KB / OpenSearch."},
+  queryx:{icon:"bedrock",name:"Query & search tuning",tile:"Query tuning",tag:"Fix retrieval at query time",
+    does:["**Expansion** — Bedrock adds related terms → better recall","**Decomposition** — split a multi-part question into sub-queries (KB option / Lambda)","**Hybrid** search — keyword + vector (exact IDs, codes, names)","**Metadata filters** — S3 .metadata.json: date, author, domain"],
+    trap:"Stale docs returned → metadata filter on timestamp, not a bigger model."},
+  reranking:{icon:"bedrock",name:"Reranking",tag:"Reorder retrieved candidates (precision)",
+    does:["Moves most relevant chunks to the top","Retrieve many → rerank → small top-k = fewer tokens, same accuracy","KB config — no reindex"],
+    pick:["Recall OK, best docs not on top","Cut tokens, least effort"],
+    x:["Doc never retrieved (recall miss)","Truncate top-5 without reranker","Re-chunk + reindex (most effort)"],
+    trap:"**Recall** = was it retrieved at all? **Precision** = is it on top? Reranking only fixes precision."},
+
+  /* ---- Orchestration ---- */
+  agents:{icon:"bedrock",name:"Bedrock Agents",tag:"Managed agent — FM picks the next tool",
+    does:["Action groups (Lambda tools) + KBs + instructions","Managed ReAct loop + session memory","Traces: Pre · Orchestration · Post processing","⚠ Classic Agents are in **maintenance mode** — new agent builds trend to AgentCore + Strands"],
+    pick:["Re-plan on failure (bad code → ask user → continue)"],
+    x:["Deterministic decisions (approve, thresholds) left to the LLM → Lambda/Step Functions","Step Functions retry for re-planning (retry ≠ re-plan)"],
+    trap:"The plan isn't authority — IAM + backend still enforce every write.",
+    links:["agentpaths","agenttrace"]},
+  multiagent:{icon:"agentcore",name:"Strands / Agent Squad",tag:"Multi-agent frameworks",
+    does:["**Strands SDK** — build agents in code, supervisor → collaborators, MCP tools","**Agent Squad** — route a request to the right specialist agent","Strands patterns: supervisor/sub-agent · agent-as-tool · swarm"],
+    trap:"One managed agent is enough → Bedrock Agents. Frameworks don't authorize anything."},
+  stepfns:{icon:"stepfns",name:"Step Functions",tag:"Durable known-flow orchestration",
+    does:["**Standard** — up to 1 yr, waits, .sync, waitForTaskToken approvals (SendTaskSuccess / SendTaskFailure)","**Express** — ≤5 min, high volume; no waits, no .sync, no callbacks","**Map** iterates a list · **Parallel** = fixed different branches","Retry/Catch · native Bedrock InvokeModel"],
+    pick:["Add steps **behind** an unchanged API = least app change","Bounded ReAct loop: max iterations + stopping condition","Content-based routing to specialist FMs"],
+    x:["'Parallel state iterates the reports' (that's Map)","Retry/Catch as a fleet circuit breaker","Extra Lambda where SFN can call the service directly"],
+    trap:"Poll an async job → Standard (Express can't wait).",
+    facts:[["1 yr / 5 min","SFN Standard / Express"]],
+    links:["sfnresilience"]},
+  flows:{icon:"bedrock",name:"Bedrock Flows",tag:"Visual GenAI node pipeline",
+    does:["Nodes: Prompt · KB · Agent · Lambda · Condition · Iterator","Versioned/aliased; InvokeFlow"],
+    x:["Durable waits / async polling","KB node to 'read all files in an S3 bucket'"],
+    trap:"Batch over S3 + poll an async job → Step Functions, not Flows."},
+  lambda:{icon:"lambda",name:"AWS Lambda",tag:"Bounded stateless compute",
+    does:["Tool handlers · KB transforms · glue","**Reserved** concurrency = cap only (no warm-up) · **Provisioned** = pre-initialized (extra cost; can spill to on-demand)","**Response streaming** via Function URL"],
+    x:["Chaining Lambdas to fake a workflow → Step Functions","Multi-hour agent loop → AgentCore"],
+    trap:"Streaming to the client needs Lambda **response streaming** (RESPONSE_STREAM Function URL) — otherwise it buffers.",
+    facts:[["15 min","Lambda max run"]]},
+  eventbridge:{icon:"eventbridge",name:"EventBridge",tag:"Event bus + scheduler",
+    does:["Rules route events → targets; fan-out","Scheduler: cron/rate","Pipes: source → target"],
+    trap:"React / schedule / decouple → EventBridge. Ordered steps + waits → Step Functions."},
+  s3event:{icon:"s3",name:"S3 Event Notifications",tag:"S3 object events → targets",
+    does:["Native targets **only**: Lambda · SNS · SQS · EventBridge","Prefix/suffix filter"],
+    x:["S3 → Step Functions / BDA / Glue / Rekognition directly","S3 → FIFO SQS/SNS"],
+    trap:"Anything else → S3 → **EventBridge** → target (EventBridge invokes Step Functions directly).",
+    links:["s3vseb"]},
+  sqs:{icon:"sqs",name:"SQS · SNS",tile:"SQS / SNS",tag:"Buffer & fan-out for async FM calls",
+    does:["**SQS** — queue requests; workers call Bedrock at a steady rate","Absorbs spikes; DLQ for failures","**SNS** — pub/sub fan-out"],
+    trap:"Buffer → SQS · rule-based routing → EventBridge · ordered steps → Step Functions."},
+  agentcore:{icon:"agentcore",name:"Bedrock AgentCore",tag:"Run YOUR agent code at scale ⚠",
+    does:["Runtime · Memory · Gateway · Identity · Observability","Any framework (Strands, LangGraph, CrewAI) + any model","Hosts MCP servers (incl. prebuilt)"],
+    pick:["**Natural-language access to a database (e.g. Aurora) + actions, least ops** → AgentCore Runtime + **Strands** + **prebuilt MCP server** exposing the data as tools"],
+    x:["API Gateway + Lambda per query/action (custom API management)","Hand-built text-to-SQL pipeline"],
+    trap:"Agents and AgentCore are **parallel** paths — Agents doesn't run on AgentCore.",
+    links:["agentpaths"]},
+  agentidentity:{icon:"agentcore",name:"AgentCore Identity",tag:"Inbound user auth + outbound tool creds",
+    does:["**Inbound** — validate user tokens via OIDC IdP (Entra/Okta/Cognito)","**Outbound** — broker creds/tokens for downstream tools","Entra: discovery URL = v2.0 OIDC metadata · allowed audience = app ID"],
+    pick:["OIDC users into an agent, least overhead"],
+    x:["API Gateway + Lambda authorizer","Cognito with SAML (wrong protocol)","IAM Identity Center"],
+    trap:"Identity brokers access; the target's IAM still makes the final grant."},
+  mcp:{icon:"agentcore",name:"MCP tools",tile:"MCP",tag:"Expose tools to agents via Model Context Protocol",
+    does:["Standard protocol: agents discover + call your tools","Remote multi-user server → API Gateway HTTP API + **Streamable HTTP**; STDIO = local only","Loose coupling: backend API changes → update only the MCP server"],
+    x:["Lambda invoke permission as user auth (tool touches user data → Cognito/OAuth)"],
+    trap:"Built-in MCP + least ops → AgentCore (prebuilt server or Gateway). MCP isn't authorization."},
+  apigw:{icon:"apigw",name:"API Gateway",tag:"Front door: REST · HTTP · WebSocket",
+    does:["Authorizers (Cognito / Lambda / IAM) · throttling","**Usage plans + API keys** = customer tiers","**Method-level** throttling","Metrics auto-published to CloudWatch"],
+    pick:["429 + tier customers + protect one endpoint → usage plans + method throttling"],
+    x:["WebSocket just to stream tokens (HTTP streaming is lighter)","Lambda authorizer for model routing","Throttling to control **token** spend (it limits requests)"],
+    trap:"API Gateway 429 = admission. Bedrock ThrottlingException = model quota → PT / cross-Region / backoff.",
+    links:["usageplan"]},
+  appsync:{icon:"appsync",name:"AWS AppSync",tag:"Managed GraphQL + real-time subscriptions",
+    does:["One GraphQL endpoint → Lambda/DynamoDB/HTTP","Subscriptions push updates to many clients"],
+    trap:"GraphQL / managed subscriptions → AppSync. REST → API Gateway. Neither authorizes the record."},
+  dynamodb:{icon:"dynamodb",name:"DynamoDB",tag:"Low-latency state",
+    does:["Session / conversation state · live ratings","Encrypted at rest by default · on-demand autoscaling · **TTL** expires old sessions","Idempotency keys (exactly-once writes)","Shared circuit-breaker state"],
+    pick:["Track 'which product' across a chat → store session context, inject into each prompt"],
+    x:["Full history in every prompt (token cost explodes at scale, nothing stored encrypted)","As a vector store — no native similarity search; pair with OpenSearch (zero-ETL)"],
+    trap:"The model only sees state you pass — persist here and resend."},
+  lex:{icon:"lex",name:"Amazon Lex",tag:"Intent/slot chat & voice bot",
+    does:["Intents + slots + utterances; ASR + NLU","Lambda fulfillment · Connect (IVR) · speaks via Polly","Generative features (Bedrock-powered) help **author** the bot: descriptive bot building, assisted slot resolution, utterance generation ⚠"],
+    x:["Open-ended, model-chooses-tools → Bedrock Agents","Tracking context across many products in one chat (intents/slots ≠ session memory)"],
+    trap:"Lex understands + routes; your Lambda fulfills. Per-category intents + fallback Lambda = more latency + ops."},
+  polly:{icon:"polly",name:"Amazon Polly",tag:"Text → speech",
+    does:["SynthesizeSpeech (stream) · StartSpeechSynthesisTask (async → S3)","Engines: standard → neural → long-form → generative","SSML + lexicons · speech marks (lip-sync)","**StartSpeechSynthesisStream** — bidirectional: send text incrementally, audio streams back"],
+    trap:"Transcribe = STT, Polly = TTS. Voice bot: Transcribe → Bedrock → Polly."},
+  appconfig:{icon:"appconfig",name:"AWS AppConfig",tag:"Change prompt/model/flags in prod — no redeploy",
+    does:["Feature flags + free-form config","Validators → gradual rollout → auto-rollback on alarm","A/B experiments on live traffic","Agent caches locally (localhost:2772) — change isn't instant; the app must poll + apply"],
+    x:["Baking prompt/model ID in code","Lambda env vars (changing them = a deploy)","AWS Config (different service)"],
+    trap:"Config canary, not traffic canary.",
+    links:["appconfigsetup"]},
+  paramstore:{icon:"paramstore",name:"Parameter Store",tag:"Key-value config & secrets",
+    does:["String · StringList · SecureString (KMS)","Change = instant, global, no rollback"],
+    trap:"Store a value → Param Store. Safe rollout → AppConfig. Rotation → Secrets Manager.",
+    facts:[["4 KB · 8 KB","Param Store Standard · Advanced"]]},
+
+  /* ---- Security ---- */
+  cognito:{icon:"cognito",name:"Amazon Cognito",tag:"App / customer identity",
+    does:["User pools: OIDC/SAML federation with existing IdP","Identity pools: token → temp AWS creds"],
+    x:["For no long-lived keys: IAM user access keys · IAM users + Secrets Manager rotation (still persistent) · API Gateway authorizer issuing custom JWTs"],
+    trap:"Cognito **can** federate Entra — the question is caller category, not capability."},
+  idc:{icon:"idc",name:"IAM Identity Center",tag:"Workforce SSO + permission sets",
+    does:["Federate Entra/Okta (SAML) + SCIM sync","Permission sets across all accounts","Microsoft **Entra ID = formerly Azure AD**"],
+    pick:["Scope developers to approved Bedrock models → permission set with model-ARN conditions on designated accounts (the **allow** half; the SCP is the deny ceiling)"],
+    x:["APIGW token proxy / AssumeRole from on-prem","Permission sets to filter documents in an assistant (needs ACL/metadata mapping)"],
+    trap:"Also valid: IAM SAML federation + IAM roles mapped to groups (per account)."},
+  iam:{icon:"iam",name:"IAM",tag:"Who may call which AWS action",
+    does:["Identity policies · permission boundaries","Condition keys: model ARNs, GuardrailIdentifier"],
+    trap:"Missing invoke perm → AccessDeniedException. IAM ≠ tenant record entitlement."},
+  scp:{icon:"organizations",name:"Organizations SCP",tag:"Org-wide deny ceiling",
+    does:["Restrict approved models across accounts","Never grants — IAM must still allow"],
+    pick:["'Strictly prohibit' marketplace / unapproved models → **ceiling + grant pair**: SCP deny on bedrock:InvokeModel* (model-ID condition) **+** Identity Center permission set allowing only approved model ARNs **+** invocation logging"],
+    x:["Config rule → EventBridge → Lambda stripping permissions (**detective/reactive** — fires after the call; 'prohibit' needs preventative)","RCPs (don't support Bedrock)","StackSets + per-account IAM roles when Identity Center already manages access"],
+    trap:"A **specific** guardrail ARN is account-local → permission boundary, not SCP. 'Prohibit/prevent' → SCP/IAM condition · 'detect/audit' → Config.",
+    links:["guardrailorg"]},
+  vpce:{icon:"vpce",name:"VPC endpoints",tag:"Private path to AWS APIs",
+    does:["**Interface** (ENI, paid) — most services incl. Bedrock","**Gateway** (route, free) — S3 + DynamoDB only","Enforce path with aws:SourceVpce in SCP/IAM"],
+    trap:"Bedrock = Interface only. Gateway isn't reachable from on-prem/peered VPC. Private pipe ≠ authz ≠ encryption ≠ residency.",
+    links:["endpoints"]},
+  kms:{icon:"kms",name:"KMS · Secrets Manager",tile:"KMS / Secrets",tag:"Encryption keys + secret rotation",
+    does:["KMS encrypts KBs, vector stores, custom models, logs","Customer-managed key (CMK) = your policy, rotation, audit","Secrets Manager rotates API keys / DB creds (e.g. 3rd-party model keys)"],
+    trap:"Encryption ≠ authorization. 'Rotate a secret' → Secrets Manager, not Parameter Store."},
+  lakeformation:{icon:"glue",name:"Lake Formation",tag:"Fine-grained data-lake permissions",
+    does:["LF-tags: database / table / **column** / row grants","Setup: **register** S3 buckets with LF → grant via LF permissions (not bucket policies)","Cross-account: roles in each source account; app's execution role assumes them, reads through LF","Scales to new business units — add an account, tag, grant"],
+    x:["S3 object tags (object-level, can't hide fields)","S3 bucket/resource policies to apply LF-tags (LF needs registration + LF grants)","VPC endpoints for data filtering (network only)","Identity Center permission sets or Lambda authorizer to filter PII"],
+    trap:"'FM sees only necessary **fields**' + PII + many accounts → Lake Formation column-level LF-tags. Filters apply only through **integrated engines** — direct S3 access bypasses them; keep bucket access locked."},
+  s3gov:{icon:"s3",name:"S3 Object Lock · Lifecycle",tile:"Object Lock / Lifecycle",tag:"Immutable audit + retention",
+    does:["**Object Lock** — WORM: logs/outputs can't be altered or deleted","**Lifecycle** — expire/transition by age (retention policy)"],
+    trap:"'Must not be tampered with' → Object Lock. CloudWatch Logs / DynamoDB aren't immutable."},
+  waf:{icon:"waf",name:"AWS WAF",tag:"HTTP-layer protection",
+    does:["Rate limits · IP/geo rules · SQLi/XSS · bot control","Attaches to API Gateway / CloudFront / ALB"],
+    x:["Prompt-injection defense (no prompt semantics)"],
+    trap:"HTTP abuse → WAF. Prompt attacks → Guardrails."},
+  macie:{icon:"macie",name:"Amazon Macie",tag:"Find sensitive data at rest in S3",
+    does:["Automated discovery — switch ON, continuous sampling","Classification jobs — one-time or scheduled","Findings → EventBridge / Security Hub","Job knobs: managed + **custom** data identifiers · **allow lists** (suppress false positives) · sampling depth · bucket/prefix scope","Needs a service-linked role + **KMS decrypt** for encrypted objects"],
+    pick:["'Scan when new data lands' → EventBridge/Lambda → CreateClassificationJob"],
+    x:["Scanning **S3 vector buckets**"],
+    trap:"Reports only — doesn't block. **Traditional S3 buckets only — not S3 vector buckets.** Live model I/O → Guardrails.",
+    links:["maciemodes"]},
+  guardrails:{icon:"bedrock",name:"Bedrock Guardrails",tag:"Content safety on model input + output",
+    does:["Content filters (NONE→HIGH) incl. **Prompt Attack**","Denied topics · word filters · PII **BLOCK/MASK**","Contextual grounding (⚠ not for conversational QA; scores are signals, not calibrated probabilities) · automated reasoning","ApplyGuardrail = check text without a model call"],
+    pick:["Source contains user-posted PII → **sensitive-info filter** on the agent/KB answers (mask/block at output)","One guardrail holds many policies/actions","Per-context selection → multiple guardrails + tags + EventBridge","One standard guardrail org-wide; departments still tune their own FM parameters"],
+    x:["Guardrails as RBAC / authorization","Prompt instructions as a safety control (never enforceable)","Grounding to stop PII leaks","MASK to block a topic (use denied topics)","Skipping guardrails in dev/test"],
+    trap:"Prompt injection is **direct** (user input) or **indirect** (instructions hidden in retrieved docs) — filtering only user input misses the second. Defense = system prompt + Agent pre-processing + Prompt Attack filter on input **and** retrieved content. ✗ WAF / Config / CloudWatch.",
+    links:["guardrailpolicies","guardrailorg"]},
+
+  /* ---- Eval / Observability ---- */
+  evaluations:{icon:"bedrock",name:"Bedrock Evaluations",tag:"Managed eval jobs: model & RAG",
+    does:["Model · RAG retrieve-only · RAG retrieve-and-generate","Scorers: built-in metrics · LLM-as-judge · human","Dataset in S3 → report in S3; thin Lambda adds e.g. Spearman rank correlation"],
+    pick:["'Human-like judgment at scale' → LLM-as-judge","High stakes + cost limit → LLM-judge screen + targeted human review","Regression → golden dataset + CI/CD eval job + threshold gate"],
+    x:["Hand-built SageMaker Ground Truth job / A2I for eval jobs","Comprehend sentiment to 'score' answers","Accuracy/F1, latency or citation count as quality"],
+    trap:"Human eval = 3 must-haves: **work team** (Cognito) + **custom metrics** + **custom JSONL prompt dataset in S3 with CORS** (built-in datasets don't apply). Auto job >1,000 prompts fails → split.",
+    facts:[["≤ 1,000","prompts / auto eval job"]],
+    links:["evaljobs"]},
+  a2i:{icon:"a2i",name:"A2I · Ground Truth",tile:"A2I / Ground Truth",tag:"Humans in the loop",
+    does:["**A2I** — route low-confidence outputs to human reviewers","**Ground Truth** — labeling / annotation workforce","Feedback: API Gateway + Lambda store ratings (thumbs up/down)"],
+    x:["A2I for Bedrock model-evaluation jobs"],
+    trap:"A2I = **runtime** review of low-confidence outputs. Experts **evaluating models** = Bedrock human eval job; its work team logs in via Cognito."},
+  clarify:{icon:"sagemaker",name:"Clarify · Model Monitor",tile:"Clarify / Model Monitor",tag:"Bias, explainability, drift",
+    does:["**Clarify** — bias metrics + explainability report","**Model Monitor** — scheduled data/quality/**bias drift** jobs vs a baseline → violation reports in S3","**Data Capture** (endpoint config) — logs real requests/responses to S3; Monitor's input","**Custom ECR image** in Monitor → your own metrics, e.g. **embedding drift**"],
+    pick:["Is input drift hurting a SageMaker endpoint? → Data Capture + Monitor (custom image) vs training baseline","Turn on capture with no downtime → new endpoint config + **UpdateEndpoint** (blue/green)"],
+    x:["Clarify for embedding / input drift (it's bias)","New endpoint + delete old (disrupts traffic)","Switch to Bedrock Titan just to get invocation logs"],
+    trap:"Bias drift → Model Monitor + Clarify. Embedding/semantic drift → Monitor with a custom image. One-off bias report → Clarify."},
+  modelcard:{icon:"smmodel",name:"Model Cards",tag:"Doc: intended use, limits, risk",
+    does:["Intended use · training data · eval results · bias/risk"],
+    trap:"Card **documents**. Registry **versions + approves**."},
+  modelregistry:{icon:"smmodel",name:"Model Registry",tag:"Versions + approval gate",
+    does:["PendingManualApproval → Approved / Rejected","Pipelines read status to promote","Rollback = redeploy previous approved version · retire = deprecate old versions"],
+    trap:"Approved ≠ deployed."},
+  cicd:{icon:"codepipeline",name:"CodePipeline · GenAI gateway",tile:"CI/CD + gateway",tag:"Ship GenAI changes safely",
+    does:["CodePipeline + CodeBuild: build → evals + security scans → deploy → rollback","**Canary**: Step Functions reads CloudWatch → promote or auto-rollback","**Shadow test** (SageMaker): mirror traffic to the new model, zero user impact — **sandbox/suppress mirrored writes**","**GenAI gateway** — one central API layer: auth, quotas, per-team cost, model abstraction"],
+    trap:"Many teams + governance + per-team cost → GenAI gateway, not direct FM calls. Gate the release, don't just watch it."},
+  cloudwatch:{icon:"cloudwatch",name:"CloudWatch",tag:"Metrics · logs · alarms",
+    does:["AWS/Bedrock: invocations, tokens, latency, errors","Alarms → SNS / AppConfig rollback"],
+    trap:"Fleet health → CloudWatch. Which hop is slow → X-Ray. Prompt text → Invocation Logging."},
+  synthetics:{icon:"cloudwatch",name:"CloudWatch Synthetics",tag:"Canaries replay user workflows",
+    does:["Scheduled scripts replay key journeys → pass/fail + latency"],
+    x:["Hallucination detection"],
+    trap:"Proves the workflow **runs**, not output **quality** → pair with Evaluations + embedding drift checks."},
+  costanomaly:{icon:"costexplorer",name:"Cost Explorer · Anomaly Detection",tile:"Cost tools",tag:"Track and alert on spend",
+    does:["Cost Explorer — spend by service / cost-allocation tag","**AWS Budgets** — cost/usage threshold alerts","Cost Anomaly Detection — ML alert on unusual spend","Application inference profiles + tags → per-team cost"],
+    trap:"Spend spike → Cost Anomaly Detection. Token burst → CloudWatch anomaly detection on token metrics. Neither Budgets alerts nor API throttles are a hard per-team **token** cap."},
+  reporting:{icon:"grafana",name:"QuickSight · Managed Grafana",tile:"Dashboards",tag:"Report metrics to stakeholders",
+    does:["QuickSight — business dashboards (eval scores, model comparison)","Managed Grafana — operational dashboards over CloudWatch/Prometheus"],
+    trap:"Don't rebuild a dashboard the product already ships — native metrics/dashboards first."},
+  xray:{icon:"xray",name:"AWS X-Ray",tag:"Distributed tracing",
+    does:["Service map + per-segment latency/errors","**Annotations** correlate latency with specific FM calls","Enable: instrument with the X-Ray SDK (or via ADOT)"],
+    trap:"CloudTrail audits, X-Ray traces — a favorite swap."},
+  adot:{icon:"xray",name:"ADOT",tag:"OpenTelemetry collector",
+    does:["Vendor-neutral traces/metrics → X-Ray, CloudWatch, Prometheus, 3rd-party","Lambda layer / sidecar"],
+    trap:"Portable / multi-backend → ADOT. ADOT exports **to** X-Ray."},
+  cloudtrail:{icon:"cloudtrail",name:"CloudTrail",tag:"Who called which API",
+    does:["Principal · API · time · IP · vpcEndpointId","Mgmt events default; data events opt-in; Lake for SQL","Enable = create a trail (mgmt events on by default)"],
+    trap:"Logs that InvokeModel **happened** — not the prompt. Full audit = CloudTrail + invocation logging; CloudWatch metrics aren't audit.",
+    facts:[["90 days","CloudTrail event history"]]},
+  invlog:{icon:"cloudtrail",name:"Model Invocation Logging",tag:"Logs prompt + response content",
+    does:["Opt-in per account + Region (off by default)","→ S3 and/or CloudWatch Logs","Group on identity.arn → per-caller tokens"],
+    trap:"Blocked guardrail content appears here as plain text.",
+    facts:[["100 KB","invocation log inline body"]],
+    links:["invlogfmt"]},
+  config:{icon:"config",name:"AWS Config",tag:"Resource compliance & change history",
+    does:["Rules → COMPLIANT / NON_COMPLIANT (turn on the recorder + rules)","Custom rules via **RDK** (Lambda)","Auto-remediate via SSM","RDK flow: `rdk create` → edit evaluate_compliance Lambda → `rdk test-local` → `rdk deploy`","CMK check: COMPLIANT only if sseAlgorithm = aws:kms **and** kmsMasterKeyID set; SSE-S3 or default aws/s3 key → NON_COMPLIANT"],
+    pick:["'Continuously validate all existing resources' (e.g. SSE-KMS with a CMK)"],
+    x:["CloudTrail (API calls)","Macie (PII)","EventBridge per-PutObject"],
+    trap:"AWS Config ≠ AppConfig. Config = resource compliance · **GuardDuty** = threat detection · **Security Hub** = aggregates findings."},
+
+  /* ---- Packaged ---- */
+  qbusiness:{icon:"q",name:"Q Business",tag:"Packaged enterprise assistant",
+    does:["40+ connectors (+ custom connector / upload API), managed RAG","**Automatic sync + security-group / ACL mapping** per data source","**Identity Center = its required identity layer** — federate your AD/Entra into it; answers are filtered per user by source ACLs"],
+    pick:["CMS + internal KBs + enterprise directory + RBAC, least ops → connectors + auto sync + group mapping + Identity Center federation — all built in"],
+    x:["Lambda to index docs or validate permissions (rebuilds connectors + ACL enforcement)","API Gateway endpoints in front of content","Direct Active Directory integration + CloudWatch alarms as access control (alarms are detective, not RBAC)"],
+    trap:"Per-user ACLs respected — don't 'ingest all, filter later'. Packaged ≠ identity-free: identity always flows through Identity Center. Bespoke UX → custom Bedrock app."},
+  qdeveloper:{icon:"q",name:"Q Developer",tag:"AI coding assistant",
+    does:["/dev · /review · /transform · /test · /doc","Real-time code generation, refactoring, API guidance, performance suggestions","Auto-generates unit + integration tests; security scans; GenAI error-pattern help","IDE + console + CLI","Identity: **Pro tier = Identity Center** subscriptions · free tier = AWS Builder ID"],
+    pick:["'Productivity / consistent patterns / tune performance' → use Q **continuously** to generate + refactor across the codebase","'Accelerate testing / keep quality' → Q test generation **inside CI/CD**"],
+    x:["Retrospective analysis / documenting patterns afterwards","Q only at merge time + periodic **manual** refactoring","**Mandatory manual approval of all changes** (bottleneck, even with Q security scans)"],
+    trap:"**Proactive + automated** beats reactive + manual. Any option with a manual gate or 'periodic review' contradicts 'accelerate'."}
+};
+
+/* ================= ZONES → CLUSTERS =================
+   Grouped by the architecture layers (model lifecycle · knowledge/data flow · runtime flow · four pillars).
+   A cluster = the alternative tiles + ONE chooser that says which alternative wins when. */
+const ZONES=[
+  {id:"life",label:"Model lifecycle",color:"#58a6ff",sub:"select → customize → evaluate → release → monitor · one deployed version at a time",stages:[
+    {name:"Select & customize",b:"As-is or customize? Decide before platform; always evaluate the unchanged model as the baseline.",keys:["modelstrategy","custompath","walens"],chooser:"gap"},
+    {name:"Where the model runs",b:"Both host — the fork is control.",keys:["bedrock","sagemaker","neo","hybrid"],chooser:"hosting"},
+    {name:"Release & rollback",b:"Approved ≠ deployed — gate the release, keep a compatible rollback target. (Quality gates → Evaluation pillar.)",keys:["cicd","modelregistry","appconfig","paramstore"],chooser:"config"}]},
+  {id:"know",label:"Knowledge / data flow",color:"#3fb950",sub:"source → preprocess → ingest → store → retrieve · fix the FIRST broken stage",stages:[
+    {name:"Source & prepare",b:"Stale source → wrong everywhere · Data Catalog ≠ vector store.",keys:["s3","glue","datawrangler"]},
+    {name:"Preprocess / extract",b:"Readable ≠ faithful — preserve meaning before chunking.",keys:["textract","transcribe","rekognition","comprehend","bda"],chooser:"extract"},
+    {name:"Ingestion",b:"Keep rule + exception together; query + corpus share one embedding model.",keys:["kb","chunking","embeddings"]},
+    {name:"Knowledge store",b:"Pick by scale, consistency, relationships, cost.",keys:["opensearch","aurora","s3vectors","neptune","kendra"],chooser:"vector"},
+    {name:"Retrieval & debug",b:"Recall = was it retrieved · precision = is it on top.",keys:["queryx","reranking"],chooser:"rag"}]},
+  {id:"run",label:"Runtime / inference flow",color:"#39c5cf",sub:"user/API → retrieval → prompt/context → model → response",stages:[
+    {name:"Front door & streaming",b:"REST vs GraphQL · how tokens reach the client.",keys:["apigw","appsync"],chooser:"stream"},
+    {name:"Prompt / context",b:"Management stores + versions · Optimization rewrites for quality.",keys:["promptmgmt","promptopt"]},
+    {name:"Model inference",b:"Unified vs native call · sampling fixes before retraining.",keys:["converse","invokemodel","params"],chooser:"params"},
+    {name:"Session state, bots & voice",b:"The model only sees state you pass.",keys:["dynamodb","lex","polly"]},
+    {name:"Cost levers",b:"Cache by what actually repeats · route smart · spend fewer tokens.",keys:["promptrouting","cascade","caching","tokens","cloudfront"],chooser:"cost"},
+    {name:"Capacity & Regions",b:"Reserve, spread, or stay on-demand.",keys:["provthroughput","xregion"],chooser:"capacity"},
+    {name:"Slow vs starved",b:"Streaming = latency · batching = throughput — never swap them.",keys:[],chooser:"latency"}]},
+  {id:"orch",label:"Pillar · Orchestration",color:"#d2a8ff",sub:"who chooses the next step? state · retries · approvals",stages:[
+    {name:"Who drives the next step",b:"Known flow = you code it · unknown = the model decides.",keys:["agents","multiagent","stepfns","flows","lambda"],chooser:"driver"},
+    {name:"Events & queues",b:"React, schedule, buffer — not ordered steps.",keys:["eventbridge","s3event","sqs"],chooser:"events"},
+    {name:"Your agent platform",b:"Your code + identity + MCP tools.",keys:["agentcore","agentidentity","mcp"],chooser:"mcphost"},
+    {name:"When things fail",b:"Retry ≠ re-plan ≠ circuit breaker · side effects must be idempotent.",keys:[],chooser:"resilience"}]},
+  {id:"sec",label:"Pillar · Security / governance",color:"#f0883e",sub:"identity · access · isolation — safety ≠ authorization",chooser:"protect",stages:[
+    {name:"Who is the caller",b:"Workforce vs app users vs agent users.",keys:["cognito","idc"],chooser:"identity"},
+    {name:"What may they call",b:"AWS actions — not record entitlement.",keys:["iam","scp"]},
+    {name:"Private path",b:"Pipe only; SCP condition closes the rest.",keys:["vpce"]},
+    {name:"Data controls",b:"Keys, columns, immutability, HTTP abuse, PII at rest.",keys:["kms","lakeformation","s3gov","waf","macie"]},
+    {name:"Content safety",b:"In-flight filter; never authorizes.",keys:["guardrails"]}]},
+  {id:"eval",label:"Pillar · Evaluation & observability",color:"#e3b341",sub:"quality before release + evidence of what happened in production",chooser:"qualityops",stages:[
+    {name:"Prove quality",b:"Held-out data + rubric · block on critical-cohort regressions.",keys:["evaluations","a2i","clarify","modelcard"],chooser:"reliable"},
+    {name:"Watch production",b:"Something changed — then find where.",keys:["cloudwatch","synthetics","costanomaly","reporting","xray","adot"],chooser:"observe"},
+    {name:"Audit",b:"Caller (CloudTrail) vs content (Invocation Logging) vs config (Config).",keys:["cloudtrail","invlog","config"]}]},
+  {id:"pkg",label:"Packaged apps",color:"#ff7b72",sub:"buy vs build",stages:[
+    {name:"Assistants",b:"Employees' data vs developers' code · bespoke UX → build on Bedrock.",keys:["qbusiness","qdeveloper"]}]}
+];
+
+/* ================= CHOOSERS (decision trees) ================= */
+const TREES={
+  qualifier:{title:"① Read the qualifier first",color:"#e3b341",
+    root:{q:"What is the question scoring?",opts:[
+      {if:"LEAST operational overhead",then:"Managed/serverless wins — even if it adds a service",keys:["agentcore","stepfns"],x:"Self-host on ECS / Fargate / EKS"},
+      {if:"LEAST changes to the app",then:"Keep the client + endpoint; add services behind it",keys:["apigw","stepfns"],x:"Push logic to the client / replace the integration"},
+      {if:"LEAST development effort",then:"Built-in feature > custom code; a thin Lambda is fine",keys:["evaluations","agents"],x:"Bespoke pipeline / hand-built multi-agent"}]},
+    foot:"Count what YOU run, change, or write — not the boxes in the diagram. The qualifier is a **tiebreaker**: it only ranks options that meet every hard requirement — an option that breaks a constraint (scale, latency, residency) is out before 'least effort' is applied."},
+  gap:{title:"Close a quality gap — which lever?",color:"#58a6ff",
+    root:{q:"What is actually missing?",opts:[
+      {if:"Instructions / format / examples",then:"Prompt engineering",keys:["promptmgmt","promptopt"]},
+      {if:"Current or private facts + citations",then:"RAG",keys:["kb"],x:"Fine-tuning (doesn't add facts)"},
+      {if:"Stable behavior / style / format",then:"Fine-tune (incl. LoRA)",keys:["custompath"]},
+      {if:"Broad domain language",then:"Continued pre-training (unlabeled)",keys:["custompath"]},
+      {if:"Same quality, smaller / cheaper",then:"Distillation",keys:["custompath"],x:"Quantization"},
+      {if:"Messy / multi-format / multilingual input",then:"Comprehend extract → Lambda normalize → **Bedrock reformat**",keys:["comprehend"],x:"Validate/filter or store only — nothing reformats"}]},
+    foot:"Order: off-the-shelf → prompt → RAG → customize. Prove with held-out eval."},
+  hosting:{title:"Where does the model run?",color:"#58a6ff",
+    root:{q:"What does the requirement demand?",opts:[
+      {if:"Least ops, no infra knobs",then:"incl. fine-tuned + imported models",keys:["bedrock"]},
+      {if:"GPU / container / scaling control",keys:["sagemaker"],sub:{q:"Which endpoint?",opts:[
+        {if:"Small, fast, sync",then:"Real-time (~25 MB / 60 s)"},
+        {if:"Big payload / long, GPU",then:"Async (~1 GB / up to 1 hr ⚠)"},
+        {if:"Intermittent, no GPU",then:"Serverless (CPU only)"},
+        {if:"Whole dataset offline",then:"Batch Transform"}]}},
+      {if:"On-prem / edge / device",keys:["neo","hybrid"],x:"Bedrock (Region-only)"}]}},
+  params:{title:"Tune the output",color:"#58a6ff",
+    root:{q:"What's wrong with the output?",opts:[
+      {if:"Inconsistent / too creative",then:"temperature ↓ (0–0.3), top-p ↓",keys:["params"]},
+      {if:"Creative but on-brand",then:"temp ~0.5 + top-p ~0.8 + length limit",x:"Any extreme, or diversity params off"},
+      {if:"Bland / repetitive",then:"temperature ↑"},
+      {if:"Cut off mid-answer",then:"maxTokens ↑ (stopReason = max_tokens)",x:"'Hallucination' / retrain"},
+      {if:"Input exceeds context window",then:"Chunk → process each → synthesize (map-reduce) or RAG",keys:["chunking"],x:"Truncate · bigger model · raise limit via params"},
+      {if:"Must stop at a specific phrase",then:"stopSequences (inferenceConfig)",x:"Prompt instruction / temperature / top-k"},
+      {if:"Too long / costly",then:"maxTokens ↓ + concise format + context pruning",keys:["tokens"]},
+      {if:"Latency-critical",then:"Latency-optimized model + streaming + Priority tier"},
+      {if:"Not interactive",then:"Batch inference (S3 → S3)"}]},
+    foot:"Prove changes with A/B tests, not one good-looking answer."},
+  cost:{title:"Cut cost / latency — what's repeated or mixed?",color:"#58a6ff",
+    root:{q:"What's repeated or mixed?",opts:[
+      {if:"Long shared prompt prefix",then:"Prompt caching (cachePoint)",keys:["caching"]},
+      {if:"Same question, different wording",then:"Semantic cache — embeddings in MemoryDB / ElastiCache Valkey",keys:["caching"],x:"Exact-key cache / text pairs"},
+      {if:"Identical requests",then:"Exact cache (ElastiCache / DynamoDB)",keys:["caching"]},
+      {if:"Identical public answers",keys:["cloudfront"]},
+      {if:"Mostly easy + some hard, managed",then:"Bedrock routes within one family, single call",keys:["promptrouting"]},
+      {if:"Easy-first, YOU control escalation",keys:["cascade"]},
+      {if:"Too many RAG tokens",then:"Rerank → small top-k",keys:["reranking"],x:"Re-chunk + reindex"},
+      {if:"Bulk, not real-time",then:"Batch inference",keys:["tokens"]}]}},
+  capacity:{title:"Bedrock capacity & Region",color:"#58a6ff",
+    root:{q:"Traffic shape / residency?",opts:[
+      {if:"Spiky or low volume",then:"On-demand"},
+      {if:"Sustained, guaranteed TPS, or custom model",keys:["provthroughput"]},
+      {if:"More burst capacity, no residency rule",then:"Global profile",keys:["xregion"]},
+      {if:"Data must stay in EU / US",then:"Geographic profile",keys:["xregion"],x:"Global profile"},
+      {if:"Exactly one Region",then:"Single-Region model ID"},
+      {if:"Trade latency ↔ cost, same model",then:"Service tier: Priority · Standard · Flex"}]}},
+  latency:{title:"Latency lever or throughput lever?",color:"#58a6ff",
+    root:{q:"What's the symptom?",opts:[
+      {if:"Slow first token",then:"Streaming + warm capacity + preload",keys:["converse","sagemaker"]},
+      {if:"Cold starts",then:"Min instances > 0 / provisioned concurrency",keys:["lambda"]},
+      {if:"Predictable queries",then:"Pre-compute answers"},
+      {if:"Multi-part workflow",then:"Parallel requests (Step Functions Parallel/Map)",keys:["stepfns"]},
+      {if:"Not enough requests/sec",then:"Batching + concurrency + Provisioned Throughput",keys:["provthroughput"],x:"Streaming (doesn't raise throughput)"},
+      {if:"Slow retrieval",then:"Index tuning · query preprocessing · hybrid search",keys:["queryx"]},
+      {if:"Spiky async load",keys:["sqs"]}]}},
+  extract:{title:"Which media service?",color:"#3fb950",
+    root:{q:"What's the input?",opts:[
+      {if:"Document (PDF / scan)",keys:["textract"],sub:{q:"Need?",opts:[
+        {if:"Raw text",then:"DetectDocumentText"},{if:"Key-values / tables",then:"FORMS / TABLES"},
+        {if:"Ask a question",then:"QUERIES"},{if:"Invoice / ID",then:"AnalyzeExpense / AnalyzeID"}]}},
+      {if:"Audio",keys:["transcribe"],sub:{q:"Speakers?",opts:[
+        {if:"One mixed channel",then:"Diarization"},{if:"Separate channels",then:"ChannelIdentification"}]}},
+      {if:"Image / video",keys:["rekognition"]},
+      {if:"Text → sentiment, PII, entities",keys:["comprehend"]},
+      {if:"Mixed media, one managed job",keys:["bda"],x:"BDA doesn't embed"},
+      {if:"Text → speech",keys:["polly"]}]}},
+  vector:{title:"Which vector store / retriever?",color:"#3fb950",
+    root:{q:"What does the stem stress?",opts:[
+      {if:"Billions of vectors / custom relevance scoring",then:"OpenSearch k-NN (distributed) — pays while idle",keys:["opensearch"]},
+      {if:"Scale + metadata filters + least ops",then:"OpenSearch Serverless behind KB",keys:["opensearch"]},
+      {if:"Strong consistency / ACID (financial records)",then:"pgvector — SQL filters + transactions",keys:["aurora"]},
+      {if:"Already Postgres, smaller scale",keys:["aurora"],x:"At 10M+ vectors + low latency (scale wins)"},
+      {if:"Search only, no generated answer",then:"OpenSearch k-NN directly",keys:["opensearch"],x:"Knowledge Base (RAG overhead)"},
+      {if:"Huge corpus, infrequent search, cheapest",then:"pay-per-use, no infra",keys:["s3vectors"],x:"OpenSearch Serverless (idle OCUs) · RDS (provisioned)"},
+      {if:"Cheap storage, filters needed",then:"only if metadata is filterable",keys:["s3vectors"],x:"Web crawler source · Macie scanning"},
+      {if:"Website / forum crawled daily",then:"KB web crawler + OpenSearch Serverless",keys:["opensearch"],x:"S3 Vectors · Aurora"},
+      {if:"Relationships / multi-hop",then:"GraphRAG",keys:["neptune"]},
+      {if:"Small dataset, max accuracy",then:"Exact (flat) index",x:"HNSW (approximate)"},
+      {if:"Keywords + meaning",then:"Hybrid (BM25 + vector)",keys:["queryx"],x:"Vector-only"},
+      {if:"Existing enterprise search index",keys:["kendra"]},
+      {if:"Key-value session items",keys:["dynamodb"],x:"DynamoDB as a vector store — no native k-NN (zero-ETL → OpenSearch)"}]}},
+  rag:{title:"Wrong RAG answer — walk backwards",color:"#3fb950",
+    root:{q:"Is the right chunk in the candidates? (call Retrieve)",opts:[
+      {if:"No → RECALL miss",then:"Go upstream: source → extraction → sync → chunking → embeddings → filters",keys:["s3","kb","chunking","embeddings"],x:"Add a reranker"},
+      {if:"Yes, but buried → PRECISION",keys:["reranking"]},
+      {if:"Vague / multi-part question",then:"Query expansion / decomposition",keys:["queryx"]},
+      {if:"Exact IDs / codes missed",then:"Hybrid search (keyword + vector)",keys:["opensearch"]},
+      {if:"Old versions returned",then:"Metadata filter on date",keys:["queryx"]},
+      {if:"In context but ignored",then:"Prompt instructions / model"},
+      {if:"Answer cut off",then:"maxTokens config — not hallucination",keys:["params"]}]},
+    foot:"Fix the FIRST broken stage. 'Bigger model' is almost never the answer."},
+  driver:{title:"Who drives the next step?",color:"#d2a8ff",
+    root:{q:"Is the flow known in advance?",opts:[
+      {if:"Yes — durable, waits, approvals",keys:["stepfns"],sub:{q:"Which?",opts:[
+        {if:"Waits / approvals / polling",then:"Standard (≤1 yr)"},
+        {if:"High volume, short, no waits",then:"Express (≤5 min)"},
+        {if:"Same steps over a list",then:"Map"},
+        {if:"Fixed different branches",then:"Parallel"}]}},
+      {if:"Known GenAI pipeline, light branching",keys:["flows"],x:"Durable waits / S3 batch / polling"},
+      {if:"No — model decides / re-plans",keys:["agents"]},
+      {if:"Own framework, long sessions",keys:["agentcore"]},
+      {if:"Several specialist agents",keys:["multiagent"]},
+      {if:"Fixed intents + slots bot",keys:["lex"]},
+      {if:"Deterministic decision (approve, threshold)",then:"Code it — Lambda / Step Functions Choice",x:"Let the LLM decide"},
+      {if:"One bounded step",keys:["lambda"]},
+      {if:"React to an event / cron",keys:["eventbridge"]}]}},
+  events:{title:"Route events & bursts",color:"#d2a8ff",
+    root:{q:"What arrives?",opts:[
+      {if:"New S3 object → Lambda / SNS / SQS",then:"S3 Event Notifications (native targets only)",keys:["s3event"]},
+      {if:"New S3 object → Step Functions / BDA / anything else",then:"S3 → EventBridge → target",keys:["eventbridge"],x:"S3 → Step Functions directly · FIFO targets"},
+      {if:"React to app events / cron / fan-out",keys:["eventbridge"]},
+      {if:"Burst of model calls to smooth",then:"Queue + workers at a steady rate",keys:["sqs"]},
+      {if:"Ordered steps with waits",keys:["stepfns"],x:"EventBridge (no ordering)"}]}},
+  mcphost:{title:"Where does the MCP tool server run?",color:"#d2a8ff",
+    root:{q:"What are the tools?",opts:[
+      {if:"Existing REST APIs / Lambda functions",then:"AgentCore **Gateway** — register them, no server to write",keys:["agentcore"]},
+      {if:"Prebuilt server (e.g. Aurora data as tools) / dedicated managed server",then:"AgentCore **Runtime**",keys:["agentcore"],x:"Custom MCP server on ECS/Fargate (build, patch, scale a container)"},
+      {if:"Lightweight stateless custom tool",keys:["lambda"]},
+      {if:"Complex / stateful custom tool",then:"ECS — you scale it (highest overhead)"}]},
+    foot:"MCP exposes tools; it never authorizes — user-data tools still need Cognito/OAuth + IAM."},
+  stream:{title:"Stream tokens to the client",color:"#d2a8ff",
+    root:{q:"What kind of exchange?",opts:[
+      {if:"Ask once, stream the answer (least ops)",then:"HTTP API + Lambda response streaming",keys:["lambda"]},
+      {if:"Bidirectional / push later",then:"API Gateway WebSocket (you manage connectionId · postToConnection)",keys:["apigw"]},
+      {if:"GraphQL subscriptions",keys:["appsync"]}]},
+    foot:"Model side: InvokeModelWithResponseStream / ConverseStream. Lambda's 15-min cap is not the blocker."},
+  config:{title:"Config, secrets & compliance",color:"#d2a8ff",
+    root:{q:"What do you need?",opts:[
+      {if:"Store a value",keys:["paramstore"]},
+      {if:"Change prod prompt/model safely, no redeploy",keys:["appconfig"]},
+      {if:"Secret with rotation",then:"Secrets Manager",keys:["kms"]},
+      {if:"Audit resource compliance",keys:["config"]}]}},
+  resilience:{title:"Stay up during disruptions",color:"#d2a8ff",
+    root:{q:"What's failing?",opts:[
+      {if:"Transient errors / throttling at peak",then:"SDK **adaptive** retry mode (beats standard jitter)",x:"Fixed 1-second delay"},
+      {if:"Burst traffic",then:"Queue it / reserve it / spread it",keys:["sqs","provthroughput","xregion"]},
+      {if:"Model not offered in my Region",keys:["xregion"]},
+      {if:"Fleet-wide errors",then:"Circuit breaker (DynamoDB) → fallback model",keys:["stepfns","dynamodb"]},
+      {if:"Model fully down",then:"Graceful degradation: smaller model / cached answer / friendly message"},
+      {if:"Runaway agent loop",then:"Max iterations + stopping condition + timeout",keys:["stepfns","lambda"]},
+      {if:"Bad model release",then:"Canary + auto-rollback to last approved",keys:["appconfig","modelregistry"]}]}},
+  identity:{title:"Who is the caller?",color:"#f0883e",
+    root:{q:"Caller category?",opts:[
+      {if:"Employees, by role, central, existing IdP",then:"Identity Center (or IAM SAML per account)",keys:["idc"],x:"Cognito"},
+      {if:"App / customers / 3rd-party app",then:"temp creds via identity pool",keys:["cognito"]},
+      {if:"Users signing into an AgentCore agent",then:"Inbound OIDC",keys:["agentidentity"],x:"APIGW + Lambda authorizer"},
+      {if:"Agent calling downstream tools",then:"AgentCore Identity outbound",keys:["agentidentity"]}]},
+    foot:"Identity ≠ entitlement — the backend still authorizes the record."},
+  protect:{title:"Which control? (never swap them)",color:"#f0883e",
+    root:{q:"What does the obligation govern?",opts:[
+      {if:"What the model SAYS",keys:["guardrails"],x:"IAM / prompt instructions"},
+      {if:"What a principal may CALL",keys:["iam","scp"]},
+      {if:"WHO the user is",keys:["idc","cognito"]},
+      {if:"WHERE traffic goes",then:"PrivateLink",keys:["vpce"],x:"NAT gateway"},
+      {if:"WHAT HAPPENED (API)",keys:["cloudtrail"]},
+      {if:"WHAT WAS SAID (content)",keys:["invlog"]},
+      {if:"Must not be altered",keys:["s3gov"]},
+      {if:"Columns / fields (even cross-account)",keys:["lakeformation"],x:"Bucket policy / S3 object tags"},
+      {if:"Two audiences, same corpus",then:"Separate KBs (full + redacted)",keys:["kb"],x:"Mask one shared KB"},
+      {if:"Find PII",then:"Macie (S3) · Comprehend (text) — detect, not enforce",keys:["macie","comprehend"]},
+      {if:"Encrypt with your own key",keys:["kms"]},
+      {if:"Prompt injection",then:"System prompt + Agent pre-processing + Prompt Attack filter",keys:["guardrails"],x:"WAF · AWS Config"}]},
+    foot:"Count the obligations in the stem; the right option names one control per obligation."},
+  qualityops:{title:"Quality problem or operations problem?",color:"#e3b341",
+    root:{q:"Which column is the symptom in?",opts:[
+      {if:"Wrong / inconsistent / invented answers",then:"Eval jobs · LLM-as-judge · golden datasets",keys:["evaluations"],x:"Latency or error-rate metrics"},
+      {if:"Slow / failing / throttled",then:"CloudWatch · X-Ray · adaptive retry · streaming",keys:["cloudwatch","xray"],x:"Evaluation jobs"},
+      {if:"Content missing, no error",then:"Truncation → chunk + overlap + watch InputTokenCount",keys:["chunking"],x:"Bigger timeout / more compute"},
+      {if:"Agent multi-step work",then:"Task completion rate · tool effectiveness · reasoning quality",keys:["agents"]},
+      {if:"Known-answer smoke check",keys:["synthetics"],x:"Use it for hallucination"},
+      {if:"Regression after a change",then:"Golden set + CI/CD eval gate + threshold",keys:["cicd"]}]},
+    foot:"Decide the column first, then eliminate every option from the other column."},
+  reliable:{title:"Make output trustworthy",color:"#e3b341",
+    root:{q:"What must be true of the answer?",opts:[
+      {if:"Parses as JSON",then:"JSON Schema / tool-use output + Lambda validation"},
+      {if:"Exact numbers from data",then:"Text-to-SQL → run the query (deterministic)"},
+      {if:"No hallucination",then:"Ground in KB + contextual grounding check",keys:["kb","guardrails"]},
+      {if:"Knows when unsure",then:"Confidence / similarity score → human review",keys:["a2i"]},
+      {if:"Shows sources / reasoning",then:"Citations + agent traces",keys:["agents"]},
+      {if:"Defense in depth",then:"Comprehend pre-filter → Guardrails → Lambda post-check → API Gateway filter",keys:["comprehend"]}]}},
+  observe:{title:"Which observability tool?",color:"#e3b341",
+    root:{q:"What do you need to know?",opts:[
+      {if:"Who called which API",keys:["cloudtrail"]},
+      {if:"Exact prompt + response",keys:["invlog"]},
+      {if:"Fleet health / tokens / alarms",keys:["cloudwatch"]},
+      {if:"Which hop is slow",keys:["xray","adot"]},
+      {if:"Is the resource compliant",keys:["config"]},
+      {if:"Does the workflow still run",keys:["synthetics"]},
+      {if:"Is output quality OK",keys:["evaluations"]},
+      {if:"Unusual spend",keys:["costanomaly"]},
+      {if:"Bias drifting",keys:["clarify"]},
+      {if:"Why KB ingestion failed",then:"KB logging → Logs Insights",keys:["kb"]}]}}
+};
+
+/* ================= REFERENCE TABLES (opened from a card) =================
+   Only genuinely tabular reference material lives here — "which one when" is in the choosers.
+   rows: first cell = label; {code:`...`} renders as a code block; **x** = bold */
+const C={
+  bedrockserving:{t:"Bedrock's own serving axes",cols:["Axis","Options"],rows:[
+    ["Instance / GPU","None — 'which GPU?' means SageMaker"],
+    ["Capacity","On-demand · Provisioned Throughput"],
+    ["Service tier","Reserved · Priority · Standard · Flex"],
+    ["Job style","Real-time · Batch (S3 in/out; not for provisioned models)"],
+    ["Region spread","Single-Region · Geographic · Global"]]},
+  bedrocktiers:{t:"Bedrock service tiers",cols:["","Reserved","Priority","Standard","Flex"],rows:[
+    ["Latency","Guaranteed","Lowest on-demand","Normal","Higher OK"],
+    ["Cost","Commitment","Highest","Baseline","Cheapest"],
+    ["Pick when","Steady volume","Latency-critical","Default","Background / batch-ish"]]},
+  smendpoints:{t:"SageMaker endpoint types",cols:["","Real-time","Async","Serverless","Batch Transform"],rows:[
+    ["Style","Sync, warm","Queued","Per request, scales to 0","Offline dataset"],
+    ["GPU","✓","✓","✗ CPU only","✓"],
+    ["Payload / time","~25 MB · 60 s","~1 GB · up to 1 hr ⚠","Small · short","Large · job"],
+    ["Pick when","Small + fast","Big / long, on-demand","Intermittent, no GPU","Score everything offline"]]},
+  smgpu:{t:"SageMaker LLM GPU utilization knobs (DJL/LMI) ⚠",cols:["Knob","Effect"],rows:[
+    ["Max sequence length ↓","Smaller KV-cache slots → bigger batch → more requests per GPU"],
+    ["Tensor parallel = min GPUs that fit","Fits in 4 of 8 GPUs → TP=4 → 2 replicas per instance"],
+    ["Speculative decoding","Latency trick — not a utilization fix"],
+    ["More instances","Scales out; doesn't fix per-GPU config"]]},
+  invokeapi:{t:"Converse vs InvokeModel",cols:["","Converse / ConverseStream","InvokeModel / …WithResponseStream"],rows:[
+    ["Format","Unified across models","Model-native body"],
+    ["Params","inferenceConfig","Inside model JSON (names vary)"],
+    ["Swap models","No code change","Rewrite body"],
+    ["Best for","Portability, tools, chat","Model-specific features, imported models"],
+    ["Request",{code:`{
+  "modelId": "...",
+  "messages": [{"role": "user",
+    "content": [{"text": "Hi"}]}],
+  "inferenceConfig": {
+    "maxTokens": 512,
+    "temperature": 0.2 }
+}`},{code:`{
+  "modelId": "anthropic...",
+  "body": "{ \\"messages\\": [...],
+    \\"max_tokens\\": 512,
+    \\"anthropic_version\\": ... }"
+}`}],
+    ["Response",{code:`{ "output": { "message": {
+    "content": [{"text": "..."}]}},
+  "usage": {"inputTokens": 9},
+  "stopReason": "end_turn" }`},{code:`{ "body": "{ \\"content\\": [...],
+    \\"stop_reason\\": ... }" }`}],
+    ["Provider-specific param","**additionalModelRequestFields** (passes extra params; can't raise the context window)","Put it in the native body"]]},
+  sampling:{t:"Sampling presets",cols:["Goal","temperature","top-p / top-k","Length"],rows:[
+    ["Deterministic / factual","0–0.3","top-p low or top-k small","Cap with maxTokens"],
+    ["**Creative but controlled**","~0.5","top-p ~0.8","Limit / penalty"],
+    ["Max creative / brainstorm","0.8–1.0","top-p 0.9+ / large top-k","Looser"],
+    ["Rule","Balanced asks never take an extreme","Don't disable diversity params","Never 'remove all limits'"]]},
+  caching:{t:"Three kinds of caching",cols:["","Prompt caching","Semantic cache","Exact cache"],rows:[
+    ["Runs on","Bedrock-native","Your vector store","ElastiCache / DynamoDB"],
+    ["Key","Marked prefix","Meaning (embedding)","Exact hash"],
+    ["Store","None to run","MemoryDB / ElastiCache Valkey · OpenSearch k-NN","Key→value"],
+    ["Sample",{code:`"content": [
+  {"text": "<long context>"},
+  {"cachePoint": {"type": "default"}},
+  {"text": "question"} ]`},{code:`v = embed(q)
+hit = knn(v, threshold=0.95)
+if hit: return hit.answer`},{code:`k = sha256(prompt+model)
+hit = redis.get(k)`}]]},
+  profilescope:{t:"Inference profile scope",cols:["","Single-Region ID","Geographic (EU/US)","Global"],rows:[
+    ["Processes in","One Region","Regions in that geography","Anywhere"],
+    ["Capacity","Lowest","Medium","Highest"],
+    ["Residency","Pinned","✓ Stays in geography","✗ None"]]},
+  textractapis:{t:"Textract APIs",cols:["Need","API / FeatureType","Returns"],rows:[
+    ["Raw text","DetectDocumentText","LINE / WORD"],
+    ["Key-value pairs","AnalyzeDocument FORMS","KEY_VALUE_SET"],
+    ["Tables","AnalyzeDocument TABLES","TABLE / CELL"],
+    ["Answer a question","AnalyzeDocument QUERIES","QUERY_RESULT"],
+    ["Invoice / receipt","AnalyzeExpense","Summary + line items"],
+    ["ID document","AnalyzeID","Identity fields"],
+    ["Sample",{code:`"FeatureTypes": ["FORMS","TABLES","QUERIES"],
+"QueriesConfig": {"Queries": [
+  {"Text": "invoice total?"}]}`},{code:`{"BlockType": "KEY_VALUE_SET",
+ "Confidence": 99.1,
+ "Relationships": [{"Type": "VALUE"}]}`}]]},
+  transcribefeat:{t:"Transcribe options",cols:["Need","Option"],rows:[
+    ["Who spoke (1 channel)","ShowSpeakerLabels + MaxSpeakerLabels → spk_0, spk_1"],
+    ["Which channel (stereo)","ChannelIdentification = true → ch_0, ch_1"],
+    ["Domain terms","Custom vocabulary / language model"],
+    ["Contact center","Call Analytics (sentiment, categories, redaction)"],
+    ["Live, low latency","Streaming API, ~100 ms chunks"]]},
+  comprehendfeat:{t:"Comprehend APIs",cols:["Task","API"],rows:[
+    ["Overall tone","DetectSentiment → POSITIVE/NEGATIVE/NEUTRAL/MIXED"],
+    ["Tone per entity","DetectTargetedSentiment"],
+    ["Entities / key terms","DetectEntities / DetectKeyPhrases"],
+    ["PII","DetectPiiEntities"],
+    ["Language","DetectDominantLanguage"],
+    ["Own categories (whole doc)","Custom **classification** → one label per document"],
+    ["Own attributes (spans)","Custom **entity recognition** → brand, size, model # pulled from text"],
+    ["Rule","Categorize? → classify. Standardize inputs? → extract (+ Bedrock reformat)"]]},
+  bdafields:{t:"BDA blueprint field capabilities",cols:["Capability","Does","Example","Can't"],rows:[
+    ["Extraction","Pulls a field value from the content","AuthorizedSigner = 'Mr. John Allen Doe III, Senior Legal Counsel'","Split it; aliases only rename"],
+    ["Normalization","Standardizes format","'NY' → 'New York' · dates → ISO","Semantic split / build structures"],
+    ["Transformation","Splits / restructures a value","→ TITLE, FIRST_NAME, MIDDLE_NAME, LAST_NAME, SUFFIX, JOB_TITLE","—"],
+    ["Custom type","Reusable structure for transformation","One 'PersonName' type for Signer, Witness, Reviewer","—"],
+    ["Validation","Checks rules after transform","FIRST_NAME not null · format check","Parse or restructure"]]},
+  bdasetup:{t:"BDA: standard vs blueprint",cols:["","Standard output","Custom blueprint"],rows:[
+    ["You get","Text/markdown, tables, transcript, scenes","Only the fields you define"],
+    ["Use when","General extraction is enough","Specific business fields"],
+    ["Setup","Project → InvokeDataAutomation (async)","Blueprint → project → invoke"],
+    ["Many doc types","—","1 project holds many blueprints → BDA **auto-matches** the blueprint per doc (not the project)"],
+    ["Blueprint","—",{code:`{"documentClass": "INVOICE",
+ "fields": {
+  "invoice_number": {"type": "string"},
+  "total": {"type": "number"}}}`}]]},
+  ragorder:{t:"RAG build order — follow the data",cols:["Step","Do","Needs as input"],rows:[
+    ["1 · Ingest","Pipeline to extract, clean, chunk + keep data updated","Raw source docs"],
+    ["2 · Embed","Initial embeddings + auto-embed on updates","Processed chunks from step 1"],
+    ["3 · Index / search","Vector index + hybrid (keyword + vector) in OpenSearch","Vectors from step 2"],
+    ["4 · Generate","FM + prompt template that injects retrieved context","Results from step 3"],
+    ["Trick","Ordering questions: ask what each step consumes","A step can't run before its input exists"]]},
+  retrieve:{t:"Retrieve vs RetrieveAndGenerate",cols:["","Retrieve","RetrieveAndGenerate"],rows:[
+    ["Does","Returns chunks + scores","Retrieves + generates answer"],
+    ["Model call?","No","Yes"],
+    ["Use to","Debug recall; build own prompt","One-call grounded answer + citations"],
+    ["Request",{code:`{"knowledgeBaseId": "KB123",
+ "retrievalQuery": {"text": "refund?"},
+ "retrievalConfiguration": {
+  "vectorSearchConfiguration": {
+   "numberOfResults": 5,
+   "filter": {"andAll": [
+    {"equals": {"key": "type", "value": "transcript"}},
+    {"greaterThan": {"key": "year", "value": 2024}}]}}}}`},{code:`{"input": {"text": "refund?"},
+ "retrieveAndGenerateConfiguration": {
+  "type": "KNOWLEDGE_BASE",
+  "knowledgeBaseConfiguration": {
+   "knowledgeBaseId": "KB123",
+   "modelArn": "..."}}}`}],
+    ["Debugging","Inspect candidates separately (recall check)","Can't inspect candidates — wrong answer could be retrieval **or** generation"]]},
+  maciemodes:{t:"Macie modes",cols:["","Automated discovery","Classification job"],rows:[
+    ["Runs","Switch ON, continuous sampling","One-time or scheduled"],
+    ["Effort","Lowest","More control"],
+    ["Use when","'Where is sensitive data?'","'Deep-scan these buckets weekly'"],
+    ["Job",'—',{code:`{"jobType": "SCHEDULED",
+ "scheduleFrequency": {"weeklySchedule":
+   {"dayOfWeek": "MONDAY"}},
+ "managedDataIdentifierSelector": "ALL"}`}]]},
+  agentpaths:{t:"Bedrock Agents vs AgentCore — parallel paths",cols:["","Bedrock Agents","AgentCore"],rows:[
+    ["What","Managed agent service","Platform for your agent code"],
+    ["Who writes the loop","Bedrock","You (any framework/model)"],
+    ["You define","Action groups + KBs + instructions","Code + which services"],
+    ["Stack?","No — pick one","No — pick one"]]},
+  agenttrace:{t:"Agent trace types",cols:["Trace","Shows"],rows:[
+    ["PreProcessing","Input validated / categorized"],
+    ["Orchestration","Rationale + tool/KB calls + observations"],
+    ["PostProcessing","Final response shaping"],
+    ["CustomOrchestration","Your custom orchestration step"],
+    ["RoutingClassifier","Multi-agent routing"],
+    ["Failure","Why a step failed"],
+    ["Guardrail","GUARDRAIL_INTERVENED / NONE"],
+    ["Full visibility","Pre + Orchestration + Post together (+ golden dataset)"]]},
+  sfnresilience:{t:"Retry/Catch vs circuit breaker",cols:["","Retry / Catch","Circuit breaker"],rows:[
+    ["Scope","One execution's call","Error rate across the fleet"],
+    ["State","None","Shared in DynamoDB"],
+    ["Recovers","Retries the step","Reroutes all traffic + auto-resets"],
+    ["Why not CloudWatch alarm → EventBridge reroute","Can flip traffic, but models auto-**reset** poorly and aggregates too coarsely for a tight window","—"]]},
+  s3vseb:{t:"S3 notifications vs EventBridge",cols:["","S3 direct","S3 → EventBridge"],rows:[
+    ["Targets","Lambda, SNS, SQS (+EventBridge)","Any target incl. Step Functions"],
+    ["FIFO","✗","✓"],
+    ["Filtering","Prefix / suffix","Rich patterns"],
+    ["Fan-out","Limited","Many + cross-account"]]},
+  usageplan:{t:"API Gateway usage plans — where throttling lives",cols:["Piece","Detail"],rows:[
+    ["Hierarchy",{code:`API (REST)
+└── Stage "prod"  ── stage default throttle (everyone)
+    ├── /chat          (resource = path)
+    │   └── POST       (method) · API key required ✓
+    └── /docs/analyze
+        └── POST       (method) · API key required ✓
+
+Usage plan "Premium" ──► API + stage "prod"
+├── throttle : rate 500 · burst 1000  (per key)
+├── quota    : 1M / month
+├── method   : /docs/analyze/POST → rate 2000
+└── keys     : key-premium-A, key-premium-B
+
+Usage plan "Standard" ──► API + stage "prod"
+├── throttle : rate 50 · burst 100
+├── quota    : 100K / month
+├── method   : /docs/analyze/POST → rate 200
+└── keys     : key-std-X`}],
+    ["Attached at","**API + stage** (a plan can cover several stages). Per-method overrides live inside the plan, keyed '/path/METHOD'"],
+    ["Precedence","Plan per-method → plan-wide → stage per-method → stage default → account/Region (~10K rps)"],
+    ["Token bucket","**rate** = steady refill per second · **burst** = bucket size · over limit or quota → **429**"],
+    ["Must have","Method setting **API key required** ✓, otherwise the plan is ignored"],
+    ["Not auth","API keys meter + tier callers; identity = Cognito / IAM / Lambda authorizer"],
+    ["Audit","4XX/429, Count, Latency auto-published to CloudWatch (AWS/ApiGateway)"]]},
+  appconfigsetup:{t:"AppConfig setup",cols:["Piece","Detail"],rows:[
+    ["Hierarchy","Application → Environment → Profile → Version → Deployment"],
+    ["Profile types","Feature flags · Free-form JSON"],
+    ["Free-form",{code:`{"model_id": "...sonnet",
+ "system_prompt": "You are...",
+ "guardrail_id": "gr-123",
+ "temperature": 0.2}`}],
+    ["App reads",{code:`GET localhost:2772/applications/genai/
+  environments/prod/configurations/settings`}],
+    ["Sources","AppConfig hosted store · SSM Parameter Store · Secrets Manager · S3"],
+    ["Limits ⚠","One active deployment per environment at a time · GetLatestConfiguration is metered (agent caches/polls)"]]},
+  endpoints:{t:"Interface vs Gateway endpoint",cols:["","Interface","Gateway"],rows:[
+    ["Mechanism","ENI (PrivateLink)","Route-table entry"],
+    ["Services","Most, incl. Bedrock","S3 + DynamoDB only"],
+    ["Cost","Paid","Free"],
+    ["From on-prem / peered","✓","✗"],
+    ["Private DNS","✓ service name resolves to the ENI","n/a (route-based)"]]},
+  guardrailpolicies:{t:"Guardrails policies & flow",cols:["Policy","Catches","Action"],rows:[
+    ["Flow",{code:`INPUT → [guardrail] → MODEL → [guardrail] → OUTPUT
+          blocked? stop        mask / block`},"Runs twice per turn"],
+    ["Content filters","Hate, insults, sexual, violence, misconduct, prompt attack","NONE→HIGH"],
+    ["Denied topics","Subjects to avoid","Block"],
+    ["Word filters","Profanity + custom words","Block"],
+    ["Sensitive info","PII + regex","BLOCK / MASK"],
+    ["Grounding","Off-source / irrelevant answers","Thresholds"],
+    ["Automated reasoning","Logic-rule violations","Validate"],
+    ["Attach",{code:`"guardrailConfig": {
+  "guardrailIdentifier": "gr-abc",
+  "guardrailVersion": "3",
+  "trace": "enabled"}`},"Or ApplyGuardrail (no model)"]]},
+  guardrailorg:{t:"Enforce guardrails org-wide",cols:["Requirement","Use"],rows:[
+    ["Approved models only","SCP — model ARNs are **account-agnostic**, so one org policy works"],
+    ["Some guardrail must be used","SCP: Deny if bedrock:GuardrailIdentifier Null=true — ⚠ proves **a** guardrail, not **the** approved one: a weak/self-made guardrail passes, so this alone never satisfies 'block topics X'"],
+    ["The **approved / specific** guardrail","IAM **permissions boundary** with bedrock:GuardrailIdentifier — the ID is **account-local**, so an SCP can't name it"],
+    ["Deploy one guardrail to all accounts","CloudFormation StackSets (each account still gets its **own** guardrail ID)"],
+    ["Full org recipe (block topics + approved models, multi-account)","① StackSets deploy guardrail (denied topics, **BLOCK**) → ② permissions boundary requires the approved guardrail ID → ③ SCP allows only approved models"],
+    ["Cross-Region replication","Regions only — not accounts"],
+    ["SCP sample",{code:`{"Effect": "Deny",
+ "Action": ["bedrock:InvokeModel*","bedrock:Converse*"],
+ "Resource": "*",
+ "Condition": {"Null":
+   {"bedrock:GuardrailIdentifier": "true"}}}`}],
+    ["Does IAM/SCP validate the ARN?","No — it only **string-matches**; Bedrock rejects a bad guardrail ID at **runtime**"]]},
+  evaljobs:{t:"Bedrock evaluation jobs",cols:["","Model eval","RAG retrieve-only","RAG retrieve + generate"],rows:[
+    ["Measures","Model output","Retrieval","Retrieval + answer"],
+    ["Scorers","Built-in · LLM judge · human","Context relevance / coverage","Faithfulness, correctness…"],
+    ["Runs as","S3 dataset → job → S3 report","same","same"],
+    ["Release gate","Wrap in Step Functions / EventBridge","same","same"],
+    ["Human eval setup","① expert **work team** (private workforce, login via **Cognito user pool**) ② human job in Bedrock + custom metrics ('Style Accuracy') ③ JSONL prompts in S3 + **CORS** (console)","n/a","n/a"],
+    ["Auto job limit","≤ 1,000 prompts per dataset → split bigger sets","same","same"]]},
+  invlogfmt:{t:"Invocation log record",cols:["Aspect","Detail"],rows:[
+    ["Enable","PutModelInvocationLoggingConfiguration — off by default"],
+    ["Logged ops","Converse(Stream), InvokeModel(Stream)"],
+    ["Large bodies",">100 KB or binary → separate S3 objects"],
+    ["Record",{code:`{"operation": "Converse",
+ "modelId": "anthropic...",
+ "identity": {"arn": "...role/App"},
+ "input": {"inputTokenCount": 25},
+ "output": {"outputTokenCount": 150}}`}],
+    ["Modalities","Choose what to log: Text · Image · Embedding · Video"],
+    ["Guardrail trace","Not a separate log — the assessment comes back in the API response trace; blocked content appears in the logged bodies as plain text"]]}
+};
+
+/* ================= SCENARIOS ================= */
+const SCN=[
+  {t:"Global fraud: TPS + EU sovereignty + HA",q:"1,000 TPS · <500 ms · US + EU apps · EU data stays in Europe · survive outages",
+   flow:[["provthroughput","US: guaranteed TPS"],["xregion","EU: geographic profile"],["eventbridge","failover rule"],["lambda","failover action"]],
+   why:["Eliminate by **sovereignty first** — any global profile for EU traffic fails","Then TPS/latency → Provisioned Throughput","Then HA → EventBridge + Lambda (or Route 53)"]},
+  {t:"Batch documents with async extract + approval",q:"Process a set of S3 reports: extract, analyze, wait for approval, write once",
+   flow:[["eventbridge","S3 → start"],["stepfns","Standard + Map"],["bda","async extract, poll"],["bedrock","InvokeModel sentiment"],["dynamodb","idempotent write"]],
+   why:["Known flow + waits + polling → **Standard**","**Map** iterates the set","✗ Flows (no S3 iteration / polling) · ✗ Express (no waits)"]},
+  {t:"Add a safety pipeline — least app change",q:"Add guardrails + grounding to an existing mobile app's API",
+   flow:[["apigw","same endpoint"],["lambda","same integration"],["stepfns","pre → model → post"],["guardrails","filter"],["kb","ground"]],
+   why:["Client + endpoint unchanged = no app change","More backend services ≠ more app change"]},
+  {t:"Chat over Aurora data + supply-chain actions",q:"Natural-language queries on inventory/store data, automate actions, least operational overhead",
+   flow:[["agentcore","Runtime hosts agent"],["multiagent","Strands agent loop"],["mcp","prebuilt MCP server"],["aurora","inventory + store data"]],
+   why:["Prebuilt MCP = data becomes tools with no container or API to build","AgentCore runs + scales it (built-in MCP support)","✗ Custom MCP on ECS/Fargate · ✗ API Gateway + Lambda per action"]},
+  {t:"Detect embedding drift, no downtime",q:"RAG relevance dropping, new writing styles; own SageMaker embedding endpoint; prep re-training without disrupting traffic",
+   flow:[["sagemaker","new config + Data Capture"],["sagemaker","UpdateEndpoint (blue/green)"],["clarify","Monitor, custom ECR image"],["s3","violation reports"]],
+   why:["UpdateEndpoint swaps configs with no downtime","Custom image computes embedding drift vs the training baseline","✗ Clarify (bias) · ✗ recreate endpoint · ✗ move to Bedrock Titan"]},
+  {t:"Governed fine-tuning data (lineage)",q:"Fine-tune on unstructured chat transcripts · track origin + transformations · only approved data · least effort",
+   flow:[["s3","raw transcripts, governed bucket"],["glue","crawler → Data Catalog"],["glue","Glue ETL → JSONL (Converse format)"],["custompath","Bedrock fine-tune on curated path"]],
+   why:["Glue = serverless + built-in catalog/lineage","✗ EMR (manual lineage) · ✗ Athena (SQL, structured) · ✗ raw S3 direct"]},
+  {t:"Multi-product chat memory",q:"Remember which product the customer means · high concurrency · low latency · encrypt stored preferences · auto-scale, low cost",
+   flow:[["comprehend","custom entities: your products"],["dynamodb","session state · encrypted · TTL"],["converse","inject context into prompt"]],
+   why:["Custom recognizer knows **your** catalog (✗ built-in COMMERCIAL_ITEM)","DynamoDB = ms latency, autoscale, encrypted by default, TTL cleans up","✗ Lex intents per category (not session memory) · ✗ full history every prompt (tokens + no encrypted store)"]},
+  {t:"Real-time voice assistant (<500 ms)",q:"Live voice, token-by-token reply, supervisor ratings",
+   flow:[["transcribe","streaming, 100 ms"],["invokemodel","ResponseStream reply"],["apigw","WebSocket"],["polly","speak"],["dynamodb","live ratings"]],
+   why:["Every hop streams — that's the latency lever","Bidirectional voice → WebSocket is justified here"]},
+  {t:"Multi-source document assistant, least ops",q:"Many sources, stay fresh, minimal burden",
+   flow:[["s3","sources"],["kb","connectors + sync"],["opensearch","vectors"],["converse","RetrieveAndGenerate"]],
+   why:["KB = managed connectors, sync, chunk, embed","Custom pipeline only for unsupported ranking control","Employees + per-user ACLs, no custom UX → Q Business"]},
+  {t:"Agent refund — safe & exactly once",q:"Agent says 'refund complete'. Was it authorized and done once?",
+   flow:[["guardrails","content + PII"],["agents","proposes action"],["iam","authorizes call"],["lambda","checks tenant + amount"],["dynamodb","idempotency key"]],
+   why:["Request in plain language ≠ write authority","Valid JSON ≠ authorized transaction","Timeout ≠ failed — check before retry","Retries must be idempotent"]},
+  {t:"Private, compliant Bedrock access",q:"Off the public internet AND only approved paths may invoke",
+   flow:[["vpce","Interface endpoint"],["scp","deny if not SourceVpce"],["iam","who may invoke"],["cloudtrail","audit vpcEndpointId"]],
+   why:["Endpoint = the pipe; SCP condition closes other pipes","Private ≠ encrypted ≠ authorized ≠ resident"]},
+  {t:"GenAI deployment gate",q:"Nightly / pre-deploy: prove it still works, still good, still means the same",
+   flow:[["stepfns","gate"],["synthetics","workflows run"],["evaluations","quality vs baseline"],["embeddings","semantic drift"],["appconfig","rollback"]],
+   why:["Canary = runs · Eval = quality · Embedding check = meaning","Latency metrics say nothing about meaning"]},
+  {t:"Fine-tune didn't help — walk backwards",q:"Job succeeded, held-out results not better",
+   ladder:[["sagemaker","Baseline","compared vs untuned on same held-out set?"],["modelstrategy","Right lever?","needed RAG or a prompt rule?"],["sagemaker","Data","mislabeled, conflicting, leaked?"],["sagemaker","Config","overfit? best checkpoint ≠ last?"],["sagemaker","Cohorts","average up, critical cohort down → block"],["bedrock","Serving","adapter actually loaded / routed?"]],
+   why:["A finished job proves execution, not improvement","'Train more epochs' is rarely the answer"]}
+];
+
+
+/* ================= HELPERS ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+const short=n=>n.replace(/^(Amazon|AWS|Bedrock) /,'');
+const ORDER=ZONES.flatMap(z=>z.stages.flatMap(s=>s.keys));
+const ZONE_OF={}; ZONES.forEach(z=>z.stages.forEach(s=>s.keys.forEach(k=>ZONE_OF[k]=z)));
+let flags=new Set(JSON.parse(localStorage.getItem('aipFlags')||'[]'));
+let current=null;
+
+function chip(k){const s=S[k]; return s?`<span class="chip" data-svc="${k}"><img src="${icon(s.icon)}" alt="">${esc(short(s.name))}</span>`:'';}
+function code(src){
+  let h=esc(src);
+  h=h.replace(/(\/\/[^\n]*)/g,'<span class="c">$1</span>')
+     .replace(/"([^"\n]+)"(\s*:)/g,'<span class="k">"$1"</span>$2')
+     .replace(/:(\s*)"([^"\n]*)"/g,':$1<span class="s">"$2"</span>');
+  return `<pre class="code">${h}</pre>`;
+}
+function table(c){
+  const cell=x=>typeof x==='object'?code(x.code):md(x);
+  return `<table class="cmp"><thead><tr>${c.cols.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>`+
+    c.rows.map(r=>`<tr>${r.map(x=>`<td>${cell(x)}</td>`).join('')}</tr>`).join('')+`</tbody></table>`;
+}
+function tree(n){
+  return `<div class="tq">${md(n.q)}</div><div class="tbr">`+n.opts.map(o=>
+    `<div class="tb"><div class="tif">${md(o.if)}</div>`+
+    `<div class="tthen">${o.then?`<span>${md(o.then)}</span>`:''}${(o.keys||[]).map(chip).join('')}</div>`+
+    (o.x?`<div class="tx">✗ ${md(o.x)}</div>`:'')+
+    (o.sub?`<div class="tsub">${tree(o.sub)}</div>`:'')+`</div>`).join('')+`</div>`;
+}
+function treeCard(id){const t=TREES[id]; return tree(t.root)+(t.foot?`<div class="tfoot">${md(t.foot)}</div>`:'');}
+function chooserBox(id){const t=TREES[id]; return `<div class="chooser"><div class="chlbl">🌳 ${esc(t.title)}</div>${treeCard(id)}</div>`;}
+function tileHtml(k){const s=S[k];
+  return `<div class="tile${flags.has(k)?' flag':''}" data-svc="${k}" title="${esc(s.tag)}"><img src="${icon(s.icon)}" alt="" loading="lazy"><div class="tnm">${esc(s.tile||short(s.name))}</div></div>`;}
+
+/* ================= MAP ================= */
+$('#map').innerHTML=ZONES.map(z=>`<section class="zonesec" id="${z.id}">
+  <div class="zoneh" style="color:${z.color}"><h2>${z.label}</h2><span>${md(z.sub)}</span></div>
+  ${z.chooser?`<div class="cluster zchooser" style="border-top-color:${z.color}">${chooserBox(z.chooser)}</div>`:''}
+  <div class="clusters">${z.stages.map(st=>`
+    <div class="cluster${st.keys.length?'':' zwide'}" style="border-top-color:${z.color}55">
+      <div class="st-head"><span class="st-name">${st.name}</span><span class="st-bound">${md(st.b)}</span></div>
+      ${st.keys.length?`<div class="tiles">${st.keys.map(tileHtml).join('')}</div>`:''}
+      ${st.chooser?chooserBox(st.chooser):''}
+    </div>`).join('')}</div>
+</section>`).join('');
+
+/* ================= SCENARIOS ================= */
+const node=(k,b,sp)=>{const s=S[k]; return `<div class="fnode" data-svc="${k}"><img src="${icon(s.icon)}" alt=""><div><b>${esc(b||short(s.name))}</b><span>${md(sp)}</span></div></div>`;};
+$('#scenarios').innerHTML=SCN.map(sc=>`<div class="scn"><h3>${esc(sc.t)}</h3><div class="q">${md(sc.q)}</div>`+
+  (sc.flow?`<div class="flow">${sc.flow.map(([k,r])=>node(k,null,r)).join('<span class="arrow">→</span>')}</div>`:'')+
+  (sc.ladder?`<div class="ladder">${sc.ladder.map(([k,b,r],i)=>node(k,`${i+1}. ${b}`,r)).join('')}</div>`:'')+
+  `<ul class="why">${sc.why.map(w=>`<li>${md(w)}</li>`).join('')}</ul></div>`).join('');
+
+/* ================= QUALIFIER ================= */
+$('#qual').innerHTML=`<div class="chooser" style="margin-top:0;border-top:none;padding-top:0"><div class="chlbl" style="color:var(--warn)">🌳 ${esc(TREES.qualifier.title)}</div>${treeCard('qualifier')}</div>`;
+
+/* ================= MODAL ================= */
+const overlay=$('#overlay'), modal=$('#modal');
+function show(h){modal.innerHTML=h; overlay.classList.add('open'); overlay.scrollTop=0;}
+function closeModal(){overlay.classList.remove('open'); current=null;}
+function openModal(k){
+  const s=S[k]; if(!s) return; current=k;
+  const z=ZONE_OF[k], i=ORDER.indexOf(k);
+  const list=(t,a)=>a&&a.length?`<div class="${t}"><h5>${t==='ok'?'✓ Pick when':'✗ Not when / distractor'}</h5><ul>${a.map(x=>`<li>${md(x)}</li>`).join('')}</ul></div>`:'';
+  let h=`<div class="mhead" style="border-top:3px solid ${z.color};border-radius:14px 14px 0 0"><img src="${icon(s.icon)}" alt="">
+    <div><h2>${esc(s.name)}</h2><div class="tag">${esc(s.tag)}</div></div>
+    <div class="sp"><button class="btn${flags.has(k)?' on':''}" id="flagBtn" title="Flag for review (f)">⚑</button><button class="btn" data-close>×</button></div></div><div class="mbody">`;
+  h+=`<ul class="does">${s.does.map(d=>`<li>${md(d)}</li>`).join('')}</ul>`;
+  if(s.pick||s.x) h+=`<div class="g2">${list('ok',s.pick)}${list('no',s.x)}</div>`;
+  h+=`<div class="trap">⚠ ${md(s.trap)}</div>`;
+  if(s.facts) h+=`<div class="facts">${s.facts.map(([v,l])=>`<div class="fact"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('')}</div>`;
+  if(s.pairs) h+=`<h4>Pairs with</h4><div class="pairs">${s.pairs.map(([a,b])=>`<span class="pair">${esc(a)} → <b>${esc(b)}</b></span>`).join('')}</div>`;
+  (s.links||[]).forEach(id=>{
+    if(id.startsWith('t:')){const t=TREES[id.slice(2)]; h+=`<h4>🌳 ${esc(t.title)}</h4>${treeCard(id.slice(2))}`;}
+    else h+=`<h4>⇄ ${esc(C[id].t)}</h4>${table(C[id])}`;
+  });
+  const prev=ORDER[(i-1+ORDER.length)%ORDER.length], next=ORDER[(i+1)%ORDER.length];
+  h+=`</div><div class="mfoot"><button class="btn" data-svc="${prev}">← ${esc(short(S[prev].name))}</button><span style="color:${z.color}">${z.label} · ${i+1}/${ORDER.length}</span><button class="btn" data-svc="${next}">${esc(short(S[next].name))} →</button></div>`;
+  show(h);
+  $('#flagBtn').onclick=()=>toggleFlag(k);
+}
+function toggleFlag(k){
+  flags.has(k)?flags.delete(k):flags.add(k);
+  localStorage.setItem('aipFlags',JSON.stringify([...flags]));
+  document.querySelectorAll(`.tile[data-svc="${k}"]`).forEach(t=>t.classList.toggle('flag',flags.has(k)));
+  const b=$('#flagBtn'); if(b) b.classList.toggle('on',flags.has(k));
+  applyFilter();
+}
+overlay.addEventListener('click',e=>{ if(e.target===overlay||e.target.closest('[data-close]')) closeModal(); });
+
+/* ================= SEARCH + FLAG FILTER ================= */
+const HAY={}; const hay=k=>HAY[k]||(HAY[k]=[S[k].name,S[k].tag,S[k].trap,...S[k].does,...(S[k].pick||[]),...(S[k].x||[])].join(' ').toLowerCase());
+function applyFilter(){
+  const q=$('#q').value.trim().toLowerCase(), only=$('#onlyFlag').checked;
+  document.querySelectorAll('.tile').forEach(t=>{
+    const k=t.dataset.svc, m=(!q||hay(k).includes(q))&&(!only||flags.has(k));
+    t.classList.toggle('dim',!!(q||only)&&!m); t.classList.toggle('hit',!!q&&m);
+  });
+}
+$('#onlyFlag').onchange=applyFilter;
+$('#q').addEventListener('input',applyFilter);
+$('#q').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){const q=e.target.value.trim().toLowerCase(); const k=ORDER.find(k=>S[k].name.toLowerCase().includes(q))||ORDER.find(k=>hay(k).includes(q)); if(k) openModal(k);}
+  if(e.key==='Escape'){e.target.value=''; applyFilter(); e.target.blur();}
+});
+
+/* ================= GLOBAL CLICK + KEYS ================= */
+document.addEventListener('click',e=>{
+  const l=e.target.closest('[data-link]'); if(l){e.stopPropagation(); openLink(l.dataset.link); return;}
+  const s=e.target.closest('[data-svc]'); if(s) openModal(s.dataset.svc);
+});
+function openLink(id){
+  current=null;
+  const isTree=id.startsWith('t:'), body=isTree?treeCard(id.slice(2)):table(C[id]);
+  const title=isTree?'🌳 '+TREES[id.slice(2)].title:'⇄ '+C[id].t;
+  show(`<div class="mhead"><div><h2>${esc(title)}</h2></div><div class="sp"><button class="btn" data-close>×</button></div></div><div class="mbody" style="padding-bottom:16px">${body}</div>`);
+}
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT') return;
+  if(e.key==='/'){e.preventDefault(); $('#q').focus(); return;}
+  if(!overlay.classList.contains('open')) return;
+  if(e.key==='Escape') closeModal();
+  if(current&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){
+    const i=ORDER.indexOf(current); openModal(ORDER[(i+(e.key==='ArrowRight'?1:-1)+ORDER.length)%ORDER.length]);
+  }
+  if(current&&e.key==='f') toggleFlag(current);
+});
+document.addEventListener('error',e=>{const i=e.target; if(i.tagName==='IMG'&&!i.dataset.fb){i.dataset.fb=1; i.src=icon('bedrock');}},true);
+</script>
 </body>
 </html>

@@ -23,8 +23,7 @@ For audio, Transcribe speaker labels identify voices, not clinical roles. Compre
 <span id="glue-quality-redaction"></span>
 Preserve source/version metadata on derived chunks. Use Glue quality rules to reject or quarantine bad data. Re-ingest updates and delete stale derived copies; an S3 event alone does not make the index current.
 
-<span id="chunking-implementation"></span>
-{% include aws-chunking-explorer.html %}
+[Explore chunk boundaries, overlap, and parent context](#rag-chunking-explorer) in the interactive guide.
 
 ##### Knowledge Bases: ingestion and query shape {#kb-internals}
 
