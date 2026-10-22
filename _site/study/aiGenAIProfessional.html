@@ -72,7 +72,7 @@
 
 <p>Select a box to inspect its responsibility, then choose a related situation and trace the evidence. The model lifecycle governs the version used at runtime; knowledge ingestion prepares evidence; a request assembles context and produces an answer or tool proposal. Supporting controls apply throughout.</p>
 
-<link rel="stylesheet" href="/assets/aip-study-flow.css?v=1792709315" />
+<link rel="stylesheet" href="/assets/aip-study-flow.css?v=1792711746" />
 
 <section id="genai-map" class="aip-map" aria-label="Model lifecycle and runtime mindmap">
   <div class="aip-map-header"><span>ARCHITECTURE BEFORE SERVICES</span><strong>One system. Find the layer that owns the problem.</strong><p>Prepare knowledge, assemble context, invoke the model, and verify the outcome. The model lifecycle selects, customizes, evaluates, and deploys the model. Prompt and RAG supply runtime context; the four pillars apply throughout.</p></div>
@@ -1058,7 +1058,7 @@ Cross-Region profile
   <p class="bedrock-token-note">Use the chosen profile's actual Region list; IAM/SCPs must permit its route. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/geographic-cross-region-inference.html">AWS geographic routing and permissions</a>.</p>
 </details>
 </template>
-<script src="/assets/aip-study-flow.js?v=1792709315" defer=""></script>
+<script src="/assets/aip-study-flow.js?v=1792711746" defer=""></script>
 
 <h2 id="how-to-think">1. Read constraints before service names</h2>
 
@@ -1904,7 +1904,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (floatingToc && tocNav && isSubStudyPage) {
         // Generate TOC from headings
         function generateTOC() {
-          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          const headings = [...document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6')].filter(heading => !heading.closest('dialog'));
           if (headings.length === 0) {
             floatingToc.style.display = 'none';
             return;
@@ -1985,7 +1985,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Active section highlighting
         function updateActiveSection() {
-          const headings = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+          const headings = [...document.querySelectorAll('.content h1, .content h2, .content h3, .content h4, .content h5, .content h6')].filter(heading => !heading.closest('dialog'));
           const tocLinks = tocNav.querySelectorAll('a');
           
           // Remove active class from all links
