@@ -11,10 +11,70 @@
   };
   const chunkRoot = document.getElementById('rag-chunking-explorer');
   if (chunkRoot) {
-    const words = chunkRoot.querySelector('.al-source p').textContent.trim().split(/\s+/);
+    const range = (start, end) => Array.from({length:end - start}, (_, i) => start + i);
+    const documents = data.chunkDocuments.map(document => {
+      const words = [];
+      const sections = document.sections.map(section => {
+        const start = words.length;
+        if (section.heading) words.push(...section.heading.split(/\s+/));
+        const sentenceRanges = section.sentences.map((sentence, i) => {
+          const sentenceStart = i === 0 ? start : words.length;
+          words.push(...sentence.split(/\s+/));
+          return range(sentenceStart, words.length);
+        });
+        return {...section, start, end:words.length, sentenceRanges};
+      });
+      return {...document, words, sections};
+    });
+    let currentDocument = documents[0];
     const visual = document.getElementById('al-chunk-visual');
     let mode = 'default';
-    let matchedChild = 1;
+    let matchedChild = 0;
+    const sentenceBudget = 60;
+    const childSize = 24;
+    const childOverlap = 6;
+    function windows(start, end, size, overlap) {
+      const groups = [];
+      for (let i = start; i < end; i += Math.max(1, size - overlap)) {
+        groups.push(range(i, Math.min(i + size, end)));
+        if (i + size >= end) break;
+      }
+      return groups;
+    }
+    function sharedUnits(groups) {
+      const counts = new Map();
+      groups.flat().forEach(i => counts.set(i, (counts.get(i) || 0) + 1));
+      return new Set([...counts].filter(([,count]) => count > 1).map(([i]) => i));
+    }
+    function sentenceGroups() {
+      const groups = [];
+      let buffer = [];
+      const flush = () => {if (buffer.length) groups.push(buffer); buffer = [];};
+      currentDocument.sections.forEach(section => {
+        if (section.heading) flush();
+        section.sentenceRanges.forEach(sentence => {
+          if (buffer.length + sentence.length > sentenceBudget) flush();
+          buffer.push(...sentence);
+        });
+      });
+      flush();
+      return groups;
+    }
+    function renderSource() {
+      document.getElementById('al-chunk-document-title').textContent = `${currentDocument.title} · ${currentDocument.source}`;
+      const source = document.getElementById('al-chunk-source');
+      source.replaceChildren();
+      if (!currentDocument.sections.some(section => section.heading)) {
+        source.append(make('p', currentDocument.sections.flatMap(section => section.sentences).join(' ')));
+        return;
+      }
+      currentDocument.sections.forEach(section => {
+        const part = make('div', undefined, 'al-source-section');
+        if (section.heading) part.append(make('strong', section.heading));
+        part.append(make('p', section.sentences.join(' ')));
+        source.append(part);
+      });
+    }
     function chunk(label, indices, shared = new Set(), childIndex) {
       const box = make('div', undefined, 'al-chunk');
       if (childIndex !== undefined) {
@@ -29,58 +89,87 @@
       indices.forEach(i => {
         const span = make('span', undefined, 'al-text-unit');
         span.dataset.shared = String(shared.has(i));
-        span.append(make('sup', String(i + 1).padStart(2, '0')), document.createTextNode(words[i]));
+        span.append(make('sup', String(i + 1).padStart(2, '0')), document.createTextNode(currentDocument.words[i]));
         if (shared.has(i)) span.title = 'Repeated in overlapping chunks';
         units.append(span);
       });
       box.append(units);
       return box;
     }
-    const range = (start, end) => Array.from({length:end - start}, (_, i) => start + i);
     function render() {
       visual.replaceChildren();
+      renderSource();
+      chunkRoot.querySelectorAll('[data-chunk-document]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.chunkDocument === currentDocument.id)));
       chunkRoot.querySelectorAll('[data-chunk-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.chunkMode === mode)));
       chunkRoot.querySelectorAll('[data-chunk-note]').forEach(note => {note.hidden = note.dataset.chunkNote !== mode;});
       document.getElementById('al-fixed-controls').hidden = mode !== 'fixed';
+      const fit = document.getElementById('al-chunk-fit');
+      const fitKey = `${currentDocument.id}:${mode}`;
+      if (fit.dataset.selection !== fitKey) {
+        fit.dataset.selection = fitKey;
+        fit.replaceChildren(make('strong', `${currentDocument.label} · ${data.chunking.find(strategy => strategy.id === mode).title}`), document.createTextNode(currentDocument.fit[mode]));
+      }
       if (mode === 'hierarchical') {
-        let childIndex = 0;
-        [[0,12],[12,16]].forEach(([start,end], parentIndex) => {
+        const children = [];
+        const parents = currentDocument.sections.map((section, parentIndex) => {
+          const groups = windows(section.start, section.end, childSize, childOverlap);
+          const indices = groups.map(units => {
+            const index = children.length;
+            children.push({units, parentIndex});
+            return index;
+          });
+          return {section, indices, shared:sharedUnits(groups)};
+        });
+        matchedChild = Math.min(matchedChild, children.length - 1);
+        parents.forEach(({section, indices, shared}, parentIndex) => {
           const parent = make('fieldset', undefined, 'al-parent');
-          parent.append(make('legend', `Parent ${parentIndex + 1} · contains units ${start + 1}–${end}`));
-          for (let i = start; i < end; i += 4) parent.append(chunk(`Child ${childIndex + 1}`, range(i, Math.min(i + 4, end)), new Set(), childIndex++));
+          parent.classList.toggle('is-context', indices.includes(matchedChild));
+          parent.append(make('legend', `Parent ${parentIndex + 1} · ${section.heading || section.topic} · words ${section.start + 1}–${section.end}`));
+          indices.forEach(index => parent.append(chunk(`Child ${index + 1}`, children[index].units, shared, index)));
           visual.append(parent);
         });
-        const isFirstParent = matchedChild < 3;
-        visual.append(make('p', `Query-time illustration: matching Child ${matchedChild + 1} returns Parent ${isFirstParent ? 1 : 2}, including ${isFirstParent ? 'the inspection, restart, and approval wording together' : 'the complete invoice-review sentence'}.`, 'al-key'));
+        const parentIndex = children[matchedChild].parentIndex;
+        const section = parents[parentIndex].section;
+        visual.append(make('p', `Query-time illustration: Child ${matchedChild + 1} matches → return Parent ${parentIndex + 1} (${section.heading || section.topic}), including all its child content.`, 'al-key'));
+        visual.append(make('p', `Illustration: ${childSize}-word children with ${childOverlap}-word overlap within each hand-labeled parent. Real parent/child sizes and boundaries depend on configuration.`, 'al-note'));
         return;
       }
       let groups;
       if (mode === 'fixed') {
         const size = Number(document.getElementById('al-chunk-size').value);
         const overlap = Number(document.getElementById('al-chunk-overlap').value);
-        groups = [];
-        for (let start = 0; start < words.length; start += size - overlap) {
-          groups.push(range(start, Math.min(start + size, words.length)));
-          if (start + size >= words.length) break;
-        }
-      } else if (mode === 'default') groups = [range(0,8),range(8,12),range(12,16)];
-      else groups = [range(0,12),range(12,16)];
-      const counts = new Map();
-      groups.flat().forEach(i => counts.set(i, (counts.get(i) || 0) + 1));
-      const shared = new Set([...counts].filter(([,count]) => count > 1).map(([i]) => i));
+        const boundaries = currentDocument.sections.some(section => section.heading) ? currentDocument.sections : [{start:0, end:currentDocument.words.length}];
+        groups = boundaries.flatMap(section => windows(section.start, section.end, size, overlap));
+      } else if (mode === 'default') groups = sentenceGroups();
+      else groups = currentDocument.sections.map(section => range(section.start, section.end));
+      const shared = sharedUnits(groups);
       groups.forEach((indices, i) => {
-        const box = chunk(mode === 'custom' ? `Domain chunk ${i + 1}` : `Chunk ${i + 1}`, indices, shared);
+        const section = currentDocument.sections[i];
+        const label = mode === 'custom' ? `${section.faqId ? 'Q&A' : 'Domain'} chunk ${i + 1}` : `Chunk ${i + 1}`;
+        const box = chunk(label, indices, shared);
+        if (mode === 'semantic') box.append(make('p', `Illustrative topic: ${section.topic}`, 'al-note'));
         if (mode === 'custom') {
           const metadata = make('div', undefined, 'al-chunk-metadata');
-          ['source: runbook-v3', `section: ${i ? 'finance' : 'maintenance'}`, 'scope: plant-A'].forEach(text => metadata.append(make('span', text)));
+          const tags = [`source: ${currentDocument.source}`, `topic: ${section.topic}`];
+          if (section.heading) tags.push(`heading: ${section.heading}`);
+          if (section.faqId) tags.push(`faq_id: ${section.faqId}`);
+          tags.forEach(text => metadata.append(make('span', text)));
           box.append(metadata);
         }
         visual.append(box);
       });
       if (mode === 'fixed') visual.append(make('p', `${groups.length} chunks · ${shared.size} distinct units repeated across boundaries. Dashed, hatched units indicate overlap.`, 'al-note'));
-      if (mode === 'semantic') visual.append(make('p', 'Illustrative topic change: maintenance procedure → invoice review. A real semantic chunker determines its boundaries from the source and configuration.', 'al-note'));
+      if (mode === 'default') visual.append(make('p', `This illustration packs complete sentences up to a ${sentenceBudget}-word budget and preserves retained heading boundaries. It does not reproduce the service’s token limit.`, 'al-note'));
+      if (mode === 'semantic') visual.append(make('p', 'Topic boundaries are hand-labeled for comparison. A real semantic chunker determines splits from meaning and configuration; it does not require headings.', 'al-note'));
     }
     chunkRoot.addEventListener('click', event => {
+      const documentButton = event.target.closest('[data-chunk-document]');
+      if (documentButton) {
+        currentDocument = documents.find(item => item.id === documentButton.dataset.chunkDocument);
+        matchedChild = 0;
+        render();
+        return;
+      }
       const modeButton = event.target.closest('[data-chunk-mode]');
       if (modeButton) {mode = modeButton.dataset.chunkMode; render();}
       const child = event.target.closest('[data-match-child]');

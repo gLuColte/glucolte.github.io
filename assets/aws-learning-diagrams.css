@@ -46,6 +46,11 @@
 .al-key .al-grid{margin-top:10px}
 .al-key .al-grid b{font-size:12px}
 .al-choices{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.al-control-label{display:block;font-size:12px;margin:16px 0 6px}
+.al-control-label+.al-choices{margin:7px 0 14px}
+.al-document-controls button{min-width:105px;text-align:left}
+.al-document-controls button small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+@media(max-width:480px){.al-document-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
 .aws-learn button,.aws-learn select{min-height:40px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);padding:8px 10px;font:inherit;font-size:12px;cursor:pointer}
 .aws-learn button:hover{border-color:var(--al-blue)}
 .aws-learn button[aria-pressed="true"]{border-color:var(--al-blue);background:var(--al-blue-bg);color:var(--al-blue)}
@@ -53,6 +58,11 @@
 .al-controls label{display:flex;align-items:center;gap:8px;font-size:12px}
 .al-source{padding:12px;border:1px dashed var(--line);border-radius:7px;margin:12px 0;background:var(--bg)}
 .al-source>strong{font-size:12px}
+.al-source-title{display:block;font-size:12px;color:var(--muted);margin:8px 0 12px}
+.al-source-section+ .al-source-section{margin-top:12px}
+.al-source-section>strong{font-size:13px}
+.al-source-section p{margin:4px 0 10px}
+.al-fit>strong{display:block;font-size:12px;margin-bottom:5px}
 .al-chunk-visual{display:grid;gap:10px;margin:14px 0}
 .al-chunk,.al-parent{border:1px solid var(--al-grey);border-radius:8px;background:var(--al-grey-bg);padding:10px;min-width:0}
 .al-chunk>strong{font-size:12px;display:block;margin-bottom:8px}
@@ -61,6 +71,7 @@
 .al-text-unit sup{font-size:8px;margin-right:4px;color:var(--muted)}
 .al-text-unit[data-shared="true"]{background:repeating-linear-gradient(135deg,var(--bg),var(--bg) 5px,var(--line) 5px,var(--line) 6px);border-style:dashed}
 .al-parent legend{font-size:12px;font-weight:700;padding:0 6px}
+.al-parent.is-context{border:2px solid var(--al-green)}
 .al-parent .al-chunk{background:var(--card);border-color:var(--line);margin:8px 0}
 .al-parent .al-chunk.is-match{border:2px solid var(--al-green);background:var(--al-green-bg)}
 .al-parent .al-chunk button{min-height:30px;padding:3px 7px;font-size:11px;margin-bottom:8px}

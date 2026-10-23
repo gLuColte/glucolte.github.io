@@ -720,6 +720,125 @@
       ]
     }
   ],
+  "chunkDocuments": [
+    {
+      "id": "article",
+      "label": "Article",
+      "structure": "With headings",
+      "title": "City travel update",
+      "source": "travel-guide.md",
+      "sections": [
+        {
+          "heading": "Rail service",
+          "topic": "rail",
+          "sentences": [
+            "River trains resume normal weekday service on Monday after crews finish repairing the bridge outside Central station.",
+            "Local trains will serve every station, but express trains will continue to skip Central until the platform inspection is complete."
+          ]
+        },
+        {
+          "heading": "Bus connections",
+          "topic": "bus",
+          "sentences": [
+            "Replacement buses will continue between Central and Market square while the station work continues.",
+            "Passengers can use existing rail tickets, although bicycles are not accepted on the smaller evening vehicles.",
+            "After eight, buses run every thirty minutes."
+          ]
+        },
+        {
+          "heading": "Tickets and refunds",
+          "topic": "refunds",
+          "sentences": [
+            "Weekly passes remain valid on both services throughout the closure.",
+            "Passengers who bought separate replacement tickets can request a refund online using their booking number.",
+            "Claims must arrive within fourteen days, except accessibility assistance claims, which can be submitted later."
+          ]
+        }
+      ],
+      "fit": {
+        "default": "Retained headings provide useful starting boundaries: each section keeps its main rule and exception together in this illustration.",
+        "fixed": "A predictable size budget. Small windows can split the reopening rule from the Central-station exception; overlap only carries nearby words.",
+        "semantic": "Headings already expose three topics. Compare any retrieval gain from semantic processing with its extra cost.",
+        "hierarchical": "Match a small detail such as “Monday”, then return the rail parent with the Central-station exception too.",
+        "custom": "Use section-aware rules when headings and metadata matter: keep each section together and attach its source and heading."
+      }
+    },
+    {
+      "id": "news",
+      "label": "News",
+      "structure": "No headings",
+      "title": "City travel bulletin",
+      "source": "travel-bulletin.txt",
+      "sections": [
+        {
+          "topic": "rail",
+          "sentences": [
+            "River trains resume normal weekday service on Monday after crews finish repairing the bridge outside Central station.",
+            "Local trains will serve every station, but express trains will continue to skip Central until the platform inspection is complete."
+          ]
+        },
+        {
+          "topic": "bus",
+          "sentences": [
+            "Replacement buses will continue between Central and Market square while the station work continues.",
+            "Passengers can use existing rail tickets, although bicycles are not accepted on the smaller evening vehicles.",
+            "After eight, buses run every thirty minutes."
+          ]
+        },
+        {
+          "topic": "refunds",
+          "sentences": [
+            "Weekly passes remain valid on both services throughout the closure.",
+            "Passengers who bought separate replacement tickets can request a refund online using their booking number.",
+            "Claims must arrive within fourteen days, except accessibility assistance claims, which can be submitted later."
+          ]
+        }
+      ],
+      "fit": {
+        "default": "Sentence-aware does not mean topic-aware: this demo puts the rail update and the first bus sentence in one chunk.",
+        "fixed": "A fast baseline for flat text. Overlap repeats nearby words but cannot identify the rail-to-bus topic change.",
+        "semantic": "A candidate for this unheaded text: separate rail, bus, and refund passages by meaning. These demo topic boundaries are hand-labeled.",
+        "hierarchical": "Retrieve a detail and return its wider story context. In this demo, each parent contains one hand-labeled topic, even without source headings.",
+        "custom": "Use explicit transformation logic to group story passages and add editorial topic tags. Unheaded text does not supply those tags automatically."
+      }
+    },
+    {
+      "id": "faq",
+      "label": "FAQ",
+      "structure": "Question + answer",
+      "title": "Delivery questions",
+      "source": "delivery-faq.md",
+      "sections": [
+        {
+          "heading": "Can I cancel an order?",
+          "topic": "cancellation",
+          "faqId": "cancel-order",
+          "sentences": [
+            "Yes, if the parcel has not been handed to the courier.",
+            "Open your order page and select Cancel; the confirmation email records whether the request succeeded.",
+            "Personalised items cannot be cancelled once production begins, even if they have not been dispatched."
+          ]
+        },
+        {
+          "heading": "When will my delivery arrive?",
+          "topic": "delivery",
+          "faqId": "delivery-time",
+          "sentences": [
+            "Standard delivery usually takes three working days after dispatch.",
+            "Remote addresses may require another two days, and public holidays do not count as working days.",
+            "Your tracking link shows the current estimate, which can change after severe weather."
+          ]
+        }
+      ],
+      "fit": {
+        "default": "Keep the question, answer, and exceptions together. Sentence boundaries alone do not establish the best retrieval unit.",
+        "fixed": "A small window can split the question, answer, or exception. Overlap does not guarantee that all three stay together.",
+        "semantic": "Keep each related question and answer together. Short answer fragments can be ambiguous when embedded alone.",
+        "hierarchical": "Match a short answer fragment, then return its question and complete answer as parent context.",
+        "custom": "Use pair-aware rules: one question plus its full answer per chunk, with a stable FAQ ID and category metadata."
+      }
+    }
+  ],
   "chunking": [
     {
       "id": "default",
@@ -739,7 +858,7 @@
       "context": "Overlap carries boundary text",
       "cost": "More overlap duplicates indexed tokens",
       "complexity": "Size + overlap configuration",
-      "note": "The highlighted repeated token IDs are the same content in adjacent chunks. Token labels here are schematic, not a model tokenizer."
+      "note": "Repeated word IDs mark the same content in adjacent chunks. This demo uses word windows and retained heading boundaries; AWS uses tokens and may preserve additional parsed document boundaries."
     },
     {
       "id": "semantic",
