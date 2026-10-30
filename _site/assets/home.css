@@ -107,6 +107,12 @@
   color: var(--ink);
 }
 
+.home-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .list {
   margin: 0;
   padding-left: 18px;

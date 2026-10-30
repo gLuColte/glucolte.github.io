@@ -49,6 +49,15 @@ title: Home
     </div>
 
     <div class="home-card skills-card">
+      <section class="home-section" aria-labelledby="certifications-title">
+        <h2 id="certifications-title">certifications</h2>
+        <ul class="skills">
+          <li>AWS Certified GenAI Developer – Professional</li>
+          <li>AWS Certified Solutions Architect - Professional</li>
+          <li>AWS Certified Solutions Architect - Associate</li>
+        </ul>
+      </section>
+
       <h2>key skills</h2>
       <div class="skill-group">
         <h3>💻 Software Engineering</h3>
@@ -110,15 +119,6 @@ title: Home
         </ul>
       </div>
 
-      <div class="skill-group">
-        <h3>🎓 Certifications</h3>
-        <ul class="skills">
-          <li>AWS Certified Generative AI Developer – Professional</li>
-          <li>AWS Certified Solutions Architect Professional</li>
-          <li>AWS Certified Solutions Architect Associate</li>
-          <li>Master of IT in Artificial Intelligence</li>
-        </ul>
-      </div>
     </div>
   </div>
 </div>
