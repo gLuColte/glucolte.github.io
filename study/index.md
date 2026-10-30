@@ -14,7 +14,7 @@ Think of this page as your **mental compass** — quick reminders on *how to thi
 
 - Recommended order: fundamentals → prompt engineering → models/providers → retrieval → agents → infrastructure/evaluation → AWS services.
 - Each page owns one layer; follow its links for details taught elsewhere. Merged and legacy URLs remain available for old bookmarks but are hidden here.
-- After the introduction, use [AWS GenAI Professional preparation](/study/aiGenAIProfessional) as an optional certification track.
+- Certification tracks now live in [Exam preparation](#exams).
 
 <div class="study-tiles">
   <a href="{{ '/study/aiFundamentals' | relative_url }}" class="study-tile system-design">
@@ -57,12 +57,6 @@ Think of this page as your **mental compass** — quick reminders on *how to thi
     <div class="study-tile-title">
       <span class="study-tile-icon">7️⃣</span>
       AWS AI Services
-    </div>
-  </a>
-  <a href="{{ '/study/aiGenAIProfessional' | relative_url }}" class="study-tile system-design">
-    <div class="study-tile-title">
-      <span class="study-tile-icon">🎓</span>
-      AWS GenAI Professional Preparation
     </div>
   </a>
   <a href="{{ '/study/aiModelGuidelines' | relative_url }}" class="study-tile system-design">
@@ -445,6 +439,27 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
+
+---
+
+## Exam preparation {#exams}
+
+Interactive certification tracks: theory → architecture decisions → service features → practice.
+
+<div class="study-tiles">
+{%- assign exam_pages = site.pages | sort: "title" -%}
+{%- for p in exam_pages -%}
+  {%- assign exam_prefix = p.name | slice: 0, 4 -%}
+  {%- if exam_prefix == 'exam' and p.url contains '/study/' and p.hidden != true %}
+    <a href="{{ p.url | relative_url }}" class="study-tile system-design">
+      <div class="study-tile-title">
+        <span class="study-tile-icon">🎓</span>
+        {{ p.title | escape }}
+      </div>
+    </a>
+  {% endif -%}
+{% endfor -%}
+</div>
 
 ---
 

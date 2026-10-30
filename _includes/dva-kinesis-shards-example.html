@@ -1,0 +1,35 @@
+<section class="dva-shards-demo" data-shards-demo aria-label="Kinesis records and shards worked example">
+  <strong class="dva-panel-title">Records flow through shards</strong>
+  <p>A <strong>record</strong> is one event: a data blob + partition key, assigned a sequence number when accepted. A <strong>shard</strong> is an ordered lane of records with its own throughput capacity. A <strong>stream</strong> contains those lanes. A record belongs to one shard; the shard is not a batch sent to the consumer.</p>
+  <p class="dva-note"><strong>Example.</strong> Devices send readings continuously. Each record totals <strong>4 KiB = 4,096 bytes</strong>, including its partition key, before base64 encoding. The sample below illustrates sustained provisioned capacity, without producer aggregation or burst allowances.</p>
+  <div class="dva-shards-controls" data-dva-enhancement hidden>
+    <label>Records arriving / second<input type="number" min="1" max="10000" step="1" value="300" data-shards-rate></label>
+    <label>Provisioned shards<select data-shards-count><option value="1">1 shard</option><option value="2">2 shards</option><option value="4">4 shards</option></select></label>
+    <label>Partition keys<select data-shards-keys><option value="spread">Many keys, evenly spread</option><option value="hot">One key: device01</option></select></label>
+  </div>
+  <div class="dva-shards-architecture">
+    <div class="dva-shards-endpoint"><strong>1 · Producer</strong><span data-shards-producer>300 records/s × 4 KiB = 1.172 MiB/s</span><small>PutRecord / PutRecords · IAM-authorized writes</small></div>
+    <p class="dva-shards-arrow">↓ Partition-key hash → shard hash range</p>
+    <div class="dva-region-boundary">
+      <span class="dva-eyebrow">2 · AWS Kinesis stream · telemetry · one Region</span>
+      <p class="dva-note" data-shards-routing>Many keys are assumed evenly distributed in this model. With one shard, all records still enter that lane.</p>
+      <div class="dva-shards-lanes" data-shards-lanes>
+        <div class="dva-shard-lane" data-overloaded="true">
+          <div class="dva-shard-heading"><strong>Shard 1</strong><span>Incoming: 300 records/s · 1.172 MiB/s</span></div>
+          <div class="dva-shard-records" aria-label="Illustrative records in stored order"><span>r1</span><span>r2</span><span>r3</span><span>…</span><b>→</b></div>
+          <div class="dva-shard-meter" aria-hidden="true"><span style="width:100%"></span></div>
+          <small>Demand: 117% of byte budget · 30% of record budget · over capacity</small>
+        </div>
+      </div>
+    </div>
+    <p class="dva-shards-arrow">↓ Read records from each shard; track progress per shard</p>
+    <div class="dva-shards-endpoint"><strong>3 · Consumer application</strong><span>Process accepted readings → update dashboard / store results</span><small>GetRecords polling or enhanced fan-out · IAM-authorized reads</small></div>
+  </div>
+  <div class="dva-shards-output" aria-live="polite" aria-atomic="true">
+    <p class="dva-result-blocked" data-shards-result>300 records/s exceed one shard's sustained byte budget. Some writes can be throttled; retry failed records with backoff and jitter.</p>
+    <p class="dva-note" data-shards-calculation>Per shard: min(1,000 records/s, 1,024 KiB/s ÷ 4 KiB) = 256 records/s. At 300 records/s, at least 2 evenly loaded shards are needed before headroom.</p>
+  </div>
+  <p class="dva-note"><strong>Two limits, one lane.</strong> Each shard supports sustained writes up to 1 MiB/s <em>and</em> 1,000 records/s; whichever is reached first limits you. At 4 KiB, bytes win. With 512-byte records, the record-count limit would win. These are rates, not the shard's total storage size.</p>
+  <p class="dva-note"><strong>Reading is independent.</strong> Shared-throughput consumers share up to 2 MiB/s per shard; enhanced fan-out provides up to 2 MiB/s per shard per registered consumer. Reading does not delete records. Retention controls replay; there is no global order across shards. PutRecords retries can also change producer event order.</p>
+  <p class="dva-note"><strong>Capacity ≠ retention.</strong> The lane continues accepting records over time; it does not fill at 1 MiB and move to the next shard. Control-plane scaling changes the shard layout; data-plane calls write/read records. On-demand manages capacity for you, but a hot partition key still needs attention.</p>
+</section>

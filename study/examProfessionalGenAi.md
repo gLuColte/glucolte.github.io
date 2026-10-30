@@ -1,6 +1,6 @@
 ---
-title: AWS AIP-C01 Architecture Decision Guide
-permalink: /study/aiGenAIProfessional
+title: AWS GenAI Professional (AIP-C01)
+permalink: /study/examProfessionalGenAi
 tag:
   - AWS Certified Generative AI Developer Professional
   - AIP-C01
@@ -15,7 +15,7 @@ tag:
   - agent tracing
 ---
 
-# AWS AIP-C01 Architecture Decision Guide
+# AWS GenAI Professional (AIP-C01)
 
 Use this page to practise **why one architecture fits and the nearest alternative fails**. The mindmap explains responsibilities; domain exercises test your decisions. Use [AWS AI Services](/study/aiAWSServices#service-map) for the interactive service chooser and API/configuration notes.
 

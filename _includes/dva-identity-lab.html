@@ -1,0 +1,25 @@
+<div class="dva-lab" id="identity-lab">
+  <strong class="dva-panel-title">Trace the caller, token and permission</strong>
+  <p>Start with the principal and target. User sign-in and backend AWS access can be parts of the same request.</p>
+  <div class="dva-controls" role="group" aria-label="Choose an access path" hidden data-dva-enhancement>
+    {% for path in site.data.dva_study.identity %}<button type="button" data-dva-identity="{{ path.id }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="dva-identity-{{ path.id }}">{{ path.name }}</button>{% endfor %}
+  </div>
+  {% for path in site.data.dva_study.identity %}
+  <section id="dva-identity-{{ path.id }}" data-dva-identity-panel="{{ path.id }}" aria-label="{{ path.name }}">
+    <p class="dva-boundary"><strong>Trust boundary:</strong> {{ path.boundary }}</p>
+    <ol class="dva-flow dva-identity-flow">{% for step in path.flow %}<li class="dva-{{ step[0] }}"><strong>{{ step[1] }}</strong><small>{{ step[2] }}</small></li>{% endfor %}</ol>
+    <p><strong>Trust check:</strong> {{ path.trust }}</p>
+    <p><strong>Permission check:</strong> {{ path.permission }}</p>
+    <pre><code>{{ path.contract | escape }}</code></pre>
+    <div class="aws-map">{% for key in path.keys %}{% include aws-service-chip.html key=key catalogue=site.data.dva_study %}{% endfor %}</div>
+  </section>
+  {% endfor %}
+  <fieldset class="dva-gates" hidden data-dva-enhancement>
+    <legend>Change a check and follow the result</legend>
+    <label><input id="dva-trust" type="checkbox" checked> Identity/token and trust configuration are valid</label>
+    <label><input id="dva-permission" type="checkbox" checked> Required action/resource permissions allow this request</label>
+    <p id="dva-identity-result" role="status" aria-live="polite" aria-atomic="true"></p>
+  </fieldset>
+  <p class="dva-note">A simplified learning model. It does not implement IAM evaluation; resource policies, key policies, session policies, boundaries and organizational controls can change the result. Permission does not make an untrusted token valid.</p>
+  <p>Continue with <a href="{{ '/study/aiAWSServices#identity-access-guide' | relative_url }}">the broader identity decision tree</a> and <a href="{{ '/study/aiAWSServices#identity-protocol-guide' | relative_url }}">JWT, OAuth, OIDC and SAML</a>.</p>
+</div>

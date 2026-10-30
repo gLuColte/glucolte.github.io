@@ -336,4 +336,4 @@ Before moving on, apply the ticket example without looking at the worked prompt:
 - Which test would distinguish a JSON-format failure from a classification failure?
 - If the ticket lacks facts, should the next experiment add examples, retrieve evidence, or use the Unclear fallback?
 
-Continue to [AI Models and Providers](/study/aiModels) to select a model for the tested task. Exam-oriented revision belongs in [AWS GenAI Professional preparation](/study/aiGenAIProfessional).
+Continue to [AI Models and Providers](/study/aiModels) to select a model for the tested task. Exam-oriented revision belongs in [AWS GenAI Professional preparation](/study/examProfessionalGenAi).

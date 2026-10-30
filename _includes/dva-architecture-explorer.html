@@ -1,0 +1,31 @@
+<section class="dva-scope-explorer" id="dva-scope-explorer" aria-label="AWS architecture explorer" data-icon-base="{{ '/study/assets/aws-architecture-icons/' | relative_url }}">
+  <div class="dva-scope-intro"><span>EXAM SCOPE · ARCHITECTURE EXPLORER</span><strong>Place it. Connect it. Follow one operation.</strong><p>One logical environment, with alternative architectures highlighted on the same canvas. Boundaries describe scope and placement; they are not extra network hops. This local simulator makes no AWS calls.</p></div>
+  <div class="dva-scope-tools" hidden data-scope-ready>
+    <label>Find a service or feature<input id="dva-scope-search" type="search" list="dva-scope-services" placeholder="Try SAM, shards, EFS…"><datalist id="dva-scope-services"></datalist></label>
+    <label>Architecture scenario<select id="dva-scope-scenario"><option value="">Architecture overview</option>{% for scenario in site.data.dva_architecture.scenarios %}<option value="{{ scenario.id }}">{{ scenario.title }}</option>{% endfor %}</select></label>
+    <label>Compare concepts<select id="dva-scope-compare"><option value="">No comparison</option>{% for comparison in site.data.dva_architecture.comparisons %}<option value="{{ comparison.id }}">{{ comparison.title }}</option>{% endfor %}</select></label>
+  </div>
+  <div class="dva-scope-options" hidden data-scope-ready>
+    <label><input id="dva-scope-study" type="checkbox"> Exam study mode</label>
+    <label><input id="dva-scope-connections" type="checkbox"> All connections</label>
+    <details><summary>Connection types / legend</summary><div id="dva-scope-legend"></div></details>
+    <span id="dva-scope-match" role="status"></span>
+  </div>
+  <div id="dva-scope-study-panel" class="dva-scope-study" hidden><label>Reason from the requirement<select id="dva-scope-question">{% for question in site.data.dva_architecture.study %}<option value="{{ forloop.index0 }}">{{ question.title }}</option>{% endfor %}</select></label><p id="dva-scope-answer"></p></div>
+  <div class="dva-scope-layout" hidden data-scope-ready>
+    <nav class="dva-scope-nav" aria-label="Architecture categories"><button type="button" data-scope-category="">Overview</button>{% for category in site.data.dva_architecture.categories %}<button type="button" data-scope-category="{{ category[0] }}">{{ category[1] }}</button>{% endfor %}<button type="button" data-scope-nav="scenario">Scenarios</button><button type="button" data-scope-nav="study">Exam study</button></nav>
+    <div class="dva-scope-map-area">
+      <div class="dva-scope-view-tools" role="group" aria-label="Architecture view controls"><button type="button" id="dva-scope-zoom-out" aria-label="Zoom out">−</button><button type="button" id="dva-scope-zoom-in" aria-label="Zoom in">+</button><button type="button" id="dva-scope-reset">Reset view</button><button type="button" id="dva-scope-expand">Expand</button><span id="dva-scope-zoom"></span></div>
+      <svg id="dva-scope-canvas" xmlns="http://www.w3.org/2000/svg" role="group" tabindex="0" aria-label="AWS architecture canvas: drag empty space to pan; use zoom buttons or Control plus mouse wheel; arrow keys pan, plus and minus zoom, zero resets" viewBox="0 0 2420 2070"></svg>
+      <p class="dva-scope-hint">Drag blank canvas to pan · + / − to zoom · select an icon to inspect · boundary + / − collapses its contents. Connections shown by default belong to the selected scenario or service.</p>
+    </div>
+    <aside class="dva-scope-panel" aria-label="Selected architecture explanation" id="dva-scope-detail" aria-live="polite"></aside>
+  </div>
+  <div class="dva-scope-simulation" hidden data-scope-ready>
+    <div class="dva-scope-player"><button type="button" id="dva-scope-run">Run simulation</button><button type="button" id="dva-scope-previous" aria-label="Previous simulation step">←</button><label>Inspect a step<select id="dva-scope-step"></select></label><button type="button" id="dva-scope-next" aria-label="Next simulation step">→</button><span id="dva-scope-progress" role="status"></span></div>
+    <div id="dva-scope-step-detail" aria-live="polite"></div>
+  </div>
+  <p class="dva-scope-sources">AWS references: {% for source in site.data.dva_architecture.sources %}<a href="{{ source.url }}">{{ source.label }}</a>{% unless forloop.last %} · {% endunless %}{% endfor %}. Service panels also link to their specific documentation. These scenarios explain mechanisms; the exam guide defines scope.</p>
+  <noscript><p>The interactive architecture explorer needs JavaScript. The service references and exam scope above remain available.</p></noscript>
+</section>
+<script type="application/json" id="dva-scope-data">{{ site.data.dva_architecture | jsonify }}</script>

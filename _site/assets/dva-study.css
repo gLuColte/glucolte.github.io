@@ -1,0 +1,199 @@
+.container:has(#dva-study){max-width:1200px}
+.dva-study{--dva-blue:#1d4ed8;--dva-purple:#6d28d9;--dva-green:#166534;--dva-orange:#9a3412;--dva-soft:#eff6ff;overflow-wrap:anywhere}
+[data-theme="dark"] .dva-study{--dva-blue:#93c5fd;--dva-purple:#c4b5fd;--dva-green:#86efac;--dva-orange:#fdba74;--dva-soft:#172554}
+.dva-study [hidden]{display:none!important}
+.dva-study [id]{scroll-margin-top:90px}
+.dva-study :is(button,a,input,select,summary):focus-visible{outline:3px solid var(--dva-blue);outline-offset:3px}
+.dva-study :is(pre,table){max-width:100%;overflow-x:auto}
+.dva-study>table{display:block}
+.dva-study pre{white-space:pre;box-sizing:border-box}
+.dva-study pre{background:#0b1220;color:#e2e8f0}
+.dva-study pre code{color:inherit;background:transparent}
+.dva-study pre code :is(.hljs-attr,.hljs-attribute,.hljs-name,.hljs-title){color:#93c5fd}
+.dva-study pre code :is(.hljs-string,.hljs-bullet,.hljs-addition){color:#86efac}
+.dva-study pre code :is(.hljs-number,.hljs-literal,.hljs-keyword,.hljs-built_in,.hljs-variable){color:#c4b5fd}
+.dva-study pre code :is(.hljs-comment,.hljs-quote,.hljs-meta){color:#a8b6c9}
+.dva-study button,.dva-study select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:7px;min-height:42px;padding:8px 12px;cursor:pointer}
+.dva-study button[aria-pressed="true"]{border-color:var(--dva-blue);background:var(--dva-soft);color:var(--dva-blue)}
+.dva-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+.dva-controls button{font-size:12px}
+.dva-controls>span,.dva-note,.dva-eyebrow{font-size:12px;color:var(--muted);line-height:1.6}
+.dva-eyebrow{display:block;font-weight:600}
+.dva-panel-title{display:block;font-size:15px;line-height:1.5;margin-bottom:12px}
+.dva-lab p{font-size:14px;line-height:1.65}
+.dva-flow{display:flex;gap:22px;list-style:none!important;padding:0!important;margin:16px 0!important}
+.dva-flow li{position:relative;flex:1;min-width:0;border:1px solid var(--line);border-top:3px solid var(--dva-blue);border-radius:8px;padding:12px;background:var(--card);font-size:12px;line-height:1.5;margin:0!important}
+.dva-flow li:not(:last-child)::after{content:'→';position:absolute;right:-19px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.dva-step-number{display:block;font-weight:600;color:var(--dva-blue);margin-bottom:5px}
+.dva-flow small{display:block;margin-top:7px;line-height:1.5;color:var(--muted)}
+.dva-flow .dva-purple{border-top-color:var(--dva-purple)}
+.dva-flow .dva-green{border-top-color:var(--dva-green)}
+.dva-flow .dva-gray{border-top-color:var(--muted)}
+.dva-example,.dva-boundary{border-left:3px solid var(--dva-orange);padding:9px 13px;background:var(--bg)}
+.dva-zone{margin:20px 0 28px}
+.dva-zone .aws-map__group{padding:16px}
+.dva-zone .aws-map__tiles{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+.dva-zone .aws-map__tiles:has(>a:nth-child(5)){grid-template-columns:repeat(5,minmax(0,1fr))}
+.dva-zone .aws-map__tile{min-height:92px}
+.dva-lab{margin:24px 0 36px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.dva-result-rule{border-left:3px solid var(--dva-green);padding:8px 12px}
+.dva-result-blocked{border-left:3px solid var(--dva-orange);padding:8px 12px}
+.dva-fleet{display:grid;gap:10px;margin:18px 0}
+.dva-fleet-row{display:grid;grid-template-columns:175px minmax(0,1fr);align-items:center;gap:10px;font-size:12px}
+.dva-instance-row{display:flex;flex-wrap:wrap;gap:6px}
+.dva-instance{display:block;width:23px;height:25px;border:2px solid var(--dva-blue);border-radius:4px;background:var(--dva-soft)}
+.dva-instance--new{border-color:var(--dva-green);background:transparent}
+.dva-instance--offline{border:2px dashed var(--dva-orange);background:transparent}
+.dva-queue-inputs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+.dva-queue-inputs label{font-size:12px;min-width:0}
+.dva-queue-inputs input{box-sizing:border-box;width:100%;margin-top:7px;min-height:42px;padding:8px;font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:7px}
+.dva-gates{border:1px solid var(--line);border-radius:8px;margin-top:20px;padding:14px}
+.dva-gates legend{font-size:13px;font-weight:600;padding:0 5px}
+.dva-gates label{display:flex;gap:9px;align-items:start;margin:10px 0;font-size:13px}
+.dva-gates input{flex:none;margin-top:3px}
+.dva-has-dialog .dva-reference-fallback{display:none}
+.dva-dialog{--map-accent:var(--dva-blue);max-width:820px}
+.dva-dialog .aws-map__dialog-head{align-items:start}
+.dva-dialog .aws-map__dialog-head strong{font-size:20px;line-height:1.4}
+.dva-dialog form{margin:0}
+.dva-dialog ul{font-size:14px;line-height:1.65}
+.dva-card-content .dva-panel-title{margin-top:20px}
+.dva-card-content .dva-note{font-size:12px}
+.dva-table-wrap{overflow-x:auto;max-width:100%;margin:20px 0}
+.dva-table-wrap table{width:100%;font-size:12px}
+.dva-docs{font-size:12px!important}
+.dva-reference-section{border-block:1px solid var(--line);margin:22px 0;padding:0 0 14px}
+.dva-reference-section p{font-size:13px;line-height:1.65}
+.dva-reference-section .dva-table-wrap table{min-width:620px}
+.dva-reference-section :is(th,td){overflow-wrap:normal;word-break:normal}
+.dva-table-hint{display:none;font-size:12px;color:var(--muted)}
+.dva-reference-code{font-size:12px;line-height:1.65;white-space:pre-wrap!important;overflow-wrap:anywhere;padding:12px;border-radius:7px}
+.dva-apigw-demo{border-block:1px solid var(--line);margin:22px 0;padding:0 0 14px}
+.dva-apigw-demo p{font-size:13px;line-height:1.65}
+.dva-apigw-controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:18px 0}
+.dva-apigw-controls>div{display:flex;gap:6px}
+.dva-apigw-controls label{flex:1;min-width:160px;font-size:12px}
+.dva-apigw-controls select{display:block;width:100%;box-sizing:border-box;margin-top:5px;font-size:13px}
+.dva-apigw-demo pre{font-size:12px;line-height:1.65;padding:12px;border-radius:7px}
+.dva-apigw-demo .dva-apigw-request{white-space:pre-wrap;overflow-wrap:anywhere}
+.dva-apigw-demo .dva-apigw-steps{list-style:none;padding:0;margin:20px 0;counter-reset:apigw-step}
+.dva-apigw-steps li{position:relative;margin:0;padding:0 0 18px 34px;border-left:1px solid var(--line);margin-left:11px;counter-increment:apigw-step;font-size:13px}
+.dva-apigw-steps li:last-child{border-left-color:transparent;padding-bottom:0}
+.dva-apigw-steps li::before{content:counter(apigw-step);position:absolute;left:-12px;top:0;display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:var(--dva-soft);color:var(--dva-blue);font-size:12px;font-weight:600}
+.dva-apigw-steps li p{margin:5px 0 0}
+.dva-apigw-steps li[data-state="blocked"]::before{background:var(--bg);color:var(--dva-orange);outline:1px solid var(--dva-orange)}
+.dva-apigw-steps li[data-state="skipped"]{color:var(--muted)}
+.dva-apigw-payloads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dva-apigw-payloads>div{min-width:0}
+.dva-apigw-payloads pre{margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere}
+.dva-balancing-demo{border-block:1px solid var(--line);margin:22px 0;padding:0 0 14px}
+.dva-balancing-demo p{font-size:13px;line-height:1.65}
+.dva-region-boundary{border:1px dashed var(--muted);padding:14px;border-radius:8px}
+.dva-balancing-entry{font-weight:600;color:var(--dva-blue)}
+.dva-balancing-zones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dva-balancing-az{border:1px solid var(--line);border-radius:7px;padding:12px;font-size:13px}
+.dva-balancing-targets{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.dva-balancing-targets span{display:grid;place-items:center;min-width:45px;height:38px;border:1px solid var(--dva-blue);border-radius:4px;background:var(--dva-soft);color:var(--dva-blue);font-size:12px;font-weight:600}
+.dva-shards-demo{border-block:1px solid var(--line);margin:22px 0;padding:0 0 14px}
+.dva-shards-demo p{font-size:13px;line-height:1.65}
+.dva-shards-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}
+.dva-shards-controls label{font-size:12px;min-width:0}
+.dva-shards-controls :is(input,select){display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:8px;min-height:42px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font:inherit}
+.dva-shards-endpoint{display:flex;flex-direction:column;gap:5px;padding:12px;border:1px solid var(--line);border-radius:7px;font-size:13px;background:var(--bg)}
+.dva-shards-endpoint small{color:var(--muted);font-size:11px}
+.dva-shards-arrow{text-align:center;color:var(--dva-purple)}
+.dva-shards-lanes{display:grid;gap:10px}
+.dva-shard-lane{border:1px solid var(--dva-green);border-radius:7px;padding:12px}
+.dva-shard-lane[data-overloaded="true"]{border-color:var(--dva-orange)}
+.dva-shard-heading{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:12px}
+.dva-shard-records{display:flex;align-items:center;gap:6px;margin:12px 0;min-height:30px}
+.dva-shard-records>span{padding:5px 12px;border:1px solid var(--line);background:var(--bg);border-radius:4px;font-size:11px}
+.dva-shard-records>b{color:var(--dva-purple)}
+.dva-shard-meter{height:6px;background:var(--line);border-radius:5px;overflow:hidden;margin-bottom:6px}
+.dva-shard-meter>span{display:block;height:100%;background:var(--dva-green)}
+.dva-shard-lane[data-overloaded="true"] .dva-shard-meter>span{background:var(--dva-orange)}
+.dva-shard-lane small{font-size:11px;color:var(--muted)}
+#dva-question{display:block;width:100%;margin:12px 0 20px;font-size:13px}
+.dva-answers{min-width:0;border:0;padding:0;margin:0 0 18px}
+.dva-answers legend{font-weight:600;font-size:15px;line-height:1.6;margin-bottom:12px}
+.dva-answers label{display:flex;align-items:start;gap:10px;border:1px solid var(--line);border-radius:8px;padding:12px;margin:8px 0;font-size:13px;cursor:pointer;background:var(--card)}
+.dva-answers input{margin-top:4px;flex:none}
+.dva-answers label.dva-answer-correct{border:2px solid var(--dva-green)}
+.dva-answers label.dva-answer-wrong{border:2px dashed var(--dva-orange)}
+@media(max-width:760px){
+  .dva-table-hint{display:block}
+  .dva-apigw-payloads{grid-template-columns:minmax(0,1fr)}
+  .dva-balancing-zones{grid-template-columns:minmax(0,1fr)}
+  .dva-shards-controls{grid-template-columns:minmax(0,1fr)}
+  .dva-flow{flex-direction:column;gap:25px}
+  .dva-flow li:not(:last-child)::after{content:'↓';right:auto;left:50%;top:auto;bottom:-24px;transform:translateX(-50%)}
+  .dva-queue-inputs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dva-zone .aws-map__tiles:has(>a:nth-child(5)){grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:440px){
+  .dva-fleet-row{grid-template-columns:1fr;gap:6px}
+  .dva-dialog{padding:15px}
+  .dva-controls button{flex:1 1 125px}
+  .dva-zone .aws-map__branch{grid-template-columns:1fr}
+  .dva-zone .aws-map__branch-note{grid-column:1}
+}
+
+/* Connected lanes reuse the GenAI architecture map's frame, SVG and panel language. */
+#dva-architecture-map .map-edge{marker-end:url(#dva-control-arrow);stroke-linejoin:round;stroke-linecap:round;pointer-events:none}
+#dva-architecture-map .dva-edge--request{stroke:var(--flow-teal);marker-end:url(#dva-request-arrow)}
+#dva-architecture-map .dva-edge--deploy{stroke-dasharray:6 5}
+#dva-control-arrow path{fill:var(--flow-wire)}
+#dva-request-arrow path{fill:var(--flow-teal)}
+#dva-architecture-map .dva-edge--feedback{stroke:var(--flow-blue);stroke-width:1.75;stroke-dasharray:5 5;opacity:.8;marker-end:url(#dva-feedback-arrow)}
+#dva-feedback-arrow path{fill:var(--flow-blue)}
+#dva-architecture-map .legend-feedback::before{border-color:var(--flow-blue);border-top-style:dashed}
+#dva-architecture-map .dva-edge-label{pointer-events:none}
+#dva-architecture-map .dva-edge-label rect{fill:var(--card);stroke:var(--line);stroke-width:1}
+#dva-architecture-map .dva-edge-label text{fill:var(--muted);font-size:13px}
+#dva-architecture-map .dva-edge-label--feedback text{fill:var(--flow-blue)}
+#dva-architecture-map .map-node-title{font-size:15px}
+#dva-architecture-map .map-node-copy{font-size:14px}
+#dva-architecture-map .dva-node--support .map-node-title{font-size:17px}
+#dva-architecture-map .dva-node--support .map-node-copy{font-size:15px}
+#dva-architecture-map .dva-lifecycle-label{font-size:13px}
+#dva-architecture-map .dva-runtime-panel{stroke:var(--flow-teal)}
+#dva-architecture-map .dva-async-panel{stroke:var(--dva-purple)}
+#dva-architecture-map .dva-node--runtime rect{stroke:var(--flow-teal)}
+#dva-architecture-map .dva-node--runtime .map-node-title{fill:var(--flow-teal)}
+#dva-architecture-map .dva-node--async rect{stroke:var(--dva-purple)}
+#dva-architecture-map .dva-node--async .map-node-title{fill:var(--dva-purple)}
+#dva-architecture-map .map-link.is-selected rect{fill:var(--flow-soft);stroke:var(--flow-blue);stroke-width:3}
+#dva-architecture-map .map-link.is-on-path rect{stroke-width:3}
+#dva-architecture-map .map-link.is-failed rect{stroke:var(--dva-orange);fill:var(--flow-gate);stroke-width:4}
+#dva-architecture-map .map-link.is-failed .map-node-title{fill:var(--dva-orange)}
+#dva-architecture-map .is-dim{opacity:.3}
+#dva-architecture-map .map-edge.is-traced{stroke-width:4}
+#dva-architecture-map .dva-edge--feedback.is-traced{stroke-width:3;opacity:1}
+#dva-architecture-map.dva-map-ready .dva-map-fallback{display:none}
+#dva-architecture-map .dva-map-fallback{padding:10px 16px}
+#dva-architecture-map .dva-map-fallback details{border-bottom:1px solid var(--line);padding:12px 0}
+.dva-map-mobile-selector{display:none;padding:10px 16px}
+.dva-concept-head{padding:18px 20px 0}
+.dva-concept-head>strong{font-size:19px}
+.dva-concept-head>span{margin-top:4px}
+#dva-concept-panel{padding:0 20px 12px}
+.dva-concept-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 22px;margin:16px 0}
+.dva-concept-grid>div>strong{font-size:12px;color:var(--muted)}
+.dva-concept-grid>div>p{margin:6px 0}
+.dva-map-situations{border-top:1px solid var(--line);padding:0 20px 20px}
+.dva-map-situations select{width:100%;box-sizing:border-box}
+#dva-map-investigation{margin-top:16px}
+#dva-map-investigation>strong{display:block;font-size:14px}
+.dva-study .dva-trace-path{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:14px 0}
+.dva-trace-path li{border:1px solid var(--line);border-radius:6px;background:var(--bg);padding:4px 7px;font-size:11px;margin:0}
+@media(max-width:760px){
+  .dva-study [id]{scroll-margin-top:180px}
+  #dva-architecture-map .dva-map-mobile-selector{display:block}
+  .dva-concept-grid{grid-template-columns:minmax(0,1fr)}
+  #dva-concept-panel,.dva-map-situations{padding-left:12px;padding-right:12px}
+  .dva-concept-head{padding-left:12px;padding-right:12px}
+}
+@media print{
+  #dva-architecture-map .dva-map-mobile-selector,.dva-map-situations>label,.dva-map-situations>select{display:none}
+  #dva-architecture-map .is-dim{opacity:1}
+}

@@ -1,9 +1,10 @@
+{%- assign tree_catalogue = include.catalogue | default: site.data.aws_ai_service_map -%}
 <p class="aws-map__question">{{ include.tree.question }}</p>
 <ul class="aws-map__branches">{%- for option in include.tree.options -%}
   <li class="aws-map__branch">
     <span class="aws-map__condition">{{ option.when }}</span>
-    <div class="aws-map__result">{% if option.then != empty %}<span>{{ option.then }}</span>{% endif %}<span class="aws-map__chips">{%- for key in option.keys -%}{% include aws-service-chip.html key=key %}{%- endfor -%}{%- if option.guide -%}{%- assign option_guide = site.data.aws_ai_service_map.learningGuides[option.guide] -%}<a class="aws-map__chip aws-map__chip--guide" href="#{{ option_guide.target }}">{{ option_guide.short }} ↓</a>{%- endif -%}</span></div>
+    <div class="aws-map__result">{% if option.then != empty %}<span>{{ option.then }}</span>{% endif %}<span class="aws-map__chips">{%- for key in option.keys -%}{% include aws-service-chip.html key=key catalogue=tree_catalogue %}{%- endfor -%}{%- if option.guide -%}{%- assign option_guide = tree_catalogue.learningGuides[option.guide] -%}<a class="aws-map__chip aws-map__chip--guide" href="#{{ option_guide.target }}">{{ option_guide.short }} ↓</a>{%- endif -%}</span></div>
     {%- if option.note %}<p class="aws-map__branch-note">{{ option.note }}</p>{% endif -%}
-    {%- if option.sub %}<div class="aws-map__subtree">{% include aws-service-tree.html tree=option.sub %}</div>{% endif -%}
+    {%- if option.sub %}<div class="aws-map__subtree">{% include aws-service-tree.html tree=option.sub catalogue=tree_catalogue %}</div>{% endif -%}
   </li>
 {%- endfor -%}</ul>

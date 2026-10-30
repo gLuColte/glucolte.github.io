@@ -1,0 +1,40 @@
+<svg id="dva-architecture-svg" class="aip-architecture dva-architecture" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1100" role="group" aria-labelledby="dva-map-title dva-map-description">
+  <title id="dva-map-title">Application lifecycle: developer delivery, user requests and background work</title>
+  <desc id="dva-map-description">Three lanes with explicit box-to-box handoffs. Provision/configure connects to Application code with resources and roles; Release/promote connects to Application code with the active version and route. Application code publishes to Route/fan out; Commit/acknowledge persists back to State/cache. Observability/feedback connects to Verify/recover, which feeds the next revision into Requirements. Identity, secrets and resilience apply across all flows. Select any box to inspect its purpose and evidence; the service toggle replaces principles in the same containers.</desc>
+  <defs>
+    <marker id="dva-control-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10z"/></marker>
+    <marker id="dva-request-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10z"/></marker>
+    <marker id="dva-feedback-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10z"/></marker>
+  </defs>
+  <text class="map-axis-title dva-lifecycle-label" x="35" y="30">APPLICATION LIFECYCLE · define → implement → verify → release → operate → improve</text>
+  <rect class="map-panel dva-delivery-panel" x="25" y="55" width="1270" height="245" rx="18"/>
+  <rect class="map-panel dva-runtime-panel" x="25" y="380" width="1270" height="200" rx="18"/>
+  <rect class="map-panel dva-async-panel" x="25" y="635" width="1270" height="185" rx="18"/>
+  <rect class="map-panel dva-support-panel" x="25" y="850" width="1270" height="210" rx="18"/>
+  <text class="map-axis-title" x="45" y="85">DEVELOPER / DELIVERY FLOW</text>
+  <text class="map-edge-label" x="1260" y="85" text-anchor="end">CONTROL PLANE · deployment role</text>
+  <text class="map-axis-title" x="45" y="410">USER / REQUEST FLOW</text>
+  <text class="map-edge-label" x="1260" y="410" text-anchor="end">DATA PLANE · caller identity ≠ runtime role</text>
+  <text class="map-axis-title" x="45" y="665">EVENTS / BACKGROUND WORK</text>
+  <text class="map-edge-label" x="1260" y="665" text-anchor="end">Optional async path · worker role</text>
+  {% for edge in site.data.dva_study.architecture.edges %}
+  <path id="dva-edge-{{ edge.id }}" class="map-edge dva-edge--{{ edge.kind }}" d="{{ edge.path }}" data-dva-edge-from="{{ edge.from }}" data-dva-edge-to="{{ edge.to }}"/>
+  {% endfor %}
+  {% for edge in site.data.dva_study.architecture.edges %}{% if edge.labelBox %}
+  {% assign label_half_width = edge.labelBox.w | divided_by: 2.0 %}{% assign label_half_height = edge.labelBox.h | divided_by: 2.0 %}{% assign label_start = edge.labelLines.size | minus: 1 | times: -7.5 | plus: 4 %}
+  <g id="dva-edge-label-{{ edge.id }}" class="dva-edge-label dva-edge-label--{{ edge.kind }}" transform="translate({{ edge.labelBox.cx }} {{ edge.labelBox.cy }}) rotate({{ edge.labelBox.angle }})" data-dva-edge-from="{{ edge.from }}" data-dva-edge-to="{{ edge.to }}">
+    <rect x="{{ label_half_width | times: -1 }}" y="{{ label_half_height | times: -1 }}" width="{{ edge.labelBox.w }}" height="{{ edge.labelBox.h }}" rx="6"/>
+    <text text-anchor="middle">{% for line in edge.labelLines %}{% assign label_y = forloop.index0 | times: 15 | plus: label_start %}<tspan x="0" y="{{ label_y }}">{{ line | escape }}</tspan>{% endfor %}</text>
+  </g>
+  {% endif %}{% endfor %}
+  <text class="map-axis-title" x="45" y="882">APPLY ACROSS DELIVERY, REQUESTS AND BACKGROUND WORK</text>
+  {% for node in site.data.dva_study.architecture.nodes %}{% assign center = node.w | divided_by: 2.0 | plus: node.x %}
+  <a id="dva-map-{{ node.id }}" class="map-link dva-node--{{ node.lane }}" href="#dva-concept-{{ node.id }}" data-dva-node="{{ node.id }}" aria-controls="dva-concept-panel" aria-label="{{ node.title | escape }}: {{ node.role | join: '; ' | escape }}. Select to inspect.">
+    <rect x="{{ node.x }}" y="{{ node.y }}" width="{{ node.w }}" height="{{ node.h }}" rx="12"/>
+    <text class="map-node-title" x="{{ center }}" y="{{ node.y | plus: 27 }}" text-anchor="middle">{{ node.title | escape }}</text>
+    <g class="map-principle" data-theory-label>{% for line in node.role %}{% assign offset = forloop.index0 | times: 21 | plus: 52 %}<text class="map-node-copy" x="{{ center }}" y="{{ node.y | plus: offset }}" text-anchor="middle">{{ line | escape }}</text>{% endfor %}</g>
+    <g class="map-services" data-service-label aria-hidden="true">{% for line in node.services %}{% assign offset = forloop.index0 | times: 21 | plus: 52 %}<text class="map-node-copy" x="{{ center }}" y="{{ node.y | plus: offset }}" text-anchor="middle">{{ line | escape }}</text>{% endfor %}</g>
+  </a>
+  {% endfor %}
+  <text class="map-edge-label" x="45" y="1075">Choose relevant alternatives. Delivery roles configure the system; runtime/worker roles perform permitted application work.</text>
+</svg>

@@ -1,0 +1,18 @@
+<section class="dva-reference-section" aria-label="EC2 Free Tier limits">
+  <strong class="dva-panel-title">Free Tier: which account offer applies?</strong>
+  <p class="dva-note">Checked {{ site.data.dva_study.checked }}. The “t2.micro free for your first 12 months” wording describes the <strong>legacy offer</strong> used in older learning material.</p>
+  <span class="dva-table-hint">Scroll the table horizontally to compare columns.</span>
+  <div class="dva-table-wrap" role="region" aria-label="Legacy versus current EC2 Free Tier" tabindex="0"><table>
+    <thead><tr><th scope="col">Limit / rule</th><th scope="col">Legacy: account created before 15 July 2025</th><th scope="col">Current: account created on/after 15 July 2025</th></tr></thead>
+    <tbody>
+      <tr><td>Compute allowance</td><td>750 eligible instance-hours/month, subject to the applicable OS offer; not 750 hours per instance</td><td>USD $100 at signup + up to $100 earned credits, shared across eligible AWS services; no blanket 750-hour EC2 allowance</td></tr>
+      <tr><td>Duration</td><td>First 12 months after account creation, not after launching the instance</td><td>Free plan ends after 6 months or credit exhaustion, whichever is first. On a Paid plan, remaining credits apply until expiry, no later than 12 months after signup.</td></tr>
+      <tr><td>Eligible instance types</td><td><code>t2.micro</code> / <code>t3.micro</code>, subject to offer/Region and eligible AMI</td><td>Currently marked eligible: <code>t3.micro</code>, <code>t3.small</code>, <code>t4g.micro</code>, <code>t4g.small</code>, <code>c7i-flex.large</code>, <code>m7i-flex.large</code>; use a compatible eligible AMI</td></tr>
+      <tr><td>EBS (separate from compute hours)</td><td>30 GB storage, 2 million eligible I/Os and 1 GB snapshot storage under the legacy EBS offer</td><td>Eligible EBS usage consumes the shared credits; selecting an eligible instance does not make its disks unlimited</td></tr>
+      <tr><td>Public IPv4</td><td>750 in-use address-hours/month during the 12-month offer</td><td>Eligible address charges consume credits; check your account's offer rather than assuming legacy IP hours</td></tr>
+      <tr><td>Beyond the allowance</td><td>Standard charges for excess usage or after the 12-month period</td><td>Free plan closes when it expires unless upgraded. Paid plan bills usage beyond credits or outside credit eligibility.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="dva-example"><strong>Legacy example.</strong> One eligible Linux instance × 24 h × 31 days = <strong>744 instance-hours</strong>. Two under the same offer = <strong>1,488 hours</strong>. Add usage across instances and Regions within that offer; the allowance is not per server or Region.</p>
+  <p class="dva-note"><strong>Free cost ≠ billing granularity.</strong> “0 seconds” is not EC2's general minimum billing duration. Eligible per-second billing has a <strong>60-second minimum</strong>; an applicable allowance or credit can cover the charge. Check Billing → Free Tier / Credits for your actual eligibility, balance and expiry.</p>
+</section>

@@ -1,0 +1,22 @@
+<section class="dva-reference-section" aria-label="What ebextensions can define">
+  <strong class="dva-panel-title">What can .ebextensions define?</strong>
+  <p>These are configuration files, not an extension marketplace. Put YAML/JSON <code>.config</code> files in your source bundle's <code>.ebextensions/</code> folder. They configure <strong>Beanstalk Standard environments</strong>.</p>
+  <span class="dva-table-hint">Scroll the table horizontally to compare columns.</span>
+  <div class="dva-table-wrap" role="region" aria-label="ebextensions keys and examples" tabindex="0"><table>
+    <thead><tr><th scope="col">Key</th><th scope="col">What it defines</th><th scope="col">Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>option_settings</code></td><td>Beanstalk options in namespaces</td><td>Environment variables, instance/scaling settings, health checks, deployment policy</td></tr>
+      <tr><td><code>packages</code></td><td>Install instance software</td><td><code>jq</code>, OS libraries; documented handlers include yum, rpm, rubygems and python, subject to platform support</td></tr>
+      <tr><td><code>sources</code></td><td>Download and unpack archives</td><td>Extract a helper bundle into an instance directory</td></tr>
+      <tr><td><code>files</code></td><td>Write/download files with ownership and permissions</td><td>Create an application configuration file</td></tr>
+      <tr><td><code>users</code> / <code>groups</code></td><td>Local OS accounts and groups</td><td>A system user for a helper process</td></tr>
+      <tr><td><code>commands</code></td><td>Root commands before the application archive is extracted</td><td>Prepare OS directories/tools</td></tr>
+      <tr><td><code>container_commands</code></td><td>Commands in application staging, before deployment</td><td>Compile assets; <code>leader_only</code> selects one instance for a deployment task</td></tr>
+      <tr><td><code>services</code></td><td>Configure supported OS services</td><td>Enable/start a daemon; this does not provision an AWS managed service</td></tr>
+      <tr><td><code>Resources</code></td><td>Any CloudFormation-supported resource type</td><td>ElastiCache, SQS, SNS, alarms, IAM roles or RDS; creation needs appropriate permissions</td></tr>
+    </tbody>
+  </table></div>
+  <p class="dva-example"><strong>Install ≠ provision.</strong> <code>packages</code> installs software on the EC2 instances. <code>Resources → AWS::ElastiCache::CacheCluster</code> creates a separate managed cache in the environment's CloudFormation stack.</p>
+  <p class="dva-note"><strong>Lifecycle.</strong> A stack-owned cache normally disappears when the environment is terminated. CloudFormation <code>DeletionPolicy: Retain</code> or supported snapshot policies can change cleanup. Referencing an external cache/database does not transfer ownership; resources created separately by a script are not automatically tracked by the stack. Keep durable/shared data in a separate stack.</p>
+  <p class="dva-note"><strong>Modern Linux.</strong> Use application manifests such as <code>requirements.txt</code> / <code>package.json</code> for runtime dependencies, and platform hooks (<code>.platform/hooks/prebuild</code>, <code>predeploy</code>, <code>postdeploy</code>) for custom scripts. Match packages and service management to the OS/runtime. <code>container_commands</code> refers to app staging; it does not require Docker.</p>
+</section>

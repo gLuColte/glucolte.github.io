@@ -113,6 +113,7 @@ title: Home
       <div class="skill-group">
         <h3>🎓 Certifications</h3>
         <ul class="skills">
+          <li>AWS Certified Generative AI Developer – Professional</li>
           <li>AWS Certified Solutions Architect Professional</li>
           <li>AWS Certified Solutions Architect Associate</li>
           <li>Master of IT in Artificial Intelligence</li>

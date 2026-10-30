@@ -1,0 +1,29 @@
+<section class="dva-balancing-demo" data-balancing-demo data-cross-zone="enabled" aria-label="Cross-zone load balancing worked example">
+  <strong class="dva-panel-title">2 instances in AZ A; 8 in AZ B</strong>
+  <p><strong>ASG balances instance capacity; ELB balances requests.</strong> This is an uneven snapshot of 10 healthy, equal-weight targets. Assume 100 requests/s, split equally between two load balancer nodes, with uniform routing and no stickiness.</p>
+  <div class="dva-controls" role="group" aria-label="ELB cross-zone setting" data-dva-enhancement hidden>
+    <button type="button" data-cross-zone="enabled" aria-pressed="true">Cross-zone on</button>
+    <button type="button" data-cross-zone="disabled" aria-pressed="false">Cross-zone off</button>
+  </div>
+  <div class="dva-region-boundary">
+    <span class="dva-eyebrow">One AWS Region · ap-southeast-2 · one regional load balancer</span>
+    <p class="dva-balancing-entry">100 requests/s → LB node A (50) + LB node B (50)</p>
+    <p class="dva-note" data-balancing-route>Each LB node can send its share to all 10 targets across both AZs.</p>
+    <div class="dva-balancing-zones">
+      <div class="dva-balancing-az">
+        <strong>AZ A · 2 targets</strong>
+        <div class="dva-balancing-targets">{% for i in (1..2) %}<span data-balancing-target="a">10%</span>{% endfor %}</div>
+        <p data-balancing-total="a">20% total · 20 requests/s</p>
+      </div>
+      <div class="dva-balancing-az">
+        <strong>AZ B · 8 targets</strong>
+        <div class="dva-balancing-targets">{% for i in (1..8) %}<span data-balancing-target="b">10%</span>{% endfor %}</div>
+        <p data-balancing-total="b">80% total · 80 requests/s</p>
+      </div>
+    </div>
+  </div>
+  <p class="dva-result-rule" data-balancing-result aria-live="polite">Cross-zone ON: 100% ÷ 10 = 10% per target. AZ A receives 20%; AZ B receives 80%.</p>
+  <p class="dva-note"><strong>Why 2 + 8?</strong> ASG normally tries to balance instances across enabled AZs; this could be a temporary imbalance. Changing ELB cross-zone routing does not move instances or change the ASG desired capacity.</p>
+  <p class="dva-note"><strong>Defaults.</strong> ALB enables cross-zone at the load balancer; a target group can disable it. NLB disables it by default. Actual shares depend on routing, health, weights and connections; the percentages above are an educational model.</p>
+  <p class="dva-example"><strong>Across Regions?</strong> Route 53 routing policies or Global Accelerator → separate regional load balancers → separate regional ASGs. Cross-zone means AZs <em>within</em> one Region; one ASG does not span Regions.</p>
+</section>

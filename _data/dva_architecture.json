@@ -1,0 +1,3888 @@
+{
+  "version": 1,
+  "width": 2420,
+  "height": 2070,
+  "categories": {
+    "network": "Networking",
+    "compute": "Compute",
+    "storage": "Storage",
+    "database": "Databases",
+    "messaging": "Messaging",
+    "api": "APIs & identity",
+    "security": "Security",
+    "deployment": "Deployment",
+    "monitoring": "Monitoring"
+  },
+  "groups": [
+    {
+      "id": "cloud",
+      "label": "AWS CLOUD · account A unless stated",
+      "x": 20,
+      "y": 105,
+      "w": 2370,
+      "h": 1930,
+      "kind": "cloud"
+    },
+    {
+      "id": "global",
+      "label": "GLOBAL / EDGE · outside regional VPC boundaries",
+      "x": 55,
+      "y": 160,
+      "w": 1770,
+      "h": 135,
+      "parent": "cloud",
+      "kind": "global"
+    },
+    {
+      "id": "account-b",
+      "label": "ACCOUNT B · global IAM role",
+      "x": 1860,
+      "y": 160,
+      "w": 490,
+      "h": 135,
+      "parent": "cloud",
+      "kind": "global"
+    },
+    {
+      "id": "region",
+      "label": "AWS REGION · ap-southeast-2 · illustrative deployment",
+      "x": 55,
+      "y": 325,
+      "w": 2295,
+      "h": 1660,
+      "parent": "cloud",
+      "kind": "region"
+    },
+    {
+      "id": "vpc",
+      "label": "CUSTOMER VPC · 10.0.0.0/16 · spans AZs",
+      "x": 85,
+      "y": 500,
+      "w": 1260,
+      "h": 1070,
+      "parent": "region",
+      "kind": "vpc"
+    },
+    {
+      "id": "managed",
+      "label": "REGIONAL AWS SERVICES · outside your VPC",
+      "x": 1380,
+      "y": 380,
+      "w": 925,
+      "h": 1190,
+      "parent": "region",
+      "kind": "managed"
+    },
+    {
+      "id": "delivery",
+      "label": "REGIONAL DELIVERY / OPERATIONS · control plane, not user traffic",
+      "x": 85,
+      "y": 1610,
+      "w": 2220,
+      "h": 315,
+      "parent": "region",
+      "kind": "managed"
+    },
+    {
+      "id": "azA",
+      "label": "AZ A · selected VPC slice",
+      "x": 105,
+      "y": 645,
+      "w": 390,
+      "h": 910,
+      "parent": "vpc",
+      "kind": "az"
+    },
+    {
+      "id": "pubA",
+      "label": "PUBLIC SUBNET · IGW route",
+      "x": 117,
+      "y": 700,
+      "w": 366,
+      "h": 230,
+      "parent": "azA",
+      "kind": "public"
+    },
+    {
+      "id": "privA",
+      "label": "PRIVATE SUBNET · no IGW route",
+      "x": 117,
+      "y": 955,
+      "w": 366,
+      "h": 515,
+      "parent": "azA",
+      "kind": "private"
+    },
+    {
+      "id": "azB",
+      "label": "AZ B · selected VPC slice",
+      "x": 515,
+      "y": 645,
+      "w": 390,
+      "h": 910,
+      "parent": "vpc",
+      "kind": "az"
+    },
+    {
+      "id": "pubB",
+      "label": "PUBLIC SUBNET · IGW route",
+      "x": 527,
+      "y": 700,
+      "w": 366,
+      "h": 230,
+      "parent": "azB",
+      "kind": "public"
+    },
+    {
+      "id": "privB",
+      "label": "PRIVATE SUBNET · no IGW route",
+      "x": 527,
+      "y": 955,
+      "w": 366,
+      "h": 515,
+      "parent": "azB",
+      "kind": "private"
+    },
+    {
+      "id": "azC",
+      "label": "AZ C · selected VPC slice",
+      "x": 925,
+      "y": 645,
+      "w": 390,
+      "h": 910,
+      "parent": "vpc",
+      "kind": "az"
+    },
+    {
+      "id": "pubC",
+      "label": "PUBLIC SUBNET · IGW route",
+      "x": 937,
+      "y": 700,
+      "w": 366,
+      "h": 230,
+      "parent": "azC",
+      "kind": "public"
+    },
+    {
+      "id": "privC",
+      "label": "PRIVATE SUBNET · no IGW route",
+      "x": 937,
+      "y": 955,
+      "w": 366,
+      "h": 585,
+      "parent": "azC",
+      "kind": "private"
+    },
+    {
+      "id": "peer",
+      "label": "PEER VPC · non-overlapping CIDR",
+      "x": 810,
+      "y": 360,
+      "w": 530,
+      "h": 130,
+      "parent": "region",
+      "kind": "vpc"
+    },
+    {
+      "id": "developer",
+      "label": "DEVELOPER MACHINE · tools, not runtime",
+      "x": 600,
+      "y": 0,
+      "w": 730,
+      "h": 98,
+      "kind": "developer"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "client",
+      "label": "Clients / devices",
+      "category": "api",
+      "group": "external",
+      "x": 70,
+      "y": 12,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": null,
+      "scope": "External",
+      "placement": "Outside AWS: caller device, application or corporate/external identity system.",
+      "description": "Browser, mobile app, SDK or telemetry producer.",
+      "features": [],
+      "flow": "Creates requests/events → authenticates or signs where required → receives responses.",
+      "retention": "The client owns local state. A successful transport response is separate from durable application completion.",
+      "trap": "Different scenarios are alternatives; no client must traverse every service.",
+      "url": "https://docs.aws.amazon.com/",
+      "networkRequirements": "External identity/network requirements belong to the calling system."
+    },
+    {
+      "id": "idp",
+      "label": "Corporate / OIDC IdP",
+      "category": "api",
+      "group": "external",
+      "x": 1920,
+      "y": 12,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": null,
+      "scope": "External",
+      "placement": "Outside AWS: caller device, application or corporate/external identity system.",
+      "description": "Authenticates an external principal and issues trusted assertions.",
+      "features": [],
+      "flow": "Credentials → authentication → OIDC/SAML assertion.",
+      "retention": "Provider-managed identity/session state; assertion expiry and trust configuration determine accepted access.",
+      "trap": "A JWT alone is not an IAM permission or an AWS access key.",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers.html",
+      "networkRequirements": "External identity/network requirements belong to the calling system."
+    },
+    {
+      "id": "dns",
+      "label": "Route 53",
+      "category": "network",
+      "group": "global",
+      "x": 90,
+      "y": 205,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": "Amazon-Route-53",
+      "scope": "Global / account",
+      "placement": "Outside the Region/VPC boundary. This is a global or edge-scoped service/control.",
+      "description": "Answers DNS queries with the configured record/routing policy.",
+      "features": [
+        "DNS resolution",
+        "routing policies",
+        "health-aware/failover records"
+      ],
+      "flow": "DNS query → address/alias response; HTTP travels to the resolved destination.",
+      "retention": "DNS records persist as configuration; resolvers cache answers according to TTL. This is not application-message storage.",
+      "trap": "DNS is not an HTTP proxy and is not a packet hop in the request path.",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "cdn",
+      "label": "CloudFront",
+      "category": "network",
+      "group": "global",
+      "x": 330,
+      "y": 205,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": "Amazon-CloudFront",
+      "scope": "Global / account",
+      "placement": "Outside the Region/VPC boundary. This is a global or edge-scoped service/control.",
+      "description": "Caches and delivers content from edge locations.",
+      "features": [
+        "Origins",
+        "cache policies",
+        "invalidation",
+        "signed URLs/cookies"
+      ],
+      "flow": "Viewer HTTP request → edge cache / configured origin → response.",
+      "retention": "Cached responses live according to cache policies/TTL and invalidation; the origin remains a separate system.",
+      "trap": "An origin can be an ALB, S3 or API; they are alternatives, not a required chain.",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "iam",
+      "label": "IAM roles / policies",
+      "category": "security",
+      "group": "global",
+      "x": 570,
+      "y": 205,
+      "w": 210,
+      "h": 68,
+      "card": "iam",
+      "icon": "AWS-Identity-and-Access-Management",
+      "scope": "Global / account",
+      "placement": "Outside the Region/VPC boundary. This is a global or edge-scoped service/control.",
+      "description": "Establish AWS trust and evaluate permissions.",
+      "features": [
+        "Identity policies",
+        "trust policies",
+        "resource policies",
+        "permissions boundaries",
+        "policy variables",
+        "Access Analyzer"
+      ],
+      "flow": "Principal + action + resource + context → policy evaluation → allow/deny.",
+      "retention": "Identity, trust and permission configuration persists; it does not store application request data.",
+      "trap": "Trust allows role assumption; permission policies authorize later actions. Explicit denies and applicable guardrails still apply.",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "org",
+      "label": "Organizations / SCP",
+      "category": "security",
+      "group": "global",
+      "x": 810,
+      "y": 205,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": "AWS-Organizations",
+      "scope": "Global / account",
+      "placement": "Outside the Region/VPC boundary. This is a global or edge-scoped service/control.",
+      "description": "Apply account-level organizational permission guardrails.",
+      "features": [
+        "SCPs",
+        "account hierarchy",
+        "maximum permissions"
+      ],
+      "flow": "Applicable organization controls → restrict available IAM permissions.",
+      "retention": "Organization/account policy configuration persists. An SCP is a guardrail, not a resource that consumes jobs.",
+      "trap": "An SCP does not grant permissions; evaluate exceptions and policy applicability.",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "waf",
+      "label": "WAF · edge ACL",
+      "category": "security",
+      "group": "global",
+      "x": 1050,
+      "y": 205,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": "AWS-WAF",
+      "scope": "Global / account",
+      "placement": "Outside the Region/VPC boundary. This is a global or edge-scoped service/control.",
+      "description": "Evaluate web requests using an associated CloudFront web ACL.",
+      "features": [
+        "Web ACL",
+        "rules",
+        "HTTP abuse filtering"
+      ],
+      "flow": "CloudFront request inspection → allow/block/challenge decision.",
+      "retention": "Rules persist; request logging is separately configured. Allow/block decisions do not provide durable business state.",
+      "trap": "WAF is an associated inspection policy, not an extra network proxy.",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "budgets",
+      "label": "AWS Budgets",
+      "category": "monitoring",
+      "group": "global",
+      "x": 1290,
+      "y": 205,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": "AWS-Budgets",
+      "scope": "Global / account",
+      "placement": "Outside the Region/VPC boundary. This is a global or edge-scoped service/control.",
+      "description": "Track spend/usage against configured budgets.",
+      "features": [
+        "Budget notifications",
+        "cost thresholds"
+      ],
+      "flow": "Billing measurements → budget evaluation → configured notifications/actions.",
+      "retention": "Budget definitions and billing measurements support cost tracking, not application job retention.",
+      "trap": "Budget alerts are not a hard real-time spending cap.",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "role-b",
+      "label": "Cross-account role",
+      "category": "security",
+      "group": "account-b",
+      "x": 1980,
+      "y": 205,
+      "w": 210,
+      "h": 68,
+      "card": "iam",
+      "icon": "AWS-Identity-and-Access-Management",
+      "scope": "Global / account",
+      "placement": "IAM role in a different AWS account; a logical identity, not a network hop.",
+      "description": "A role in account B trusted by an authorized principal from account A.",
+      "features": [
+        "Role trust policy",
+        "caller AssumeRole permission",
+        "session permissions"
+      ],
+      "flow": "STS request → trust validation → temporary role credentials.",
+      "retention": "Role configuration persists; issued sessions expire. Assuming a role does not copy application data.",
+      "trap": "Both sides must allow the relationship. The role session is still restricted by applicable policies.",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "asg",
+      "label": "Auto Scaling group",
+      "category": "network",
+      "group": "vpc",
+      "x": 120,
+      "y": 555,
+      "w": 210,
+      "h": 68,
+      "card": "asg",
+      "icon": "Amazon-EC2-Auto-Scaling",
+      "scope": "VPC-associated / regional",
+      "placement": "Associated with the VPC; not an application server or a subnet-hosted service.",
+      "description": "Maintain fleet capacity across AZs; pair with ELB to route traffic.",
+      "features": [
+        "Launch template",
+        "desired capacity",
+        "AZ balancing"
+      ],
+      "flow": "Route/control association → relevant destinations.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "Routes, filtering and service permissions must each allow the intended operation.",
+      "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/auto-scaling-benefits.html",
+      "networkRequirements": "The ASG selects subnets and a launch template; security groups apply to launched instance ENIs, not an ASG network endpoint."
+    },
+    {
+      "id": "igw",
+      "label": "Internet Gateway",
+      "category": "network",
+      "group": "vpc",
+      "x": 430,
+      "y": 555,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "VPC-associated / regional",
+      "placement": "Associated with the VPC; not an application server or a subnet-hosted service.",
+      "description": "VPC-attached internet gateway for appropriately routed public resources.",
+      "features": [
+        "Public route table",
+        "public IPv4/EIP where required"
+      ],
+      "flow": "Route/control association → relevant destinations.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "Routes, filtering and service permissions must each allow the intended operation.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html",
+      "networkRequirements": "VPC/route association, not a subnet-hosted appliance with its own security group. Check the required routes and endpoint/resource policies."
+    },
+    {
+      "id": "gateway",
+      "label": "Gateway endpoint",
+      "category": "network",
+      "group": "vpc",
+      "x": 740,
+      "y": 555,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "VPC-associated / regional",
+      "placement": "Associated with the VPC; not an application server or a subnet-hosted service.",
+      "description": "Route-table destination for private S3/DynamoDB service access.",
+      "features": [
+        "S3 / DynamoDB",
+        "endpoint policy",
+        "route-table association"
+      ],
+      "flow": "Route/control association → relevant destinations.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "Routes, filtering and service permissions must each allow the intended operation.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html",
+      "networkRequirements": "VPC/route association, not a subnet-hosted appliance with its own security group. Check the required routes and endpoint/resource policies."
+    },
+    {
+      "id": "peering",
+      "label": "VPC peering",
+      "category": "network",
+      "group": "vpc",
+      "x": 1050,
+      "y": 555,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "VPC-associated / regional",
+      "placement": "Associated with the VPC; not an application server or a subnet-hosted service.",
+      "description": "Private connectivity to a non-overlapping peer VPC.",
+      "features": [
+        "Routes on both sides",
+        "SG/NACL checks",
+        "no transitive routing"
+      ],
+      "flow": "Route/control association → relevant destinations.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "Routes, filtering and service permissions must each allow the intended operation.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html",
+      "networkRequirements": "VPC/route association, not a subnet-hosted appliance with its own security group. Check the required routes and endpoint/resource policies."
+    },
+    {
+      "id": "alb",
+      "label": "ALB node A",
+      "category": "network",
+      "group": "pubA",
+      "x": 180,
+      "y": 750,
+      "w": 210,
+      "h": 68,
+      "card": "alb",
+      "icon": "Elastic-Load-Balancing",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a public subnet in AZ A; regional service control planes are separate.",
+      "description": "Subnet node of one regional internet-facing ALB.",
+      "features": [
+        "Listeners",
+        "target groups",
+        "health checks",
+        "cross-zone routing"
+      ],
+      "flow": "Client connection → listener/rule → healthy registered target.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "Public ALB nodes can route to private targets. Cross-zone changes routing, not instance count.",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html",
+      "networkRequirements": "ALB uses subnets in at least two AZs and attached security groups. The two boxes are nodes of one regional ALB."
+    },
+    {
+      "id": "nat-a",
+      "label": "NAT Gateway A",
+      "category": "network",
+      "group": "pubA",
+      "x": 180,
+      "y": 845,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a public subnet in AZ A; regional service control planes are separate.",
+      "description": "Public NAT gateway for outbound IPv4 connections from private subnets.",
+      "features": [
+        "EIP",
+        "private default route",
+        "same-AZ egress design"
+      ],
+      "flow": "Private outbound connection → NAT → IGW → internet; return traffic follows connection state.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "NAT does not accept unsolicited inbound client connections. Public NAT belongs in a public subnet.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html",
+      "networkRequirements": "Requires a subnet; public NAT also uses an Elastic IP and IGW route. NAT gateways do not support security groups; subnet NACLs still apply."
+    },
+    {
+      "id": "alb-b",
+      "label": "ALB node B",
+      "category": "network",
+      "group": "pubB",
+      "x": 590,
+      "y": 750,
+      "w": 210,
+      "h": 68,
+      "card": "alb",
+      "icon": "Elastic-Load-Balancing",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a public subnet in AZ B; regional service control planes are separate.",
+      "description": "Subnet node of one regional internet-facing ALB.",
+      "features": [
+        "Listeners",
+        "target groups",
+        "health checks",
+        "cross-zone routing"
+      ],
+      "flow": "Client connection → listener/rule → healthy registered target.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "Public ALB nodes can route to private targets. Cross-zone changes routing, not instance count.",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html",
+      "networkRequirements": "ALB uses subnets in at least two AZs and attached security groups. The two boxes are nodes of one regional ALB."
+    },
+    {
+      "id": "nat-b",
+      "label": "NAT Gateway B",
+      "category": "network",
+      "group": "pubB",
+      "x": 590,
+      "y": 845,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a public subnet in AZ B; regional service control planes are separate.",
+      "description": "Public NAT gateway for outbound IPv4 connections from private subnets.",
+      "features": [
+        "EIP",
+        "private default route",
+        "same-AZ egress design"
+      ],
+      "flow": "Private outbound connection → NAT → IGW → internet; return traffic follows connection state.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "NAT does not accept unsolicited inbound client connections. Public NAT belongs in a public subnet.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html",
+      "networkRequirements": "Requires a subnet; public NAT also uses an Elastic IP and IGW route. NAT gateways do not support security groups; subnet NACLs still apply."
+    },
+    {
+      "id": "nlb",
+      "label": "NLB node C",
+      "category": "network",
+      "group": "pubC",
+      "x": 1000,
+      "y": 750,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Elastic-Load-Balancing",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a public subnet in AZ C; regional service control planes are separate.",
+      "description": "Layer-4 load-balancer node for TCP/UDP/TLS routing.",
+      "features": [
+        "Listeners",
+        "target groups",
+        "health checks",
+        "cross-zone routing"
+      ],
+      "flow": "Client connection → listener/rule → healthy registered target.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "NLB is Layer 4; ALB handles HTTP routing. Cross-zone defaults differ.",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html",
+      "networkRequirements": "Select subnets/AZs for NLB nodes. Security-group association is an optional creation-time choice; target controls still apply."
+    },
+    {
+      "id": "nat-c",
+      "label": "NAT Gateway C",
+      "category": "network",
+      "group": "pubC",
+      "x": 1000,
+      "y": 845,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a public subnet in AZ C; regional service control planes are separate.",
+      "description": "Public NAT gateway for outbound IPv4 connections from private subnets.",
+      "features": [
+        "EIP",
+        "private default route",
+        "same-AZ egress design"
+      ],
+      "flow": "Private outbound connection → NAT → IGW → internet; return traffic follows connection state.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "NAT does not accept unsolicited inbound client connections. Public NAT belongs in a public subnet.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html",
+      "networkRequirements": "Requires a subnet; public NAT also uses an Elastic IP and IGW route. NAT gateways do not support security groups; subnet NACLs still apply."
+    },
+    {
+      "id": "ec2-a",
+      "label": "EC2 application A",
+      "category": "compute",
+      "group": "privA",
+      "x": 180,
+      "y": 1010,
+      "w": 210,
+      "h": 68,
+      "card": "ec2",
+      "icon": "Amazon-EC2",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ A; regional service control planes are separate.",
+      "description": "A virtual machine with OS and instance-level control.",
+      "features": [
+        "User data",
+        "launch template",
+        "instance profile",
+        "instance store"
+      ],
+      "flow": "HTTP request → application code → database/cache/API call → response.",
+      "retention": "OS/process state follows the instance. Instance store is ephemeral; EBS volumes have a separately controlled lifecycle.",
+      "trap": "Hardware isolation alone points to Dedicated Instances; physical host placement or socket/core licensing points to Dedicated Hosts.",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html",
+      "networkRequirements": "Requires subnet placement and ENI security groups in this VPC model; IAM instance/task permissions are independent."
+    },
+    {
+      "id": "ebs-a",
+      "label": "EBS volume A",
+      "category": "storage",
+      "group": "azA",
+      "x": 180,
+      "y": 1480,
+      "w": 210,
+      "h": 60,
+      "card": null,
+      "icon": "Amazon-Elastic-Block-Store",
+      "scope": "Availability Zone",
+      "placement": "AZ-scoped volume outside the subnet box. It attaches to same-AZ EC2; the volume itself has no subnet IP or security group.",
+      "description": "AZ-scoped durable block storage attached to EC2 in the same AZ.",
+      "features": [
+        "Volume types",
+        "snapshots",
+        "attachment",
+        "DeleteOnTermination"
+      ],
+      "flow": "EC2 block I/O ↔ volume. This is an attachment, not HTTP traffic.",
+      "retention": "Independent volume lifecycle; termination deletion depends on attachment settings.",
+      "trap": "No cross-AZ volume attachment. Supported Multi-Attach remains within one AZ and needs an appropriate application/filesystem.",
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes.html",
+      "networkRequirements": "No subnet, ENI or security group. Attach to a compatible EC2 instance in the same AZ."
+    },
+    {
+      "id": "rds",
+      "label": "RDS primary",
+      "category": "database",
+      "group": "privA",
+      "x": 180,
+      "y": 1200,
+      "w": 210,
+      "h": 68,
+      "card": "rds",
+      "icon": "Amazon-RDS",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ A; regional service control planes are separate.",
+      "description": "Writer for this traditional Multi-AZ DB instance deployment.",
+      "features": [
+        "SQL",
+        "endpoint",
+        "failover",
+        "synchronous standby"
+      ],
+      "flow": "SQL writes/reads → primary; replicated state supports failover.",
+      "retention": "Durable relational state and configured backups. Reading does not remove rows.",
+      "trap": "This traditional standby is not a read endpoint. Multi-AZ DB clusters are a different model with readable standby instances.",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html",
+      "networkRequirements": "VPC subnet-group/subnet placement and appropriate security groups are required for the depicted database/cache nodes."
+    },
+    {
+      "id": "mount-a",
+      "label": "EFS mount target A",
+      "category": "storage",
+      "group": "privA",
+      "x": 180,
+      "y": 1295,
+      "w": 210,
+      "h": 68,
+      "card": "containers",
+      "icon": "Amazon-EFS",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ A; regional service control planes are separate.",
+      "description": "Subnet ENI exposing a regional EFS filesystem over NFS.",
+      "features": [
+        "Mount-target security group",
+        "NFS 2049",
+        "access points"
+      ],
+      "flow": "NFS client → same-AZ mount target → shared regional filesystem.",
+      "retention": "Shared filesystem persists independently of individual clients/tasks.",
+      "trap": "Mount targets are endpoints; the regional filesystem is not stored inside this subnet.",
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/how-it-works.html",
+      "networkRequirements": "Mount-target ENI in the chosen subnet; mount-target security group permits the intended NFS clients."
+    },
+    {
+      "id": "route-a",
+      "label": "Routes / SG / NACL",
+      "category": "network",
+      "group": "privA",
+      "x": 180,
+      "y": 1390,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ A; regional service control planes are separate.",
+      "description": "Route-table and filtering annotations for this private subnet and its ENIs.",
+      "features": [
+        "0.0.0.0/0 → NAT",
+        "SG stateful allow",
+        "NACL stateless allow/deny"
+      ],
+      "flow": "Route decides destination; SG/NACL independently evaluate permitted traffic.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "SGs attach to ENIs; NACLs associate with subnets. They are controls, not chained proxy servers.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Security.html",
+      "networkRequirements": "Route table associates with the subnet; NACL associates with the subnet; security groups apply to the instance/task ENIs."
+    },
+    {
+      "id": "ec2-b",
+      "label": "EC2 application B",
+      "category": "compute",
+      "group": "privB",
+      "x": 590,
+      "y": 1010,
+      "w": 210,
+      "h": 68,
+      "card": "ec2",
+      "icon": "Amazon-EC2",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ B; regional service control planes are separate.",
+      "description": "A virtual machine with OS and instance-level control.",
+      "features": [
+        "User data",
+        "launch template",
+        "instance profile",
+        "instance store"
+      ],
+      "flow": "HTTP request → application code → database/cache/API call → response.",
+      "retention": "OS/process state follows the instance. Instance store is ephemeral; EBS volumes have a separately controlled lifecycle.",
+      "trap": "Hardware isolation alone points to Dedicated Instances; physical host placement or socket/core licensing points to Dedicated Hosts.",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html",
+      "networkRequirements": "Requires subnet placement and ENI security groups in this VPC model; IAM instance/task permissions are independent."
+    },
+    {
+      "id": "ebs-b",
+      "label": "EBS volume B",
+      "category": "storage",
+      "group": "azB",
+      "x": 590,
+      "y": 1480,
+      "w": 210,
+      "h": 60,
+      "card": null,
+      "icon": "Amazon-Elastic-Block-Store",
+      "scope": "Availability Zone",
+      "placement": "AZ-scoped volume outside the subnet box. It attaches to same-AZ EC2; the volume itself has no subnet IP or security group.",
+      "description": "AZ-scoped durable block storage attached to EC2 in the same AZ.",
+      "features": [
+        "Volume types",
+        "snapshots",
+        "attachment",
+        "DeleteOnTermination"
+      ],
+      "flow": "EC2 block I/O ↔ volume. This is an attachment, not HTTP traffic.",
+      "retention": "Independent volume lifecycle; termination deletion depends on attachment settings.",
+      "trap": "No cross-AZ volume attachment. Supported Multi-Attach remains within one AZ and needs an appropriate application/filesystem.",
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes.html",
+      "networkRequirements": "No subnet, ENI or security group. Attach to a compatible EC2 instance in the same AZ."
+    },
+    {
+      "id": "standby",
+      "label": "RDS standby",
+      "category": "database",
+      "group": "privB",
+      "x": 590,
+      "y": 1200,
+      "w": 210,
+      "h": 68,
+      "card": "rds",
+      "icon": "Amazon-RDS",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ B; regional service control planes are separate.",
+      "description": "Synchronous standby for availability in this traditional Multi-AZ DB instance example.",
+      "features": [
+        "SQL",
+        "endpoint",
+        "failover",
+        "synchronous standby"
+      ],
+      "flow": "SQL writes/reads → primary; replicated state supports failover.",
+      "retention": "Replicated durable database state for managed promotion; traditional standby does not accept normal read queries.",
+      "trap": "This traditional standby is not a read endpoint. Multi-AZ DB clusters are a different model with readable standby instances.",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html",
+      "networkRequirements": "VPC subnet-group/subnet placement and appropriate security groups are required for the depicted database/cache nodes."
+    },
+    {
+      "id": "mount-b",
+      "label": "EFS mount target B",
+      "category": "storage",
+      "group": "privB",
+      "x": 590,
+      "y": 1295,
+      "w": 210,
+      "h": 68,
+      "card": "containers",
+      "icon": "Amazon-EFS",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ B; regional service control planes are separate.",
+      "description": "Subnet ENI exposing a regional EFS filesystem over NFS.",
+      "features": [
+        "Mount-target security group",
+        "NFS 2049",
+        "access points"
+      ],
+      "flow": "NFS client → same-AZ mount target → shared regional filesystem.",
+      "retention": "Shared filesystem persists independently of individual clients/tasks.",
+      "trap": "Mount targets are endpoints; the regional filesystem is not stored inside this subnet.",
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/how-it-works.html",
+      "networkRequirements": "Mount-target ENI in the chosen subnet; mount-target security group permits the intended NFS clients."
+    },
+    {
+      "id": "route-b",
+      "label": "Routes / SG / NACL",
+      "category": "network",
+      "group": "privB",
+      "x": 590,
+      "y": 1390,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ B; regional service control planes are separate.",
+      "description": "Route-table and filtering annotations for this private subnet and its ENIs.",
+      "features": [
+        "0.0.0.0/0 → NAT",
+        "SG stateful allow",
+        "NACL stateless allow/deny"
+      ],
+      "flow": "Route decides destination; SG/NACL independently evaluate permitted traffic.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "SGs attach to ENIs; NACLs associate with subnets. They are controls, not chained proxy servers.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Security.html",
+      "networkRequirements": "Route table associates with the subnet; NACL associates with the subnet; security groups apply to the instance/task ENIs."
+    },
+    {
+      "id": "task",
+      "label": "Fargate task",
+      "category": "compute",
+      "group": "privC",
+      "x": 1000,
+      "y": 1010,
+      "w": 210,
+      "h": 68,
+      "card": "fargate",
+      "icon": "AWS-Fargate",
+      "scope": "Task placed in one subnet / AZ",
+      "placement": "Inside a private subnet in AZ C; regional service control planes are separate.",
+      "description": "Supply managed compute capacity for containers without managing EC2 hosts.",
+      "features": [
+        "awsvpc ENI",
+        "task role",
+        "execution role",
+        "CPU/memory"
+      ],
+      "flow": "ECS launches task → application processes requests/jobs → downstream resources.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "Fargate is container compute; ECS is orchestration. Fargate does not build images or define infrastructure templates. Choose self-managed EC2 capacity when host-level requirements demand it.",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html",
+      "networkRequirements": "Requires subnet placement and ENI security groups in this VPC model; IAM instance/task permissions are independent."
+    },
+    {
+      "id": "cache",
+      "label": "ElastiCache",
+      "category": "database",
+      "group": "privC",
+      "x": 1000,
+      "y": 1105,
+      "w": 210,
+      "h": 68,
+      "card": "cache",
+      "icon": "Amazon-ElastiCache",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ C; regional service control planes are separate.",
+      "description": "Keep frequently reused data in memory.",
+      "features": [
+        "Valkey/Redis OSS",
+        "Memcached",
+        "cache-aside",
+        "expiry"
+      ],
+      "flow": "Cache lookup → hit returns value; miss requires authoritative-store read.",
+      "retention": "Cache values expire/are evicted according to engine/settings. Persistence/replication features differ by engine; Memcached is not a durable primary store.",
+      "trap": "A cache does not replace SQL access. Memcached is not a durable primary datastore.",
+      "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html",
+      "networkRequirements": "VPC subnet-group/subnet placement and appropriate security groups are required for the depicted database/cache nodes."
+    },
+    {
+      "id": "replica",
+      "label": "RDS read replica",
+      "category": "database",
+      "group": "privC",
+      "x": 1000,
+      "y": 1200,
+      "w": 210,
+      "h": 68,
+      "card": "rds",
+      "icon": "Amazon-RDS",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ C; regional service control planes are separate.",
+      "description": "Managed relational databases with SQL and transactions.",
+      "features": [
+        "Asynchronous replication",
+        "replica endpoint",
+        "read scaling"
+      ],
+      "flow": "Primary changes → asynchronous replica; application explicitly routes eligible reads.",
+      "retention": "Asynchronously replicated persistent database state. Application reads do not delete records.",
+      "trap": "Replication lag is possible. Read scaling and high-availability standby are different requirements.",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html",
+      "networkRequirements": "VPC subnet-group/subnet placement and appropriate security groups are required for the depicted database/cache nodes."
+    },
+    {
+      "id": "interface",
+      "label": "Interface endpoint",
+      "category": "network",
+      "group": "privC",
+      "x": 1000,
+      "y": 1295,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "AWS-PrivateLink",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ C; regional service control planes are separate.",
+      "description": "PrivateLink endpoint ENI in the selected subnet.",
+      "features": [
+        "Private DNS",
+        "endpoint SG",
+        "supported services"
+      ],
+      "flow": "Private client → endpoint ENI → supported regional service.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "An endpoint changes connectivity, not IAM entitlement. A gateway endpoint is a different route-table mechanism.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html",
+      "networkRequirements": "PrivateLink endpoint ENIs use selected subnets and endpoint security groups; endpoint/service policies remain separate."
+    },
+    {
+      "id": "lambda-eni",
+      "label": "Lambda VPC ENI",
+      "category": "compute",
+      "group": "privC",
+      "x": 1000,
+      "y": 1390,
+      "w": 210,
+      "h": 68,
+      "card": "lambda",
+      "icon": "AWS-Lambda",
+      "scope": "AZ-scoped resource",
+      "placement": "Inside a private subnet in AZ C; regional service control planes are separate.",
+      "description": "Optional Hyperplane ENI for Lambda access to customer VPC resources.",
+      "features": [
+        "Selected subnets",
+        "security group",
+        "private resource access"
+      ],
+      "flow": "Lambda service → managed VPC connectivity → private RDS/cache.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "Lambda execution remains in a service-managed VPC. A public subnet does not give the function a public IP.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html",
+      "networkRequirements": "Optional Lambda VPC configuration selects subnets and security groups; it does not move execution into a customer subnet."
+    },
+    {
+      "id": "apigw",
+      "label": "API Gateway",
+      "category": "api",
+      "group": "managed",
+      "x": 1405,
+      "y": 455,
+      "w": 210,
+      "h": 68,
+      "card": "apigw",
+      "icon": "Amazon-API-Gateway",
+      "scope": "Regional",
+      "placement": "Regional API Gateway endpoint outside the customer VPC in this example. REST APIs also have private/edge-optimized options.",
+      "description": "Expose an API with routing, integration and access controls.",
+      "features": [
+        "REST / HTTP",
+        "stages",
+        "deployments",
+        "canary",
+        "VTL",
+        "usage plans",
+        "API keys",
+        "cache",
+        "custom domains"
+      ],
+      "flow": "HTTPS request → method authorization/validation/integration → backend.",
+      "retention": "API definitions/stages persist; optional REST response caches have TTLs. An accepted request need not mean asynchronous work completed.",
+      "trap": "Regional endpoint in this map. REST edge-optimized/private endpoint options differ; a stage points to a deployment.",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-call-api.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "cognito",
+      "label": "Cognito user pool",
+      "category": "api",
+      "group": "managed",
+      "x": 1630,
+      "y": 455,
+      "w": 210,
+      "h": 68,
+      "card": "cognito",
+      "icon": "Amazon-Cognito",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "User directory and authentication/federation for application sign-in.",
+      "features": [
+        "User directory",
+        "Federation",
+        "ID/access JWTs",
+        "OAuth scopes"
+      ],
+      "flow": "Sign-in or supported federation → ID/access/refresh tokens → application/API token validation.",
+      "retention": "User-directory/configuration state persists; tokens expire. An identity pool is a separate optional AWS-credential path.",
+      "trap": "User pools authenticate; identity pools broker AWS credentials. Tokens do not automatically grant IAM actions.",
+      "url": "https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "sts",
+      "label": "STS endpoint",
+      "category": "security",
+      "group": "managed",
+      "x": 1855,
+      "y": 455,
+      "w": 210,
+      "h": 68,
+      "card": "iam",
+      "icon": "AWS-Identity-and-Access-Management",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Issue temporary AWS session credentials after validating a supported role-assumption or federation request.",
+      "features": [
+        "AssumeRole",
+        "trust policy",
+        "SigV4",
+        "temporary credentials"
+      ],
+      "flow": "Authorized role-assumption/federation request → validation → temporary credentials.",
+      "retention": "STS issues expiring session credentials, not permanent access keys or durable application records.",
+      "trap": "This shows a regional STS endpoint. Role trust and session permissions are separate.",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "acm",
+      "label": "ACM certificate",
+      "category": "security",
+      "group": "managed",
+      "x": 2080,
+      "y": 455,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": "AWS-Certificate-Manager",
+      "scope": "Regional",
+      "placement": "Regional certificates for ALB/API integrations; CloudFront viewer certificate requirement is us-east-1.",
+      "description": "Provision and manage TLS certificates for supported AWS integrations.",
+      "features": [
+        "TLS certificates",
+        "listener/custom-domain association"
+      ],
+      "flow": "Certificate issuance/validation → attachment to supported TLS endpoint.",
+      "retention": "Certificate/key metadata persists under its certificate lifecycle; it does not retain application payloads.",
+      "trap": "Certificate region depends on the integration; CloudFront viewer certificates use us-east-1.",
+      "url": "https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "lambda",
+      "label": "Lambda handler",
+      "category": "compute",
+      "group": "managed",
+      "x": 1405,
+      "y": 600,
+      "w": 210,
+      "h": 68,
+      "card": "lambda",
+      "icon": "AWS-Lambda",
+      "scope": "Regional",
+      "placement": "Lambda regional service-managed execution; optional customer-VPC connectivity is represented by the separate ENI.",
+      "description": "Execute event-driven code without operating a conventional server fleet.",
+      "features": [
+        "Layers",
+        "memory/CPU",
+        "reserved/provisioned concurrency",
+        "versions",
+        "aliases"
+      ],
+      "flow": "Invocation event → application code → result/downstream AWS calls.",
+      "retention": "Function code/configuration persists; an execution environment can be reused but is not a durable state store. Put durable outcomes in a data service.",
+      "trap": "A JWT caller is distinct from the Lambda execution role. SAM defines the function; Lambda executes it.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "alias",
+      "label": "Lambda alias / v1,v2",
+      "category": "compute",
+      "group": "managed",
+      "x": 1630,
+      "y": 600,
+      "w": 210,
+      "h": 68,
+      "card": "lambda",
+      "icon": "AWS-Lambda",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Provide a stable named reference and optional weighted route to published Lambda versions.",
+      "features": [
+        "Published immutable versions",
+        "weighted alias",
+        "rollback"
+      ],
+      "flow": "Alias invocation → selected published version → execution.",
+      "retention": "An alias persists as routing configuration to published versions; it is not a queue or data store.",
+      "trap": "Alias weights are probabilistic. A version alone does not split traffic; aliases cannot point to aliases.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "worker",
+      "label": "Lambda worker",
+      "category": "compute",
+      "group": "managed",
+      "x": 1855,
+      "y": 600,
+      "w": 210,
+      "h": 68,
+      "card": "lambda",
+      "icon": "AWS-Lambda",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Execute event-driven code without operating a conventional server fleet.",
+      "features": [
+        "Batch processing",
+        "partial failure",
+        "idempotency"
+      ],
+      "flow": "Event-source batch → processing → durable result → successful batch outcome.",
+      "retention": "Record the business outcome durably before acknowledging work; execution environment reuse does not guarantee persistence.",
+      "trap": "At-least-once processing can repeat side effects. Record business outcomes idempotently.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "esm",
+      "label": "Event source mapping",
+      "category": "messaging",
+      "group": "managed",
+      "x": 2080,
+      "y": 600,
+      "w": 210,
+      "h": 68,
+      "card": "lambda",
+      "icon": "AWS-Lambda",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Read supported event sources, batch records/messages and invoke Lambda with source-specific progress/acknowledgement behavior.",
+      "features": [
+        "Pollers",
+        "batches",
+        "Kinesis/SQS/DynamoDB Streams"
+      ],
+      "flow": "Poll/subscribe to source → batch → synchronous Lambda invocation → checkpoint/acknowledgement.",
+      "retention": "The integration manages source progress/acknowledgement according to source and batch outcome; it is not another application database.",
+      "trap": "The event source mapping reads streams/queues; these sources do not send arbitrary HTTP requests to your handler.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "ddb",
+      "label": "DynamoDB",
+      "category": "database",
+      "group": "managed",
+      "x": 1405,
+      "y": 745,
+      "w": 210,
+      "h": 68,
+      "card": "dynamodb",
+      "icon": "Amazon-DynamoDB",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Key-value/document storage organized around key-based access.",
+      "features": [
+        "Partition/sort keys",
+        "GSI/LSI",
+        "conditional writes",
+        "transactions",
+        "TTL",
+        "capacity modes"
+      ],
+      "flow": "Key-based request → item/index operation → response; streams optionally record changes.",
+      "retention": "Durable items remain until explicit deletion or asynchronous TTL cleanup. Application reads do not consume/delete items.",
+      "trap": "TTL cleanup is asynchronous. Enforce application expiry; conditional writes prevent read-before-write races.",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "gsi",
+      "label": "DynamoDB GSI / LSI",
+      "category": "database",
+      "group": "managed",
+      "x": 1630,
+      "y": 745,
+      "w": 210,
+      "h": 68,
+      "card": "dynamodb",
+      "icon": "Amazon-DynamoDB",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Maintain an alternative DynamoDB query index; GSI and LSI have different key, capacity and consistency rules.",
+      "features": [
+        "Alternative query keys",
+        "projections",
+        "GSI eventual consistency",
+        "LSI at table creation"
+      ],
+      "flow": "Table writes → maintained index → alternative query pattern.",
+      "retention": "Maintained index projection of table data; reads do not consume the index entry. GSI propagation is eventually consistent.",
+      "trap": "GSI capacity/consistency differs from the base table. LSI shares its partition key and is created with the table.",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "streams",
+      "label": "DynamoDB Streams",
+      "category": "messaging",
+      "group": "managed",
+      "x": 1855,
+      "y": 745,
+      "w": 210,
+      "h": 68,
+      "card": "dynamodb",
+      "icon": "Amazon-DynamoDB",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Capture a time-bounded log of DynamoDB item changes for downstream consumers.",
+      "features": [
+        "Item change records",
+        "ordered per item",
+        "Lambda consumer"
+      ],
+      "flow": "Table mutation → change record → event-source mapping → processor.",
+      "retention": "A time-bounded retained change log; processing records does not delete the source table item.",
+      "trap": "A stream is a change log, not a second table. Reads do not acknowledge/delete the table item.",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "dax",
+      "label": "DAX",
+      "category": "database",
+      "group": "privC",
+      "x": 1000,
+      "y": 1480,
+      "w": 210,
+      "h": 50,
+      "card": null,
+      "icon": "Amazon-DynamoDB",
+      "scope": "Regional cluster / subnet nodes",
+      "placement": "DAX cluster nodes use customer VPC subnets and security groups; shown in the AZ C private subnet slice.",
+      "description": "Accelerate supported DynamoDB operations with a VPC-based managed in-memory cluster.",
+      "features": [
+        "DynamoDB-compatible in-memory acceleration",
+        "eventual reads"
+      ],
+      "flow": "Supported DynamoDB client lookup → cache hit/miss → table.",
+      "retention": "Cached DynamoDB values are evictable and TTL controlled; DynamoDB remains the authoritative table.",
+      "trap": "DAX cluster nodes live inside VPC subnets. DAX accelerates supported DynamoDB access; it does not replace the authoritative table.",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html",
+      "networkRequirements": "VPC subnet-group/subnet placement and appropriate security groups are required for the depicted database/cache nodes."
+    },
+    {
+      "id": "sqs",
+      "label": "SQS queue",
+      "category": "messaging",
+      "group": "managed",
+      "x": 1405,
+      "y": 890,
+      "w": 210,
+      "h": 68,
+      "card": "sqs",
+      "icon": "Amazon-Simple-Queue-Service",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Buffer work so consumers can process it independently.",
+      "features": [
+        "Standard / FIFO",
+        "long polling",
+        "visibility",
+        "retention",
+        "DLQ"
+      ],
+      "flow": "SendMessage → retained message → ReceiveMessage → processing → DeleteMessage.",
+      "retention": "SQS: retained until deletion or expiry; receive only changes visibility.",
+      "trap": "Receiving hides a message temporarily; it does not delete it. FIFO does not remove all duplicate-processing risks.",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "dlq",
+      "label": "SQS dead-letter queue",
+      "category": "messaging",
+      "group": "managed",
+      "x": 1630,
+      "y": 890,
+      "w": 210,
+      "h": 68,
+      "card": "sqs",
+      "icon": "Amazon-Simple-Queue-Service",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Retain repeatedly unsuccessful jobs in a separate SQS queue for investigation or redrive.",
+      "features": [
+        "Redrive policy",
+        "maxReceiveCount",
+        "same queue type"
+      ],
+      "flow": "Repeated unsuccessful receives → configured dead-letter queue → investigation/redrive.",
+      "retention": "SQS: retained until deletion or expiry; receive only changes visibility.",
+      "trap": "A DLQ is a separate queue, not an archive of all successful messages.",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "sns",
+      "label": "SNS topic",
+      "category": "messaging",
+      "group": "managed",
+      "x": 1855,
+      "y": 890,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": "Amazon-Simple-Notification-Service",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Publish a message to matching subscribers, including independent SQS queues.",
+      "features": [
+        "Publish/subscribe",
+        "subscriptions",
+        "SQS fanout",
+        "subscription filters"
+      ],
+      "flow": "Published message → each matching subscribed destination.",
+      "retention": "This models standard topic delivery/retries, not a Kinesis-style retained consumer-offset log. Supported topic archive options are a separate configuration.",
+      "trap": "SNS fanout is not the same as a replayable Kinesis log.",
+      "url": "https://docs.aws.amazon.com/sns/latest/dg/welcome.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "events",
+      "label": "EventBridge bus",
+      "category": "messaging",
+      "group": "managed",
+      "x": 2080,
+      "y": 890,
+      "w": 210,
+      "h": 68,
+      "card": "events",
+      "icon": "Amazon-EventBridge",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Route events from an event bus to targets using rule patterns.",
+      "features": [
+        "Buses",
+        "rules",
+        "patterns",
+        "target delivery"
+      ],
+      "flow": "PutEvents → matching rules → configured targets.",
+      "retention": "A bus routes events; it is not the worker backlog. Configure an archive separately if replay is needed.",
+      "trap": "An event bus routes events; a queue retains waiting work. They can cooperate.",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "kinesis",
+      "label": "Kinesis stream",
+      "category": "messaging",
+      "group": "managed",
+      "x": 1405,
+      "y": 1035,
+      "w": 210,
+      "h": 68,
+      "card": "kinesis",
+      "icon": "Amazon-Kinesis-Data-Streams",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Retain continuous events in shard lanes for independent, replayable reads.",
+      "features": [
+        "Records",
+        "partition keys",
+        "retention",
+        "provisioned/on-demand"
+      ],
+      "flow": "Producer PutRecord(s) → hash partition key → shard → independently readable record.",
+      "retention": "Kinesis: retained until configured retention expires, independently of readers.",
+      "trap": "Records flow continuously; shards are capacity lanes, not delivered batches.",
+      "url": "https://docs.aws.amazon.com/streams/latest/dev/developing-producers-with-sdk.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "shard",
+      "label": "Kinesis shard",
+      "category": "messaging",
+      "group": "managed",
+      "x": 1630,
+      "y": 1035,
+      "w": 210,
+      "h": 68,
+      "card": "kinesis",
+      "icon": "Amazon-Kinesis-Data-Streams",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Provide one ordered record lane and unit of read/write capacity inside a Kinesis stream.",
+      "features": [
+        "1 MiB/s + 1,000 records/s sustained writes",
+        "shared/enhanced fan-out"
+      ],
+      "flow": "Append record → assigned sequence number → consumer reads retained records.",
+      "retention": "Kinesis: retained until configured retention expires, independently of readers.",
+      "trap": "A hot partition key maps to one shard at a time. Reads do not delete records.",
+      "url": "https://docs.aws.amazon.com/streams/latest/dev/key-concepts.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "s3",
+      "label": "Amazon S3",
+      "category": "storage",
+      "group": "managed",
+      "x": 1855,
+      "y": 1035,
+      "w": 210,
+      "h": 68,
+      "card": "s3",
+      "icon": "Amazon-Simple-Storage-Service",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Store durable objects and versions accessed through authorized object APIs.",
+      "features": [
+        "Versioning",
+        "lifecycle",
+        "encryption",
+        "presigned URLs",
+        "event notifications"
+      ],
+      "flow": "Object API request → object/version operation → response or configured event.",
+      "retention": "Durable object/item/filesystem state follows its own lifecycle.",
+      "trap": "S3 is regional and outside customer VPCs. Presigned URLs delegate a bounded signed operation.",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "efs",
+      "label": "EFS regional filesystem",
+      "category": "storage",
+      "group": "managed",
+      "x": 2080,
+      "y": 1035,
+      "w": 210,
+      "h": 68,
+      "card": "containers",
+      "icon": "Amazon-EFS",
+      "scope": "Regional",
+      "placement": "Regional filesystem outside subnet boxes; mount-target ENIs are inside selected customer subnets.",
+      "description": "Provide a regional persistent shared filesystem exposed over NFS through subnet mount targets.",
+      "features": [
+        "Regional filesystem",
+        "AZ mount targets",
+        "shared persistent files"
+      ],
+      "flow": "NFS through mount targets → common filesystem → persistent files.",
+      "retention": "Persistent shared regional files remain independently of client/task replacement.",
+      "trap": "This is regional EFS, not EFS One Zone. Mount targets, routes and permissions still matter.",
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/how-it-works.html",
+      "networkRequirements": "The filesystem is regional; subnet ENIs/security groups belong to its mount targets shown separately."
+    },
+    {
+      "id": "ecs",
+      "label": "ECS control plane",
+      "category": "compute",
+      "group": "managed",
+      "x": 1405,
+      "y": 1180,
+      "w": 210,
+      "h": 68,
+      "card": "containers",
+      "icon": "Amazon-Elastic-Container-Service",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Orchestrate container tasks and services; choose their compute separately.",
+      "features": [
+        "Cluster",
+        "task definition",
+        "service",
+        "task count",
+        "capacity providers"
+      ],
+      "flow": "Task/service definition → scheduler → selected container capacity.",
+      "retention": "Task/service definitions and scheduler state persist; container files follow the selected task/volume lifecycle.",
+      "trap": "ECS orchestrates. EC2 or Fargate supplies compute; ECR stores the image.",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "ecr",
+      "label": "ECR images",
+      "category": "compute",
+      "group": "managed",
+      "x": 1630,
+      "y": 1180,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": "Amazon-Elastic-Container-Registry",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Store versioned container images for authorized producers and runtime pulls.",
+      "features": [
+        "Image registry",
+        "tags/digests",
+        "image pull permissions"
+      ],
+      "flow": "Build/push image → repository → authorized runtime pulls.",
+      "retention": "Image artifacts persist until deletion/lifecycle policy cleanup. Pulling an image does not consume it.",
+      "trap": "An image registry does not execute containers.",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "kms",
+      "label": "AWS KMS",
+      "category": "security",
+      "group": "managed",
+      "x": 1855,
+      "y": 1180,
+      "w": 210,
+      "h": 68,
+      "card": "kms",
+      "icon": "AWS-Key-Management-Service",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Control cryptographic keys and cryptographic operations.",
+      "features": [
+        "Key policy",
+        "encryption context",
+        "GenerateDataKey",
+        "envelope encryption"
+      ],
+      "flow": "Authorized cryptographic request → key-backed operation → result/data key.",
+      "retention": "KMS protects key material and performs permitted key operations; encrypted application data is stored elsewhere.",
+      "trap": "Normal operations do not export underlying KMS key material. A data key can be returned for local data encryption.",
+      "url": "https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#enveloping",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "secrets",
+      "label": "Secrets Manager",
+      "category": "security",
+      "group": "managed",
+      "x": 2080,
+      "y": 1180,
+      "w": 210,
+      "h": 68,
+      "card": "secrets",
+      "icon": "AWS-Secrets-Manager",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Store secret values/versions and support configured credential rotation workflows.",
+      "features": [
+        "Stored secret",
+        "supported rotation workflow",
+        "IAM/KMS access"
+      ],
+      "flow": "GetSecretValue / rotation → authorized secret value.",
+      "retention": "Stored secret versions persist; authorized retrieval does not consume/delete the secret.",
+      "trap": "Keep secrets out of source and logs. Rotation is more than changing a configuration string.",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "params",
+      "label": "Parameter Store",
+      "category": "security",
+      "group": "managed",
+      "x": 1405,
+      "y": 1325,
+      "w": 210,
+      "h": 68,
+      "card": "secrets",
+      "icon": "AWS-Secrets-Manager",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Store named configuration and SecureString values for authorized application retrieval.",
+      "features": [
+        "String / SecureString",
+        "named configuration",
+        "standard/advanced"
+      ],
+      "flow": "Named configuration request → optional KMS decryption → value.",
+      "retention": "Named parameter versions persist until changed/deleted; retrieval is not message consumption.",
+      "trap": "It is not a substitute for a managed database-credential rotation workflow.",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "cloudwatch",
+      "label": "CloudWatch",
+      "category": "monitoring",
+      "group": "managed",
+      "x": 1630,
+      "y": 1325,
+      "w": 210,
+      "h": 68,
+      "card": "evidence",
+      "icon": "Amazon-CloudWatch",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Collect and analyze operational metrics/logs and drive alarms and dashboards.",
+      "features": [
+        "Metrics",
+        "logs",
+        "alarms",
+        "dashboards",
+        "custom metrics",
+        "Lambda logging"
+      ],
+      "flow": "Operational telemetry → queries/alarms/dashboard → investigation.",
+      "retention": "Configured telemetry retention/delivery determines evidence availability; collection must be enabled where required.",
+      "trap": "Metrics are aggregates; request logs and traces carry different evidence.",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "cloudtrail",
+      "label": "CloudTrail",
+      "category": "monitoring",
+      "group": "managed",
+      "x": 1855,
+      "y": 1325,
+      "w": 210,
+      "h": 68,
+      "card": "evidence",
+      "icon": "AWS-CloudTrail",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Record configured AWS API/account activity for auditing and investigation.",
+      "features": [
+        "AWS API audit",
+        "management/data event coverage"
+      ],
+      "flow": "AWS API/account event → configured audit evidence.",
+      "retention": "Configured telemetry retention/delivery determines evidence availability; collection must be enabled where required.",
+      "trap": "It does not replace ALB access logs or application request logs.",
+      "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "xray",
+      "label": "X-Ray / tracing",
+      "category": "monitoring",
+      "group": "managed",
+      "x": 2080,
+      "y": 1325,
+      "w": 210,
+      "h": 68,
+      "card": "evidence",
+      "icon": "AWS-X-Ray",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Correlate instrumented request segments/spans to locate downstream latency and failures.",
+      "features": [
+        "Trace IDs",
+        "segments/spans",
+        "downstream timing"
+      ],
+      "flow": "Instrumented request context → correlated distributed trace.",
+      "retention": "Configured telemetry retention/delivery determines evidence availability; collection must be enabled where required.",
+      "trap": "Instrumentation and sampling affect what you can inspect; a trace ID alone does not create spans.",
+      "url": "https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "cdk",
+      "label": "AWS CDK",
+      "category": "deployment",
+      "group": "developer",
+      "x": 680,
+      "y": 36,
+      "w": 210,
+      "h": 50,
+      "card": "cdk",
+      "icon": "AWS-Cloud-Development-Kit",
+      "scope": "Local / CI tooling",
+      "placement": "Shown on a local developer machine. The same CLI can also run on a CI agent, including CodeBuild; deployed resources belong to the selected AWS account/Region.",
+      "description": "Define AWS infrastructure using programming-language constructs.",
+      "features": [
+        "Constructs",
+        "synthesis",
+        "stack deployment"
+      ],
+      "flow": "Construct code → cdk synth → CloudFormation template → cdk deploy → provisioned AWS resources.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "CDK is not a runtime and is not limited to servers. SAM and CDK both describe infrastructure; choose serverless YAML shorthand/local tooling versus general programming-language composition.",
+      "url": "https://docs.aws.amazon.com/cdk/v2/guide/home.html",
+      "networkRequirements": "The tool itself needs no AWS subnet/security group. Its host/network and deployment IAM credentials must allow the required AWS API calls."
+    },
+    {
+      "id": "sam",
+      "label": "AWS SAM",
+      "category": "deployment",
+      "group": "developer",
+      "x": 1010,
+      "y": 36,
+      "w": 210,
+      "h": 50,
+      "card": "sam",
+      "icon": "AWS-CloudFormation",
+      "scope": "Local / CI tooling",
+      "placement": "Shown on a local developer machine. The same CLI can also run on a CI agent, including CodeBuild; deployed resources belong to the selected AWS account/Region.",
+      "description": "Define, build, test and deploy a serverless application.",
+      "features": [
+        "SAM transform",
+        "local testing",
+        "template deployment"
+      ],
+      "flow": "SAM template + function code → local build/test/package → CloudFormation SAM transform → deployed API/function/data resources.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "SAM is infrastructure and development tooling, not compute. AWS::Serverless::UserPool is invalid; use AWS::Cognito::UserPool. Local testing does not reproduce every cloud behavior.",
+      "url": "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html",
+      "networkRequirements": "The tool itself needs no AWS subnet/security group. Its host/network and deployment IAM credentials must allow the required AWS API calls."
+    },
+    {
+      "id": "cfn",
+      "label": "CloudFormation",
+      "category": "deployment",
+      "group": "delivery",
+      "x": 845,
+      "y": 1680,
+      "w": 210,
+      "h": 68,
+      "card": "cfn",
+      "icon": "AWS-CloudFormation",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Provision related resources as a versioned stack.",
+      "features": [
+        "Stacks",
+        "StackSets",
+        "Parameters",
+        "Conditions",
+        "Outputs",
+        "Mappings",
+        "intrinsic functions"
+      ],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "sar",
+      "label": "Serverless App Repo",
+      "category": "deployment",
+      "group": "delivery",
+      "x": 1210,
+      "y": 1680,
+      "w": 210,
+      "h": 68,
+      "card": "sar",
+      "icon": "AWS-Serverless-Application-Repository",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Find, share and deploy versioned reusable serverless applications.",
+      "features": [],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/serverlessrepo/latest/devguide/what-is-serverlessrepo.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "source",
+      "label": "CodeCommit / source",
+      "category": "deployment",
+      "group": "delivery",
+      "x": 1575,
+      "y": 1680,
+      "w": 210,
+      "h": 68,
+      "card": null,
+      "icon": "AWS-CodeCommit",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Versioned source repository; CodeCommit is one possible pipeline source.",
+      "features": [],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "pipeline",
+      "label": "CodePipeline",
+      "category": "deployment",
+      "group": "delivery",
+      "x": 1940,
+      "y": 1680,
+      "w": 210,
+      "h": 68,
+      "card": "pipeline",
+      "icon": "AWS-CodePipeline",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Coordinate the stages that turn a source revision into a release.",
+      "features": [],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/codepipeline/latest/userguide/welcome.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "build",
+      "label": "CodeBuild",
+      "category": "deployment",
+      "group": "delivery",
+      "x": 115,
+      "y": 1805,
+      "w": 210,
+      "h": 68,
+      "card": "build",
+      "icon": "AWS-CodeBuild",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Run build/test commands and produce a deployable artifact.",
+      "features": [],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/codebuild/latest/userguide/welcome.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "deploy",
+      "label": "CodeDeploy",
+      "category": "deployment",
+      "group": "delivery",
+      "x": 480,
+      "y": 1805,
+      "w": 210,
+      "h": 68,
+      "card": "deploy",
+      "icon": "AWS-CodeDeploy",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Roll out an application revision using a platform-specific deployment contract.",
+      "features": [],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/welcome.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "beanstalk",
+      "label": "Elastic Beanstalk",
+      "category": "deployment",
+      "group": "delivery",
+      "x": 845,
+      "y": 1805,
+      "w": 210,
+      "h": 68,
+      "card": "beanstalk",
+      "icon": "AWS-Elastic-Beanstalk",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Deploy an application; let Beanstalk coordinate its infrastructure.",
+      "features": [],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.rolling-version-deploy.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "workflow",
+      "label": "Step Functions",
+      "category": "messaging",
+      "group": "delivery",
+      "x": 1210,
+      "y": 1805,
+      "w": 210,
+      "h": 68,
+      "card": "workflow",
+      "icon": "AWS-Step-Functions",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Coordinate application steps with explicit state and failure handling.",
+      "features": [],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "appconfig",
+      "label": "AppConfig",
+      "category": "deployment",
+      "group": "delivery",
+      "x": 1575,
+      "y": 1805,
+      "w": 210,
+      "h": 68,
+      "card": "appconfig",
+      "icon": "AWS-AppConfig",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Validate and gradually deploy application configuration or feature flags.",
+      "features": [],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "flowlogs",
+      "label": "VPC Flow Logs",
+      "category": "monitoring",
+      "group": "delivery",
+      "x": 1940,
+      "y": 1805,
+      "w": 210,
+      "h": 68,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Metadata about IP traffic for selected VPC resources; not packet payload capture.",
+      "features": [
+        "Flow records",
+        "ACCEPT/REJECT",
+        "source/destination/port"
+      ],
+      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "retention": "Configured telemetry retention/delivery determines evidence availability; collection must be enabled where required.",
+      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "sqs-two",
+      "label": "SQS subscriber 2",
+      "category": "messaging",
+      "group": "managed",
+      "x": 2080,
+      "y": 745,
+      "w": 210,
+      "h": 68,
+      "card": "sqs",
+      "icon": "Amazon-Simple-Queue-Service",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Buffer work so consumers can process it independently.",
+      "features": [
+        "Standard / FIFO",
+        "long polling",
+        "visibility",
+        "retention",
+        "DLQ"
+      ],
+      "flow": "SendMessage → retained message → ReceiveMessage → processing → DeleteMessage.",
+      "retention": "SQS: retained until deletion or expiry; receive only changes visibility.",
+      "trap": "Receiving hides a message temporarily; it does not delete it. FIFO does not remove all duplicate-processing risks.",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "peer-vpc",
+      "label": "Peer VPC",
+      "category": "network",
+      "group": "peer",
+      "x": 970,
+      "y": 408,
+      "w": 210,
+      "h": 60,
+      "card": "network",
+      "icon": "Amazon-Virtual-Private-Cloud",
+      "scope": "VPC-associated / regional",
+      "placement": "Separate from the main customer VPC, inside this illustrative Region.",
+      "description": "A separate VPC in this same-Region example; peering can also connect supported cross-Region VPC pairs.",
+      "features": [
+        "Routes on both sides",
+        "SG/NACL checks",
+        "no transitive routing"
+      ],
+      "flow": "Private traffic follows explicitly configured peering routes and target filtering.",
+      "retention": "Depends on the resource/configuration; see the full service reference.",
+      "trap": "VPC peering is not transitive and does not share a peer’s NAT/IGW by default. CIDR overlap prevents creating the peering relationship.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html",
+      "networkRequirements": "The VPC and its route tables are logical network resources. Workload ENIs/security controls live in its subnets."
+    },
+    {
+      "id": "identity-pool",
+      "label": "Cognito identity pool",
+      "category": "api",
+      "group": "managed",
+      "x": 1405,
+      "y": 1470,
+      "w": 210,
+      "h": 68,
+      "card": "cognito",
+      "icon": "Amazon-Cognito",
+      "scope": "Regional",
+      "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
+      "description": "Exchange a supported authenticated identity (or configured guest identity) for scoped temporary AWS credentials.",
+      "features": [
+        "Supported IdP/user-pool proof",
+        "Role mapping",
+        "Optional guest access",
+        "Temporary AWS credentials"
+      ],
+      "flow": "Client submits supported identity proof → identity pool brokers the configured role session → client signs AWS API requests with temporary credentials.",
+      "retention": "Identity/configuration state persists; the issued temporary credentials expire.",
+      "trap": "An identity pool is not a user directory. Role and resource policies restrict AWS actions; a user-pool JWT alone is not a SigV4 credential.",
+      "url": "https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-identity.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    }
+  ],
+  "relationships": [
+    {
+      "id": "dns-query",
+      "source": "client",
+      "target": "dns",
+      "type": "api",
+      "label": "DNS query",
+      "description": "DNS query"
+    },
+    {
+      "id": "dns-reply",
+      "source": "dns",
+      "target": "client",
+      "type": "api",
+      "label": "DNS answer; no HTTP proxy",
+      "description": "DNS answer; no HTTP proxy"
+    },
+    {
+      "id": "viewer",
+      "source": "client",
+      "target": "cdn",
+      "type": "network",
+      "label": "Viewer HTTPS",
+      "description": "Viewer HTTPS"
+    },
+    {
+      "id": "acl",
+      "source": "waf",
+      "target": "cdn",
+      "type": "authorization",
+      "label": "Associated web ACL",
+      "description": "Associated web ACL"
+    },
+    {
+      "id": "origin",
+      "source": "cdn",
+      "target": "alb",
+      "type": "network",
+      "label": "HTTPS to configured ALB origin",
+      "description": "HTTPS to configured ALB origin"
+    },
+    {
+      "id": "ingress",
+      "source": "client",
+      "target": "igw",
+      "type": "network",
+      "label": "Internet route to public endpoint",
+      "description": "Internet route to public endpoint"
+    },
+    {
+      "id": "public-alb",
+      "source": "igw",
+      "target": "alb",
+      "type": "network",
+      "label": "Public ALB reachability",
+      "description": "Public ALB reachability"
+    },
+    {
+      "id": "target-a",
+      "source": "alb",
+      "target": "ec2-a",
+      "type": "network",
+      "label": "HTTP → healthy target A",
+      "description": "HTTP → healthy target A"
+    },
+    {
+      "id": "target-b",
+      "source": "alb-b",
+      "target": "ec2-b",
+      "type": "network",
+      "label": "HTTP → healthy target B",
+      "description": "HTTP → healthy target B"
+    },
+    {
+      "id": "cross-zone",
+      "source": "alb",
+      "target": "ec2-b",
+      "type": "network",
+      "label": "Optional cross-zone target",
+      "description": "Optional cross-zone target"
+    },
+    {
+      "id": "health",
+      "source": "alb",
+      "target": "ec2-a",
+      "type": "network",
+      "label": "Health check /health",
+      "description": "Health check /health"
+    },
+    {
+      "id": "sql",
+      "source": "ec2-a",
+      "target": "rds",
+      "type": "api",
+      "label": "SQL to writer endpoint",
+      "description": "SQL to writer endpoint"
+    },
+    {
+      "id": "sql-b",
+      "source": "ec2-b",
+      "target": "rds",
+      "type": "api",
+      "label": "SQL to writer endpoint",
+      "description": "SQL to writer endpoint"
+    },
+    {
+      "id": "ha",
+      "source": "rds",
+      "target": "standby",
+      "type": "replication",
+      "label": "Synchronous HA replica",
+      "description": "Synchronous HA replica"
+    },
+    {
+      "id": "async-replica",
+      "source": "rds",
+      "target": "replica",
+      "type": "replication",
+      "label": "Asynchronous read replica",
+      "description": "Asynchronous read replica"
+    },
+    {
+      "id": "read-replica",
+      "source": "ec2-a",
+      "target": "replica",
+      "type": "api",
+      "label": "Read replica endpoint",
+      "description": "Read replica endpoint"
+    },
+    {
+      "id": "failover",
+      "source": "ec2-a",
+      "target": "standby",
+      "type": "api",
+      "label": "Reconnect after promotion",
+      "description": "Reconnect after promotion"
+    },
+    {
+      "id": "disk-a",
+      "source": "ec2-a",
+      "target": "ebs-a",
+      "type": "attachment",
+      "label": "Same-AZ block attachment",
+      "description": "Same-AZ block attachment"
+    },
+    {
+      "id": "disk-b",
+      "source": "ec2-b",
+      "target": "ebs-b",
+      "type": "attachment",
+      "label": "Same-AZ block attachment",
+      "description": "Same-AZ block attachment"
+    },
+    {
+      "id": "nfs-a",
+      "source": "ec2-a",
+      "target": "mount-a",
+      "type": "network",
+      "label": "NFS filesystem access",
+      "description": "NFS filesystem access"
+    },
+    {
+      "id": "nfs-b",
+      "source": "ec2-b",
+      "target": "mount-b",
+      "type": "network",
+      "label": "NFS filesystem access",
+      "description": "NFS filesystem access"
+    },
+    {
+      "id": "mount-fs-a",
+      "source": "mount-a",
+      "target": "efs",
+      "type": "attachment",
+      "label": "Regional filesystem mount target",
+      "description": "Regional filesystem mount target"
+    },
+    {
+      "id": "mount-fs-b",
+      "source": "mount-b",
+      "target": "efs",
+      "type": "attachment",
+      "label": "Same regional filesystem",
+      "description": "Same regional filesystem"
+    },
+    {
+      "id": "route-check",
+      "source": "ec2-a",
+      "target": "route-a",
+      "type": "authorization",
+      "label": "Route/filter decision (logical)",
+      "description": "Route/filter decision (logical)"
+    },
+    {
+      "id": "nat-route",
+      "source": "ec2-a",
+      "target": "nat-a",
+      "type": "network",
+      "label": "0.0.0.0/0 → NAT A",
+      "description": "0.0.0.0/0 → NAT A"
+    },
+    {
+      "id": "nat-egress",
+      "source": "nat-a",
+      "target": "igw",
+      "type": "network",
+      "label": "NAT translated egress",
+      "description": "NAT translated egress"
+    },
+    {
+      "id": "internet-egress",
+      "source": "igw",
+      "target": "client",
+      "type": "network",
+      "label": "External endpoint (egress example)",
+      "description": "External endpoint (egress example)"
+    },
+    {
+      "id": "vpce-route",
+      "source": "ec2-a",
+      "target": "gateway",
+      "type": "network",
+      "label": "S3 prefix-list route",
+      "description": "S3 prefix-list route"
+    },
+    {
+      "id": "vpce-s3",
+      "source": "gateway",
+      "target": "s3",
+      "type": "api",
+      "label": "Private S3 API path",
+      "description": "Private S3 API path"
+    },
+    {
+      "id": "interface-call",
+      "source": "ec2-a",
+      "target": "interface",
+      "type": "network",
+      "label": "Private endpoint ENI",
+      "description": "Private endpoint ENI"
+    },
+    {
+      "id": "private-service",
+      "source": "interface",
+      "target": "secrets",
+      "type": "api",
+      "label": "Supported PrivateLink service",
+      "description": "Supported PrivateLink service"
+    },
+    {
+      "id": "scale-a",
+      "source": "asg",
+      "target": "ec2-a",
+      "type": "deployment",
+      "label": "Launch/replace from template",
+      "description": "Launch/replace from template"
+    },
+    {
+      "id": "scale-b",
+      "source": "asg",
+      "target": "ec2-b",
+      "type": "deployment",
+      "label": "Launch/replace from template",
+      "description": "Launch/replace from template"
+    },
+    {
+      "id": "api-call",
+      "source": "client",
+      "target": "apigw",
+      "type": "network",
+      "label": "HTTPS API request",
+      "description": "HTTPS API request"
+    },
+    {
+      "id": "invoke",
+      "source": "apigw",
+      "target": "lambda",
+      "type": "api",
+      "label": "Authorized integration invoke",
+      "description": "Authorized integration invoke"
+    },
+    {
+      "id": "item-write",
+      "source": "lambda",
+      "target": "ddb",
+      "type": "api",
+      "label": "Put/Get/UpdateItem",
+      "description": "Put/Get/UpdateItem"
+    },
+    {
+      "id": "sign-in",
+      "source": "client",
+      "target": "cognito",
+      "type": "api",
+      "label": "Sign-in / federated login",
+      "description": "Sign-in / federated login"
+    },
+    {
+      "id": "jwt",
+      "source": "cognito",
+      "target": "client",
+      "type": "authorization",
+      "label": "JWT ID/access tokens",
+      "description": "JWT ID/access tokens"
+    },
+    {
+      "id": "jwt-api",
+      "source": "client",
+      "target": "apigw",
+      "type": "authorization",
+      "label": "Access JWT → authorizer",
+      "description": "Access JWT → authorizer"
+    },
+    {
+      "id": "lambda-role",
+      "source": "iam",
+      "target": "lambda",
+      "type": "authorization",
+      "label": "Execution-role permissions",
+      "description": "Execution-role permissions"
+    },
+    {
+      "id": "assume",
+      "source": "client",
+      "target": "sts",
+      "type": "authorization",
+      "label": "Authorized AssumeRole / federation",
+      "description": "Authorized AssumeRole / federation"
+    },
+    {
+      "id": "external-trust",
+      "source": "idp",
+      "target": "sts",
+      "type": "authorization",
+      "label": "Trusted supported identity assertion",
+      "description": "Trusted supported identity assertion"
+    },
+    {
+      "id": "trust-role",
+      "source": "sts",
+      "target": "role-b",
+      "type": "authorization",
+      "label": "Validate role trust",
+      "description": "Validate role trust"
+    },
+    {
+      "id": "role-allow",
+      "source": "role-b",
+      "target": "s3",
+      "type": "authorization",
+      "label": "Session + resource policy allows action",
+      "description": "Session + resource policy allows action"
+    },
+    {
+      "id": "scp",
+      "source": "org",
+      "target": "iam",
+      "type": "authorization",
+      "label": "Maximum permission guardrail",
+      "description": "Maximum permission guardrail"
+    },
+    {
+      "id": "queue-put",
+      "source": "lambda",
+      "target": "sqs",
+      "type": "api",
+      "label": "SendMessage",
+      "description": "SendMessage"
+    },
+    {
+      "id": "queue-poll",
+      "source": "esm",
+      "target": "sqs",
+      "type": "api",
+      "label": "ReceiveMessage / long poll",
+      "description": "ReceiveMessage / long poll"
+    },
+    {
+      "id": "queue-batch",
+      "source": "sqs",
+      "target": "esm",
+      "type": "event",
+      "label": "Returned message batch",
+      "description": "Returned message batch"
+    },
+    {
+      "id": "process",
+      "source": "esm",
+      "target": "worker",
+      "type": "event",
+      "label": "Synchronous batch invocation",
+      "description": "Synchronous batch invocation"
+    },
+    {
+      "id": "worker-write",
+      "source": "worker",
+      "target": "ddb",
+      "type": "api",
+      "label": "Conditional/idempotent write",
+      "description": "Conditional/idempotent write"
+    },
+    {
+      "id": "delete-message",
+      "source": "esm",
+      "target": "sqs",
+      "type": "api",
+      "label": "DeleteMessage after success",
+      "description": "DeleteMessage after success"
+    },
+    {
+      "id": "redrive",
+      "source": "sqs",
+      "target": "dlq",
+      "type": "event",
+      "label": "After configured max receives",
+      "description": "After configured max receives"
+    },
+    {
+      "id": "publish",
+      "source": "lambda",
+      "target": "sns",
+      "type": "api",
+      "label": "Publish",
+      "description": "Publish"
+    },
+    {
+      "id": "fanout-one",
+      "source": "sns",
+      "target": "sqs",
+      "type": "event",
+      "label": "Matching SQS subscription",
+      "description": "Matching SQS subscription"
+    },
+    {
+      "id": "fanout-two",
+      "source": "sns",
+      "target": "sqs-two",
+      "type": "event",
+      "label": "Second independent subscriber queue",
+      "description": "Second independent subscriber queue"
+    },
+    {
+      "id": "put-events",
+      "source": "lambda",
+      "target": "events",
+      "type": "api",
+      "label": "PutEvents",
+      "description": "PutEvents"
+    },
+    {
+      "id": "rule",
+      "source": "events",
+      "target": "sqs",
+      "type": "event",
+      "label": "Rule → queue target",
+      "description": "Rule → queue target"
+    },
+    {
+      "id": "workflow-call",
+      "source": "lambda",
+      "target": "workflow",
+      "type": "api",
+      "label": "StartExecution",
+      "description": "StartExecution"
+    },
+    {
+      "id": "workflow-task",
+      "source": "workflow",
+      "target": "worker",
+      "type": "api",
+      "label": "Workflow task integration",
+      "description": "Workflow task integration"
+    },
+    {
+      "id": "put-record",
+      "source": "client",
+      "target": "kinesis",
+      "type": "api",
+      "label": "PutRecord(s) HTTPS",
+      "description": "PutRecord(s) HTTPS"
+    },
+    {
+      "id": "hash",
+      "source": "kinesis",
+      "target": "shard",
+      "type": "event",
+      "label": "Hash partition key → shard",
+      "description": "Hash partition key → shard"
+    },
+    {
+      "id": "read-record",
+      "source": "esm",
+      "target": "shard",
+      "type": "api",
+      "label": "GetRecords / subscription",
+      "description": "GetRecords / subscription"
+    },
+    {
+      "id": "stream-batch",
+      "source": "shard",
+      "target": "esm",
+      "type": "event",
+      "label": "Retained record batch",
+      "description": "Retained record batch"
+    },
+    {
+      "id": "index",
+      "source": "ddb",
+      "target": "gsi",
+      "type": "replication",
+      "label": "Maintain alternate query index",
+      "description": "Maintain alternate query index"
+    },
+    {
+      "id": "query-index",
+      "source": "lambda",
+      "target": "gsi",
+      "type": "api",
+      "label": "Query by index key",
+      "description": "Query by index key"
+    },
+    {
+      "id": "change-log",
+      "source": "ddb",
+      "target": "streams",
+      "type": "event",
+      "label": "Item-change record",
+      "description": "Item-change record"
+    },
+    {
+      "id": "poll-ddb",
+      "source": "esm",
+      "target": "streams",
+      "type": "api",
+      "label": "Poll stream shard",
+      "description": "Poll stream shard"
+    },
+    {
+      "id": "ddb-batch",
+      "source": "streams",
+      "target": "esm",
+      "type": "event",
+      "label": "Change-record batch",
+      "description": "Change-record batch"
+    },
+    {
+      "id": "cache-read",
+      "source": "ec2-a",
+      "target": "cache",
+      "type": "api",
+      "label": "Cache GET / SET",
+      "description": "Cache GET / SET"
+    },
+    {
+      "id": "dax-read",
+      "source": "lambda-eni",
+      "target": "dax",
+      "type": "api",
+      "label": "DAX client request",
+      "description": "DAX client request"
+    },
+    {
+      "id": "dax-table",
+      "source": "dax",
+      "target": "ddb",
+      "type": "api",
+      "label": "Cache miss → DynamoDB",
+      "description": "Cache miss → DynamoDB"
+    },
+    {
+      "id": "efs-task",
+      "source": "task",
+      "target": "mount-a",
+      "type": "network",
+      "label": "NFS mount over VPC",
+      "description": "NFS mount over VPC"
+    },
+    {
+      "id": "s3-write",
+      "source": "lambda",
+      "target": "s3",
+      "type": "api",
+      "label": "PutObject / presigned operation",
+      "description": "PutObject / presigned operation"
+    },
+    {
+      "id": "s3-event",
+      "source": "s3",
+      "target": "sqs",
+      "type": "event",
+      "label": "Configured object event notification",
+      "description": "Configured object event notification"
+    },
+    {
+      "id": "lambda-vpc",
+      "source": "lambda",
+      "target": "lambda-eni",
+      "type": "attachment",
+      "label": "Optional customer-VPC connectivity",
+      "description": "Optional customer-VPC connectivity"
+    },
+    {
+      "id": "private-db",
+      "source": "lambda-eni",
+      "target": "rds",
+      "type": "api",
+      "label": "Private SQL connection",
+      "description": "Private SQL connection"
+    },
+    {
+      "id": "schedule",
+      "source": "ecs",
+      "target": "task",
+      "type": "deployment",
+      "label": "Schedule/maintain tasks",
+      "description": "Schedule/maintain tasks"
+    },
+    {
+      "id": "pull",
+      "source": "task",
+      "target": "ecr",
+      "type": "api",
+      "label": "Authenticated image pull",
+      "description": "Authenticated image pull"
+    },
+    {
+      "id": "key-request",
+      "source": "lambda",
+      "target": "kms",
+      "type": "api",
+      "label": "GenerateDataKey",
+      "description": "GenerateDataKey"
+    },
+    {
+      "id": "data-key",
+      "source": "kms",
+      "target": "lambda",
+      "type": "api",
+      "label": "Data key + encrypted data key",
+      "description": "Data key + encrypted data key"
+    },
+    {
+      "id": "secret-read",
+      "source": "lambda",
+      "target": "secrets",
+      "type": "api",
+      "label": "GetSecretValue",
+      "description": "GetSecretValue"
+    },
+    {
+      "id": "parameter-read",
+      "source": "lambda",
+      "target": "params",
+      "type": "api",
+      "label": "GetParameter",
+      "description": "GetParameter"
+    },
+    {
+      "id": "source-trigger",
+      "source": "source",
+      "target": "pipeline",
+      "type": "deployment",
+      "label": "Source revision starts pipeline",
+      "description": "Source revision starts pipeline"
+    },
+    {
+      "id": "build-stage",
+      "source": "pipeline",
+      "target": "build",
+      "type": "deployment",
+      "label": "Build/test stage",
+      "description": "Build/test stage"
+    },
+    {
+      "id": "build-image",
+      "source": "build",
+      "target": "ecr",
+      "type": "deployment",
+      "label": "Push image artifact",
+      "description": "Push image artifact"
+    },
+    {
+      "id": "deploy-stage",
+      "source": "pipeline",
+      "target": "deploy",
+      "type": "deployment",
+      "label": "Deploy approved artifact",
+      "description": "Deploy approved artifact"
+    },
+    {
+      "id": "rollout",
+      "source": "deploy",
+      "target": "alias",
+      "type": "deployment",
+      "label": "Shift version traffic",
+      "description": "Shift version traffic"
+    },
+    {
+      "id": "alias-invoke",
+      "source": "apigw",
+      "target": "alias",
+      "type": "api",
+      "label": "Invoke stable alias",
+      "description": "Invoke stable alias"
+    },
+    {
+      "id": "selected-version",
+      "source": "alias",
+      "target": "lambda",
+      "type": "api",
+      "label": "Published version selected",
+      "description": "Published version selected"
+    },
+    {
+      "id": "cdk-synth",
+      "source": "cdk",
+      "target": "cfn",
+      "type": "deployment",
+      "label": "Synthesize CFN + deploy stack",
+      "description": "Synthesize CFN + deploy stack"
+    },
+    {
+      "id": "sam-transform",
+      "source": "sam",
+      "target": "cfn",
+      "type": "deployment",
+      "label": "SAM transform + stack deployment",
+      "description": "SAM transform + stack deployment"
+    },
+    {
+      "id": "sar-nested",
+      "source": "sar",
+      "target": "sam",
+      "type": "deployment",
+      "label": "Reusable application template",
+      "description": "Reusable application template"
+    },
+    {
+      "id": "stack-function",
+      "source": "cfn",
+      "target": "lambda",
+      "type": "deployment",
+      "label": "Provision/update Lambda resource",
+      "description": "Provision/update Lambda resource"
+    },
+    {
+      "id": "stack-vm",
+      "source": "cfn",
+      "target": "ec2-a",
+      "type": "deployment",
+      "label": "Provision/update EC2 resource",
+      "description": "Provision/update EC2 resource"
+    },
+    {
+      "id": "bean-a",
+      "source": "beanstalk",
+      "target": "ec2-a",
+      "type": "deployment",
+      "label": "Application rollout batch",
+      "description": "Application rollout batch"
+    },
+    {
+      "id": "bean-b",
+      "source": "beanstalk",
+      "target": "ec2-b",
+      "type": "deployment",
+      "label": "Replacement/candidate fleet",
+      "description": "Replacement/candidate fleet"
+    },
+    {
+      "id": "metrics",
+      "source": "lambda",
+      "target": "cloudwatch",
+      "type": "monitoring",
+      "label": "Operational metrics/logs",
+      "description": "Operational metrics/logs"
+    },
+    {
+      "id": "access-logs",
+      "source": "alb",
+      "target": "cloudwatch",
+      "type": "monitoring",
+      "label": "Configured access-log delivery",
+      "description": "Configured access-log delivery"
+    },
+    {
+      "id": "trace",
+      "source": "lambda",
+      "target": "xray",
+      "type": "monitoring",
+      "label": "Instrumented trace spans",
+      "description": "Instrumented trace spans"
+    },
+    {
+      "id": "audit",
+      "source": "cfn",
+      "target": "cloudtrail",
+      "type": "monitoring",
+      "label": "AWS API audit events",
+      "description": "AWS API audit events"
+    },
+    {
+      "id": "vpc-log",
+      "source": "ec2-a",
+      "target": "flowlogs",
+      "type": "monitoring",
+      "label": "Flow metadata capture",
+      "description": "Flow metadata capture"
+    },
+    {
+      "id": "config-deploy",
+      "source": "appconfig",
+      "target": "lambda",
+      "type": "deployment",
+      "label": "Controlled configuration rollout",
+      "description": "Controlled configuration rollout"
+    },
+    {
+      "id": "cert",
+      "source": "acm",
+      "target": "alb",
+      "type": "attachment",
+      "label": "Regional TLS certificate",
+      "description": "Regional TLS certificate"
+    },
+    {
+      "id": "nlb-target",
+      "source": "nlb",
+      "target": "task",
+      "type": "network",
+      "label": "TCP/UDP target routing",
+      "description": "NLB selects a healthy registered target; task networking and listener protocol must match."
+    },
+    {
+      "id": "peer-association",
+      "source": "peering",
+      "target": "peer-vpc",
+      "type": "attachment",
+      "label": "Direct VPC peering relationship",
+      "description": "Direct VPC peering relationship"
+    },
+    {
+      "id": "peer-route",
+      "source": "ec2-a",
+      "target": "peer-vpc",
+      "type": "network",
+      "label": "Configured private peer route",
+      "description": "Configured private peer route"
+    },
+    {
+      "id": "nat-b-route",
+      "source": "ec2-b",
+      "target": "nat-b",
+      "type": "network",
+      "label": "Outbound via same-AZ NAT B",
+      "description": "Outbound via same-AZ NAT B"
+    },
+    {
+      "id": "nat-c-route",
+      "source": "task",
+      "target": "nat-c",
+      "type": "network",
+      "label": "Task outbound via NAT C",
+      "description": "Task outbound via NAT C"
+    },
+    {
+      "id": "nat-b-egress",
+      "source": "nat-b",
+      "target": "igw",
+      "type": "network",
+      "label": "Translated public NAT egress",
+      "description": "Translated public NAT egress"
+    },
+    {
+      "id": "nat-c-egress",
+      "source": "nat-c",
+      "target": "igw",
+      "type": "network",
+      "label": "Translated public NAT egress",
+      "description": "Translated public NAT egress"
+    },
+    {
+      "id": "identity-proof",
+      "source": "client",
+      "target": "identity-pool",
+      "type": "authorization",
+      "label": "Submit supported identity proof",
+      "description": "Submit supported identity proof"
+    },
+    {
+      "id": "identity-role",
+      "source": "identity-pool",
+      "target": "sts",
+      "type": "authorization",
+      "label": "Broker configured IAM role session",
+      "description": "Broker configured IAM role session"
+    },
+    {
+      "id": "temporary-creds",
+      "source": "sts",
+      "target": "client",
+      "type": "authorization",
+      "label": "Temporary AWS credentials",
+      "description": "Temporary AWS credentials"
+    },
+    {
+      "id": "signed-s3",
+      "source": "client",
+      "target": "s3",
+      "type": "api",
+      "label": "Authorized SigV4-signed AWS API",
+      "description": "Authorized SigV4-signed AWS API"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "web",
+      "title": "1 · HA web application across AZs",
+      "steps": [
+        {
+          "edge": "dns-query",
+          "text": "Resolve the application name. Route 53 answers DNS; it does not forward HTTP."
+        },
+        {
+          "edge": "viewer",
+          "text": "Send HTTPS to CloudFront. A cached response can avoid the origin."
+        },
+        {
+          "edge": "acl",
+          "text": "The associated WAF web ACL evaluates requests; it is not a separate proxy hop."
+        },
+        {
+          "edge": "origin",
+          "text": "On an origin request, CloudFront calls the internet-facing ALB."
+        },
+        {
+          "edge": "target-a",
+          "text": "ALB routes to a healthy private EC2 target in AZ A."
+        },
+        {
+          "edge": "cross-zone",
+          "text": "With cross-zone routing, the same ALB node can select an enabled target in AZ B."
+        },
+        {
+          "edge": "sql",
+          "text": "The application connects to the RDS writer endpoint."
+        },
+        {
+          "edge": "ha",
+          "text": "The traditional Multi-AZ standby supports failover, not read scaling."
+        }
+      ],
+      "note": "Illustrative architecture: clients may use ALB directly, and CloudFront can use different origins. AZ C illustrates additional alternatives.",
+      "exam": "Availability needs redundancy and healthy capacity; adding DNS, cache or WAF is a separate requirement."
+    },
+    {
+      "id": "subnets",
+      "title": "2 · Public vs private subnet",
+      "steps": [
+        {
+          "edge": "ingress",
+          "text": "The VPC internet gateway supports the public endpoint path."
+        },
+        {
+          "edge": "public-alb",
+          "text": "The public subnet has an IGW route; the ALB has public reachability."
+        },
+        {
+          "edge": "target-a",
+          "text": "The ALB sends application traffic to a private IP target."
+        },
+        {
+          "edge": "route-check",
+          "text": "The instance has no direct IGW default route. Routing and filtering are independent."
+        }
+      ],
+      "note": "Subnets are AZ-scoped. A public route alone does not give every instance a usable public address.",
+      "exam": "SGs are stateful; NACLs are stateless. Check return-path rules for NACLs."
+    },
+    {
+      "id": "nat",
+      "title": "3 · Private outbound internet access",
+      "steps": [
+        {
+          "edge": "route-check",
+          "text": "The private instance starts an outbound connection."
+        },
+        {
+          "edge": "nat-route",
+          "text": "Its default IPv4 route points to the public NAT in its AZ."
+        },
+        {
+          "edge": "nat-egress",
+          "text": "NAT translates traffic and uses its public-subnet IGW route."
+        },
+        {
+          "edge": "internet-egress",
+          "text": "Traffic reaches an external endpoint; return traffic follows the established path."
+        }
+      ],
+      "note": "The external client symbol represents an internet destination in this scenario. NAT does not admit unsolicited inbound requests.",
+      "exam": "For resilience, use per-AZ NAT routing where the design requires it; endpoints can avoid NAT for supported AWS services."
+    },
+    {
+      "id": "health",
+      "title": "4 · ALB health checks / target routing",
+      "steps": [
+        {
+          "edge": "health",
+          "text": "ALB independently checks the configured path, port and success matcher."
+        },
+        {
+          "edge": "target-a",
+          "text": "Successful user traffic goes to eligible targets; a working homepage does not prove /health works."
+        },
+        {
+          "edge": "access-logs",
+          "text": "Configured request logs expose client, target, status and timing evidence."
+        }
+      ],
+      "note": "An ALB request log, health-check evidence and aggregate metric answer different questions.",
+      "exam": "Inspect security groups, NACLs, path, port, matcher and application health."
+    },
+    {
+      "id": "api",
+      "title": "5 · API Gateway → Lambda → DynamoDB",
+      "steps": [
+        {
+          "edge": "api-call",
+          "text": "Client calls the configured API endpoint."
+        },
+        {
+          "edge": "invoke",
+          "text": "Authorization, validation and integration settings permit a Lambda invoke."
+        },
+        {
+          "edge": "lambda-role",
+          "text": "Lambda runs with its execution-role permissions, distinct from the caller JWT."
+        },
+        {
+          "edge": "item-write",
+          "text": "Application code performs an authorized DynamoDB operation and checks record entitlement."
+        }
+      ],
+      "note": "This map uses a regional API endpoint; private and edge-optimized REST options have different connectivity.",
+      "exam": "API keys are for consumer usage plans, not authentication; an HTTP API does not have every REST feature."
+    },
+    {
+      "id": "stages",
+      "title": "6 · API Gateway prod / beta",
+      "steps": [
+        {
+          "edge": "api-call",
+          "text": "/prod/GetOrder or /beta/GetOrder selects the stage (custom-domain mappings can hide that name)."
+        },
+        {
+          "edge": "invoke",
+          "text": "The stage points to an API deployment; stage variables can select configured backend aliases."
+        },
+        {
+          "edge": "alias-invoke",
+          "text": "A production canary uses the same /prod URL, selecting the candidate deployment for a percentage."
+        },
+        {
+          "edge": "selected-version",
+          "text": "Lambda alias/version selection is a separate object from the API deployment."
+        }
+      ],
+      "note": "Open the API Gateway card for the working prod/beta request, cache and usage-plan examples.",
+      "exam": "A deployment is an API snapshot; stage variables are configuration, not automatic body transformation."
+    },
+    {
+      "id": "cognito",
+      "title": "7 · Cognito JWT authorization",
+      "steps": [
+        {
+          "edge": "sign-in",
+          "text": "The user authenticates with the configured user pool or supported federated IdP."
+        },
+        {
+          "edge": "jwt",
+          "text": "Cognito issues tokens. The access token carries the scopes appropriate for API authorization."
+        },
+        {
+          "edge": "jwt-api",
+          "text": "The API authorizer validates the token and required access scope."
+        },
+        {
+          "edge": "invoke",
+          "text": "The backend is invoked; it still checks business/record authorization."
+        }
+      ],
+      "note": "Identity pools are a separate optional credential-brokering path when clients need direct AWS API access.",
+      "exam": "JWT validity does not imply AWS IAM permissions or entitlement to every record."
+    },
+    {
+      "id": "queue",
+      "title": "8 · SQS producer / consumer",
+      "steps": [
+        {
+          "edge": "queue-put",
+          "text": "The producer sends a job; HTTP acceptance is not completion of the business operation."
+        },
+        {
+          "edge": "queue-poll",
+          "text": "Lambda event source mapping long-polls the queue."
+        },
+        {
+          "edge": "queue-batch",
+          "text": "A received batch becomes temporarily invisible."
+        },
+        {
+          "edge": "process",
+          "text": "The mapping invokes a Lambda worker with the batch."
+        },
+        {
+          "edge": "worker-write",
+          "text": "The worker records an idempotent durable outcome."
+        },
+        {
+          "edge": "delete-message",
+          "text": "After successful processing, the integration deletes acknowledged messages."
+        }
+      ],
+      "note": "Custom consumers explicitly call DeleteMessage themselves; Lambda mappings manage acknowledgement for successful work.",
+      "exam": "Visibility timeout ≠ retention; duplicate processing remains possible."
+    },
+    {
+      "id": "dlq",
+      "title": "9 · SQS visibility / DLQ",
+      "steps": [
+        {
+          "edge": "queue-poll",
+          "text": "Receive the job; the visibility timeout starts."
+        },
+        {
+          "edge": "process",
+          "text": "Processing fails. The message is not successfully acknowledged."
+        },
+        {
+          "edge": "queue-batch",
+          "text": "After visibility expires, the job may be received again."
+        },
+        {
+          "edge": "redrive",
+          "text": "After the configured maximum receives, redrive sends it to the matching-type DLQ."
+        }
+      ],
+      "note": "This is a failing-job alternative to the successful queue scenario; the DLQ is not a broadcast subscription here.",
+      "exam": "Configure retries, idempotency, visibility extension and redrive deliberately."
+    },
+    {
+      "id": "fanout",
+      "title": "10 · SNS fanout to queues",
+      "steps": [
+        {
+          "edge": "publish",
+          "text": "Publish one event to an SNS topic."
+        },
+        {
+          "edge": "fanout-one",
+          "text": "A matching subscription delivers an independent copy to queue one."
+        },
+        {
+          "edge": "fanout-two",
+          "text": "Another subscription delivers an independent copy to queue two."
+        },
+        {
+          "edge": "queue-poll",
+          "text": "Each queue can have an independent consumer lifecycle."
+        }
+      ],
+      "note": "Each SQS subscription has its own independent retained copy and consumer lifecycle; filters can select which publications arrive.",
+      "exam": "Fanout copies delivery to subscribers; a competing-consumer queue divides work among its consumers."
+    },
+    {
+      "id": "events",
+      "title": "11 · EventBridge routing",
+      "steps": [
+        {
+          "edge": "put-events",
+          "text": "Producer publishes an event to the selected event bus."
+        },
+        {
+          "edge": "rule",
+          "text": "A rule pattern matches and delivers to its configured SQS target."
+        },
+        {
+          "edge": "queue-poll",
+          "text": "A consumer retrieves queued work independently."
+        },
+        {
+          "edge": "process",
+          "text": "The application processes the delivered job."
+        }
+      ],
+      "note": "Other supported targets and direct producer-to-queue publishing are alternatives.",
+      "exam": "EventBridge routes events; SQS buffers work. Rules do not turn a bus into a workflow state machine."
+    },
+    {
+      "id": "kinesis",
+      "title": "12 · Kinesis producer → shard → consumer",
+      "steps": [
+        {
+          "edge": "put-record",
+          "text": "A device creates a 4 KiB reading and sends PutRecord(s) over HTTPS."
+        },
+        {
+          "edge": "hash",
+          "text": "Kinesis hashes its partition key into a shard range and assigns a sequence number."
+        },
+        {
+          "edge": "read-record",
+          "text": "The event source mapping polls the shard (or uses a configured enhanced-fan-out consumer)."
+        },
+        {
+          "edge": "stream-batch",
+          "text": "Accepted records are returned in a batch; reads do not delete them."
+        },
+        {
+          "edge": "process",
+          "text": "Lambda processes the batch synchronously."
+        },
+        {
+          "edge": "worker-write",
+          "text": "The worker writes an idempotent result to DynamoDB."
+        }
+      ],
+      "note": "Original stream records remain available until retention expires. At 4 KiB total per record, one sustained shard write budget is about 256 records/s.",
+      "exam": "A hot key can overload one shard while others are idle; inspect failed PutRecords entries even on HTTP 200."
+    },
+    {
+      "id": "indexes",
+      "title": "13 · DynamoDB keys / GSI",
+      "steps": [
+        {
+          "edge": "item-write",
+          "text": "Write the item using its primary key, e.g. GameName + Version."
+        },
+        {
+          "edge": "index",
+          "text": "DynamoDB maintains a GSI for another query pattern such as Category + GameName."
+        },
+        {
+          "edge": "query-index",
+          "text": "Query the GSI and use an appropriate projection for the needed attributes."
+        }
+      ],
+      "note": "The index is an internal table feature, not a separate application hop or replacement database.",
+      "exam": "GSI reads are eventually consistent. An LSI uses the table partition key and is defined at table creation."
+    },
+    {
+      "id": "ddb-stream",
+      "title": "14 · DynamoDB Streams → Lambda",
+      "steps": [
+        {
+          "edge": "item-write",
+          "text": "Application changes an item."
+        },
+        {
+          "edge": "change-log",
+          "text": "The enabled stream emits a configured change record."
+        },
+        {
+          "edge": "poll-ddb",
+          "text": "The event source mapping polls stream shards."
+        },
+        {
+          "edge": "ddb-batch",
+          "text": "A change-record batch is returned."
+        },
+        {
+          "edge": "process",
+          "text": "The mapping invokes the processor; design downstream effects idempotently."
+        }
+      ],
+      "note": "Use a separate target or loop-prevention design if the processor writes back to its source table.",
+      "exam": "Stream consumption does not delete the source item. TTL removal happens asynchronously."
+    },
+    {
+      "id": "rds-ha",
+      "title": "15 · RDS Multi-AZ failover",
+      "steps": [
+        {
+          "edge": "sql",
+          "text": "The application uses the current primary endpoint."
+        },
+        {
+          "edge": "ha",
+          "text": "Changes synchronously reach the traditional standby for availability."
+        },
+        {
+          "edge": "failover",
+          "text": "After managed promotion, the application reconnects/retries against the writer endpoint."
+        }
+      ],
+      "note": "This demonstrates a Multi-AZ DB instance. A Multi-AZ DB cluster has two standby instances that can serve reads.",
+      "exam": "Traditional standby ≠ read replica; failover is not a guarantee that existing client connections survive."
+    },
+    {
+      "id": "rds-read",
+      "title": "16 · RDS read replica",
+      "steps": [
+        {
+          "edge": "sql",
+          "text": "Send writes/strong-current operations to the primary."
+        },
+        {
+          "edge": "async-replica",
+          "text": "Updates replicate asynchronously to the read replica."
+        },
+        {
+          "edge": "read-replica",
+          "text": "The application explicitly routes lag-tolerant reads to the replica endpoint."
+        }
+      ],
+      "note": "An RDS read replica is distinct from an ElastiCache lookup and a traditional HA standby.",
+      "exam": "Replication lag affects read freshness; Multi-AZ alone is not always read scaling."
+    },
+    {
+      "id": "storage",
+      "title": "17 · EBS / EFS / S3",
+      "steps": [
+        {
+          "edge": "disk-a",
+          "text": "EBS provides block storage attached to EC2 in the same AZ."
+        },
+        {
+          "edge": "nfs-b",
+          "text": "Another client uses its EFS mount target for shared files."
+        },
+        {
+          "edge": "mount-fs-b",
+          "text": "Both mount targets expose the same regional EFS filesystem."
+        },
+        {
+          "edge": "s3-write",
+          "text": "An application uses object APIs for S3; no customer subnet hosts the bucket."
+        }
+      ],
+      "note": "These are alternative storage patterns, not a required chained write path.",
+      "exam": "Shared persistent cross-AZ files → regional EFS; same-AZ block device → EBS; objects → S3."
+    },
+    {
+      "id": "aliases",
+      "title": "18 · Lambda versions / alias",
+      "steps": [
+        {
+          "edge": "alias-invoke",
+          "text": "Clients/integrations invoke the stable alias."
+        },
+        {
+          "edge": "selected-version",
+          "text": "The weighted alias selects an immutable published version, e.g. v1/v2."
+        },
+        {
+          "edge": "rollout",
+          "text": "CodeDeploy or an explicit alias update changes weights and supports rollback."
+        }
+      ],
+      "note": "The deployment step changes the route; it is not an extra HTTP hop for each invocation.",
+      "exam": "Provisioned concurrency pre-initializes environments; it is not the same as a weighted alias or reserved concurrency."
+    },
+    {
+      "id": "beanstalk",
+      "title": "19 · Beanstalk rolling / immutable",
+      "steps": [
+        {
+          "edge": "bean-a",
+          "text": "Rolling updates a batch of the existing fleet, temporarily reducing serving capacity."
+        },
+        {
+          "edge": "bean-b",
+          "text": "Immutable is an alternative: validate a separate replacement fleet while retaining the original."
+        },
+        {
+          "edge": "health",
+          "text": "Health checks gate serving/release decisions."
+        }
+      ],
+      "note": "These steps compare alternatives; they are not sequential phases of a single deployment policy.",
+      "exam": "Rolling + additional batch preserves baseline capacity with a temporary batch. Persistent RDS should have an independent lifecycle."
+    },
+    {
+      "id": "iac",
+      "title": "20 · CDK / SAM → CloudFormation",
+      "steps": [
+        {
+          "edge": "cdk-synth",
+          "text": "CDK constructs synthesize CloudFormation; CloudFormation does not synthesize CDK."
+        },
+        {
+          "edge": "sam-transform",
+          "text": "Alternatively, the SAM transform expands shorthand within a CloudFormation-compatible template."
+        },
+        {
+          "edge": "stack-function",
+          "text": "CloudFormation provisions/updates the Lambda resource; Lambda later runs the code."
+        },
+        {
+          "edge": "stack-vm",
+          "text": "The same provisioning engine can manage EC2 and other supported resources."
+        }
+      ],
+      "note": "CDK and SAM are authoring choices, not a mandatory chain. SAM is explicit in current DVA-C02 Deployment skills.",
+      "exam": "AWS::Serverless::UserPool is invalid. Standard AWS::Cognito::UserPool can appear in a SAM template."
+    },
+    {
+      "id": "pipeline",
+      "title": "21 · Pipeline → build → deploy",
+      "steps": [
+        {
+          "edge": "source-trigger",
+          "text": "A versioned source revision starts the configured pipeline."
+        },
+        {
+          "edge": "build-stage",
+          "text": "CodeBuild runs build/test/package commands."
+        },
+        {
+          "edge": "build-image",
+          "text": "For a container alternative, publish an immutable image artifact to ECR."
+        },
+        {
+          "edge": "deploy-stage",
+          "text": "CodePipeline promotes the approved artifact through a deployment action."
+        },
+        {
+          "edge": "rollout",
+          "text": "CodeDeploy applies the configured rollout/rollback behavior to the target."
+        }
+      ],
+      "note": "CodeCommit is one source option; an ECR container artifact and a Lambda ZIP are alternative packaging choices.",
+      "exam": "Pipeline coordinates, Build executes build commands, Deploy promotes application revisions; runtime roles remain separate."
+    },
+    {
+      "id": "assume-role",
+      "title": "22 · IAM role assumption",
+      "steps": [
+        {
+          "edge": "assume",
+          "text": "An authorized principal asks STS to assume the selected role."
+        },
+        {
+          "edge": "trust-role",
+          "text": "The role trust policy allows that principal/federation relationship."
+        },
+        {
+          "edge": "role-allow",
+          "text": "Temporary session credentials sign an allowed AWS operation; evaluate applicable resource policies too."
+        },
+        {
+          "edge": "scp",
+          "text": "Organization guardrails can restrict the available action."
+        }
+      ],
+      "note": "The role in account B also illustrates the cross-account trust boundary; same-account roles use applicable trust/permission rules.",
+      "exam": "Trust and action permissions are separate. Boundaries/SCPs do not grant permissions."
+    },
+    {
+      "id": "envelope",
+      "title": "23 · KMS envelope encryption",
+      "steps": [
+        {
+          "edge": "key-request",
+          "text": "The authorized application requests GenerateDataKey."
+        },
+        {
+          "edge": "data-key",
+          "text": "KMS returns a plaintext data key and a KMS-encrypted copy; underlying KMS key material stays protected."
+        },
+        {
+          "edge": "s3-write",
+          "text": "The application encrypts data locally, stores ciphertext + encrypted data key and discards the plaintext data key."
+        }
+      ],
+      "note": "This illustrates client-side envelope encryption; S3 SSE-KMS is a different managed integration using KMS.",
+      "exam": "KMS directly handles small payloads; use a data key for large application data."
+    },
+    {
+      "id": "observe",
+      "title": "24 · Metrics / audit / tracing",
+      "steps": [
+        {
+          "edge": "metrics",
+          "text": "CloudWatch metrics/logs show operational behavior."
+        },
+        {
+          "edge": "access-logs",
+          "text": "ALB access logs expose request-level details when configured."
+        },
+        {
+          "edge": "trace",
+          "text": "X-Ray/OTel instrumentation correlates downstream request timing."
+        },
+        {
+          "edge": "audit",
+          "text": "CloudTrail records configured AWS API activity, such as stack changes."
+        },
+        {
+          "edge": "vpc-log",
+          "text": "VPC Flow Logs describe IP flow metadata and filtering outcomes."
+        }
+      ],
+      "note": "These are parallel evidence sources, not a network service chain. CloudWatch also supports alarms, dashboards and custom metrics.",
+      "exam": "Choose logs for request details, metrics for trends, traces for timing, and CloudTrail for AWS API audit."
+    },
+    {
+      "id": "cross-account",
+      "title": "25 · Cross-account AWS access",
+      "steps": [
+        {
+          "edge": "external-trust",
+          "text": "A supported external identity can federate only when the trust relationship and token claims are valid."
+        },
+        {
+          "edge": "assume",
+          "text": "A caller using AWS credentials instead needs permission for AssumeRole."
+        },
+        {
+          "edge": "trust-role",
+          "text": "Account B explicitly trusts the authorized principal; STS issues a role session."
+        },
+        {
+          "edge": "role-allow",
+          "text": "The session performs only allowed actions; resource/key policies and applicable guardrails still apply."
+        }
+      ],
+      "note": "OIDC federation and a SigV4-signed AssumeRole request are alternative entry mechanisms, not the same request format.",
+      "exam": "Cross-account access needs both trust and permission; an external JWT does not automatically authorize AWS APIs."
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "queue-stream",
+      "title": "SQS vs Kinesis",
+      "left": [
+        "sqs"
+      ],
+      "right": [
+        "kinesis",
+        "shard"
+      ],
+      "rule": "SQS tracks pending jobs and deletes acknowledged messages. Kinesis retains ordered shard records for independent replay.",
+      "exception": "Both need duplicate-aware processing; receiving an SQS message merely hides it."
+    },
+    {
+      "id": "pubsub-router",
+      "title": "SNS vs EventBridge",
+      "left": [
+        "sns"
+      ],
+      "right": [
+        "events"
+      ],
+      "rule": "SNS fans publications to subscribers. EventBridge matches event-bus rules to targets.",
+      "exception": "Either can target SQS; a queue still owns the worker backlog."
+    },
+    {
+      "id": "ha-read",
+      "title": "RDS Multi-AZ vs replica",
+      "left": [
+        "rds",
+        "standby"
+      ],
+      "right": [
+        "replica"
+      ],
+      "rule": "Traditional Multi-AZ standby supports availability. A read replica serves explicitly routed reads with asynchronous lag.",
+      "exception": "Multi-AZ DB clusters are a separate model with readable standby instances."
+    },
+    {
+      "id": "block-file",
+      "title": "EBS vs EFS",
+      "left": [
+        "ec2-a",
+        "ebs-a"
+      ],
+      "right": [
+        "efs",
+        "mount-a",
+        "mount-b",
+        "ec2-b"
+      ],
+      "rule": "EBS is same-AZ attached block storage. Regional EFS exposes shared files via AZ mount targets.",
+      "exception": "Supported EBS Multi-Attach is still same-AZ; EFS One Zone is not the regional model shown."
+    },
+    {
+      "id": "cache-db",
+      "title": "ElastiCache vs DynamoDB",
+      "left": [
+        "cache"
+      ],
+      "right": [
+        "ddb"
+      ],
+      "rule": "Cache reusable values with suitable expiry/invalidation versus durable key/document access patterns.",
+      "exception": "Memcached is not a durable primary datastore; Redis/Valkey durability options do not make it a relational SQL endpoint."
+    },
+    {
+      "id": "function-vm",
+      "title": "Lambda vs EC2",
+      "left": [
+        "lambda"
+      ],
+      "right": [
+        "ec2-a"
+      ],
+      "rule": "Lambda handles supported invocations with managed execution. EC2 gives VM/OS control and fleet responsibilities.",
+      "exception": "Choose by execution, integration and control requirements, not by a blanket serverless preference."
+    },
+    {
+      "id": "sg-nacl",
+      "title": "Security Groups vs NACLs",
+      "left": [
+        "ec2-a"
+      ],
+      "right": [
+        "route-a"
+      ],
+      "rule": "Security groups attach to ENIs and are stateful allow lists. NACLs associate with subnets and are stateless allow/deny lists.",
+      "exception": "Return traffic must satisfy NACL rules; these controls do not grant application or IAM entitlement."
+    },
+    {
+      "id": "role-policy",
+      "title": "IAM role vs policy",
+      "left": [
+        "role-b"
+      ],
+      "right": [
+        "iam"
+      ],
+      "rule": "A role is an assumable identity. A policy is a permission/trust document attached to the appropriate identity/resource.",
+      "exception": "Trust policy, identity permission policy, boundary and SCP have different responsibilities."
+    },
+    {
+      "id": "monitor-audit",
+      "title": "CloudWatch vs CloudTrail",
+      "left": [
+        "cloudwatch"
+      ],
+      "right": [
+        "cloudtrail"
+      ],
+      "rule": "CloudWatch observes operations; CloudTrail audits configured AWS API/account events.",
+      "exception": "CloudWatch Logs can receive access/audit records, but destination does not change the meaning of the evidence."
+    },
+    {
+      "id": "sam-cdk",
+      "title": "SAM vs CDK",
+      "left": [
+        "sam"
+      ],
+      "right": [
+        "cdk"
+      ],
+      "rule": "SAM supplies serverless template shorthand and local tooling. CDK composes infrastructure in programming languages. Both use CloudFormation.",
+      "exception": "CDK can build serverless apps; SAM can include standard CloudFormation resources. Neither executes production code."
+    },
+    {
+      "id": "rolling-immutable",
+      "title": "Rolling vs Immutable",
+      "left": [
+        "beanstalk",
+        "ec2-a"
+      ],
+      "right": [
+        "beanstalk",
+        "ec2-b"
+      ],
+      "rule": "Rolling changes existing instances in batches. Immutable validates a replacement fleet while preserving the original.",
+      "exception": "Additional-batch rolling keeps baseline capacity but is not the same isolation model as immutable."
+    },
+    {
+      "id": "pools",
+      "title": "Cognito user vs identity pools",
+      "left": [
+        "cognito",
+        "client",
+        "apigw"
+      ],
+      "right": [
+        "identity-pool",
+        "sts",
+        "client",
+        "s3"
+      ],
+      "rule": "User pools authenticate and issue JWTs. Identity pools exchange supported identities for scoped temporary AWS credentials.",
+      "exception": "Both can cooperate. A user-pool JWT is not itself a SigV4 credential."
+    }
+  ],
+  "study": [
+    {
+      "title": "Shared persistent files across AZs",
+      "nodes": [
+        "efs",
+        "mount-a",
+        "mount-b",
+        "ec2-a",
+        "ec2-b"
+      ],
+      "answer": "Choose regional EFS. EBS attachments remain in one AZ; S3 is object storage rather than a mounted POSIX filesystem."
+    },
+    {
+      "title": "Independent consumers need replay",
+      "nodes": [
+        "kinesis",
+        "shard",
+        "esm"
+      ],
+      "answer": "Choose a retained stream such as Kinesis. One SQS queue distributes acknowledged jobs; it does not provide the same independent retained log."
+    },
+    {
+      "title": "A serverless template, not a server",
+      "nodes": [
+        "sam",
+        "cfn",
+        "lambda"
+      ],
+      "answer": "SAM defines infrastructure; CloudFormation provisions it; Lambda executes supported function code."
+    },
+    {
+      "title": "Valid JWT; wrong tenant record",
+      "nodes": [
+        "cognito",
+        "apigw",
+        "lambda",
+        "ddb"
+      ],
+      "answer": "Token validity is only one boundary. Enforce tenant/record entitlement in application/data access and scope caches appropriately."
+    }
+  ],
+  "sources": [
+    {
+      "label": "Official DVA-C02 guide",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html"
+    },
+    {
+      "label": "VPC private-subnet / NAT example",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-example-private-subnets-nat.html"
+    },
+    {
+      "label": "Lambda VPC placement",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html"
+    },
+    {
+      "label": "Lambda stream consumption",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html"
+    },
+    {
+      "label": "RDS Multi-AZ models",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html"
+    },
+    {
+      "label": "EBS AZ attachment",
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes.html"
+    },
+    {
+      "label": "EFS regional mount targets",
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/how-it-works.html"
+    }
+  ]
+}

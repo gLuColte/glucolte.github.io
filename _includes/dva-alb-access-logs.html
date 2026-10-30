@@ -1,0 +1,24 @@
+<section class="dva-reference-section" aria-label="Read an ALB access log">
+  <strong class="dva-panel-title">Who called /GetOrder, and where did the time go?</strong>
+  <p><code>Client → ALB → private target → response</code>. An access log records request-level evidence, including some requests that never reach a target. Logging must be enabled; delivery is best effort.</p>
+  <pre class="dva-reference-code"><code># Synthetic legacy-format entry; first 13 fields only.
+# Wrapped for reading; a real entry is one line with more fields.
+https 2026-10-29T01:00:00.200000Z app/orders/abc123
+203.0.113.10:51500 10.0.2.15:8080
+0.001 0.180 0.002 200 200 120 450
+"GET https://api.example.com:443/GetOrder?orderId=o-42 HTTP/1.1"</code></pre>
+  <span class="dva-table-hint">Scroll the table horizontally to compare columns.</span>
+  <div class="dva-table-wrap" role="region" aria-label="Decode an ALB access log" tabindex="0"><table>
+    <thead><tr><th scope="col">Field</th><th scope="col">Example → meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>client:port</code> / <code>target:port</code></td><td><code>203.0.113.10:51500</code> called target <code>10.0.2.15:8080</code>. With an upstream proxy, the client field can be that proxy.</td></tr>
+      <tr><td><code>request_processing_time</code></td><td><code>0.001</code> seconds from ALB receipt to dispatch toward the target</td></tr>
+      <tr><td><code>target_processing_time</code></td><td><code>0.180</code> seconds until target response headers start; inspect backend work first</td></tr>
+      <tr><td><code>response_processing_time</code></td><td><code>0.002</code> seconds from target headers reaching ALB until ALB starts sending the response</td></tr>
+      <tr><td><code>elb_status_code</code> / <code>target_status_code</code></td><td><code>200 / 200</code>: target replied and ALB returned success. <code>503 / -</code> can indicate ALB had no usable target; check target health and routing.</td></tr>
+      <tr><td><code>request_line</code></td><td>HTTP method, URL/path/query and protocol; later fields include user agent, TLS details, actions and trace ID</td></tr>
+    </tbody>
+  </table></div>
+  <p class="dva-note"><strong>Timing caveat.</strong> These fields describe different boundaries, not a full browser stopwatch. Upload/WAF behavior affects attribution; <code>-1</code> can mean a processing phase could not complete. A trace ID helps correlate evidence but does not create downstream spans.</p>
+  <p class="dva-note"><strong>Delivery.</strong> Traditional access logging writes compressed files to S3 (disabled by default). Use a same-Region bucket and the required log-delivery bucket policy. AWS also supports the newer CloudWatch Logs integration, with destinations including CloudWatch Logs, Firehose and S3. Choose the delivery path deliberately; CloudWatch <em>metrics</em> are a separate signal.</p>
+</section>

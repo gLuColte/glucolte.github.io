@@ -1,0 +1,9 @@
+<div class="dva-lab" id="dva-practice">
+  <label for="dva-question"><strong>Choose an original practice scenario</strong></label>
+  <select id="dva-question" aria-controls="dva-question-content">
+    {% for question in site.data.dva_study.practice %}<option value="{{ question.id }}">{{ question.domain }} · {{ question.title }}</option>{% endfor %}
+  </select>
+  <div id="dva-question-content"></div>
+  <noscript><p>Interactive questions need JavaScript. All theory, chooser rules and service references remain available above and below.</p></noscript>
+  <p class="dva-note">Original learning exercises: choose an answer to see the deciding clue and what would change it.</p>
+</div>

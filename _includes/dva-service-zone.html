@@ -1,0 +1,16 @@
+{% assign dva_zone = site.data.dva_study.zones | where: 'id', include.id | first %}
+<div class="aws-map dva-zone" aria-label="{{ dva_zone.title }} services and decisions">
+  <div class="aws-map__groups">
+    {% for cluster in dva_zone.clusters %}
+    <section class="aws-map__group" aria-label="{{ cluster.title }}">
+      <strong class="dva-panel-title">{{ cluster.title }}</strong>
+      <div class="aws-map__tiles">
+        {% for key in cluster.keys %}{% assign service = site.data.dva_study.cards[key] %}
+        <a class="aws-map__tile" href="{{ service.read }}" data-service="{{ key }}"><img src="{{ '/study/assets/aws-architecture-icons/Arch_' | append: service.icon | append: '_64.svg' | relative_url }}" alt="" width="30" height="30" loading="lazy"><span>{{ service.name }}</span></a>
+        {% endfor %}
+      </div>
+      {% include aws-service-chooser.html id=cluster.chooser catalogue=site.data.dva_study prefix='dva-choice' %}
+    </section>
+    {% endfor %}
+  </div>
+</div>

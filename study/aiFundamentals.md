@@ -701,7 +701,7 @@ Context-window capacity limits one request's size. A **tokens-per-minute (TPM) q
 <details class="inference-details">
   <summary>Bedrock Token Admission vs Actual Usage</summary>
   {% include bedrock-token-admission.html %}
-  <p>Explore this boundary in the <a href="/study/aiGenAIProfessional#concept-bedrock-token-admission">connected architecture map</a>.</p>
+  <p>Explore this boundary in the <a href="/study/examProfessionalGenAi#concept-bedrock-token-admission">connected architecture map</a>.</p>
 </details>
 
 ## 14. Training, fine-tuning, and inference {#section-10-training}

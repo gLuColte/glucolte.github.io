@@ -182,4 +182,4 @@ Trace the handoffs. Each node opens the same service card used in the clusters.
 
 Cards and guides link to AWS for current contracts, limits, availability, and rates. Capacity comparisons include [Bedrock tiers](#aws-options-bedrock-tiers), [SageMaker hosting/GPU support](#aws-options-sagemaker-hosting), and [Step Functions modes](#aws-options-step-functions). Reviewed **{{ site.data.aws_service_options.checked }}**.
 
-**Study sequence:** [Infrastructure and evaluation](/study/aiInfrastructure) → **AWS AI Services** → [AIP-C01 architecture and practice](/study/aiGenAIProfessional#genai-mindmap). AWS's [exam scope](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html) defines certification coverage.
+**Study sequence:** [Infrastructure and evaluation](/study/aiInfrastructure) → **AWS AI Services** → [AIP-C01 architecture and practice](/study/examProfessionalGenAi#genai-mindmap). AWS's [exam scope](https://docs.aws.amazon.com/aws-certification/latest/ai-professional-01/ai-professional-01.html) defines certification coverage.

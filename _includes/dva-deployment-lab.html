@@ -1,0 +1,12 @@
+<div class="dva-lab" id="release-lab">
+  <strong class="dva-panel-title">Try the capacity boundary</strong>
+  <p>Eight existing instances; batches of two. Compare a representative deployment phase after any extra instances pass health checks.</p>
+  <div class="dva-controls" role="group" aria-label="Choose a Beanstalk deployment strategy" hidden data-dva-enhancement>
+    {% for strategy in site.data.dva_study.deployments %}<button type="button" data-dva-deployment="{{ strategy.id }}" aria-pressed="{% if forloop.index == 2 %}true{% else %}false{% endif %}" aria-controls="dva-deployment-result">{{ strategy.name }}</button>{% endfor %}
+  </div>
+  <div id="dva-deployment-result" aria-live="polite" aria-atomic="true">
+    <p><strong>Rolling:</strong> six instances serve while two update. Rolling with an additional batch keeps eight serving by temporarily adding two. Immutable and traffic splitting launch a full replacement fleet.</p>
+  </div>
+  <p class="dva-note">Illustrative capacity, not an animation of every Beanstalk phase. Healthy, provisioned and traffic-receiving instances are different counts. Candidate health, quotas and deployment configuration still matter.</p>
+  <p><a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.rolling-version-deploy.html">AWS: deployment policies and settings →</a></p>
+</div>

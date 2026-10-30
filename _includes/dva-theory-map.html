@@ -1,0 +1,47 @@
+<div id="dva-theory-map">
+  {% for alias in site.data.dva_study.architecture.legacy %}<span id="dva-theory-{{ alias[0] }}"></span>{% endfor %}
+  <section id="dva-architecture-map" class="aip-map" aria-label="Connected developer application architecture">
+    <div class="aip-map-header">
+      <span>ARCHITECTURE BEFORE SERVICES</span>
+      <strong>One application. Find the flow that owns the problem.</strong>
+      <p>Developers build, test, provision and release the application. Users invoke the deployed version; background workers finish asynchronous work. Identity, protection, resilience and observability apply across all three flows. Production evidence feeds recovery and the next revision.</p>
+    </div>
+    <div class="aip-map-mode" hidden data-dva-enhancement>
+      <button type="button" id="dva-service-labels" aria-pressed="false" aria-controls="dva-architecture-svg">Show AWS services</button>
+      <span>Principles first; services replace the descriptions inside the same boxes.</span>
+    </div>
+    <div class="aip-map-legend" aria-label="Arrow meanings">
+      <span class="legend-lifecycle">Developer / delivery sequence</span>
+      <span class="legend-runtime">Application requests / work</span>
+      <span class="legend-evidence">Deployment / configuration</span>
+      <span class="legend-feedback">Production feedback</span>
+    </div>
+    <div class="dva-map-mobile-selector" hidden data-dva-enhancement>
+      <label for="dva-node-select">Inspect a layer</label>
+      <select id="dva-node-select" aria-controls="dva-concept-panel">
+        {% for node in site.data.dva_study.architecture.nodes %}<option value="{{ node.id }}">{{ node.title }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="aip-map-viewport" tabindex="0" aria-label="Connected architecture; scroll horizontally on a small screen">
+      {% include dva-architecture-svg.html %}
+    </div>
+    <p class="aip-map-hint">Follow the arrowheads between boxes. Provisioning and release affect Application code; background work commits into State/cache. Feedback connects production evidence to Verify/recover and the next revision. Select a box to inspect its responsibility and handoffs.</p>
+    <section class="aip-diagnostic aip-unified-panel" aria-label="Layer explanation and cross-flow situations">
+      <div class="aip-panel-head"><strong>Trace the handoff. Find the failed boundary.</strong><p>A release changes what runs. A request uses it. An acknowledgement is separate from the business result.</p></div>
+      <div class="dva-map-interactive" hidden data-dva-enhancement>
+        <div class="dva-concept-head"><strong id="dva-concept-title"></strong><span id="dva-concept-lane" class="dva-eyebrow"></span></div>
+        <div id="dva-concept-panel" aria-live="polite" aria-atomic="true"></div>
+        <div class="dva-map-situations">
+          <label for="dva-map-scenario">Trace a situation across flows</label>
+          <select id="dva-map-scenario" aria-controls="dva-map-investigation"><option value="">Explore the selected layer</option>{% for scenario in site.data.dva_study.architecture.scenarios %}<option value="{{ scenario.id }}">{{ scenario.title }}</option>{% endfor %}</select>
+          <div id="dva-map-investigation" aria-live="polite" aria-atomic="true" hidden></div>
+        </div>
+      </div>
+      <div class="dva-map-fallback">
+        {% for node in site.data.dva_study.architecture.nodes %}
+        <details id="dva-concept-{{ node.id }}"><summary>{{ node.title }}</summary><p>{{ node.purpose }}</p><p><strong>Owns:</strong> {{ node.owns }}</p><p><strong>Handoff:</strong> {{ node.handoff }}</p><p><strong>Boundary:</strong> {{ node.boundary }}</p><p><strong>Example:</strong> {{ node.situation }}</p><p><strong>Evidence:</strong> {{ node.evidence }}</p><div class="aws-map">{% for key in node.keys %}{% include aws-service-chip.html key=key catalogue=site.data.dva_study %}{% endfor %}</div><p><a href="#{{ node.target }}">Explore this boundary below ↓</a></p></details>
+        {% endfor %}
+      </div>
+    </section>
+  </section>
+</div>

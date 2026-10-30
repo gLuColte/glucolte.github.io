@@ -1,0 +1,15 @@
+<div class="dva-lab" id="queue-lab">
+  <strong class="dva-panel-title">Try backlog per worker</strong>
+  <p>A queue of 1,000 jobs means different pressure with five workers versus fifty. Each worker here processes one message at a time.</p>
+  <div class="dva-queue-inputs" hidden data-dva-enhancement>
+    <label>Visible messages<input id="dva-visible" type="number" min="0" max="1000000" step="1" value="1000"></label>
+    <label>Running workers<input id="dva-workers" type="number" min="0" max="10000" step="1" value="10"></label>
+    <label>Seconds per message<input id="dva-processing" type="number" min="0.1" max="3600" step="0.1" value="2"></label>
+    <label>Acceptable wait (seconds)<input id="dva-wait" type="number" min="0.1" max="86400" step="0.1" value="60"></label>
+  </div>
+  <div id="dva-queue-result" aria-live="polite" aria-atomic="true">
+    <p>1,000 / 10 = 100 messages per worker. A 60-second wait budget / 2-second processing time gives a target of 30 messages per worker.</p>
+  </div>
+  <p class="dva-note">A steady-state sizing estimate, not an exact latency guarantee or deployable scaling policy. Startup time, in-flight work, bursts and per-worker concurrency affect real capacity. An ECS policy uses running task capacity; an EC2 ASG uses InService instances. Configure a scale-from-zero signal.</p>
+  <p><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-using-sqs-queue.html">AWS: backlog-based target tracking →</a></p>
+</div>

@@ -1,0 +1,52 @@
+<section class="dva-apigw-demo" data-apigw-demo data-stage="prod" data-case="normal" aria-label="API Gateway GetOrder worked example">
+  <strong class="dva-panel-title">Follow one request: GET /GetOrder</strong>
+  <p>Two stages of one <strong>REST API</strong>. The URL chooses the stage; the API key identifies the consuming application. This is a local illustration, not a live AWS call.</p>
+  <div class="dva-apigw-controls" data-dva-enhancement hidden>
+    <div role="group" aria-label="Choose API stage">
+      <button type="button" data-apigw-stage="prod" aria-pressed="true">prod</button>
+      <button type="button" data-apigw-stage="beta" aria-pressed="false">beta</button>
+    </div>
+    <label>Try a request
+      <select data-apigw-case>
+        <option value="normal">Authorized request</option>
+        <option value="token">Missing user token</option>
+        <option value="key">Missing API key</option>
+        <option value="parameter">Missing orderId</option>
+        <option value="throttle">Throttling triggered</option>
+        <option value="cache">Previously cached order</option>
+        <option value="canary">Selected for canary</option>
+      </select>
+    </label>
+  </div>
+  <span class="dva-eyebrow">Application data plane · caller → API Gateway → Lambda</span>
+  <pre class="dva-apigw-request"><code data-apigw-request>GET https://a1b2c3d4e5.execute-api.ap-southeast-2.amazonaws.com/prod/GetOrder?orderId=o-42
+Authorization: &lt;Cognito access JWT&gt;
+x-api-key: &lt;PartnerApp API key&gt;</code></pre>
+  <div class="dva-apigw-result" aria-live="polite" aria-atomic="true">
+    <p class="dva-example" data-apigw-result>200 OK · prod → deployment d1 → orders:prod (version 1)</p>
+    <ol class="dva-apigw-steps" data-apigw-steps>
+      <li><strong>URL → stage → deployment</strong><p>/prod selects prod, pointing to API deployment d1. /GetOrder is the resource; GET is the method.</p></li>
+      <li><strong>Who is calling?</strong><p>The Cognito authorizer validates the access token and required orders/read scope. The API key separately identifies PartnerApp for its usage plan.</p></li>
+      <li><strong>Validate input &amp; apply usage limits</strong><p>Require orderId and an API key on this method. PartnerDemo targets 10 requests/s, burst 20, and 1,000/day per key across prod + beta.</p></li>
+      <li><strong>Cache → mapping → integration</strong><p>On a cache miss, a non-proxy VTL mapping creates the Lambda JSON below. The integration uses stage variable functionAlias=prod to invoke orders:prod.</p></li>
+      <li><strong>Backend → response</strong><p>Lambda checks that user-42 may read order o-42, loads the order, and returns 200. Integration/method response settings expose that result to the caller.</p></li>
+    </ol>
+    <div class="dva-apigw-payloads">
+      <div><strong class="dva-eyebrow" data-apigw-payload-title>Mapped Lambda input · custom/non-proxy integration</strong><pre><code data-apigw-payload>{
+  "orderId": "o-42",
+  "environment": "prod",
+  "callerSub": "user-42"
+}</code></pre></div>
+      <div><strong class="dva-eyebrow">Caller receives</strong><pre><code data-apigw-response>HTTP 200
+{
+  "orderId": "o-42",
+  "status": "READY",
+  "apiVersion": "v1"
+}</code></pre></div>
+    </div>
+    <p class="dva-note" data-apigw-detail>prod: GET caching enabled, TTL 60 s, cache keys = Authorization + orderId. beta: cache disabled. A cache hit skips Lambda; it must never cross user/tenant boundaries.</p>
+  </div>
+  <p class="dva-note"><strong>Developer control plane.</strong> Deploy an API snapshot; point a stage to it; configure its variables, cache and logs. Here the integration target is <code>orders:${stageVariables.functionAlias}</code> (shorthand). prod → Lambda alias prod/v1; beta → alias beta/v2. Grant API Gateway permission to invoke those aliases. A stage, API deployment, and Lambda version are separate objects; stages do not automatically isolate code or data.</p>
+  <p class="dva-note"><strong>Custom domain.</strong> <code>https://api.example.com/orders/GetOrder</code> can map <code>orders</code> → this API's prod stage. The mapping selects the stage even when its name is absent from the public URL.</p>
+  <p class="dva-note"><strong>Evidence.</strong> Stage access/execution logs, CloudWatch metrics and enabled traces explain requests. CloudTrail records API configuration changes. The numbered checkpoints explain responsibilities, not a guaranteed internal execution order.</p>
+</section>
