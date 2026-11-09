@@ -1,9 +1,10 @@
 <svg id="dva-architecture-svg" class="aip-architecture dva-architecture" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1100" role="group" aria-labelledby="dva-map-title dva-map-description">
   <title id="dva-map-title">Application lifecycle: developer delivery, user requests and background work</title>
-  <desc id="dva-map-description">Three lanes with explicit box-to-box handoffs. Provision/configure connects to Application code with resources and roles; Release/promote connects to Application code with the active version and route. Application code publishes to Route/fan out; Commit/acknowledge persists back to State/cache. Observability/feedback connects to Verify/recover, which feeds the next revision into Requirements. Identity, secrets and resilience apply across all flows. Select any box to inspect its purpose and evidence; the service toggle replaces principles in the same containers.</desc>
+  <desc id="dva-map-description">Three lanes of logical handoffs, not one network packet path. Application code calls State/cache and receives data back, then constructs the response. Provision/configure supplies resources and roles; release promotion changes the active version. Application code can publish background work; workers persist outcomes before acknowledging. Identity, secrets and resilience apply across every lane. Delivery credentials are separate from runtime credentials.</desc>
   <defs>
     <marker id="dva-control-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10z"/></marker>
     <marker id="dva-request-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10z"/></marker>
+    <marker id="dva-return-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z"/></marker>
     <marker id="dva-feedback-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10z"/></marker>
   </defs>
   <text class="map-axis-title dva-lifecycle-label" x="35" y="30">APPLICATION LIFECYCLE · define → implement → verify → release → operate → improve</text>
@@ -18,7 +19,7 @@
   <text class="map-axis-title" x="45" y="665">EVENTS / BACKGROUND WORK</text>
   <text class="map-edge-label" x="1260" y="665" text-anchor="end">Optional async path · worker role</text>
   {% for edge in site.data.dva_study.architecture.edges %}
-  <path id="dva-edge-{{ edge.id }}" class="map-edge dva-edge--{{ edge.kind }}" d="{{ edge.path }}" data-dva-edge-from="{{ edge.from }}" data-dva-edge-to="{{ edge.to }}"/>
+  <path id="dva-edge-{{ edge.id }}" class="map-edge dva-edge--{{ edge.kind }}" d="{{ edge.path }}" data-dva-edge-from="{{ edge.from }}" data-dva-edge-to="{{ edge.to }}"{% if edge.bidirectional %} marker-start="url(#dva-return-arrow)"{% endif %}/>
   {% endfor %}
   {% for edge in site.data.dva_study.architecture.edges %}{% if edge.labelBox %}
   {% assign label_half_width = edge.labelBox.w | divided_by: 2.0 %}{% assign label_half_height = edge.labelBox.h | divided_by: 2.0 %}{% assign label_start = edge.labelLines.size | minus: 1 | times: -7.5 | plus: 4 %}

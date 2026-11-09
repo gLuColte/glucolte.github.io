@@ -8,6 +8,7 @@
       <p><strong>{{ card.role }}</strong></p>
       <ul>{% for point in card.bullets %}<li>{{ point | escape }}</li>{% endfor %}</ul>
       <p class="dva-example"><strong>Decision boundary.</strong> {{ card.boundary | escape }}</p>
+      {% if card.lab %}<p><a href="{{ card.lab.href }}">{{ card.lab.label | escape }}</a></p>{% endif %}
       {% if card.walkthrough == 'api-gateway' %}{% include dva-api-gateway-example.html %}{% endif %}
       {% if card.walkthrough == 'asg-balancing' %}{% include dva-asg-balancing-example.html %}{% endif %}
       {% if card.walkthrough == 'kinesis-shards' %}{% include dva-kinesis-shards-example.html %}{% endif %}
@@ -20,6 +21,24 @@
         <tbody>{% for row in card.table.rows %}<tr>{% for cell in row %}<td>{{ cell | escape }}</td>{% endfor %}</tr>{% endfor %}</tbody>
       </table></div>
       {% endif %}
+      {% for exercise_id in card.exercises %}{% include dva-card-exercise.html id=exercise_id %}{% endfor %}
+      {% for lesson in card.learning %}
+      <details class="dva-learning-detail">
+        <summary>{{ lesson.title | escape }}</summary>
+        {% if lesson.analogy %}<p><strong>Think of it as:</strong> {{ lesson.analogy | escape }}</p>{% endif %}
+        {% if lesson.flow %}<p class="dva-example"><strong>Flow.</strong> {{ lesson.flow | escape }}</p>{% endif %}
+        {% if lesson.steps %}<ol class="dva-flow dva-mini-flow">{% for step in lesson.steps %}<li>{{ forloop.index }} · {{ step | escape }}</li>{% endfor %}</ol>{% endif %}
+        {% for paragraph in lesson.paragraphs %}{{ paragraph | markdownify }}{% endfor %}
+        {% if lesson.table %}<p class="dva-table-hint">Scroll the table horizontally on a narrow screen.</p><div class="dva-table-wrap" role="region" aria-label="{{ lesson.title | escape }}" tabindex="0"><table>
+          <thead><tr>{% for cell in lesson.table.headers %}<th scope="col">{{ cell | escape }}</th>{% endfor %}</tr></thead>
+          <tbody>{% for row in lesson.table.rows %}<tr>{% for cell in row %}<td>{{ cell | escape }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+        </table></div>{% endif %}
+        {% if lesson.exampleTitle %}<p><strong>{{ lesson.exampleTitle | escape }}</strong></p>{% endif %}
+        {% if lesson.example %}<pre class="dva-reference-code"><code>{{ lesson.example | escape }}</code></pre>{% endif %}
+        {% if lesson.trigger %}<p class="dva-result-rule"><strong>Exam trigger.</strong> {{ lesson.trigger | escape }}</p>{% endif %}
+        {% if lesson.trap %}<p class="dva-example"><strong>Common trap.</strong> {{ lesson.trap | escape }}</p>{% endif %}
+      </details>
+      {% endfor %}
       <strong class="dva-panel-title">{{ card.exampleTitle }}</strong>
       <pre><code class="language-{{ card.language }}" data-dva-contract>{{ card.example | escape }}</code></pre>
       {% if card.note != empty %}<p class="dva-note">{{ card.note | escape }}</p>{% endif %}

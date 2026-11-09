@@ -1,0 +1,57 @@
+/* Compact comparisons and the existing capacity/transaction labs. */
+.dva-learning-detail{border-top:1px solid var(--line);padding:12px 0;font-size:13px}
+.dva-learning-detail summary{cursor:pointer;font-weight:600;line-height:1.5}
+.dva-learning-detail p{font-size:13px;line-height:1.65}
+.dva-learning-detail .dva-table-wrap{margin:12px 0}
+.dva-learning-detail table{min-width:570px}
+.dva-learning-detail :is(th,td),.dva-crypto-patterns :is(th,td){overflow-wrap:normal;word-break:normal}
+.dva-crypto-patterns{min-width:800px}
+.dva-crypto-patterns td{vertical-align:top;line-height:1.65}
+.dva-crypto-patterns td:last-child{min-width:260px}
+.dva-crypto-calls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:16px 0}
+.dva-crypto-calls>section{min-width:0}
+.dva-crypto-calls strong{font-size:14px}
+.dva-crypto-calls p{margin:8px 0}
+.dva-crypto-calls pre{margin:10px 0 0}
+.dva-study button:disabled{cursor:default;opacity:.6}
+[data-capacity-lab] .dva-instance-row{min-height:32px}
+[data-capacity-lab] .dva-queue-inputs select{box-sizing:border-box;width:100%;max-width:100%;min-width:0;margin-top:7px;font-size:12px}
+[data-transaction-lab] .dva-controls label{font-size:13px;min-width:0;max-width:100%}
+[data-transaction-lab] select{box-sizing:border-box;max-width:100%}
+[data-capacity-lab] .dva-instance{display:grid;place-items:center;width:28px;height:28px;font-size:11px;color:var(--dva-blue)}
+@media(max-width:760px){.dva-crypto-calls{grid-template-columns:minmax(0,1fr)}}
+/* Compact exercises live inside the existing service references. */
+.dva-study .dva-card-exercise { border-color: var(--dva-blue); }
+.dva-study .dva-exercise-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 10px 0; }
+.dva-study .dva-exercise-fields label { display: block; min-width: 0; font-size: 13px; line-height: 1.5; }
+.dva-study .dva-exercise-fields select,
+.dva-study .dva-exercise-fields input:not([type="checkbox"]) { display: block; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; min-height: 42px; margin-top: 4px; }
+.dva-study .dva-exercise-fields input[type="checkbox"] { width: 18px; height: 18px; vertical-align: middle; }
+.dva-study .dva-exercise-math { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.dva-study .dva-exercise-math p { padding: 10px; background: var(--dva-soft); border-radius: 8px; overflow-wrap: anywhere; }
+.dva-study .dva-card-exercise .dva-flow { flex-wrap: nowrap; }
+.dva-study .dva-card-exercise .dva-flow li { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
+.dva-study .dva-redis-topology { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.dva-study .dva-redis-shard { padding: 10px; border: 1px solid var(--line); border-radius: 8px; min-width: 0; overflow-wrap: anywhere; }
+.dva-study .dva-redis-shard[data-selected="true"] { border-color: var(--dva-purple); background: var(--dva-soft); }
+.dva-study .dva-redis-shard small { display: block; }
+.dva-study .dva-review-option { display: block; padding: 12px; margin: 8px 0; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; line-height: 1.6; }
+.dva-study [data-review-select] { width: 100%; min-width: 0; max-width: 100%; }
+.dva-study .dva-exercise-code { max-height: 300px; overflow: auto; }
+.dva-study .dva-exercise-table { max-height: 310px; overflow: auto; }
+.dva-study .dva-exercise-table table { min-width: 360px; }
+.dva-study .dva-exercise-table :is(th,td) { padding: 8px; }
+.dva-study .dva-mini-flow li { flex: 1 1 0; }
+@media (max-width: 600px) {
+  .dva-study .dva-exercise-fields,
+  .dva-study .dva-exercise-math { grid-template-columns: minmax(0, 1fr); }
+  .dva-study .dva-redis-topology { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .dva-study .dva-card-exercise .dva-flow li,
+  .dva-study .dva-mini-flow li { flex: none; }
+}
+
+.dva-study .dva-card-exercise fieldset { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.dva-study .dva-card-exercise legend { font-size: 13px; font-weight: 600; padding: 0 5px; }
+.dva-study .dva-exercise-fields input:not([type="checkbox"]) { color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 8px; font: inherit; }

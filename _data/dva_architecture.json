@@ -191,6 +191,16 @@
       "w": 730,
       "h": 98,
       "kind": "developer"
+    },
+    {
+      "id": "account-b-data",
+      "label": "ACCOUNT B · regional bucket",
+      "kind": "account",
+      "parent": "managed",
+      "x": 1780,
+      "y": 1435,
+      "w": 510,
+      "h": 120
     }
   ],
   "nodes": [
@@ -207,11 +217,11 @@
       "icon": null,
       "scope": "External",
       "placement": "Outside AWS: caller device, application or corporate/external identity system.",
-      "description": "Browser, mobile app, SDK or telemetry producer.",
+      "description": "Scenario-specific caller: browser, producer device or external workload. The active scenario names its role.",
       "features": [],
       "flow": "Creates requests/events → authenticates or signs where required → receives responses.",
       "retention": "The client owns local state. A successful transport response is separate from durable application completion.",
-      "trap": "Different scenarios are alternatives; no client must traverse every service.",
+      "trap": "The browser, external workload and internet destination are alternative actors, not one principal with all permissions.",
       "url": "https://docs.aws.amazon.com/",
       "networkRequirements": "External identity/network requirements belong to the calling system."
     },
@@ -402,11 +412,11 @@
       "icon": "AWS-Identity-and-Access-Management",
       "scope": "Global / account",
       "placement": "IAM role in a different AWS account; a logical identity, not a network hop.",
-      "description": "A role in account B trusted by an authorized principal from account A.",
+      "description": "Account B role whose trust policy permits the specific caller or OIDC provider illustrated by the scenario.",
       "features": [
         "Role trust policy",
-        "caller AssumeRole permission",
-        "session permissions"
+        "scoped session permissions",
+        "different trust examples in scenarios 22 and 25"
       ],
       "flow": "STS request → trust validation → temporary role credentials.",
       "retention": "Role configuration persists; issued sessions expire. Assuming a role does not copy application data.",
@@ -433,9 +443,9 @@
         "desired capacity",
         "AZ balancing"
       ],
-      "flow": "Route/control association → relevant destinations.",
-      "retention": "Depends on the resource/configuration; see the full service reference.",
-      "trap": "Routes, filtering and service permissions must each allow the intended operation.",
+      "flow": "Scaling policy or desired-capacity change → ASG reconciles instance count using a launch template and selected AZ subnets.",
+      "retention": "Group and scaling configuration persist; instances are replaceable fleet members.",
+      "trap": "The ASG manages capacity within one Region. The load balancer routes requests; adding instances does not route traffic by itself.",
       "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/auto-scaling-benefits.html",
       "networkRequirements": "The ASG selects subnets and a launch template; security groups apply to launched instance ENIs, not an ASG network endpoint."
     },
@@ -457,9 +467,9 @@
         "Public route table",
         "public IPv4/EIP where required"
       ],
-      "flow": "Route/control association → relevant destinations.",
-      "retention": "Depends on the resource/configuration; see the full service reference.",
-      "trap": "Routes, filtering and service permissions must each allow the intended operation.",
+      "flow": "VPC internet route for eligible public-addressed resources; public NAT uses it for outbound internet connectivity.",
+      "retention": "A VPC attachment/routing resource; it does not store application data.",
+      "trap": "An Internet Gateway route does not give a private instance a public IP or allow unsolicited access through NAT.",
       "url": "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html",
       "networkRequirements": "VPC/route association, not a subnet-hosted appliance with its own security group. Check the required routes and endpoint/resource policies."
     },
@@ -482,9 +492,9 @@
         "endpoint policy",
         "route-table association"
       ],
-      "flow": "Route/control association → relevant destinations.",
-      "retention": "Depends on the resource/configuration; see the full service reference.",
-      "trap": "Routes, filtering and service permissions must each allow the intended operation.",
+      "flow": "An associated route table uses the service prefix-list route for the client’s S3/DynamoDB request. No endpoint ENI or second API call is created.",
+      "retention": "Endpoint policy and route associations persist; the endpoint does not store objects or items.",
+      "trap": "Gateway endpoints are route-table mechanisms, not API clients or proxies. IAM, resource and endpoint policies still apply.",
       "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html",
       "networkRequirements": "VPC/route association, not a subnet-hosted appliance with its own security group. Check the required routes and endpoint/resource policies."
     },
@@ -507,9 +517,9 @@
         "SG/NACL checks",
         "no transitive routing"
       ],
-      "flow": "Route/control association → relevant destinations.",
-      "retention": "Depends on the resource/configuration; see the full service reference.",
-      "trap": "Routes, filtering and service permissions must each allow the intended operation.",
+      "flow": "Workloads use configured private routes in both VPCs; peering supplies connectivity, not an application-level API hop.",
+      "retention": "The peering relationship and routes persist; they do not store request payloads.",
+      "trap": "Peering is non-transitive; overlapping CIDRs are not supported. Routes, security controls and return paths are still required.",
       "url": "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html",
       "networkRequirements": "VPC/route association, not a subnet-hosted appliance with its own security group. Check the required routes and endpoint/resource policies."
     },
@@ -950,7 +960,7 @@
     },
     {
       "id": "cache",
-      "label": "ElastiCache",
+      "label": "Cache node C",
       "category": "database",
       "group": "privC",
       "x": 1000,
@@ -959,8 +969,8 @@
       "h": 68,
       "card": "cache",
       "icon": "Amazon-ElastiCache",
-      "scope": "AZ-scoped resource",
-      "placement": "Inside a private subnet in AZ C; regional service control planes are separate.",
+      "scope": "Node: AZ C / regional cluster",
+      "placement": "One ElastiCache node in an AZ C private subnet. The regional cluster can have other nodes in other AZs; this is not its entire topology.",
       "description": "Keep frequently reused data in memory.",
       "features": [
         "Valkey/Redis OSS",
@@ -1001,7 +1011,7 @@
     },
     {
       "id": "interface",
-      "label": "Interface endpoint",
+      "label": "Endpoint ENI C",
       "category": "network",
       "group": "privC",
       "x": 1000,
@@ -1010,8 +1020,8 @@
       "h": 68,
       "card": "network",
       "icon": "AWS-PrivateLink",
-      "scope": "AZ-scoped resource",
-      "placement": "Inside a private subnet in AZ C; regional service control planes are separate.",
+      "scope": "ENI: AZ C / regional endpoint",
+      "placement": "One private ENI of a regional interface VPC endpoint, in the selected AZ C subnet. Additional selected AZs have their own endpoint ENIs.",
       "description": "PrivateLink endpoint ENI in the selected subnet.",
       "features": [
         "Private DNS",
@@ -1185,7 +1195,7 @@
     },
     {
       "id": "alias",
-      "label": "Lambda alias / v1,v2",
+      "label": "Lambda alias",
       "category": "compute",
       "group": "managed",
       "x": 1630,
@@ -1202,7 +1212,7 @@
         "weighted alias",
         "rollback"
       ],
-      "flow": "Alias invocation → selected published version → execution.",
+      "flow": "One invocation of an alias ARN → internal selection of a published version → handler execution. Alias resolution is not another API call.",
       "retention": "An alias persists as routing configuration to published versions; it is not a queue or data store.",
       "trap": "Alias weights are probabilistic. A version alone does not split traffic; aliases cannot point to aliases.",
       "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html",
@@ -1235,7 +1245,7 @@
     },
     {
       "id": "esm",
-      "label": "Event source mapping",
+      "label": "Lambda poller",
       "category": "messaging",
       "group": "managed",
       "x": 2080,
@@ -1246,11 +1256,12 @@
       "icon": "AWS-Lambda",
       "scope": "Regional",
       "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
-      "description": "Read supported event sources, batch records/messages and invoke Lambda with source-specific progress/acknowledgement behavior.",
+      "description": "Lambda-managed pollers configured by an event source mapping. This box represents the integration, not an additional customer server.",
       "features": [
-        "Pollers",
-        "batches",
-        "Kinesis/SQS/DynamoDB Streams"
+        "Event source mapping",
+        "source polling",
+        "batch invocation",
+        "source-specific acknowledgement"
       ],
       "flow": "Poll/subscribe to source → batch → synchronous Lambda invocation → checkpoint/acknowledgement.",
       "retention": "The integration manages source progress/acknowledgement according to source and batch outcome; it is not another application database.",
@@ -1288,7 +1299,7 @@
     },
     {
       "id": "gsi",
-      "label": "DynamoDB GSI / LSI",
+      "label": "DynamoDB GSI",
       "category": "database",
       "group": "managed",
       "x": 1630,
@@ -1299,14 +1310,14 @@
       "icon": "Amazon-DynamoDB",
       "scope": "Regional",
       "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
-      "description": "Maintain an alternative DynamoDB query index; GSI and LSI have different key, capacity and consistency rules.",
+      "description": "An asynchronously maintained alternate-key index of the DynamoDB table.",
       "features": [
         "Alternative query keys",
         "projections",
         "GSI eventual consistency",
         "LSI at table creation"
       ],
-      "flow": "Table writes → maintained index → alternative query pattern.",
+      "flow": "Table write → internal index propagation; application Query specifies the index on the DynamoDB endpoint.",
       "retention": "Maintained index projection of table data; reads do not consume the index entry. GSI propagation is eventually consistent.",
       "trap": "GSI capacity/consistency differs from the base table. LSI shares its partition key and is created with the table.",
       "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html",
@@ -1339,7 +1350,7 @@
     },
     {
       "id": "dax",
-      "label": "DAX",
+      "label": "DAX node C",
       "category": "database",
       "group": "privC",
       "x": 1000,
@@ -1349,13 +1360,13 @@
       "card": null,
       "icon": "Amazon-DynamoDB",
       "scope": "Regional cluster / subnet nodes",
-      "placement": "DAX cluster nodes use customer VPC subnets and security groups; shown in the AZ C private subnet slice.",
+      "placement": "One node of a regional DAX cluster in the AZ C private subnet. Other cluster nodes can use other selected AZ subnets.",
       "description": "Accelerate supported DynamoDB operations with a VPC-based managed in-memory cluster.",
       "features": [
         "DynamoDB-compatible in-memory acceleration",
         "eventual reads"
       ],
-      "flow": "Supported DynamoDB client lookup → cache hit/miss → table.",
+      "flow": "DAX-compatible application client → cache lookup; misses and supported writes reach DynamoDB.",
       "retention": "Cached DynamoDB values are evictable and TTL controlled; DynamoDB remains the authoritative table.",
       "trap": "DAX cluster nodes live inside VPC subnets. DAX accelerates supported DynamoDB access; it does not replace the authoritative table.",
       "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html",
@@ -1845,7 +1856,7 @@
         "Mappings",
         "intrinsic functions"
       ],
-      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "flow": "Template and deployment context → change set / stack operation → managed resource changes and stack events.",
       "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
       "trap": "Deployment operations and telemetry are separate from the application data path.",
       "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html",
@@ -1887,7 +1898,7 @@
       "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
       "description": "Versioned source repository; CodeCommit is one possible pipeline source.",
       "features": [],
-      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "flow": "Git revision → configured source-change trigger and source artifact → pipeline execution.",
       "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
       "trap": "Deployment operations and telemetry are separate from the application data path.",
       "url": "https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html",
@@ -1929,7 +1940,7 @@
       "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
       "description": "Run build/test commands and produce a deployable artifact.",
       "features": [],
-      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "flow": "Source artifact + buildspec → build/test/package commands → output artifact and action result.",
       "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
       "trap": "Deployment operations and telemetry are separate from the application data path.",
       "url": "https://docs.aws.amazon.com/codebuild/latest/userguide/welcome.html",
@@ -1950,7 +1961,7 @@
       "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
       "description": "Roll out an application revision using a platform-specific deployment contract.",
       "features": [],
-      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "flow": "Approved revision + deployment configuration → platform-specific lifecycle / traffic shift → deployment status.",
       "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
       "trap": "Deployment operations and telemetry are separate from the application data path.",
       "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/welcome.html",
@@ -2013,9 +2024,9 @@
       "placement": "AWS-managed regional service, outside customer subnets. Reachability and IAM authorization are separate.",
       "description": "Validate and gradually deploy application configuration or feature flags.",
       "features": [],
-      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "flow": "A deployment makes a validated configuration version available gradually; application agents/API clients poll for the version intended for their session.",
       "retention": "Definitions/artifacts and managed resources have separate lifecycles; deployment is not a per-request packet hop.",
-      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "trap": "AppConfig deploys configuration, not application code. Applications retrieve it; a configuration rollout does not automatically invoke a Lambda handler.",
       "url": "https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html",
       "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
     },
@@ -2038,9 +2049,9 @@
         "ACCEPT/REJECT",
         "source/destination/port"
       ],
-      "flow": "Versioned definition/event → managed operation → deployed state or execution evidence.",
+      "flow": "VPC networking captures ENI flow metadata → configured log destination. The EC2 application does not send each flow record itself.",
       "retention": "Configured telemetry retention/delivery determines evidence availability; collection must be enabled where required.",
-      "trap": "Deployment operations and telemetry are separate from the application data path.",
+      "trap": "Flow Logs record network metadata, not packet contents; enabling them does not put a logging proxy in the request path.",
       "url": "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html",
       "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
     },
@@ -2073,7 +2084,7 @@
     },
     {
       "id": "peer-vpc",
-      "label": "Peer VPC",
+      "label": "Peered workload",
       "category": "network",
       "group": "peer",
       "x": 970,
@@ -2081,10 +2092,10 @@
       "w": 210,
       "h": 60,
       "card": "network",
-      "icon": "Amazon-Virtual-Private-Cloud",
-      "scope": "VPC-associated / regional",
-      "placement": "Separate from the main customer VPC, inside this illustrative Region.",
-      "description": "A separate VPC in this same-Region example; peering can also connect supported cross-Region VPC pairs.",
+      "icon": "Amazon-EC2",
+      "scope": "Illustrative private workload",
+      "placement": "Inside the separate peer VPC shown in this Region. Its subnet/AZ nesting is omitted for this connectivity example.",
+      "description": "A private workload endpoint in a separate peer VPC; subnet and AZ detail is not expanded in this small slice.",
       "features": [
         "Routes on both sides",
         "SG/NACL checks",
@@ -2094,7 +2105,7 @@
       "retention": "Depends on the resource/configuration; see the full service reference.",
       "trap": "VPC peering is not transitive and does not share a peer’s NAT/IGW by default. CIDR overlap prevents creating the peering relationship.",
       "url": "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html",
-      "networkRequirements": "The VPC and its route tables are logical network resources. Workload ENIs/security controls live in its subnets."
+      "networkRequirements": "The actual workload needs appropriate subnet routes, security groups/NACLs and a return path across peering."
     },
     {
       "id": "identity-pool",
@@ -2121,6 +2132,33 @@
       "trap": "An identity pool is not a user directory. Role and resource policies restrict AWS actions; a user-pool JWT alone is not a SigV4 credential.",
       "url": "https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-identity.html",
       "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
+    },
+    {
+      "id": "bucket-b",
+      "label": "Account B bucket",
+      "category": "storage",
+      "group": "account-b-data",
+      "x": 1855,
+      "y": 1470,
+      "w": 210,
+      "h": 68,
+      "card": "s3",
+      "icon": "Amazon-Simple-Storage-Service",
+      "scope": "Regional",
+      "placement": "S3 bucket in account B in this Region; outside customer VPCs.",
+      "description": "Target of the explicit account-B role session in the federation examples.",
+      "features": [
+        "Versioning",
+        "lifecycle",
+        "encryption",
+        "presigned URLs",
+        "event notifications"
+      ],
+      "flow": "Object API request → object/version operation → response or configured event.",
+      "retention": "Durable object/item/filesystem state follows its own lifecycle.",
+      "trap": "The account-B role must be allowed to access this bucket; trust alone does not grant s3:GetObject.",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html",
+      "networkRequirements": "No customer subnet or security group is required for the managed endpoint/control shown; optional integration models can change the client path."
     }
   ],
   "relationships": [
@@ -2130,7 +2168,10 @@
       "target": "dns",
       "type": "api",
       "label": "DNS query",
-      "description": "DNS query"
+      "description": "DNS query",
+      "activity": "request",
+      "packet": "DNS",
+      "plane": "data"
     },
     {
       "id": "dns-reply",
@@ -2138,7 +2179,10 @@
       "target": "client",
       "type": "api",
       "label": "DNS answer; no HTTP proxy",
-      "description": "DNS answer; no HTTP proxy"
+      "description": "DNS answer; no HTTP proxy",
+      "activity": "response",
+      "packet": "DNS",
+      "plane": "data"
     },
     {
       "id": "viewer",
@@ -2146,15 +2190,21 @@
       "target": "cdn",
       "type": "network",
       "label": "Viewer HTTPS",
-      "description": "Viewer HTTPS"
+      "description": "Viewer HTTPS",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "acl",
       "source": "waf",
       "target": "cdn",
       "type": "authorization",
-      "label": "Associated web ACL",
-      "description": "Associated web ACL"
+      "label": "Web ACL association",
+      "description": "WAF evaluates the CloudFront request at the associated resource; WAF is not a separate proxy hop.",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "origin",
@@ -2162,7 +2212,10 @@
       "target": "alb",
       "type": "network",
       "label": "HTTPS to configured ALB origin",
-      "description": "HTTPS to configured ALB origin"
+      "description": "HTTPS to configured ALB origin",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "ingress",
@@ -2170,7 +2223,10 @@
       "target": "igw",
       "type": "network",
       "label": "Internet route to public endpoint",
-      "description": "Internet route to public endpoint"
+      "description": "Internet route to public endpoint",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "public-alb",
@@ -2178,7 +2234,10 @@
       "target": "alb",
       "type": "network",
       "label": "Public ALB reachability",
-      "description": "Public ALB reachability"
+      "description": "Public ALB reachability",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "target-a",
@@ -2186,7 +2245,10 @@
       "target": "ec2-a",
       "type": "network",
       "label": "HTTP → healthy target A",
-      "description": "HTTP → healthy target A"
+      "description": "HTTP → healthy target A",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "target-b",
@@ -2194,15 +2256,21 @@
       "target": "ec2-b",
       "type": "network",
       "label": "HTTP → healthy target B",
-      "description": "HTTP → healthy target B"
+      "description": "HTTP → healthy target B",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "cross-zone",
       "source": "alb",
       "target": "ec2-b",
       "type": "network",
-      "label": "Optional cross-zone target",
-      "description": "Optional cross-zone target"
+      "label": "Selected cross-zone target B",
+      "description": "ALB node A selects one healthy EC2 target in AZ B, with cross-zone routing enabled for this target group. Target A is an alternative, not an earlier hop.",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "health",
@@ -2210,7 +2278,10 @@
       "target": "ec2-a",
       "type": "network",
       "label": "Health check /health",
-      "description": "Health check /health"
+      "description": "Health check /health",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "sql",
@@ -2218,7 +2289,10 @@
       "target": "rds",
       "type": "api",
       "label": "SQL to writer endpoint",
-      "description": "SQL to writer endpoint"
+      "description": "SQL to writer endpoint",
+      "activity": "request",
+      "packet": "SQL",
+      "plane": "data"
     },
     {
       "id": "sql-b",
@@ -2226,7 +2300,10 @@
       "target": "rds",
       "type": "api",
       "label": "SQL to writer endpoint",
-      "description": "SQL to writer endpoint"
+      "description": "SQL to writer endpoint",
+      "activity": "request",
+      "packet": "SQL",
+      "plane": "data"
     },
     {
       "id": "ha",
@@ -2234,7 +2311,10 @@
       "target": "standby",
       "type": "replication",
       "label": "Synchronous HA replica",
-      "description": "Synchronous HA replica"
+      "description": "Synchronous HA replica",
+      "activity": "replication",
+      "packet": "COPY",
+      "plane": "data"
     },
     {
       "id": "async-replica",
@@ -2242,7 +2322,10 @@
       "target": "replica",
       "type": "replication",
       "label": "Asynchronous read replica",
-      "description": "Asynchronous read replica"
+      "description": "Asynchronous read replica",
+      "activity": "replication",
+      "packet": "COPY",
+      "plane": "data"
     },
     {
       "id": "read-replica",
@@ -2250,7 +2333,10 @@
       "target": "replica",
       "type": "api",
       "label": "Read replica endpoint",
-      "description": "Read replica endpoint"
+      "description": "Read replica endpoint",
+      "activity": "request",
+      "packet": "SQL",
+      "plane": "data"
     },
     {
       "id": "failover",
@@ -2258,7 +2344,10 @@
       "target": "standby",
       "type": "api",
       "label": "Reconnect after promotion",
-      "description": "Reconnect after promotion"
+      "description": "Reconnect after promotion",
+      "activity": "request",
+      "packet": "SQL",
+      "plane": "data"
     },
     {
       "id": "disk-a",
@@ -2266,7 +2355,10 @@
       "target": "ebs-a",
       "type": "attachment",
       "label": "Same-AZ block attachment",
-      "description": "Same-AZ block attachment"
+      "description": "Same-AZ block attachment",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "disk-b",
@@ -2274,7 +2366,10 @@
       "target": "ebs-b",
       "type": "attachment",
       "label": "Same-AZ block attachment",
-      "description": "Same-AZ block attachment"
+      "description": "Same-AZ block attachment",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "nfs-a",
@@ -2282,7 +2377,10 @@
       "target": "mount-a",
       "type": "network",
       "label": "NFS filesystem access",
-      "description": "NFS filesystem access"
+      "description": "NFS filesystem access",
+      "activity": "request",
+      "packet": "NFS",
+      "plane": "data"
     },
     {
       "id": "nfs-b",
@@ -2290,7 +2388,10 @@
       "target": "mount-b",
       "type": "network",
       "label": "NFS filesystem access",
-      "description": "NFS filesystem access"
+      "description": "NFS filesystem access",
+      "activity": "request",
+      "packet": "NFS",
+      "plane": "data"
     },
     {
       "id": "mount-fs-a",
@@ -2298,7 +2399,10 @@
       "target": "efs",
       "type": "attachment",
       "label": "Regional filesystem mount target",
-      "description": "Regional filesystem mount target"
+      "description": "Regional filesystem mount target",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "mount-fs-b",
@@ -2306,7 +2410,10 @@
       "target": "efs",
       "type": "attachment",
       "label": "Same regional filesystem",
-      "description": "Same regional filesystem"
+      "description": "Same regional filesystem",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "route-check",
@@ -2314,7 +2421,10 @@
       "target": "route-a",
       "type": "authorization",
       "label": "Route/filter decision (logical)",
-      "description": "Route/filter decision (logical)"
+      "description": "Logical inspection of route and filtering configuration. Packets do not call a route table, security group or NACL.",
+      "activity": "check",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "nat-route",
@@ -2322,7 +2432,10 @@
       "target": "nat-a",
       "type": "network",
       "label": "0.0.0.0/0 → NAT A",
-      "description": "0.0.0.0/0 → NAT A"
+      "description": "0.0.0.0/0 → NAT A",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "nat-egress",
@@ -2330,7 +2443,10 @@
       "target": "igw",
       "type": "network",
       "label": "NAT translated egress",
-      "description": "NAT translated egress"
+      "description": "NAT translated egress",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "internet-egress",
@@ -2338,23 +2454,32 @@
       "target": "client",
       "type": "network",
       "label": "External endpoint (egress example)",
-      "description": "External endpoint (egress example)"
+      "description": "External endpoint (egress example)",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "vpce-route",
       "source": "ec2-a",
       "target": "gateway",
-      "type": "network",
-      "label": "S3 prefix-list route",
-      "description": "S3 prefix-list route"
+      "type": "attachment",
+      "label": "Associated S3 prefix-list route",
+      "description": "The subnet route table has an associated S3 gateway-endpoint route. This static relationship is not a call to a gateway server.",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "vpce-s3",
-      "source": "gateway",
+      "source": "ec2-a",
       "target": "s3",
       "type": "api",
-      "label": "Private S3 API path",
-      "description": "Private S3 API path"
+      "label": "S3 request via gateway route",
+      "description": "The application sends a signed S3 request through the associated gateway-endpoint route. The gateway endpoint does not issue a new API call.",
+      "activity": "request",
+      "packet": "HTTPS",
+      "plane": "data"
     },
     {
       "id": "interface-call",
@@ -2362,15 +2487,21 @@
       "target": "interface",
       "type": "network",
       "label": "Private endpoint ENI",
-      "description": "Private endpoint ENI"
+      "description": "Private endpoint ENI",
+      "activity": "request",
+      "packet": "HTTPS",
+      "plane": "data"
     },
     {
       "id": "private-service",
       "source": "interface",
       "target": "secrets",
-      "type": "api",
-      "label": "Supported PrivateLink service",
-      "description": "Supported PrivateLink service"
+      "type": "network",
+      "label": "PrivateLink forwards request",
+      "description": "The endpoint ENI provides connectivity for the same signed Secrets Manager request; it does not become the IAM caller or issue a separate application request.",
+      "activity": "request",
+      "packet": "HTTPS",
+      "plane": "data"
     },
     {
       "id": "scale-a",
@@ -2378,7 +2509,10 @@
       "target": "ec2-a",
       "type": "deployment",
       "label": "Launch/replace from template",
-      "description": "Launch/replace from template"
+      "description": "Launch/replace from template",
+      "activity": "control",
+      "packet": "CTRL",
+      "plane": "control"
     },
     {
       "id": "scale-b",
@@ -2386,7 +2520,10 @@
       "target": "ec2-b",
       "type": "deployment",
       "label": "Launch/replace from template",
-      "description": "Launch/replace from template"
+      "description": "Launch/replace from template",
+      "activity": "control",
+      "packet": "CTRL",
+      "plane": "control"
     },
     {
       "id": "api-call",
@@ -2394,23 +2531,32 @@
       "target": "apigw",
       "type": "network",
       "label": "HTTPS API request",
-      "description": "HTTPS API request"
+      "description": "HTTPS API request",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "invoke",
       "source": "apigw",
       "target": "lambda",
       "type": "api",
-      "label": "Authorized integration invoke",
-      "description": "Authorized integration invoke"
+      "label": "Invoke Lambda integration",
+      "description": "API Gateway invokes the configured Lambda target using integration permission; it does not pass the caller role as the execution role.",
+      "activity": "request",
+      "packet": "INVOKE",
+      "plane": "data"
     },
     {
       "id": "item-write",
       "source": "lambda",
       "target": "ddb",
       "type": "api",
-      "label": "Put/Get/UpdateItem",
-      "description": "Put/Get/UpdateItem"
+      "label": "PutItem (application SDK)",
+      "description": "The handler calls DynamoDB with its execution-role credentials; it is a new signed AWS request.",
+      "activity": "request",
+      "packet": "WRITE",
+      "plane": "data"
     },
     {
       "id": "sign-in",
@@ -2418,47 +2564,65 @@
       "target": "cognito",
       "type": "api",
       "label": "Sign-in / federated login",
-      "description": "Sign-in / federated login"
+      "description": "Sign-in / federated login",
+      "activity": "request",
+      "packet": "API",
+      "plane": "data"
     },
     {
       "id": "jwt",
       "source": "cognito",
       "target": "client",
       "type": "authorization",
-      "label": "JWT ID/access tokens",
-      "description": "JWT ID/access tokens"
+      "label": "Return signed access token",
+      "description": "Cognito returns tokens to the app after successful authentication. The example uses an access token and a configured API scope.",
+      "activity": "response",
+      "packet": "JWT",
+      "plane": "data"
     },
     {
       "id": "jwt-api",
       "source": "client",
       "target": "apigw",
       "type": "authorization",
-      "label": "Access JWT → authorizer",
-      "description": "Access JWT → authorizer"
+      "label": "HTTPS + Bearer access token",
+      "description": "The browser sends its access token to the API authorizer; the JWT is not an AWS access key.",
+      "activity": "request",
+      "packet": "JWT",
+      "plane": "data"
     },
     {
       "id": "lambda-role",
       "source": "iam",
       "target": "lambda",
       "type": "authorization",
-      "label": "Execution-role permissions",
-      "description": "Execution-role permissions"
+      "label": "Configured execution role",
+      "description": "Lambda assumes the configured execution role and provides temporary credentials to code. This association is not a developer AssumeRole request on each invocation.",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "assume",
-      "source": "client",
+      "source": "ec2-a",
       "target": "sts",
       "type": "authorization",
-      "label": "Authorized AssumeRole / federation",
-      "description": "Authorized AssumeRole / federation"
+      "label": "AssumeRole (signed SDK call)",
+      "description": "Code on EC2 uses its existing instance-role credentials to request an account-B role session from STS.",
+      "activity": "request",
+      "packet": "STS",
+      "plane": "data"
     },
     {
       "id": "external-trust",
       "source": "idp",
-      "target": "sts",
+      "target": "client",
       "type": "authorization",
-      "label": "Trusted supported identity assertion",
-      "description": "Trusted supported identity assertion"
+      "label": "Return OIDC token to workload",
+      "description": "The IdP returns an OIDC token to its authenticated workload. It does not directly push an application request to STS.",
+      "activity": "response",
+      "packet": "JWT",
+      "plane": "data"
     },
     {
       "id": "trust-role",
@@ -2466,15 +2630,21 @@
       "target": "role-b",
       "type": "authorization",
       "label": "Validate role trust",
-      "description": "Validate role trust"
+      "description": "STS validates the requested role trust and applicable conditions. This logical policy check is not a network call to an IAM-role server.",
+      "activity": "check",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "role-allow",
       "source": "role-b",
-      "target": "s3",
+      "target": "bucket-b",
       "type": "authorization",
-      "label": "Session + resource policy allows action",
-      "description": "Session + resource policy allows action"
+      "label": "Session action permissions",
+      "description": "Role-session permissions, applicable resource policies and guardrails must permit the bucket action. This line is not the GetObject request.",
+      "activity": "check",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "scp",
@@ -2482,7 +2652,10 @@
       "target": "iam",
       "type": "authorization",
       "label": "Maximum permission guardrail",
-      "description": "Maximum permission guardrail"
+      "description": "Applicable SCPs restrict permissions during evaluation. They grant no permissions and are not another request destination.",
+      "activity": "check",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "queue-put",
@@ -2490,7 +2663,10 @@
       "target": "sqs",
       "type": "api",
       "label": "SendMessage",
-      "description": "SendMessage"
+      "description": "SendMessage",
+      "activity": "request",
+      "packet": "SEND",
+      "plane": "data"
     },
     {
       "id": "queue-poll",
@@ -2498,7 +2674,10 @@
       "target": "sqs",
       "type": "api",
       "label": "ReceiveMessage / long poll",
-      "description": "ReceiveMessage / long poll"
+      "description": "ReceiveMessage / long poll",
+      "activity": "request",
+      "packet": "POLL",
+      "plane": "data"
     },
     {
       "id": "queue-batch",
@@ -2506,15 +2685,21 @@
       "target": "esm",
       "type": "event",
       "label": "Returned message batch",
-      "description": "Returned message batch"
+      "description": "Returned message batch",
+      "activity": "response",
+      "packet": "MSG",
+      "plane": "data"
     },
     {
       "id": "process",
       "source": "esm",
       "target": "worker",
-      "type": "event",
+      "type": "api",
       "label": "Synchronous batch invocation",
-      "description": "Synchronous batch invocation"
+      "description": "Lambda-managed pollers invoke the worker synchronously with the returned batch; SQS and Kinesis do not directly call the handler.",
+      "activity": "request",
+      "packet": "BATCH",
+      "plane": "data"
     },
     {
       "id": "worker-write",
@@ -2522,7 +2707,10 @@
       "target": "ddb",
       "type": "api",
       "label": "Conditional/idempotent write",
-      "description": "Conditional/idempotent write"
+      "description": "Conditional/idempotent write",
+      "activity": "request",
+      "packet": "WRITE",
+      "plane": "data"
     },
     {
       "id": "delete-message",
@@ -2530,7 +2718,10 @@
       "target": "sqs",
       "type": "api",
       "label": "DeleteMessage after success",
-      "description": "DeleteMessage after success"
+      "description": "DeleteMessage after success",
+      "activity": "request",
+      "packet": "DELETE",
+      "plane": "data"
     },
     {
       "id": "redrive",
@@ -2538,7 +2729,10 @@
       "target": "dlq",
       "type": "event",
       "label": "After configured max receives",
-      "description": "After configured max receives"
+      "description": "SQS moves a repeatedly received, unprocessed message to the configured DLQ under its redrive policy; this is distinct from Lambda asynchronous-invocation DLQs.",
+      "activity": "event",
+      "packet": "EVENT",
+      "plane": "data"
     },
     {
       "id": "publish",
@@ -2546,7 +2740,10 @@
       "target": "sns",
       "type": "api",
       "label": "Publish",
-      "description": "Publish"
+      "description": "Publish",
+      "activity": "request",
+      "packet": "PUB",
+      "plane": "data"
     },
     {
       "id": "fanout-one",
@@ -2554,7 +2751,10 @@
       "target": "sqs",
       "type": "event",
       "label": "Matching SQS subscription",
-      "description": "Matching SQS subscription"
+      "description": "Matching SQS subscription",
+      "activity": "event",
+      "packet": "COPY",
+      "plane": "data"
     },
     {
       "id": "fanout-two",
@@ -2562,7 +2762,10 @@
       "target": "sqs-two",
       "type": "event",
       "label": "Second independent subscriber queue",
-      "description": "Second independent subscriber queue"
+      "description": "Second independent subscriber queue",
+      "activity": "event",
+      "packet": "COPY",
+      "plane": "data"
     },
     {
       "id": "put-events",
@@ -2570,7 +2773,10 @@
       "target": "events",
       "type": "api",
       "label": "PutEvents",
-      "description": "PutEvents"
+      "description": "PutEvents",
+      "activity": "request",
+      "packet": "EVENT",
+      "plane": "data"
     },
     {
       "id": "rule",
@@ -2578,7 +2784,10 @@
       "target": "sqs",
       "type": "event",
       "label": "Rule → queue target",
-      "description": "Rule → queue target"
+      "description": "Rule → queue target",
+      "activity": "event",
+      "packet": "EVENT",
+      "plane": "data"
     },
     {
       "id": "workflow-call",
@@ -2586,7 +2795,10 @@
       "target": "workflow",
       "type": "api",
       "label": "StartExecution",
-      "description": "StartExecution"
+      "description": "StartExecution",
+      "activity": "request",
+      "packet": "API",
+      "plane": "data"
     },
     {
       "id": "workflow-task",
@@ -2594,7 +2806,10 @@
       "target": "worker",
       "type": "api",
       "label": "Workflow task integration",
-      "description": "Workflow task integration"
+      "description": "Workflow task integration",
+      "activity": "request",
+      "packet": "API",
+      "plane": "data"
     },
     {
       "id": "put-record",
@@ -2602,7 +2817,10 @@
       "target": "kinesis",
       "type": "api",
       "label": "PutRecord(s) HTTPS",
-      "description": "PutRecord(s) HTTPS"
+      "description": "PutRecord(s) HTTPS",
+      "activity": "request",
+      "packet": "PUT",
+      "plane": "data"
     },
     {
       "id": "hash",
@@ -2610,15 +2828,21 @@
       "target": "shard",
       "type": "event",
       "label": "Hash partition key → shard",
-      "description": "Hash partition key → shard"
+      "description": "Kinesis internally hashes the partition key, selects an open shard and assigns a sequence number. The shard is part of the stream, not another producer endpoint.",
+      "activity": "internal",
+      "packet": null,
+      "plane": "data"
     },
     {
       "id": "read-record",
       "source": "esm",
       "target": "shard",
       "type": "api",
-      "label": "GetRecords / subscription",
-      "description": "GetRecords / subscription"
+      "label": "GetRecords (standard poller)",
+      "description": "GetRecords / subscription",
+      "activity": "request",
+      "packet": "POLL",
+      "plane": "data"
     },
     {
       "id": "stream-batch",
@@ -2626,7 +2850,10 @@
       "target": "esm",
       "type": "event",
       "label": "Retained record batch",
-      "description": "Retained record batch"
+      "description": "Retained record batch",
+      "activity": "response",
+      "packet": "REC",
+      "plane": "data"
     },
     {
       "id": "index",
@@ -2634,7 +2861,10 @@
       "target": "gsi",
       "type": "replication",
       "label": "Maintain alternate query index",
-      "description": "Maintain alternate query index"
+      "description": "DynamoDB asynchronously maintains GSI entries internally. No application forwards the original PutItem to a separate index service.",
+      "activity": "internal",
+      "packet": null,
+      "plane": "data"
     },
     {
       "id": "query-index",
@@ -2642,7 +2872,10 @@
       "target": "gsi",
       "type": "api",
       "label": "Query by index key",
-      "description": "Query by index key"
+      "description": "The application calls DynamoDB Query with IndexName and the index key condition. The drawn GSI is the logical access pattern, not a separate hostname.",
+      "activity": "request",
+      "packet": "QUERY",
+      "plane": "data"
     },
     {
       "id": "change-log",
@@ -2650,7 +2883,10 @@
       "target": "streams",
       "type": "event",
       "label": "Item-change record",
-      "description": "Item-change record"
+      "description": "DynamoDB internally records enabled item changes in DynamoDB Streams; the application does not publish a second event.",
+      "activity": "internal",
+      "packet": null,
+      "plane": "data"
     },
     {
       "id": "poll-ddb",
@@ -2658,7 +2894,10 @@
       "target": "streams",
       "type": "api",
       "label": "Poll stream shard",
-      "description": "Poll stream shard"
+      "description": "Poll stream shard",
+      "activity": "request",
+      "packet": "POLL",
+      "plane": "data"
     },
     {
       "id": "ddb-batch",
@@ -2666,7 +2905,10 @@
       "target": "esm",
       "type": "event",
       "label": "Change-record batch",
-      "description": "Change-record batch"
+      "description": "Change-record batch",
+      "activity": "response",
+      "packet": "REC",
+      "plane": "data"
     },
     {
       "id": "cache-read",
@@ -2674,15 +2916,21 @@
       "target": "cache",
       "type": "api",
       "label": "Cache GET / SET",
-      "description": "Cache GET / SET"
+      "description": "Cache GET / SET",
+      "activity": "request",
+      "packet": "CACHE",
+      "plane": "data"
     },
     {
       "id": "dax-read",
-      "source": "lambda-eni",
+      "source": "lambda",
       "target": "dax",
       "type": "api",
       "label": "DAX client request",
-      "description": "DAX client request"
+      "description": "VPC-connected Lambda code uses a DAX-compatible client via its configured VPC connectivity. The ENI is connectivity, not the caller.",
+      "activity": "request",
+      "packet": "DAX",
+      "plane": "data"
     },
     {
       "id": "dax-table",
@@ -2690,7 +2938,10 @@
       "target": "ddb",
       "type": "api",
       "label": "Cache miss → DynamoDB",
-      "description": "Cache miss → DynamoDB"
+      "description": "Cache miss → DynamoDB",
+      "activity": "request",
+      "packet": "DDB",
+      "plane": "data"
     },
     {
       "id": "efs-task",
@@ -2698,15 +2949,21 @@
       "target": "mount-a",
       "type": "network",
       "label": "NFS mount over VPC",
-      "description": "NFS mount over VPC"
+      "description": "NFS mount over VPC",
+      "activity": "request",
+      "packet": "NFS",
+      "plane": "data"
     },
     {
       "id": "s3-write",
       "source": "lambda",
       "target": "s3",
       "type": "api",
-      "label": "PutObject / presigned operation",
-      "description": "PutObject / presigned operation"
+      "label": "PutObject (application SDK)",
+      "description": "Application code uploads an object. A presigned upload is a different caller path, not implied by this edge.",
+      "activity": "request",
+      "packet": "PUT",
+      "plane": "data"
     },
     {
       "id": "s3-event",
@@ -2714,7 +2971,10 @@
       "target": "sqs",
       "type": "event",
       "label": "Configured object event notification",
-      "description": "Configured object event notification"
+      "description": "Configured object event notification",
+      "activity": "event",
+      "packet": "EVENT",
+      "plane": "data"
     },
     {
       "id": "lambda-vpc",
@@ -2722,15 +2982,21 @@
       "target": "lambda-eni",
       "type": "attachment",
       "label": "Optional customer-VPC connectivity",
-      "description": "Optional customer-VPC connectivity"
+      "description": "Optional customer-VPC connectivity",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "private-db",
-      "source": "lambda-eni",
+      "source": "lambda",
       "target": "rds",
       "type": "api",
       "label": "Private SQL connection",
-      "description": "Private SQL connection"
+      "description": "VPC-connected Lambda code opens a private SQL connection via its Hyperplane ENI; the ENI does not execute SQL.",
+      "activity": "request",
+      "packet": "SQL",
+      "plane": "data"
     },
     {
       "id": "schedule",
@@ -2738,7 +3004,10 @@
       "target": "task",
       "type": "deployment",
       "label": "Schedule/maintain tasks",
-      "description": "Schedule/maintain tasks"
+      "description": "Schedule/maintain tasks",
+      "activity": "control",
+      "packet": "CTRL",
+      "plane": "control"
     },
     {
       "id": "pull",
@@ -2746,7 +3015,10 @@
       "target": "ecr",
       "type": "api",
       "label": "Authenticated image pull",
-      "description": "Authenticated image pull"
+      "description": "Authenticated image pull",
+      "activity": "request",
+      "packet": "PULL",
+      "plane": "data"
     },
     {
       "id": "key-request",
@@ -2754,7 +3026,10 @@
       "target": "kms",
       "type": "api",
       "label": "GenerateDataKey",
-      "description": "GenerateDataKey"
+      "description": "GenerateDataKey",
+      "activity": "request",
+      "packet": "KEY?",
+      "plane": "data"
     },
     {
       "id": "data-key",
@@ -2762,7 +3037,10 @@
       "target": "lambda",
       "type": "api",
       "label": "Data key + encrypted data key",
-      "description": "Data key + encrypted data key"
+      "description": "Data key + encrypted data key",
+      "activity": "response",
+      "packet": "KEY",
+      "plane": "data"
     },
     {
       "id": "secret-read",
@@ -2770,7 +3048,10 @@
       "target": "secrets",
       "type": "api",
       "label": "GetSecretValue",
-      "description": "GetSecretValue"
+      "description": "GetSecretValue",
+      "activity": "request",
+      "packet": "GET",
+      "plane": "data"
     },
     {
       "id": "parameter-read",
@@ -2778,7 +3059,10 @@
       "target": "params",
       "type": "api",
       "label": "GetParameter",
-      "description": "GetParameter"
+      "description": "GetParameter",
+      "activity": "request",
+      "packet": "GET",
+      "plane": "data"
     },
     {
       "id": "source-trigger",
@@ -2786,7 +3070,10 @@
       "target": "pipeline",
       "type": "deployment",
       "label": "Source revision starts pipeline",
-      "description": "Source revision starts pipeline"
+      "description": "A configured source-change trigger starts CodePipeline. The repository is not in the running application request path.",
+      "activity": "control",
+      "packet": "REV",
+      "plane": "control"
     },
     {
       "id": "build-stage",
@@ -2794,7 +3081,10 @@
       "target": "build",
       "type": "deployment",
       "label": "Build/test stage",
-      "description": "Build/test stage"
+      "description": "CodePipeline starts CodeBuild with the source artifact and build instructions.",
+      "activity": "control",
+      "packet": "BUILD",
+      "plane": "control"
     },
     {
       "id": "build-image",
@@ -2802,7 +3092,10 @@
       "target": "ecr",
       "type": "deployment",
       "label": "Push image artifact",
-      "description": "Push image artifact"
+      "description": "Push image artifact",
+      "activity": "control",
+      "packet": "IMAGE",
+      "plane": "control"
     },
     {
       "id": "deploy-stage",
@@ -2810,7 +3103,10 @@
       "target": "deploy",
       "type": "deployment",
       "label": "Deploy approved artifact",
-      "description": "Deploy approved artifact"
+      "description": "CodePipeline starts its EC2/on-premises CodeDeploy action with the application revision and deployment-group configuration.",
+      "activity": "control",
+      "packet": "DEPLOY",
+      "plane": "control"
     },
     {
       "id": "rollout",
@@ -2818,7 +3114,10 @@
       "target": "alias",
       "type": "deployment",
       "label": "Shift version traffic",
-      "description": "Shift version traffic"
+      "description": "CodeDeploy updates the alias traffic weights for an already published Lambda version and applies configured hooks/alarms.",
+      "activity": "control",
+      "packet": "ALIAS",
+      "plane": "control"
     },
     {
       "id": "alias-invoke",
@@ -2826,39 +3125,54 @@
       "target": "alias",
       "type": "api",
       "label": "Invoke stable alias",
-      "description": "Invoke stable alias"
+      "description": "Invoke stable alias",
+      "activity": "request",
+      "packet": "API",
+      "plane": "data"
     },
     {
       "id": "selected-version",
       "source": "alias",
       "target": "lambda",
       "type": "api",
-      "label": "Published version selected",
-      "description": "Published version selected"
+      "label": "Resolve alias → version",
+      "description": "Lambda resolves the alias internally and executes one selected published version. There is no second Invoke API call.",
+      "activity": "internal",
+      "packet": null,
+      "plane": "data"
     },
     {
       "id": "cdk-synth",
       "source": "cdk",
       "target": "cfn",
       "type": "deployment",
-      "label": "Synthesize CFN + deploy stack",
-      "description": "Synthesize CFN + deploy stack"
+      "label": "cdk deploy: submit template",
+      "description": "After local synthesis, the CDK CLI submits the generated template/asset references for CloudFormation deployment. Synthesis itself is local.",
+      "activity": "control",
+      "packet": "CFN",
+      "plane": "control"
     },
     {
       "id": "sam-transform",
       "source": "sam",
       "target": "cfn",
       "type": "deployment",
-      "label": "SAM transform + stack deployment",
-      "description": "SAM transform + stack deployment"
+      "label": "sam deploy: submit template",
+      "description": "SAM CLI submits the packaged template; CloudFormation expands the SAM transform and manages the stack. Local build is a separate operation.",
+      "activity": "control",
+      "packet": "CFN",
+      "plane": "control"
     },
     {
       "id": "sar-nested",
       "source": "sar",
-      "target": "sam",
+      "target": "cfn",
       "type": "deployment",
       "label": "Reusable application template",
-      "description": "Reusable application template"
+      "description": "A SAR application can be deployed as a CloudFormation/SAM nested application; this is template reuse, not invocation of the local SAM CLI.",
+      "activity": "association",
+      "packet": null,
+      "plane": "control"
     },
     {
       "id": "stack-function",
@@ -2866,7 +3180,10 @@
       "target": "lambda",
       "type": "deployment",
       "label": "Provision/update Lambda resource",
-      "description": "Provision/update Lambda resource"
+      "description": "CloudFormation manages Lambda resources from the template; it is a control-plane operation, not a function invocation.",
+      "activity": "control",
+      "packet": "CTRL",
+      "plane": "control"
     },
     {
       "id": "stack-vm",
@@ -2874,7 +3191,10 @@
       "target": "ec2-a",
       "type": "deployment",
       "label": "Provision/update EC2 resource",
-      "description": "Provision/update EC2 resource"
+      "description": "CloudFormation manages EC2 resource configuration via AWS control-plane APIs; this does not send an application request to the guest OS.",
+      "activity": "control",
+      "packet": "CTRL",
+      "plane": "control"
     },
     {
       "id": "bean-a",
@@ -2882,7 +3202,10 @@
       "target": "ec2-a",
       "type": "deployment",
       "label": "Application rollout batch",
-      "description": "Application rollout batch"
+      "description": "Beanstalk coordinates updates to the existing fleet in batches under rolling policy; the line represents deployment management, not a user packet.",
+      "activity": "control",
+      "packet": "CTRL",
+      "plane": "control"
     },
     {
       "id": "bean-b",
@@ -2890,7 +3213,10 @@
       "target": "ec2-b",
       "type": "deployment",
       "label": "Replacement/candidate fleet",
-      "description": "Replacement/candidate fleet"
+      "description": "An immutable deployment creates a separate candidate fleet. EC2 B is illustrative candidate capacity, not simply the second AZ of the old fleet.",
+      "activity": "control",
+      "packet": "CTRL",
+      "plane": "control"
     },
     {
       "id": "metrics",
@@ -2898,7 +3224,10 @@
       "target": "cloudwatch",
       "type": "monitoring",
       "label": "Operational metrics/logs",
-      "description": "Operational metrics/logs"
+      "description": "Lambda service metrics and configured application log delivery provide operational evidence independently of the user response.",
+      "activity": "telemetry",
+      "packet": "METRIC",
+      "plane": "evidence"
     },
     {
       "id": "access-logs",
@@ -2906,7 +3235,10 @@
       "target": "cloudwatch",
       "type": "monitoring",
       "label": "Configured access-log delivery",
-      "description": "Configured access-log delivery"
+      "description": "Configured ALB vended access logs can be delivered to CloudWatch Logs. Legacy S3 access logging is a separate delivery option.",
+      "activity": "telemetry",
+      "packet": "LOG",
+      "plane": "evidence"
     },
     {
       "id": "trace",
@@ -2914,7 +3246,10 @@
       "target": "xray",
       "type": "monitoring",
       "label": "Instrumented trace spans",
-      "description": "Instrumented trace spans"
+      "description": "Configured instrumentation emits trace segments/subsegments, subject to sampling; traces are not the original HTTP request.",
+      "activity": "telemetry",
+      "packet": "TRACE",
+      "plane": "evidence"
     },
     {
       "id": "audit",
@@ -2922,7 +3257,10 @@
       "target": "cloudtrail",
       "type": "monitoring",
       "label": "AWS API audit events",
-      "description": "AWS API audit events"
+      "description": "CloudTrail records supported CloudFormation API activity from the AWS service control plane. This is an audit relationship, not the application sending a log call.",
+      "activity": "telemetry",
+      "packet": "AUDIT",
+      "plane": "evidence"
     },
     {
       "id": "vpc-log",
@@ -2930,15 +3268,21 @@
       "target": "flowlogs",
       "type": "monitoring",
       "label": "Flow metadata capture",
-      "description": "Flow metadata capture"
+      "description": "VPC networking captures ENI traffic metadata for configured Flow Logs. EC2 application code does not publish these records.",
+      "activity": "telemetry",
+      "packet": "FLOW",
+      "plane": "evidence"
     },
     {
       "id": "config-deploy",
-      "source": "appconfig",
-      "target": "lambda",
-      "type": "deployment",
-      "label": "Controlled configuration rollout",
-      "description": "Controlled configuration rollout"
+      "source": "lambda",
+      "target": "appconfig",
+      "type": "api",
+      "label": "Poll deployed configuration",
+      "description": "Application code or the AppConfig Agent/extension retrieves deployed configuration using the AppConfig Data APIs; rollout availability is controlled separately.",
+      "activity": "request",
+      "packet": "POLL",
+      "plane": "data"
     },
     {
       "id": "cert",
@@ -2946,7 +3290,10 @@
       "target": "alb",
       "type": "attachment",
       "label": "Regional TLS certificate",
-      "description": "Regional TLS certificate"
+      "description": "Regional TLS certificate",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "nlb-target",
@@ -2954,7 +3301,10 @@
       "target": "task",
       "type": "network",
       "label": "TCP/UDP target routing",
-      "description": "NLB selects a healthy registered target; task networking and listener protocol must match."
+      "description": "NLB selects a healthy registered target; task networking and listener protocol must match.",
+      "activity": "request",
+      "packet": "TCP",
+      "plane": "data"
     },
     {
       "id": "peer-association",
@@ -2962,15 +3312,21 @@
       "target": "peer-vpc",
       "type": "attachment",
       "label": "Direct VPC peering relationship",
-      "description": "Direct VPC peering relationship"
+      "description": "The peering relationship connects the two VPC address spaces; this static line is not a call to the peered workload.",
+      "activity": "association",
+      "packet": null,
+      "plane": "configuration"
     },
     {
       "id": "peer-route",
       "source": "ec2-a",
       "target": "peer-vpc",
       "type": "network",
-      "label": "Configured private peer route",
-      "description": "Configured private peer route"
+      "label": "Private request across peering",
+      "description": "EC2 connects to a private workload in the peer VPC using configured routes on both sides. Registering a peering relationship alone does not establish these routes.",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "nat-b-route",
@@ -2978,7 +3334,10 @@
       "target": "nat-b",
       "type": "network",
       "label": "Outbound via same-AZ NAT B",
-      "description": "Outbound via same-AZ NAT B"
+      "description": "Outbound via same-AZ NAT B",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "nat-c-route",
@@ -2986,7 +3345,10 @@
       "target": "nat-c",
       "type": "network",
       "label": "Task outbound via NAT C",
-      "description": "Task outbound via NAT C"
+      "description": "Task outbound via NAT C",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "nat-b-egress",
@@ -2994,7 +3356,10 @@
       "target": "igw",
       "type": "network",
       "label": "Translated public NAT egress",
-      "description": "Translated public NAT egress"
+      "description": "Translated public NAT egress",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "nat-c-egress",
@@ -3002,7 +3367,10 @@
       "target": "igw",
       "type": "network",
       "label": "Translated public NAT egress",
-      "description": "Translated public NAT egress"
+      "description": "Translated public NAT egress",
+      "activity": "request",
+      "packet": "HTTP",
+      "plane": "data"
     },
     {
       "id": "identity-proof",
@@ -3010,7 +3378,10 @@
       "target": "identity-pool",
       "type": "authorization",
       "label": "Submit supported identity proof",
-      "description": "Submit supported identity proof"
+      "description": "The client submits supported identity proof to Cognito Identity Pools; user-pool authentication and identity-pool credentials are different operations.",
+      "activity": "request",
+      "packet": "JWT",
+      "plane": "data"
     },
     {
       "id": "identity-role",
@@ -3018,7 +3389,10 @@
       "target": "sts",
       "type": "authorization",
       "label": "Broker configured IAM role session",
-      "description": "Broker configured IAM role session"
+      "description": "Identity Pools brokers the configured role session using STS; the client-facing response is returned by Cognito.",
+      "activity": "request",
+      "packet": "STS",
+      "plane": "data"
     },
     {
       "id": "temporary-creds",
@@ -3026,7 +3400,10 @@
       "target": "client",
       "type": "authorization",
       "label": "Temporary AWS credentials",
-      "description": "Temporary AWS credentials"
+      "description": "STS returns an access key ID, secret access key, session token and expiration to the caller that made the federation request.",
+      "activity": "response",
+      "packet": "CREDS",
+      "plane": "data"
     },
     {
       "id": "signed-s3",
@@ -3034,7 +3411,329 @@
       "target": "s3",
       "type": "api",
       "label": "Authorized SigV4-signed AWS API",
-      "description": "Authorized SigV4-signed AWS API"
+      "description": "Authorized SigV4-signed AWS API",
+      "activity": "request",
+      "packet": "API",
+      "plane": "data"
+    },
+    {
+      "id": "oidc-login",
+      "source": "client",
+      "target": "idp",
+      "type": "authorization",
+      "label": "Authenticate external workload",
+      "description": "The external workload obtains a token using the identity provider's supported authentication flow.",
+      "activity": "request",
+      "packet": "AUTH",
+      "plane": "data"
+    },
+    {
+      "id": "web-identity",
+      "source": "client",
+      "target": "sts",
+      "type": "authorization",
+      "label": "AssumeRoleWithWebIdentity",
+      "description": "The workload submits its OIDC token and role ARN to STS. This operation does not require pre-existing AWS access keys.",
+      "activity": "request",
+      "packet": "JWT",
+      "plane": "data"
+    },
+    {
+      "id": "instance-assume-allow",
+      "source": "iam",
+      "target": "ec2-a",
+      "type": "authorization",
+      "label": "Caller may request role B",
+      "description": "The current instance role must permit sts:AssumeRole on the account-B role, subject to applicable controls.",
+      "activity": "check",
+      "packet": null,
+      "plane": "configuration"
+    },
+    {
+      "id": "instance-creds",
+      "source": "sts",
+      "target": "ec2-a",
+      "type": "authorization",
+      "label": "Return account-B credentials",
+      "description": "STS returns temporary role-session credentials to the requesting application on EC2.",
+      "activity": "response",
+      "packet": "CREDS",
+      "plane": "data"
+    },
+    {
+      "id": "instance-bucket",
+      "source": "ec2-a",
+      "target": "bucket-b",
+      "type": "api",
+      "label": "GetObject signed as role B",
+      "description": "The EC2 application signs a new S3 request with the returned account-B role credentials.",
+      "activity": "request",
+      "packet": "GET",
+      "plane": "data"
+    },
+    {
+      "id": "federated-bucket",
+      "source": "client",
+      "target": "bucket-b",
+      "type": "api",
+      "label": "GetObject signed as role B",
+      "description": "The external workload signs a new S3 request using its temporary account-B credentials, not its OIDC token.",
+      "activity": "request",
+      "packet": "GET",
+      "plane": "data"
+    },
+    {
+      "id": "broker-creds",
+      "source": "sts",
+      "target": "identity-pool",
+      "type": "authorization",
+      "label": "Return brokered role session",
+      "description": "STS returns credentials to Cognito Identity Pools for its client response.",
+      "activity": "response",
+      "packet": "CREDS",
+      "plane": "data"
+    },
+    {
+      "id": "identity-creds",
+      "source": "identity-pool",
+      "target": "client",
+      "type": "authorization",
+      "label": "Return temporary AWS credentials",
+      "description": "Cognito Identity Pools returns the authorised role-session credentials to the client.",
+      "activity": "response",
+      "packet": "CREDS",
+      "plane": "data"
+    },
+    {
+      "id": "integration-permission",
+      "source": "lambda",
+      "target": "apigw",
+      "type": "authorization",
+      "label": "API Gateway may invoke",
+      "description": "A Lambda resource policy can allow apigateway.amazonaws.com with a scoped source ARN; a configured invocation role is an alternative.",
+      "activity": "check",
+      "packet": null,
+      "plane": "configuration"
+    },
+    {
+      "id": "handler-result",
+      "source": "lambda",
+      "target": "apigw",
+      "type": "api",
+      "label": "Return integration result",
+      "description": "The invoked handler returns its proxy result to API Gateway.",
+      "activity": "response",
+      "packet": "RESULT",
+      "plane": "data"
+    },
+    {
+      "id": "api-response",
+      "source": "apigw",
+      "target": "client",
+      "type": "network",
+      "label": "Return HTTP response",
+      "description": "API Gateway returns the configured integration response to the original API caller.",
+      "activity": "response",
+      "packet": "HTTP",
+      "plane": "data"
+    },
+    {
+      "id": "write-result",
+      "source": "ddb",
+      "target": "lambda",
+      "type": "api",
+      "label": "Return DynamoDB write result",
+      "description": "DynamoDB acknowledges the individual write; the handler constructs its own API response.",
+      "activity": "response",
+      "packet": "ACK",
+      "plane": "data"
+    },
+    {
+      "id": "worker-result",
+      "source": "worker",
+      "target": "esm",
+      "type": "api",
+      "label": "Return batch outcome",
+      "description": "The worker reports success or configured partial-batch failures to the Lambda-managed integration.",
+      "activity": "response",
+      "packet": "RESULT",
+      "plane": "data"
+    },
+    {
+      "id": "health-result",
+      "source": "ec2-a",
+      "target": "alb",
+      "type": "network",
+      "label": "Return /health status",
+      "description": "The target answers the ALB health check; health state is based on configured thresholds, not a single user request.",
+      "activity": "response",
+      "packet": "HEALTH",
+      "plane": "data"
+    },
+    {
+      "id": "web-result",
+      "source": "ec2-b",
+      "target": "alb",
+      "type": "network",
+      "label": "Return target response",
+      "description": "The selected target B answers the request; target A is an alternative, not a previous processing hop.",
+      "activity": "response",
+      "packet": "HTTP",
+      "plane": "data"
+    },
+    {
+      "id": "origin-result",
+      "source": "alb",
+      "target": "cdn",
+      "type": "network",
+      "label": "Return origin response",
+      "description": "The ALB returns the selected target response to CloudFront.",
+      "activity": "response",
+      "packet": "HTTP",
+      "plane": "data"
+    },
+    {
+      "id": "viewer-result",
+      "source": "cdn",
+      "target": "client",
+      "type": "network",
+      "label": "Return viewer response",
+      "description": "CloudFront sends the origin result to the viewer; cache hits can avoid the origin entirely.",
+      "activity": "response",
+      "packet": "HTTP",
+      "plane": "data"
+    },
+    {
+      "id": "sql-result-b",
+      "source": "rds",
+      "target": "ec2-b",
+      "type": "api",
+      "label": "Return SQL result",
+      "description": "The writer endpoint returns the database result to application B.",
+      "activity": "response",
+      "packet": "SQL",
+      "plane": "data"
+    },
+    {
+      "id": "build-artifact",
+      "source": "build",
+      "target": "s3",
+      "type": "deployment",
+      "label": "Store application revision",
+      "description": "CodeBuild packages a tested EC2 application revision with its AppSpec and uploads the artifact to S3.",
+      "activity": "control",
+      "packet": "ZIP",
+      "plane": "control"
+    },
+    {
+      "id": "publish-version",
+      "source": "build",
+      "target": "lambda",
+      "type": "deployment",
+      "label": "Update code + publish version",
+      "description": "This example build uses SDK/CLI calls to update function code from its artifact, wait for completion and publish an immutable candidate version.",
+      "activity": "control",
+      "packet": "VERSION",
+      "plane": "control"
+    },
+    {
+      "id": "build-result",
+      "source": "build",
+      "target": "pipeline",
+      "type": "deployment",
+      "label": "Return artifact reference",
+      "description": "The build action completes and supplies the configured output artifact reference for the deployment action.",
+      "activity": "response",
+      "packet": "REF",
+      "plane": "control"
+    },
+    {
+      "id": "artifact-read",
+      "source": "lambda",
+      "target": "s3",
+      "type": "api",
+      "label": "Get encrypted object + key blob",
+      "description": "An authorised decrypting invocation downloads the stored ciphertext and encrypted data key.",
+      "activity": "request",
+      "packet": "GET",
+      "plane": "data"
+    },
+    {
+      "id": "decrypt-key",
+      "source": "lambda",
+      "target": "kms",
+      "type": "api",
+      "label": "Decrypt encrypted data key",
+      "description": "The client sends the stored encrypted data key to KMS; key policy/IAM must permit decryption.",
+      "activity": "request",
+      "packet": "KEY?",
+      "plane": "data"
+    },
+    {
+      "id": "plaintext-key",
+      "source": "kms",
+      "target": "lambda",
+      "type": "api",
+      "label": "Return recovered data key",
+      "description": "KMS returns the plaintext data key to the authorised caller; the application decrypts its file locally.",
+      "activity": "response",
+      "packet": "KEY",
+      "plane": "data"
+    },
+    {
+      "id": "agent-poll",
+      "source": "ec2-a",
+      "target": "deploy",
+      "type": "deployment",
+      "label": "Agent polls for work",
+      "description": "The installed CodeDeploy agent polls CodeDeploy for deployment commands over HTTPS.",
+      "activity": "request",
+      "packet": "POLL",
+      "plane": "control"
+    },
+    {
+      "id": "agent-task",
+      "source": "deploy",
+      "target": "ec2-a",
+      "type": "deployment",
+      "label": "Return deployment instructions",
+      "description": "CodeDeploy returns the assigned deployment instructions to the polling agent. This is a control-plane response.",
+      "activity": "response",
+      "packet": "TASK",
+      "plane": "control"
+    },
+    {
+      "id": "revision-get",
+      "source": "ec2-a",
+      "target": "s3",
+      "type": "deployment",
+      "label": "Agent downloads revision",
+      "description": "The EC2 CodeDeploy agent downloads the assigned application revision from S3, subject to the instance role permissions.",
+      "activity": "request",
+      "packet": "GET",
+      "plane": "control"
+    },
+    {
+      "id": "revision-bundle",
+      "source": "s3",
+      "target": "ec2-a",
+      "type": "deployment",
+      "label": "Return application bundle",
+      "description": "S3 returns the stored revision to the requesting CodeDeploy agent.",
+      "activity": "response",
+      "packet": "ZIP",
+      "plane": "control"
+    },
+    {
+      "id": "deployment-status",
+      "source": "ec2-a",
+      "target": "deploy",
+      "type": "deployment",
+      "label": "Report lifecycle outcome",
+      "description": "The agent reports deployment lifecycle results to CodeDeploy. Hook success and application health determine the outcome.",
+      "activity": "request",
+      "packet": "STATUS",
+      "plane": "control"
     }
   ],
   "scenarios": [
@@ -3044,39 +3743,71 @@
       "steps": [
         {
           "edge": "dns-query",
-          "text": "Resolve the application name. Route 53 answers DNS; it does not forward HTTP."
+          "phase": "Resolve name",
+          "text": "The browser resolves the application hostname. Route 53 represents DNS resolution; an actual lookup can pass through a recursive resolver."
+        },
+        {
+          "edge": "dns-reply",
+          "phase": "DNS answer",
+          "text": "DNS returns the distribution address. Route 53 does not proxy the later HTTP request."
         },
         {
           "edge": "viewer",
-          "text": "Send HTTPS to CloudFront. A cached response can avoid the origin."
+          "phase": "Viewer request",
+          "text": "The browser sends HTTPS to CloudFront. This example follows a cache miss to an ALB origin."
         },
         {
           "edge": "acl",
-          "text": "The associated WAF web ACL evaluates requests; it is not a separate proxy hop."
+          "phase": "Attached protection",
+          "text": "The associated WAF web ACL is evaluated at CloudFront. This is a control relationship, not another network hop."
         },
         {
           "edge": "origin",
-          "text": "On an origin request, CloudFront calls the internet-facing ALB."
-        },
-        {
-          "edge": "target-a",
-          "text": "ALB routes to a healthy private EC2 target in AZ A."
+          "phase": "New origin connection",
+          "text": "CloudFront sends an origin request to the configured ALB. It is a separate connection from the viewer request."
         },
         {
           "edge": "cross-zone",
-          "text": "With cross-zone routing, the same ALB node can select an enabled target in AZ B."
+          "phase": "One selected target",
+          "text": "The ALB selects healthy EC2 B in this example. It does not send this request through EC2 A first."
         },
         {
-          "edge": "sql",
-          "text": "The application connects to the RDS writer endpoint."
+          "edge": "sql-b",
+          "phase": "New database call",
+          "text": "Application B issues SQL to the writer in AZ A. Cross-AZ SQL is permitted by the configured network rules."
         },
         {
           "edge": "ha",
-          "text": "The traditional Multi-AZ standby supports failover, not read scaling."
+          "phase": "Database replication",
+          "text": "RDS synchronously replicates committed data to its traditional Multi-AZ standby. This is database traffic, not the browser request."
+        },
+        {
+          "edge": "sql-result-b",
+          "phase": "Database result",
+          "text": "The writer returns the SQL result to application B."
+        },
+        {
+          "edge": "web-result",
+          "phase": "Target response",
+          "text": "EC2 B constructs an HTTP response and returns it to the ALB."
+        },
+        {
+          "edge": "origin-result",
+          "phase": "Origin response",
+          "text": "The ALB returns the response to CloudFront."
+        },
+        {
+          "edge": "viewer-result",
+          "phase": "Viewer response",
+          "text": "CloudFront returns the response to the browser. WAF and DNS are not additional return-path proxies."
         }
       ],
-      "note": "Illustrative architecture: clients may use ALB directly, and CloudFront can use different origins. AZ C illustrates additional alternatives.",
-      "exam": "Availability needs redundancy and healthy capacity; adding DNS, cache or WAF is a separate requirement."
+      "note": "One cache-miss request selects one target. DNS, WAF evaluation, HTTP connections and database replication have distinct meanings; target A is an alternative.",
+      "exam": "Availability needs redundancy and healthy capacity; adding DNS, cache or WAF is a separate requirement.",
+      "mode": "flow",
+      "actors": {
+        "client": "Browser"
+      }
     },
     {
       "id": "subnets",
@@ -3084,23 +3815,31 @@
       "steps": [
         {
           "edge": "ingress",
-          "text": "The VPC internet gateway supports the public endpoint path."
+          "phase": "Internet ingress",
+          "text": "A browser connects to the public ALB endpoint. The Internet Gateway is the VPC internet route, not an HTTP server."
         },
         {
           "edge": "public-alb",
-          "text": "The public subnet has an IGW route; the ALB has public reachability."
+          "phase": "Public frontend",
+          "text": "The internet-facing ALB is reachable through its public subnets and configured routing/filtering."
         },
         {
           "edge": "target-a",
-          "text": "The ALB sends application traffic to a private IP target."
+          "phase": "New private connection",
+          "text": "The ALB opens a connection to the private target address in the target group. EC2 does not need a public IP."
         },
         {
           "edge": "route-check",
-          "text": "The instance has no direct IGW default route. Routing and filtering are independent."
+          "phase": "Configuration check",
+          "text": "Inspect backend routes, security groups, NACLs and the return path. These controls are not extra packet destinations."
         }
       ],
       "note": "Subnets are AZ-scoped. A public route alone does not give every instance a usable public address.",
-      "exam": "SGs are stateful; NACLs are stateless. Check return-path rules for NACLs."
+      "exam": "SGs are stateful; NACLs are stateless. Check return-path rules for NACLs.",
+      "mode": "flow",
+      "actors": {
+        "client": "Browser"
+      }
     },
     {
       "id": "nat",
@@ -3108,23 +3847,31 @@
       "steps": [
         {
           "edge": "route-check",
-          "text": "The private instance starts an outbound connection."
+          "phase": "Configuration check",
+          "text": "EC2 A initiates outbound traffic. Its private subnet route selects NAT A; SG and NACL rules must allow the flow and return traffic."
         },
         {
           "edge": "nat-route",
-          "text": "Its default IPv4 route points to the public NAT in its AZ."
+          "phase": "Outbound connection",
+          "text": "EC2 sends the connection through its same-AZ public NAT gateway."
         },
         {
           "edge": "nat-egress",
-          "text": "NAT translates traffic and uses its public-subnet IGW route."
+          "phase": "Translated outbound traffic",
+          "text": "The public NAT gateway translates the source; its public subnet route reaches the Internet Gateway."
         },
         {
           "edge": "internet-egress",
-          "text": "Traffic reaches an external endpoint; return traffic follows the established path."
+          "phase": "Internet destination",
+          "text": "The internet service receives the outbound request. Replies use the established NAT mapping; the service cannot initiate arbitrary inbound connections."
         }
       ],
       "note": "The external client symbol represents an internet destination in this scenario. NAT does not admit unsolicited inbound requests.",
-      "exam": "For resilience, use per-AZ NAT routing where the design requires it; endpoints can avoid NAT for supported AWS services."
+      "exam": "For resilience, use per-AZ NAT routing where the design requires it; endpoints can avoid NAT for supported AWS services.",
+      "mode": "flow",
+      "actors": {
+        "client": "Internet API"
+      }
     },
     {
       "id": "health",
@@ -3132,19 +3879,29 @@
       "steps": [
         {
           "edge": "health",
-          "text": "ALB independently checks the configured path, port and success matcher."
+          "phase": "Background health probe",
+          "text": "The ALB independently probes the configured health path and port. This is not a viewer request."
+        },
+        {
+          "edge": "health-result",
+          "phase": "Probe response",
+          "text": "The target returns a health status. After the configured success threshold, the ALB can mark it healthy."
         },
         {
           "edge": "target-a",
-          "text": "Successful user traffic goes to eligible targets; a working homepage does not prove /health works."
+          "phase": "Later viewer request",
+          "text": "For a separate viewer request, the ALB can select this healthy target. A successful probe does not itself forward user traffic."
         },
         {
           "edge": "access-logs",
-          "text": "Configured request logs expose client, target, status and timing evidence."
+          "phase": "Independent telemetry",
+          "text": "Configured access logs describe the request and outcome. Log delivery is asynchronous evidence, not part of the user request path."
         }
       ],
       "note": "An ALB request log, health-check evidence and aggregate metric answer different questions.",
-      "exam": "Inspect security groups, NACLs, path, port, matcher and application health."
+      "exam": "Inspect security groups, NACLs, path, port, matcher and application health.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "api",
@@ -3152,23 +3909,51 @@
       "steps": [
         {
           "edge": "api-call",
-          "text": "Client calls the configured API endpoint."
+          "phase": "Client request",
+          "text": "The client calls POST /prod/orders. The configured method authorizes the client before invoking its integration."
+        },
+        {
+          "edge": "integration-permission",
+          "phase": "Integration permission",
+          "text": "API Gateway must be permitted to invoke Lambda. A Lambda resource policy or a configured API invocation role supplies this permission."
         },
         {
           "edge": "invoke",
-          "text": "Authorization, validation and integration settings permit a Lambda invoke."
+          "phase": "Backend invocation",
+          "text": "API Gateway invokes the Lambda integration once, with the mapped request event."
         },
         {
           "edge": "lambda-role",
-          "text": "Lambda runs with its execution-role permissions, distinct from the caller JWT."
+          "phase": "Runtime identity",
+          "text": "Lambda supplies temporary execution-role credentials to the handler. The developer does not call AssumeRole for each user request."
         },
         {
           "edge": "item-write",
-          "text": "Application code performs an authorized DynamoDB operation and checks record entitlement."
+          "phase": "New SDK call",
+          "text": "Handler code calls DynamoDB PutItem using its own execution role, with tenant and business checks in application code."
+        },
+        {
+          "edge": "write-result",
+          "phase": "Database response",
+          "text": "DynamoDB returns the write result to the handler."
+        },
+        {
+          "edge": "handler-result",
+          "phase": "Handler response",
+          "text": "The handler returns its status and payload to API Gateway."
+        },
+        {
+          "edge": "api-response",
+          "phase": "Client response",
+          "text": "API Gateway returns the HTTP response to the client."
         }
       ],
       "note": "This map uses a regional API endpoint; private and edge-optimized REST options have different connectivity.",
-      "exam": "API keys are for consumer usage plans, not authentication; an HTTP API does not have every REST feature."
+      "exam": "API keys are for consumer usage plans, not authentication; an HTTP API does not have every REST feature.",
+      "mode": "flow",
+      "actors": {
+        "client": "API client"
+      }
     },
     {
       "id": "stages",
@@ -3176,23 +3961,46 @@
       "steps": [
         {
           "edge": "api-call",
-          "text": "/prod/GetOrder or /beta/GetOrder selects the stage (custom-domain mappings can hide that name)."
+          "phase": "Choose stage",
+          "text": "GET /prod/GetOrder selects the prod stage; /beta/GetOrder selects beta. These are alternative client URLs, not sequential hops."
         },
         {
-          "edge": "invoke",
-          "text": "The stage points to an API deployment; stage variables can select configured backend aliases."
+          "node": "apigw",
+          "phase": "Resolve deployment",
+          "text": "The selected REST stage references an API deployment. Its stage variable can select an orders:prod or orders:beta Lambda alias."
+        },
+        {
+          "edge": "integration-permission",
+          "phase": "Integration permission",
+          "text": "The chosen function or alias must allow this API/stage invocation. Stage variables configure targets; they grant no permission."
         },
         {
           "edge": "alias-invoke",
-          "text": "A production canary uses the same /prod URL, selecting the candidate deployment for a percentage."
+          "phase": "One integration call",
+          "text": "API Gateway invokes the alias selected by the stage configuration. It does not first invoke the unqualified function."
         },
         {
           "edge": "selected-version",
-          "text": "Lambda alias/version selection is a separate object from the API deployment."
+          "phase": "Internal alias resolution",
+          "text": "Lambda resolves the alias to one published version and executes it. This is not a second network invocation."
+        },
+        {
+          "edge": "handler-result",
+          "phase": "Handler result",
+          "text": "The invoked version returns its result to API Gateway."
+        },
+        {
+          "edge": "api-response",
+          "phase": "HTTP response",
+          "text": "The selected stage returns the response. Usage plans, cache and canary settings belong to their configured API/stage boundaries."
         }
       ],
       "note": "Open the API Gateway card for the working prod/beta request, cache and usage-plan examples.",
-      "exam": "A deployment is an API snapshot; stage variables are configuration, not automatic body transformation."
+      "exam": "A deployment is an API snapshot; stage variables are configuration, not automatic body transformation.",
+      "mode": "flow",
+      "actors": {
+        "client": "API client"
+      }
     },
     {
       "id": "cognito",
@@ -3200,23 +4008,36 @@
       "steps": [
         {
           "edge": "sign-in",
-          "text": "The user authenticates with the configured user pool or supported federated IdP."
+          "phase": "Authenticate",
+          "text": "The app signs its user in through Cognito user pools or a configured federated provider."
         },
         {
           "edge": "jwt",
-          "text": "Cognito issues tokens. The access token carries the scopes appropriate for API authorization."
+          "phase": "Token response",
+          "text": "Cognito returns signed tokens to the app. This API example uses the access token and a required scope."
         },
         {
           "edge": "jwt-api",
-          "text": "The API authorizer validates the token and required access scope."
+          "phase": "Authorised API request",
+          "text": "The app sends Authorization: Bearer <access-token>. The configured authorizer validates the token and required scope."
+        },
+        {
+          "edge": "integration-permission",
+          "phase": "Integration permission",
+          "text": "Separately, API Gateway needs permission to invoke the Lambda target. User authentication does not supply it."
         },
         {
           "edge": "invoke",
-          "text": "The backend is invoked; it still checks business/record authorization."
+          "phase": "Backend invocation",
+          "text": "API Gateway invokes Lambda after the relevant checks. Lambda uses its execution role, with application checks for record-level access."
         }
       ],
       "note": "Identity pools are a separate optional credential-brokering path when clients need direct AWS API access.",
-      "exam": "JWT validity does not imply AWS IAM permissions or entitlement to every record."
+      "exam": "JWT validity does not imply AWS IAM permissions or entitlement to every record.",
+      "mode": "flow",
+      "actors": {
+        "client": "Browser app"
+      }
     },
     {
       "id": "queue",
@@ -3224,31 +4045,44 @@
       "steps": [
         {
           "edge": "queue-put",
-          "text": "The producer sends a job; HTTP acceptance is not completion of the business operation."
+          "phase": "Producer send",
+          "text": "The producer handler sends a job with SendMessage. That acknowledgement means queued, not processed."
         },
         {
           "edge": "queue-poll",
-          "text": "Lambda event source mapping long-polls the queue."
+          "phase": "Consumer poll",
+          "text": "Lambda-managed pollers call ReceiveMessage using the execution-role permissions configured for the worker."
         },
         {
           "edge": "queue-batch",
-          "text": "A received batch becomes temporarily invisible."
+          "phase": "Poll response",
+          "text": "SQS returns a batch and hides the messages for the visibility timeout. Receipt does not delete them."
         },
         {
           "edge": "process",
-          "text": "The mapping invokes a Lambda worker with the batch."
+          "phase": "Worker invocation",
+          "text": "The integration invokes the worker synchronously with this batch."
         },
         {
           "edge": "worker-write",
-          "text": "The worker records an idempotent durable outcome."
+          "phase": "Business operation",
+          "text": "The worker records the outcome with an idempotent or conditional operation where appropriate."
+        },
+        {
+          "edge": "worker-result",
+          "phase": "Processing response",
+          "text": "The worker reports success; partial-batch reporting can identify only failed messages when configured."
         },
         {
           "edge": "delete-message",
-          "text": "After successful processing, the integration deletes acknowledged messages."
+          "phase": "Source acknowledgement",
+          "text": "The integration deletes successfully processed messages. A custom SQS consumer performs its own delete calls."
         }
       ],
       "note": "Custom consumers explicitly call DeleteMessage themselves; Lambda mappings manage acknowledgement for successful work.",
-      "exam": "Visibility timeout ≠ retention; duplicate processing remains possible."
+      "exam": "Visibility timeout ≠ retention; duplicate processing remains possible.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "dlq",
@@ -3256,23 +4090,44 @@
       "steps": [
         {
           "edge": "queue-poll",
-          "text": "Receive the job; the visibility timeout starts."
-        },
-        {
-          "edge": "process",
-          "text": "Processing fails. The message is not successfully acknowledged."
+          "phase": "First receive",
+          "text": "The integration polls the source queue for a job."
         },
         {
           "edge": "queue-batch",
-          "text": "After visibility expires, the job may be received again."
+          "phase": "Received batch",
+          "text": "SQS returns the message; it becomes temporarily invisible, not removed."
+        },
+        {
+          "edge": "process",
+          "phase": "Worker attempt",
+          "text": "The integration invokes the worker with the batch."
+        },
+        {
+          "edge": "worker-result",
+          "phase": "Failed outcome",
+          "text": "In this example the worker reports failure. The integration does not delete the failed message."
+        },
+        {
+          "node": "sqs",
+          "phase": "Visibility expires",
+          "text": "The failed message becomes available for another receive after visibility timeout. Time passing is not a message moving backwards."
+        },
+        {
+          "edge": "queue-poll",
+          "phase": "Retry receive",
+          "text": "Further receives and failed processing attempts repeat. This walkthrough compresses repeated attempts rather than playing every retry."
         },
         {
           "edge": "redrive",
-          "text": "After the configured maximum receives, redrive sends it to the matching-type DLQ."
+          "phase": "Source redrive policy",
+          "text": "After the configured receive threshold is exceeded, SQS moves the message to its DLQ. This is not Lambda asynchronous-invocation DLQ handling."
         }
       ],
       "note": "This is a failing-job alternative to the successful queue scenario; the DLQ is not a broadcast subscription here.",
-      "exam": "Configure retries, idempotency, visibility extension and redrive deliberately."
+      "exam": "Configure retries, idempotency, visibility extension and redrive deliberately.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "fanout",
@@ -3280,23 +4135,34 @@
       "steps": [
         {
           "edge": "publish",
-          "text": "Publish one event to an SNS topic."
+          "phase": "One publication",
+          "text": "The producer sends one publication to SNS."
         },
         {
           "edge": "fanout-one",
-          "text": "A matching subscription delivers an independent copy to queue one."
+          "phase": "Independent copy A",
+          "text": "SNS delivers a matching publication to queue A, subject to subscription filters and queue permissions."
         },
         {
           "edge": "fanout-two",
-          "text": "Another subscription delivers an independent copy to queue two."
+          "phase": "Independent copy B",
+          "text": "SNS delivers a separate copy to queue B. Copy B does not come from queue A and delivery order between queues is not guaranteed."
         },
         {
           "edge": "queue-poll",
-          "text": "Each queue can have an independent consumer lifecycle."
+          "phase": "Independent consumer A",
+          "text": "A consumer can poll queue A independently. Queue B has its own consumer lifecycle and is not drained by that poll."
+        },
+        {
+          "edge": "queue-batch",
+          "phase": "Poll response A",
+          "text": "Queue A returns its own message copy to the integration."
         }
       ],
-      "note": "Each SQS subscription has its own independent retained copy and consumer lifecycle; filters can select which publications arrive.",
-      "exam": "Fanout copies delivery to subscribers; a competing-consumer queue divides work among its consumers."
+      "note": "The two delivery arrows are parallel fanout branches, shown one at a time for reading. They are not serial queue-to-queue delivery.",
+      "exam": "Fanout copies delivery to subscribers; a competing-consumer queue divides work among its consumers.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "events",
@@ -3304,23 +4170,34 @@
       "steps": [
         {
           "edge": "put-events",
-          "text": "Producer publishes an event to the selected event bus."
+          "phase": "Producer publication",
+          "text": "The handler calls PutEvents with an event on the configured bus."
         },
         {
           "edge": "rule",
-          "text": "A rule pattern matches and delivers to its configured SQS target."
+          "phase": "Matching delivery",
+          "text": "A matching rule delivers to SQS with the required target policy; unmatched events do not take this route."
         },
         {
           "edge": "queue-poll",
-          "text": "A consumer retrieves queued work independently."
+          "phase": "Independent consumer poll",
+          "text": "Lambda-managed pollers read the queue after delivery."
+        },
+        {
+          "edge": "queue-batch",
+          "phase": "Poll response",
+          "text": "SQS returns the queued event as a message batch."
         },
         {
           "edge": "process",
-          "text": "The application processes the delivered job."
+          "phase": "Worker invocation",
+          "text": "The integration invokes the worker synchronously. EventBridge did not call this worker directly."
         }
       ],
       "note": "Other supported targets and direct producer-to-queue publishing are alternatives.",
-      "exam": "EventBridge routes events; SQS buffers work. Rules do not turn a bus into a workflow state machine."
+      "exam": "EventBridge routes events; SQS buffers work. Rules do not turn a bus into a workflow state machine.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "kinesis",
@@ -3328,31 +4205,41 @@
       "steps": [
         {
           "edge": "put-record",
-          "text": "A device creates a 4 KiB reading and sends PutRecord(s) over HTTPS."
+          "phase": "Producer API call",
+          "text": "The device sends record data and a partition key to the stream endpoint over HTTPS. A shard is a retained lane, not a packet."
         },
         {
           "edge": "hash",
-          "text": "Kinesis hashes its partition key into a shard range and assigns a sequence number."
+          "phase": "Internal stream placement",
+          "text": "Kinesis hashes the partition key, selects a shard and assigns a sequence number. This happens inside the stream."
         },
         {
           "edge": "read-record",
-          "text": "The event source mapping polls the shard (or uses a configured enhanced-fan-out consumer)."
+          "phase": "Consumer read request",
+          "text": "This example uses standard Lambda polling: the integration calls GetRecords for the assigned shard. Enhanced fan-out is a different read model."
         },
         {
           "edge": "stream-batch",
-          "text": "Accepted records are returned in a batch; reads do not delete them."
+          "phase": "Read response",
+          "text": "Kinesis returns retained records. Reading does not delete them."
         },
         {
           "edge": "process",
-          "text": "Lambda processes the batch synchronously."
+          "phase": "Worker invocation",
+          "text": "The integration invokes the Lambda worker with a batch."
         },
         {
           "edge": "worker-write",
-          "text": "The worker writes an idempotent result to DynamoDB."
+          "phase": "New database write",
+          "text": "The worker writes processed results to DynamoDB using its execution role."
         }
       ],
       "note": "Original stream records remain available until retention expires. At 4 KiB total per record, one sustained shard write budget is about 256 records/s.",
-      "exam": "A hot key can overload one shard while others are idle; inspect failed PutRecords entries even on HTTP 200."
+      "exam": "A hot key can overload one shard while others are idle; inspect failed PutRecords entries even on HTTP 200.",
+      "mode": "flow",
+      "actors": {
+        "client": "Producer device"
+      }
     },
     {
       "id": "indexes",
@@ -3360,19 +4247,24 @@
       "steps": [
         {
           "edge": "item-write",
-          "text": "Write the item using its primary key, e.g. GameName + Version."
+          "phase": "Base-table write",
+          "text": "The handler writes an item to the base DynamoDB table."
         },
         {
           "edge": "index",
-          "text": "DynamoDB maintains a GSI for another query pattern such as Category + GameName."
+          "phase": "Internal index maintenance",
+          "text": "DynamoDB propagates projected attributes to the GSI asynchronously. The original request is not forwarded through a second application service."
         },
         {
           "edge": "query-index",
-          "text": "Query the GSI and use an appropriate projection for the needed attributes."
+          "phase": "Later independent query",
+          "text": "A later handler invocation calls DynamoDB Query with IndexName and the GSI partition-key condition. Results can lag a recently committed table write."
         }
       ],
       "note": "The index is an internal table feature, not a separate application hop or replacement database.",
-      "exam": "GSI reads are eventually consistent. An LSI uses the table partition key and is defined at table creation."
+      "exam": "GSI reads are eventually consistent. An LSI uses the table partition key and is defined at table creation.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "ddb-stream",
@@ -3380,27 +4272,34 @@
       "steps": [
         {
           "edge": "item-write",
-          "text": "Application changes an item."
+          "phase": "Base-table write",
+          "text": "The handler writes an item to the stream-enabled table."
         },
         {
           "edge": "change-log",
-          "text": "The enabled stream emits a configured change record."
+          "phase": "Internal change capture",
+          "text": "DynamoDB records the item change in its stream. The writer does not publish a separate event."
         },
         {
           "edge": "poll-ddb",
-          "text": "The event source mapping polls stream shards."
+          "phase": "Consumer poll",
+          "text": "Lambda-managed pollers read DynamoDB Streams shards."
         },
         {
           "edge": "ddb-batch",
-          "text": "A change-record batch is returned."
+          "phase": "Read response",
+          "text": "The stream returns change records, not the entire source table."
         },
         {
           "edge": "process",
-          "text": "The mapping invokes the processor; design downstream effects idempotently."
+          "phase": "Worker invocation",
+          "text": "The integration invokes the processor with a batch. Use idempotency; do not create an uncontrolled write-back loop."
         }
       ],
       "note": "Use a separate target or loop-prevention design if the processor writes back to its source table.",
-      "exam": "Stream consumption does not delete the source item. TTL removal happens asynchronously."
+      "exam": "Stream consumption does not delete the source item. TTL removal happens asynchronously.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "rds-ha",
@@ -3408,19 +4307,29 @@
       "steps": [
         {
           "edge": "sql",
-          "text": "The application uses the current primary endpoint."
+          "phase": "Normal writer connection",
+          "text": "EC2 A connects to the DB instance endpoint, which currently resolves to the primary in AZ A."
         },
         {
           "edge": "ha",
-          "text": "Changes synchronously reach the traditional standby for availability."
+          "phase": "Normal replication",
+          "text": "RDS maintains a synchronous standby in AZ B. The standby is not an application read endpoint."
+        },
+        {
+          "node": "standby",
+          "phase": "Managed promotion",
+          "text": "After a supported primary failure, RDS promotes the standby and updates the DB endpoint DNS. Existing connections can fail."
         },
         {
           "edge": "failover",
-          "text": "After managed promotion, the application reconnects/retries against the writer endpoint."
+          "phase": "Reconnect after DNS update",
+          "text": "The application retries and reconnects to the same DB endpoint name, now reaching the promoted primary in AZ B."
         }
       ],
       "note": "This demonstrates a Multi-AZ DB instance. A Multi-AZ DB cluster has two standby instances that can serve reads.",
-      "exam": "Traditional standby ≠ read replica; failover is not a guarantee that existing client connections survive."
+      "exam": "Traditional standby ≠ read replica; failover is not a guarantee that existing client connections survive.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "rds-read",
@@ -3428,19 +4337,24 @@
       "steps": [
         {
           "edge": "sql",
-          "text": "Send writes/strong-current operations to the primary."
+          "phase": "Write path",
+          "text": "The application directs writes to the primary DB endpoint."
         },
         {
           "edge": "async-replica",
-          "text": "Updates replicate asynchronously to the read replica."
+          "phase": "Independent replication",
+          "text": "Changes replicate asynchronously to the read replica. Lag is possible; this is not the client SQL request moving to another server."
         },
         {
           "edge": "read-replica",
-          "text": "The application explicitly routes lag-tolerant reads to the replica endpoint."
+          "phase": "Later read path",
+          "text": "Application code explicitly directs a read to the replica endpoint when its freshness requirement permits lag."
         }
       ],
       "note": "An RDS read replica is distinct from an ElastiCache lookup and a traditional HA standby.",
-      "exam": "Replication lag affects read freshness; Multi-AZ alone is not always read scaling."
+      "exam": "Replication lag affects read freshness; Multi-AZ alone is not always read scaling.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "storage",
@@ -3448,43 +4362,61 @@
       "steps": [
         {
           "edge": "disk-a",
-          "text": "EBS provides block storage attached to EC2 in the same AZ."
+          "phase": "Pattern A · block storage",
+          "text": "EBS attaches to EC2 in the same AZ. This dashed association describes a block device, not an API request to a separate storage tier."
         },
         {
           "edge": "nfs-b",
-          "text": "Another client uses its EFS mount target for shared files."
+          "phase": "Pattern B · shared files",
+          "text": "EC2 B performs NFS operations through an EFS mount target. It can access the same regional filesystem as other AZs."
         },
         {
           "edge": "mount-fs-b",
-          "text": "Both mount targets expose the same regional EFS filesystem."
+          "phase": "Pattern B · mount relationship",
+          "text": "The mount target belongs to the regional EFS filesystem. It is a network entry point, not a second application file copy."
         },
         {
           "edge": "s3-write",
-          "text": "An application uses object APIs for S3; no customer subnet hosts the bucket."
+          "phase": "Pattern C · object storage",
+          "text": "Independently, Lambda can store an object with PutObject. S3 is neither an EBS attachment nor an NFS mount."
         }
       ],
       "note": "These are alternative storage patterns, not a required chained write path.",
-      "exam": "Shared persistent cross-AZ files → regional EFS; same-AZ block device → EBS; objects → S3."
+      "exam": "Shared persistent cross-AZ files → regional EFS; same-AZ block device → EBS; objects → S3.",
+      "mode": "comparison",
+      "actors": {}
     },
     {
       "id": "aliases",
       "title": "18 · Lambda versions / alias",
       "steps": [
         {
+          "edge": "rollout",
+          "phase": "Control-plane change",
+          "text": "CodeDeploy updates the stable alias to route a configured percentage to an already published candidate version."
+        },
+        {
+          "edge": "api-call",
+          "phase": "Later client request",
+          "text": "After that configuration change, the client calls the API. Deployment is not a hop in this user request."
+        },
+        {
           "edge": "alias-invoke",
-          "text": "Clients/integrations invoke the stable alias."
+          "phase": "One integration call",
+          "text": "API Gateway invokes the stable Lambda alias, assuming the required integration permission."
         },
         {
           "edge": "selected-version",
-          "text": "The weighted alias selects an immutable published version, e.g. v1/v2."
-        },
-        {
-          "edge": "rollout",
-          "text": "CodeDeploy or an explicit alias update changes weights and supports rollback."
+          "phase": "Internal version choice",
+          "text": "Lambda selects one published version using alias configuration and executes it. The alias is a logical reference, not another server."
         }
       ],
       "note": "The deployment step changes the route; it is not an extra HTTP hop for each invocation.",
-      "exam": "Provisioned concurrency pre-initializes environments; it is not the same as a weighted alias or reserved concurrency."
+      "exam": "Provisioned concurrency pre-initializes environments; it is not the same as a weighted alias or reserved concurrency.",
+      "mode": "flow",
+      "actors": {
+        "client": "API client"
+      }
     },
     {
       "id": "beanstalk",
@@ -3492,43 +4424,59 @@
       "steps": [
         {
           "edge": "bean-a",
-          "text": "Rolling updates a batch of the existing fleet, temporarily reducing serving capacity."
+          "phase": "Alternative A · rolling",
+          "text": "Rolling updates the existing fleet in batches and temporarily reduces available capacity. It does not first create an immutable replacement fleet."
         },
         {
           "edge": "bean-b",
-          "text": "Immutable is an alternative: validate a separate replacement fleet while retaining the original."
-        },
-        {
-          "edge": "health",
-          "text": "Health checks gate serving/release decisions."
+          "phase": "Alternative B · immutable",
+          "text": "An independent immutable deployment launches a candidate fleet, verifies its health and replaces the old fleet after success. AZ B is illustrative candidate capacity."
         }
       ],
-      "note": "These steps compare alternatives; they are not sequential phases of a single deployment policy.",
-      "exam": "Rolling + additional batch preserves baseline capacity with a temporary batch. Persistent RDS should have an independent lifecycle."
+      "note": "Two mutually exclusive deployment-policy examples. The walkthrough highlights them independently; there is no packet or required A-then-B deployment sequence.",
+      "exam": "Rolling + additional batch preserves baseline capacity with a temporary batch. Persistent RDS should have an independent lifecycle.",
+      "mode": "comparison",
+      "actors": {}
     },
     {
       "id": "iac",
       "title": "20 · CDK / SAM → CloudFormation",
       "steps": [
         {
+          "node": "cdk",
+          "phase": "CDK · local synthesis",
+          "text": "cdk synth executes the CDK app locally and produces a CloudFormation template/cloud assembly. It does not deploy a stack."
+        },
+        {
           "edge": "cdk-synth",
-          "text": "CDK constructs synthesize CloudFormation; CloudFormation does not synthesize CDK."
+          "phase": "CDK · cloud deployment",
+          "text": "cdk deploy submits the generated infrastructure definition and asset references to CloudFormation using deployment credentials."
+        },
+        {
+          "node": "sam",
+          "phase": "SAM · alternative authoring",
+          "text": "Alternatively, sam build packages serverless application dependencies locally; a SAM template contains the serverless transform."
         },
         {
           "edge": "sam-transform",
-          "text": "Alternatively, the SAM transform expands shorthand within a CloudFormation-compatible template."
+          "phase": "SAM · cloud deployment",
+          "text": "sam deploy submits the packaged template. CloudFormation expands the SAM transform and manages the resulting resources."
         },
         {
           "edge": "stack-function",
-          "text": "CloudFormation provisions/updates the Lambda resource; Lambda later runs the code."
+          "phase": "Shared result · Lambda",
+          "text": "Either authoring approach can define Lambda resources managed by CloudFormation."
         },
         {
           "edge": "stack-vm",
-          "text": "The same provisioning engine can manage EC2 and other supported resources."
+          "phase": "Shared result · EC2",
+          "text": "CloudFormation can also manage EC2. SAM templates may include ordinary CloudFormation resources; SAM is not the compute runtime."
         }
       ],
-      "note": "CDK and SAM are authoring choices, not a mandatory chain. SAM is explicit in current DVA-C02 Deployment skills.",
-      "exam": "AWS::Serverless::UserPool is invalid. Standard AWS::Cognito::UserPool can appear in a SAM template."
+      "note": "CDK and SAM are alternative authoring workflows that can target CloudFormation. Local synthesis/build and cloud deployment are distinct; this is not CDK → SAM → CloudFormation.",
+      "exam": "AWS::Serverless::UserPool is invalid. Standard AWS::Cognito::UserPool can appear in a SAM template.",
+      "mode": "comparison",
+      "actors": {}
     },
     {
       "id": "pipeline",
@@ -3536,51 +4484,111 @@
       "steps": [
         {
           "edge": "source-trigger",
-          "text": "A versioned source revision starts the configured pipeline."
+          "phase": "Source change",
+          "text": "A configured source trigger starts a pipeline execution for an identifiable revision."
         },
         {
           "edge": "build-stage",
-          "text": "CodeBuild runs build/test/package commands."
+          "phase": "Start build",
+          "text": "CodePipeline runs CodeBuild with the source artifact and build instructions."
         },
         {
-          "edge": "build-image",
-          "text": "For a container alternative, publish an immutable image artifact to ECR."
+          "edge": "build-artifact",
+          "phase": "Build output",
+          "text": "CodeBuild tests and packages an EC2 application revision with its AppSpec, then stores the versioned artifact in S3."
+        },
+        {
+          "edge": "build-result",
+          "phase": "Action completion",
+          "text": "The build completes and returns the configured output artifact reference. CodePipeline can now start the deployment action."
         },
         {
           "edge": "deploy-stage",
-          "text": "CodePipeline promotes the approved artifact through a deployment action."
+          "phase": "Start deployment",
+          "text": "CodePipeline starts its EC2/on-premises CodeDeploy action for the configured deployment group and S3 revision."
         },
         {
-          "edge": "rollout",
-          "text": "CodeDeploy applies the configured rollout/rollback behavior to the target."
+          "edge": "agent-poll",
+          "phase": "Agent-initiated poll",
+          "text": "The agent installed on EC2 A polls CodeDeploy over HTTPS. CodeDeploy does not push the application through a public inbound SSH connection."
+        },
+        {
+          "edge": "agent-task",
+          "phase": "Control response",
+          "text": "CodeDeploy returns the assigned task to the polling agent."
+        },
+        {
+          "node": "ec2-a",
+          "phase": "ApplicationStop hook",
+          "text": "For this in-place deployment, the agent first runs ApplicationStop using the previous successful revision when available. It is skipped on a first deployment. DownloadBundle follows."
+        },
+        {
+          "edge": "revision-get",
+          "phase": "DownloadBundle request",
+          "text": "The agent downloads the assigned application bundle from S3 using its instance-role permissions."
+        },
+        {
+          "edge": "revision-bundle",
+          "phase": "Artifact response",
+          "text": "S3 returns the revision containing application files and the AppSpec."
+        },
+        {
+          "node": "ec2-a",
+          "phase": "Local lifecycle hooks",
+          "text": "After DownloadBundle, the agent runs BeforeInstall, Install, AfterInstall, ApplicationStart and ValidateService in lifecycle order. The EC2 instance remains in place; failed hooks can fail the deployment."
+        },
+        {
+          "edge": "deployment-status",
+          "phase": "Deployment status",
+          "text": "The agent reports the outcome. CodeDeploy and the pipeline use the action result; runtime requests remain a separate path."
         }
       ],
-      "note": "CodeCommit is one source option; an ECR container artifact and a Lambda ZIP are alternative packaging choices.",
-      "exam": "Pipeline coordinates, Build executes build commands, Deploy promotes application revisions; runtime roles remain separate."
+      "note": "One concrete EC2 in-place release with a polling CodeDeploy agent. Lambda alias releases and container-image deployments are separate patterns. Delivery roles and the application runtime role have different responsibilities.",
+      "exam": "Pipeline coordinates, Build executes build commands, Deploy promotes application revisions; runtime roles remain separate.",
+      "mode": "flow",
+      "actors": {
+        "s3": "S3 artifacts"
+      }
     },
     {
       "id": "assume-role",
       "title": "22 · IAM role assumption",
       "steps": [
         {
+          "edge": "instance-assume-allow",
+          "phase": "Caller permission",
+          "text": "The EC2 application already has instance-role credentials in account A. Its current role must permit requesting the account-B role."
+        },
+        {
           "edge": "assume",
-          "text": "An authorized principal asks STS to assume the selected role."
+          "phase": "Request new session",
+          "text": "The EC2 application calls STS AssumeRole, signed with its current credentials. This is explicit role switching, not routine EC2 credential delivery."
         },
         {
           "edge": "trust-role",
-          "text": "The role trust policy allows that principal/federation relationship."
+          "phase": "Trust check",
+          "text": "STS checks that the account-B role trusts the caller and that applicable conditions/controls allow assumption. No packet travels through the role object."
+        },
+        {
+          "edge": "instance-creds",
+          "phase": "Credential response",
+          "text": "STS returns temporary account-B role credentials to the same EC2 application."
         },
         {
           "edge": "role-allow",
-          "text": "Temporary session credentials sign an allowed AWS operation; evaluate applicable resource policies too."
+          "phase": "Resource permission check",
+          "text": "The resulting role session must be allowed to read this bucket under applicable IAM, resource-policy and guardrail evaluation."
         },
         {
-          "edge": "scp",
-          "text": "Organization guardrails can restrict the available action."
+          "edge": "instance-bucket",
+          "phase": "Separate signed S3 call",
+          "text": "The EC2 application signs GetObject using the returned session credentials. The role itself does not send the object request."
         }
       ],
-      "note": "The role in account B also illustrates the cross-account trust boundary; same-account roles use applicable trust/permission rules.",
-      "exam": "Trust and action permissions are separate. Boundaries/SCPs do not grant permissions."
+      "note": "An application explicitly switches to a role in another account. Ordinary EC2 instance-role credentials are supplied through the instance profile; Lambda similarly receives its configured execution-role credentials automatically.",
+      "exam": "Trust and action permissions are separate. Boundaries/SCPs do not grant permissions.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "envelope",
@@ -3588,19 +4596,54 @@
       "steps": [
         {
           "edge": "key-request",
-          "text": "The authorized application requests GenerateDataKey."
+          "phase": "Request data key",
+          "text": "The encrypting handler asks KMS GenerateDataKey for a data key under the selected KMS key. It does not send its large file to KMS."
         },
         {
           "edge": "data-key",
-          "text": "KMS returns a plaintext data key and a KMS-encrypted copy; underlying KMS key material stays protected."
+          "phase": "Key response",
+          "text": "KMS returns plaintext and encrypted representations of the same data key. The underlying symmetric KMS key material stays protected in KMS."
+        },
+        {
+          "node": "lambda",
+          "phase": "Encrypt locally",
+          "text": "Application code encrypts the file locally with the plaintext data key and a suitable encryption library. KMS did not encrypt the file itself."
         },
         {
           "edge": "s3-write",
-          "text": "The application encrypts data locally, stores ciphertext + encrypted data key and discards the plaintext data key."
+          "phase": "Store encrypted object",
+          "text": "The application uploads ciphertext and the encrypted data key (for example in an envelope/header). KMS does not automatically store these application copies."
+        },
+        {
+          "node": "lambda",
+          "phase": "Clear key / another invocation",
+          "text": "Release the plaintext key from memory as the implementation permits. Now consider a separate authorised decrypting invocation; local memory is not shared between these clients."
+        },
+        {
+          "edge": "artifact-read",
+          "phase": "Retrieve envelope",
+          "text": "The decrypting invocation downloads the encrypted file and encrypted data key from S3."
+        },
+        {
+          "edge": "decrypt-key",
+          "phase": "Recover data key",
+          "text": "It sends only the encrypted data key to KMS Decrypt, subject to the key policy and applicable permissions."
+        },
+        {
+          "edge": "plaintext-key",
+          "phase": "Key response",
+          "text": "KMS returns the recovered plaintext data key to this authorised caller."
+        },
+        {
+          "node": "lambda",
+          "phase": "Decrypt locally",
+          "text": "Application code decrypts the file locally, then releases the plaintext key from memory. This is conceptual client-side envelope encryption, not S3 SSE-KMS."
         }
       ],
       "note": "This illustrates client-side envelope encryption; S3 SSE-KMS is a different managed integration using KMS.",
-      "exam": "KMS directly handles small payloads; use a data key for large application data."
+      "exam": "KMS directly handles small payloads; use a data key for large application data.",
+      "mode": "flow",
+      "actors": {}
     },
     {
       "id": "observe",
@@ -3608,51 +4651,81 @@
       "steps": [
         {
           "edge": "metrics",
-          "text": "CloudWatch metrics/logs show operational behavior."
+          "phase": "Evidence A · operations",
+          "text": "Lambda service metrics and configured logs describe runtime behaviour. This is not the same HTTP packet entering another service."
         },
         {
           "edge": "access-logs",
-          "text": "ALB access logs expose request-level details when configured."
+          "phase": "Evidence B · requests",
+          "text": "Configured ALB logs record request/target details. CloudWatch vended delivery is shown; legacy S3 delivery is another option."
         },
         {
           "edge": "trace",
-          "text": "X-Ray/OTel instrumentation correlates downstream request timing."
+          "phase": "Evidence C · trace",
+          "text": "Configured instrumentation publishes sampled request work and downstream spans."
         },
         {
           "edge": "audit",
-          "text": "CloudTrail records configured AWS API activity, such as stack changes."
+          "phase": "Evidence D · AWS API audit",
+          "text": "CloudTrail records supported CloudFormation API activity from the control plane, separate from application request logs."
         },
         {
           "edge": "vpc-log",
-          "text": "VPC Flow Logs describe IP flow metadata and filtering outcomes."
+          "phase": "Evidence E · network metadata",
+          "text": "VPC Flow Logs capture ENI traffic metadata. The network platform records it; EC2 application code need not send each record."
         }
       ],
       "note": "These are parallel evidence sources, not a network service chain. CloudWatch also supports alarms, dashboards and custom metrics.",
-      "exam": "Choose logs for request details, metrics for trends, traces for timing, and CloudTrail for AWS API audit."
+      "exam": "Choose logs for request details, metrics for trends, traces for timing, and CloudTrail for AWS API audit.",
+      "mode": "comparison",
+      "actors": {}
     },
     {
       "id": "cross-account",
       "title": "25 · Cross-account AWS access",
       "steps": [
         {
-          "edge": "external-trust",
-          "text": "A supported external identity can federate only when the trust relationship and token claims are valid."
+          "edge": "oidc-login",
+          "phase": "External authentication",
+          "text": "An external workload obtains an OIDC token from its configured identity provider. This example does not start with AWS access keys."
         },
         {
-          "edge": "assume",
-          "text": "A caller using AWS credentials instead needs permission for AssumeRole."
+          "edge": "external-trust",
+          "phase": "Token response",
+          "text": "The provider returns the token to the workload, not directly to STS."
+        },
+        {
+          "edge": "web-identity",
+          "phase": "Federation request",
+          "text": "The workload sends AssumeRoleWithWebIdentity with the token and account-B role ARN to STS."
         },
         {
           "edge": "trust-role",
-          "text": "Account B explicitly trusts the authorized principal; STS issues a role session."
+          "phase": "Trust / claims check",
+          "text": "STS checks the configured provider, token validity and required claims such as audience/subject against the role trust. OIDC authentication alone grants no bucket action."
+        },
+        {
+          "edge": "temporary-creds",
+          "phase": "Credential response",
+          "text": "STS returns temporary account-B credentials to the requesting workload."
         },
         {
           "edge": "role-allow",
-          "text": "The session performs only allowed actions; resource/key policies and applicable guardrails still apply."
+          "phase": "Resource permission check",
+          "text": "The assumed session must be allowed to perform GetObject on the account-B bucket under applicable policies and guardrails."
+        },
+        {
+          "edge": "federated-bucket",
+          "phase": "Separate signed S3 request",
+          "text": "The workload now signs GetObject with its AWS session credentials. It does not send the OIDC token as S3 authorization."
         }
       ],
-      "note": "OIDC federation and a SigV4-signed AssumeRole request are alternative entry mechanisms, not the same request format.",
-      "exam": "Cross-account access needs both trust and permission; an external JWT does not automatically authorize AWS APIs."
+      "note": "This example uses OIDC federation into account B. Scenario 22 instead starts with an AWS instance role and signed AssumeRole. Their request formats are alternatives, not steps of one combined authentication flow.",
+      "exam": "Cross-account access needs both trust and permission; an external JWT does not automatically authorize AWS APIs.",
+      "mode": "flow",
+      "actors": {
+        "client": "OIDC workload"
+      }
     }
   ],
   "comparisons": [
@@ -3883,6 +4956,38 @@
     {
       "label": "EFS regional mount targets",
       "url": "https://docs.aws.amazon.com/efs/latest/ug/how-it-works.html"
+    },
+    {
+      "label": "Role assumption",
+      "url": "https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html"
+    },
+    {
+      "label": "OIDC federation",
+      "url": "https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithWebIdentity.html"
+    },
+    {
+      "label": "Lambda execution role",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html"
+    },
+    {
+      "label": "SQS polling / acknowledgement",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html"
+    },
+    {
+      "label": "Lambda alias resolution",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/using-aliases.html"
+    },
+    {
+      "label": "ALB log delivery",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-cloudwatch-logs.html"
+    },
+    {
+      "label": "CodeDeploy agent",
+      "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/codedeploy-agent.html"
+    },
+    {
+      "label": "Pipeline CodeDeploy action",
+      "url": "https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-CodeDeploy.html"
     }
   ]
 }

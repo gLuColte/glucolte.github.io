@@ -3,9 +3,11 @@
   <p>A <strong>record</strong> is one event: a data blob + partition key, assigned a sequence number when accepted. A <strong>shard</strong> is an ordered lane of records with its own throughput capacity. A <strong>stream</strong> contains those lanes. A record belongs to one shard; the shard is not a batch sent to the consumer.</p>
   <p class="dva-note"><strong>Example.</strong> Devices send readings continuously. Each record totals <strong>4 KiB = 4,096 bytes</strong>, including its partition key, before base64 encoding. The sample below illustrates sustained provisioned capacity, without producer aggregation or burst allowances.</p>
   <div class="dva-shards-controls" data-dva-enhancement hidden>
-    <label>Records arriving / second<input type="number" min="1" max="10000" step="1" value="300" data-shards-rate></label>
-    <label>Provisioned shards<select data-shards-count><option value="1">1 shard</option><option value="2">2 shards</option><option value="4">4 shards</option></select></label>
-    <label>Partition keys<select data-shards-keys><option value="spread">Many keys, evenly spread</option><option value="hot">One key: device01</option></select></label>
+    <label>Input unit<select data-shards-unit><option value="records">4 KiB records / second</option><option value="mib">MiB / second</option></select></label>
+    <label data-shards-records-field>Records arriving / second<input type="number" min="1" max="10000" step="1" value="300" data-shards-rate></label>
+    <label data-shards-mib-field hidden>Total incoming MiB / second<input type="number" min="0" max="100" step="any" value="5" data-shards-mib></label>
+    <label>Provisioned shards<select data-shards-count><option value="1">1 shard</option><option value="2">2 shards</option><option value="4">4 shards</option><option value="5">5 shards</option><option value="10">10 shards</option></select></label>
+    <label>Partition keys<select data-shards-keys><option value="spread">Balanced · many keys</option><option value="skew">Skewed · 80% to one shard</option><option value="hot">One key: device01</option></select></label>
   </div>
   <div class="dva-shards-architecture">
     <div class="dva-shards-endpoint"><strong>1 · Producer</strong><span data-shards-producer>300 records/s × 4 KiB = 1.172 MiB/s</span><small>PutRecord / PutRecords · IAM-authorized writes</small></div>
@@ -26,10 +28,18 @@
     <div class="dva-shards-endpoint"><strong>3 · Consumer application</strong><span>Process accepted readings → update dashboard / store results</span><small>GetRecords polling or enhanced fan-out · IAM-authorized reads</small></div>
   </div>
   <div class="dva-shards-output" aria-live="polite" aria-atomic="true">
+    <p class="dva-example" data-shards-aggregate>Aggregate: 1.172 MiB/s offered / 1 MiB/s shard-sum budget (117%). Each lane must fit independently.</p>
     <p class="dva-result-blocked" data-shards-result>300 records/s exceed one shard's sustained byte budget. Some writes can be throttled; retry failed records with backoff and jitter.</p>
     <p class="dva-note" data-shards-calculation>Per shard: min(1,000 records/s, 1,024 KiB/s ÷ 4 KiB) = 256 records/s. At 300 records/s, at least 2 evenly loaded shards are needed before headroom.</p>
   </div>
   <p class="dva-note"><strong>Two limits, one lane.</strong> Each shard supports sustained writes up to 1 MiB/s <em>and</em> 1,000 records/s; whichever is reached first limits you. At 4 KiB, bytes win. With 512-byte records, the record-count limit would win. These are rates, not the shard's total storage size.</p>
   <p class="dva-note"><strong>Reading is independent.</strong> Shared-throughput consumers share up to 2 MiB/s per shard; enhanced fan-out provides up to 2 MiB/s per shard per registered consumer. Reading does not delete records. Retention controls replay; there is no global order across shards. PutRecords retries can also change producer event order.</p>
+  <div class="dva-shards-controls" data-dva-enhancement hidden>
+    <label>Independent consumers<select data-shards-consumers><option value="1">1</option><option value="2" selected>2</option><option value="4">4</option></select></label>
+    <label>Requested replay rate · each/shard<select data-shards-read-rate><option value="1">1 MiB/s</option><option value="1.5" selected>1.5 MiB/s</option><option value="2.5">2.5 MiB/s</option></select></label>
+    <label>Read delivery<select data-shards-read-mode><option value="shared">Shared GetRecords</option><option value="efo">Enhanced fan-out</option></select></label>
+  </div>
+  <p data-shards-reads class="dva-result-blocked" aria-live="polite">Two consumers replaying 1.5 MiB/s each demand 3 MiB/s from the same shard's 2 MiB/s shared read budget. Enhanced fan-out gives each registered reader its own 2 MiB/s budget; it does not increase producer capacity.</p>
+  <p class="dva-note">Replay demand above is independent of the arrival-rate example: consumers can read older retained records. Shared polling also has a limit of 5 GetRecords calls/s per shard. Retention defaults to 24 hours and can extend to 365 days.</p>
   <p class="dva-note"><strong>Capacity ≠ retention.</strong> The lane continues accepting records over time; it does not fill at 1 MiB and move to the next shard. Control-plane scaling changes the shard layout; data-plane calls write/read records. On-demand manages capacity for you, but a hot partition key still needs attention.</p>
 </section>

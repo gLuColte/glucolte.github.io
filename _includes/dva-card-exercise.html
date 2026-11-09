@@ -1,0 +1,23 @@
+{% assign exercise = site.data.dva_followup.exercises[include.id] %}
+<details class="dva-learning-detail dva-card-exercise" data-dva-exercise="{{ include.id }}" {% if include.anchor %}id="{{ include.anchor }}"{% endif %}>
+  <summary>{{ exercise.title | escape }}</summary>
+  <p>{{ exercise.purpose | escape }}</p>
+  <form data-exercise-controls hidden>
+    <fieldset><legend>{{ exercise.legend | escape }}</legend>
+      <div class="dva-exercise-fields">
+      {% for control in exercise.controls %}
+        <label data-field="{{ control.key }}">{% if control.type == 'checkbox' %}<input type="checkbox" data-field-input="{{ control.key }}" {% if control.value %}checked{% endif %}> {{ control.label | escape }}
+        {% elsif control.type == 'select' %}{{ control.label | escape }}<select data-field-input="{{ control.key }}">{% for option in control.options %}<option value="{{ option[0] }}" {% if option[0] == control.value %}selected{% endif %}>{{ option[1] | escape }}</option>{% endfor %}</select>
+        {% else %}{{ control.label | escape }}<input type="{{ control.type }}" data-field-input="{{ control.key }}" value="{{ control.value | escape }}" {% if control.type == 'number' %}min="{{ control.min }}" max="{{ control.max }}" step="{{ control.step | default: 'any' }}"{% else %}maxlength="80"{% endif %}>
+        {% endif %}</label>
+      {% endfor %}
+      </div>
+      <div class="dva-controls">
+      {% for action in exercise.actions %}<button type="button" data-exercise-action="{{ action[0] }}">{{ action[1] | escape }}</button>{% endfor %}
+      <button type="reset">Reset example</button>
+      </div>
+    </fieldset>
+  </form>
+  <div data-exercise-output role="status" aria-live="polite" aria-atomic="true"><p class="dva-result-rule">{{ exercise.fallback | escape }}</p></div>
+  <p class="dva-note">{{ exercise.caveat | escape }} Local learning model; no AWS requests.</p>
+</details>

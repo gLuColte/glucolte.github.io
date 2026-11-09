@@ -1,5 +1,5 @@
 {
-  "checked": "29 October 2026",
+  "checked": "7 November 2026",
   "cards": {
     "beanstalk": {
       "name": "AWS Elastic Beanstalk",
@@ -40,6 +40,14 @@
         {
           "label": "Retention policies",
           "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-attribute-deletionpolicy.html"
+        },
+        {
+          "label": "Environment resources",
+          "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/customize-environment-resources.html"
+        },
+        {
+          "label": "Worker scheduling and daemon",
+          "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html"
         }
       ],
       "read": "#dva-service-beanstalk",
@@ -80,7 +88,64 @@
       "language": "yaml",
       "exampleTitle": ".ebextensions/01-environment.config · illustrative Linux excerpt",
       "note": "Replace the cache subnet group/security group placeholders with compatible existing VPC resources and allow application access to the cache. This excerpt omits network setup; it has no retention policy, so the cache follows environment deletion. On a failed rolling deployment, replacement instances use the last successful app version; redeploy to restore consistency.",
-      "walkthrough": "beanstalk-extensions"
+      "walkthrough": "beanstalk-extensions",
+      "learning": [
+        {
+          "title": "Managed environment, underlying CloudFormation",
+          "paragraphs": [
+            "Elastic Beanstalk uses CloudFormation to launch environment resources, then manages deployments, health and scaling. An .ebextensions Resources definition extends that environment stack; disposal/retention rules still matter.",
+            "Inspect Beanstalk events and underlying stack events for provisioning failures. Avoid uncoordinated manual changes to managed resources. A failed immutable rollout and a failed in-place rolling rollout have different rollback/isolation boundaries."
+          ],
+          "trap": "Environment-managed infrastructure is not proof that every custom script-created external resource is tracked or safely retained."
+        },
+        {
+          "title": "Worker tier: scheduled jobs use cron.yaml and SQS",
+          "paragraphs": [
+            "**Web server** environments handle user HTTP requests; **worker** environments process background jobs from SQS. A leader scheduler uses cron.yaml in the application source bundle to enqueue recurring work. The worker daemon polls SQS and POSTs to the application’s local HTTP endpoint; a successful response lets it delete the message.",
+            "**.ebextensions/*.config** customises environment resources/configuration. **cron.yaml** is the native recurring worker-task mechanism. OS cron can be installed/configured separately, but is not the same scheduling path. Jobs must tolerate retries and duplicate delivery."
+          ],
+          "analogy": "The timetable creates a work ticket; SQS holds tickets until a worker calls the back-office endpoint.",
+          "steps": [
+            "cron.yaml",
+            "Leader scheduler",
+            "SQS",
+            "Worker daemon",
+            "POST /process-videos"
+          ],
+          "table": {
+            "headers": [
+              "Purpose",
+              "Use",
+              "Boundary"
+            ],
+            "rows": [
+              [
+                "User-facing HTTP",
+                "Web server environment",
+                "Handles requests through the web tier"
+              ],
+              [
+                "Queued background job",
+                "Worker environment + SQS",
+                "Daemon forwards message body to local app endpoint"
+              ],
+              [
+                "Recurring worker job",
+                "cron.yaml",
+                "Schedule + endpoint path; scheduler enqueues"
+              ],
+              [
+                "Environment provisioning/settings",
+                ".ebextensions/*.config",
+                "Different file and responsibility"
+              ]
+            ]
+          },
+          "example": "# cron.yaml at source-bundle root; worker tier\nversion: 1\ncron:\n  - name: \"process-videos\"\n    url: \"/process-videos\"\n    schedule: \"0 * * * *\"\n# Scheduler → SQS → daemon → POST /process-videos (hourly).",
+          "trigger": "Native scheduled Beanstalk background task → worker tier + cron.yaml, not a web-tier cron file.",
+          "trap": "A schedule enqueues work; it does not guarantee exact execution time or exactly-once side effects."
+        }
+      ]
     },
     "ec2": {
       "name": "Amazon EC2",
@@ -125,6 +190,26 @@
         {
           "label": "Per-second billing minimum",
           "url": "https://aws.amazon.com/ec2/pricing/"
+        },
+        {
+          "label": "RI scope and capacity",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/reserved-instances-scope.html"
+        },
+        {
+          "label": "Capacity Reservations",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html"
+        },
+        {
+          "label": "gp2 / gp3",
+          "url": "https://docs.aws.amazon.com/ebs/latest/userguide/general-purpose.html"
+        },
+        {
+          "label": "Monitoring frequency",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch-new.html"
+        },
+        {
+          "label": "Elastic IP scope and reassociation",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html"
         }
       ],
       "read": "#dva-service-ec2",
@@ -155,7 +240,84 @@
       "language": "bash",
       "exampleTitle": "Linux user data",
       "note": "",
-      "walkthrough": "ec2-free-tier"
+      "walkthrough": "ec2-free-tier",
+      "learning": [
+        {
+          "title": "Regional vs Zonal Reserved Instances",
+          "paragraphs": [],
+          "table": {
+            "headers": [
+              "Option",
+              "What it supplies",
+              "Caveat"
+            ],
+            "rows": [
+              [
+                "Regional RI",
+                "Matching usage discount across AZs in a Region; eligible instance-size flexibility",
+                "No capacity reservation"
+              ],
+              [
+                "Zonal RI",
+                "Matching discount + capacity reserved in one specified AZ",
+                "Must match reservation attributes; capacity availability subject to purchase; not multi-AZ HA"
+              ],
+              [
+                "On-Demand Capacity Reservation",
+                "Reserve matching EC2 capacity in a chosen AZ independently of RI commitment",
+                "Billing discounts and capacity guarantees are separate decisions"
+              ]
+            ]
+          },
+          "trigger": "Need matching EC2 capacity in a particular AZ → a Zonal RI or an appropriate On-Demand Capacity Reservation; Regional RI alone is insufficient."
+        },
+        {
+          "title": "gp2 vs gp3, and what EC2 monitoring sees",
+          "paragraphs": [
+            "**gp2:** baseline 3 IOPS/GiB, minimum 100 and maximum 16,000 IOPS; small volumes can burst using credits. A 100 GiB volume has 300 baseline IOPS, not a permanent 3,000 IOPS guarantee.",
+            "**gp3:** performance is provisioned independently of size, with a 3,000 IOPS / 125 MiB/s baseline; current general-purpose volume limits reach **80,000 IOPS / 2,000 MiB/s** subject to volume size/IOPS ratios and the EC2 platform’s EBS bandwidth. Outposts has lower limits. Unlike gp2, gp3 does not use burst credits.",
+            "EC2 basic monitoring publishes most metrics every **5 minutes**; detailed monitoring publishes them every **1 minute**. NetworkOut is native. Guest RAM usage and filesystem/disk-space utilisation need the CloudWatch agent/custom metrics; native disk I/O metrics are not free-space utilisation."
+          ],
+          "trap": "Detailed monitoring changes frequency, not the set of guest memory/filesystem metrics."
+        },
+        {
+          "title": "Replacement cutover: stable IP vs DNS redundancy",
+          "paragraphs": [
+            "An **Elastic IP** is a static public IPv4 address allocated in one Region. Prepare/test instance B while A serves, then reassociate the EIP to B. Clients keep the address, but reassociation and connection recovery can briefly interrupt traffic; this is not guaranteed zero-downtime.",
+            "For a self-hosted authoritative DNS service that must keep its EC2 public IP, EIP reassociation can meet the address constraint. Route 53 DNS failover changes routing answers and has detection, TTL and resolver-cache effects; it does not automatically preserve that instance’s address. Independent authoritative nameservers improve resilience beyond one server."
+          ],
+          "analogy": "Keep the published phone number while moving it to a prepared office; some calls can drop during the transfer.",
+          "table": {
+            "headers": [
+              "Approach",
+              "Availability / address",
+              "Complexity"
+            ],
+            "rows": [
+              [
+                "Stop, then build replacement",
+                "Longer no-ready-server gap; auto public address may change",
+                "Simple but disruptive"
+              ],
+              [
+                "Prepare replacement + move EIP",
+                "Same public IPv4; brief cutover interruption possible",
+                "Validate replacement and handle reconnection"
+              ],
+              [
+                "Multiple independent servers + DNS failover",
+                "Redundancy; detection/caching affect failover; multiple addresses",
+                "More infrastructure, health and DNS design"
+              ]
+            ]
+          },
+          "trigger": "Must preserve an EC2-hosted service’s public IPv4 while replacing the instance → consider EIP reassociation within its Region.",
+          "trap": "Immutable replacement means a new deployment target; it does not itself guarantee continuous service or automatically move an EIP."
+        }
+      ],
+      "exercises": [
+        "cutover"
+      ]
     },
     "asg": {
       "name": "EC2 Auto Scaling",
@@ -184,6 +346,14 @@
         {
           "label": "Global Accelerator endpoints",
           "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoints.html"
+        },
+        {
+          "label": "Target-tracking metric choices",
+          "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html"
+        },
+        {
+          "label": "Step policy warm-up",
+          "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-simple-step.html"
         }
       ],
       "read": "#dva-service-asg",
@@ -191,7 +361,23 @@
       "language": "json",
       "exampleTitle": "ASG configuration excerpt",
       "note": "DesiredCapacity=10 sets the fleet total, not a 2/8 AZ allocation. A launch template supplies AMI, instance type, security groups and bootstrap configuration. Scale against the measured bottleneck.",
-      "walkthrough": "asg-balancing"
+      "walkthrough": "asg-balancing",
+      "lab": {
+        "href": "#asg-capacity-lab",
+        "label": "Try min / max / desired / current capacity"
+      },
+      "learning": [
+        {
+          "title": "Which metric should drive target tracking?",
+          "paragraphs": [
+            "Predefined metrics include ASGAverageCPUUtilization, ASGAverageNetworkIn, ASGAverageNetworkOut and ALBRequestCountPerTarget (with the target-group/load-balancer resource label). Pick a metric that changes appropriately as worker capacity changes.",
+            "EC2 **NetworkOut** counts bytes sent by the instance; ASGAverageNetworkOut is an aggregate target-tracking choice. SQS queue depth alone does not normalise for workers: use a custom/metric-math **visible backlog per InService instance**.",
+            "Target backlog per worker = acceptable delay / average processing time. With 60 s acceptable delay and 2 s/message, target 30 visible messages/worker. Handle zero workers explicitly; adding workers cannot fix a downstream bottleneck."
+          ],
+          "trigger": "Scale consumers from queue demand → backlog per worker, not CPU by default.",
+          "trap": "ASG maintains capacity across configured AZs in one Region. It does not route requests or create multi-Region failover."
+        }
+      ]
     },
     "alb": {
       "name": "Application Load Balancer",
@@ -224,6 +410,22 @@
         {
           "label": "CloudWatch metrics",
           "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-cloudwatch-metrics.html"
+        },
+        {
+          "label": "Target-group routing and cross-zone",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/edit-target-group-attributes.html"
+        },
+        {
+          "label": "Listener conditions",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html"
+        },
+        {
+          "label": "Classic routing",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/how-elastic-load-balancing-works.html"
+        },
+        {
+          "label": "Target types",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html"
         }
       ],
       "read": "#dva-service-alb",
@@ -259,7 +461,57 @@
       "language": "json",
       "exampleTitle": "Target-group health-check excerpt",
       "note": "Request tracing supplies an X-Amzn-Trace-Id for correlation; instrumentation is still needed for downstream spans. The 10% example assumes request-count routing, not differing target weights, stickiness or connection behaviour.",
-      "walkthrough": "alb-access-logs"
+      "walkthrough": "alb-access-logs",
+      "learning": [
+        {
+          "title": "Host/path rules, stickiness and uneven traffic",
+          "paragraphs": [
+            "`smart.com/api` selects a **path-pattern** rule such as `/api*`; `api.smart.com` selects a **host-header** rule. They can also be combined. An ALB listener routes to a target group; its algorithm, healthy targets and connections determine the observed distribution.",
+            "ALB cross-zone is always enabled at load-balancer level, but can be disabled for supported target groups. Sticky sessions bind a client session to a target and can skew counts; they require cross-zone enabled. Unequal instance types do not automatically receive traffic in proportion to CPU/RAM.",
+            "Legacy **Classic Load Balancer** supports basic listener/backend routing, cookie stickiness and cross-zone settings, but lacks ALB host/path target-group rules. CLB uses round robin for TCP listeners and least outstanding requests for HTTP/HTTPS; ALB supports configurable target-group algorithms. Unequal instance types do not create automatic CPU-proportional target weights."
+          ],
+          "trigger": "Same hostname, different URL paths → ALB path rules; different subdomains → host rules.",
+          "trap": "2+8 targets → about 10% each is an idealised equal-weight example, not a guarantee of exactly equal request counts."
+        },
+        {
+          "title": "Listener → rule → target group → target",
+          "paragraphs": [
+            "An ALB belongs to **one Region and VPC**. An internet-facing ALB has public-facing endpoints; an internal ALB requires private connectivity. Both can forward to private backends. Listeners accept configured HTTP/HTTPS ports; listener rules choose a target group.",
+            "A host rule matches the HTTP Host header; it does not make “hostname” a target type. IP registration does not create peering, routes, security-group permissions, NACL rules or return paths. Reachable private IPs outside the VPC can be supported targets; publicly routable IPs cannot be registered as IP targets."
+          ],
+          "analogy": "The public reception desk selects a department; the department’s target list gives the actual office address. A name on the list does not build a road there.",
+          "flow": "Client → ALB DNS endpoint → HTTPS listener :443 → host/path rule → target group → healthy backend.",
+          "table": {
+            "headers": [
+              "Target type",
+              "Destination",
+              "Boundary"
+            ],
+            "rows": [
+              [
+                "instance",
+                "Primary private IP of primary EC2 network interface",
+                "Register instance IDs in the ALB VPC"
+              ],
+              [
+                "ip",
+                "Exact registered supported IP address",
+                "Same VPC or reachable supported private network; no public IP targets"
+              ],
+              [
+                "lambda",
+                "Lambda invocation through service API",
+                "Function permission; not a target-subnet TCP connection"
+              ]
+            ]
+          },
+          "trigger": "Public frontend + private backend is normal. Other-VPC private IP → verify actual forward/return connectivity.",
+          "trap": "Host-based routing is a listener rule, not a target type. Registration alone does not guarantee health or reachability."
+        }
+      ],
+      "exercises": [
+        "alb"
+      ]
     },
     "apigw": {
       "name": "Amazon API Gateway",
@@ -300,6 +552,22 @@
         {
           "label": "REST vs HTTP",
           "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html"
+        },
+        {
+          "label": "Integration types",
+          "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-api-integration-types.html"
+        },
+        {
+          "label": "MOCK integration",
+          "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-mock-integration.html"
+        },
+        {
+          "label": "Lambda invocation permissions",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway.html"
+        },
+        {
+          "label": "API IAM/integration roles",
+          "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/permissions.html"
         }
       ],
       "read": "#dva-service-apigw",
@@ -345,7 +613,137 @@
       "language": "json",
       "exampleTitle": "Control-plane example · create a usage plan (API request body)",
       "note": "Create or import PartnerApp’s API key, then attach it to this plan separately. Mark GET /GetOrder as API Key Required. Both stages share this example’s per-key limits; the key does not route traffic. Quotas/throttles are best effort. Cache only safely scoped responses, with TTL/invalidation appropriate for changes in data and entitlements.",
-      "walkthrough": "api-gateway"
+      "walkthrough": "api-gateway",
+      "learning": [
+        {
+          "title": "REST API integration types — MOCK has no backend",
+          "paragraphs": [],
+          "table": {
+            "headers": [
+              "REST integration type",
+              "What happens",
+              "When to choose"
+            ],
+            "rows": [
+              [
+                "MOCK",
+                "API Gateway creates response from configured mappings/responses",
+                "Contract tests/stubs; no Lambda/HTTP backend invoked"
+              ],
+              [
+                "AWS_PROXY",
+                "Lambda proxy event → Lambda; function returns proxy response",
+                "No custom VTL body transformation contract"
+              ],
+              [
+                "AWS",
+                "AWS service or Lambda custom integration",
+                "Configure mappings and integration/method responses"
+              ],
+              [
+                "HTTP_PROXY",
+                "Forward to HTTP endpoint with proxy behaviour",
+                "Backend handles request/response contract"
+              ],
+              [
+                "HTTP",
+                "Custom HTTP integration",
+                "Mapping templates/response mappings can transform payloads"
+              ]
+            ]
+          },
+          "trigger": "Return a test response without calling any backend → MOCK.",
+          "trap": "API Gateway API type matters: this is the REST API integration vocabulary; HTTP APIs have a different feature/API model.",
+          "example": "// MOCK integration: conceptual configuration excerpts\nrequestTemplates: {\"application/json\": \"{\\\"statusCode\\\": 200}\"}\nintegrationResponse: {statusCode: \"200\", body: \"{\\\"status\\\":\\\"stub\\\"}\"}\n// Configure the matching method response; no backend is called."
+        },
+        {
+          "title": "HTTP anatomy and authorised cache refresh",
+          "paragraphs": [
+            "With caching enabled, an appropriately authorised `Cache-Control: max-age=0` request fetches a fresh integration response and updates that entry. Configure the method to require authorisation and grant **execute-api:InvalidateCache** to the caller. For unauthorised invalidation, configuration can return **403**, ignore with a response warning, or ignore silently. Cross-account cache invalidation is not supported.",
+            "An unexpired cached response may still be stale relative to the source data. Expired/missing entries fetch from the backend normally. Cache keys must distinguish the response inputs and authorised data scope."
+          ],
+          "analogy": "A waiter can reuse an unexpired order slip; an authorised “check again” instruction asks the kitchen for a fresh answer.",
+          "flow": "GET /prod/GetOrder?id=42 → stage/method → cache key → cached response or backend → cache update.",
+          "table": {
+            "headers": [
+              "Request part",
+              "Example",
+              "Responsibility"
+            ],
+            "rows": [
+              [
+                "Method + path",
+                "GET /prod/GetOrder",
+                "Action/resource; prod selects the stage"
+              ],
+              [
+                "Query string",
+                "?id=42",
+                "Request parameter; include relevant values in cache key"
+              ],
+              [
+                "Header",
+                "Cache-Control: max-age=0",
+                "REST API cache invalidation request"
+              ],
+              [
+                "Body",
+                "{\"quantity\":2} on a suitable POST",
+                "Payload; not a replacement for a header"
+              ]
+            ]
+          },
+          "example": "# Executable curl shape; add configured authentication/signing as needed\ncurl -H \"Cache-Control: max-age=0\" \\\n  \"https://API_ID.execute-api.ap-southeast-2.amazonaws.com/prod/GetOrder?id=42\"\n# Header alone does not grant execute-api:InvalidateCache.",
+          "trigger": "Refresh a REST API cached entry → Cache-Control: max-age=0 plus required permission/configuration.",
+          "trap": "?bypass_cache=1 and Bypass-Cache: 1 have no built-in invalidation meaning. HTTP APIs do not offer the same REST managed response cache."
+        },
+        {
+          "title": "Stage configuration vs three permission directions",
+          "paragraphs": [
+            "A REST stage references a deployed API snapshot. Stage variables are stage-owned key/value configuration, similar to environment variables: **dev: lambdaFunction=my-api-dev**; **prod: lambdaFunction=my-api-prod**. An integration can interpolate the function name or alias. A variable selects a target; it grants no invocation permission.",
+            "**Incoming authorisation:** IAM uses signed requests (normally SigV4), Cognito User Pools validate configured user tokens/scopes, and Lambda authorisers run custom logic. HTTP APIs also support native JWT authorisers. **STS is not a standalone API Gateway authoriser**: a trusted caller may AssumeRole, receive temporary credentials, then sign an AWS_IAM API request.",
+            "For the backend hop, use a Lambda resource-policy Allow for **apigateway.amazonaws.com**, scoped by the appropriate **execute-api source ARN** and selected function/alias. Alternatively configure API Gateway to assume a trusted invocation role with lambda:InvokeFunction permission. Console-created integrations may add Lambda permission automatically; stage-variable targets still need matching grants."
+          ],
+          "analogy": "The caller shows a ticket; the receptionist needs permission to call the office; the office worker needs permission to open the filing cabinet. Changing the office number grants none of those permissions.",
+          "steps": [
+            "Client authorisation",
+            "API Gateway invocation permission",
+            "Lambda execution role",
+            "DynamoDB action"
+          ],
+          "table": {
+            "headers": [
+              "Boundary",
+              "Mechanism",
+              "What it permits"
+            ],
+            "rows": [
+              [
+                "Client → API Gateway",
+                "IAM/SigV4, Cognito or Lambda authoriser as configured",
+                "Invoke the API method; STS only supplies credentials for the IAM path"
+              ],
+              [
+                "API Gateway → Lambda",
+                "Function resource policy OR configured IAM invocation role",
+                "lambda:InvokeFunction on the selected target"
+              ],
+              [
+                "Lambda → DynamoDB",
+                "Lambda execution role",
+                "Required DynamoDB actions on the table/index"
+              ]
+            ]
+          },
+          "example": "# Integration target shorthand (not a complete ARN)\n${stageVariables.lambdaFunction}\n\n# Executable permission shape; substitute your IDs and target\naws lambda add-permission --function-name my-api-dev \\\n  --statement-id apigw-dev-get-order --action lambda:InvokeFunction \\\n  --principal apigateway.amazonaws.com \\\n  --source-arn 'arn:aws:execute-api:ap-southeast-2:111111111111:API_ID/dev/GET/GetOrder'\n# For a qualified alias target, scope permission to the matching alias.",
+          "trigger": "API accepted caller but returns 500 before Lambda runs → inspect integration target and invoke permission. Lambda AccessDenied downstream → execution role.",
+          "trap": "A Lambda execution role controls outgoing AWS calls, not who may invoke the function. For the alternative role path, both trust and permissions must be correct; explicit Deny still applies."
+        }
+      ],
+      "exercises": [
+        "cache",
+        "invocation"
+      ]
     },
     "lambda": {
       "name": "AWS Lambda",
@@ -370,6 +768,34 @@
         {
           "label": "Newer managed-instance compute",
           "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html"
+        },
+        {
+          "label": "Concurrency autoscaling",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/provisioned-concurrency.html"
+        },
+        {
+          "label": "Async retry",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-error-handling.html"
+        },
+        {
+          "label": "Async failure capture",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html"
+        },
+        {
+          "label": "Container requirements",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/images-create.html"
+        },
+        {
+          "label": "Runtime API",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/runtimes-api.html"
+        },
+        {
+          "label": "Quotas",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html"
+        },
+        {
+          "label": "Node.js ZIP dependencies",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/nodejs-package.html"
         }
       ],
       "read": "#dva-service-lambda",
@@ -404,7 +830,103 @@
       },
       "language": "json",
       "exampleTitle": "UpdateAlias request: v1 90%, v2 10%",
-      "note": "Rollback: remove additional weights and route prod to v1. Measure duration and cost together. Lambda Managed Instances has different compute configuration; do not generalize this memory-only rule to every Lambda offering."
+      "note": "Rollback: remove additional weights and route prod to v1. Measure duration and cost together. Lambda Managed Instances has different compute configuration; do not generalize this memory-only rule to every Lambda offering.",
+      "learning": [
+        {
+          "title": "Scaling: cold start vs concurrency vs CPU",
+          "paragraphs": [
+            "On-demand Lambda automatically adds execution environments within scaling/concurrency quotas. Reserved concurrency reserves AND caps a function’s concurrency; it does not warm environments. Provisioned concurrency pre-initialises environments on a version/alias; excess requests can use on-demand capacity when allowed.",
+            "Application Auto Scaling can schedule provisioned concurrency before a known peak or target-track provisioned-concurrency utilisation for variable load. Scheduling is proactive; target tracking reacts and needs time to scale.",
+            "Cold-start latency → consider provisioned concurrency after measuring initialisation. CPU-heavy handler duration → increase memory (128–10,240 MB for standard functions; ~1 vCPU at 1,769 MB), profile and measure cost/duration. Warm environments do not supply extra per-invocation CPU."
+          ],
+          "trap": "Reserved concurrency is not provisioned concurrency; neither a layer nor a warm environment fixes CPU starvation."
+        },
+        {
+          "title": "Invocation errors: who owns retry and the DLQ?",
+          "paragraphs": [],
+          "table": {
+            "headers": [
+              "Path",
+              "Retry responsibility",
+              "Failure evidence"
+            ],
+            "rows": [
+              [
+                "Synchronous Invoke",
+                "Caller waits for result/error; caller or invoking service owns retry",
+                "Function error can be in a successful Invoke API response; inspect FunctionError/payload"
+              ],
+              [
+                "Asynchronous Invoke",
+                "Lambda queue; default 2 retries for function errors",
+                "Throttle/system errors retry with backoff up to the event-age window (6 h default); duplicates possible"
+              ],
+              [
+                "Async failure capture",
+                "Configure Lambda DLQ (SQS/SNS) or supported on-failure destination",
+                "DLQ stores failed event; destination adds invocation context; delivery also needs permissions"
+              ],
+              [
+                "SQS event source mapping",
+                "Lambda polls queue and deletes successful work",
+                "Use source queue redrive/DLQ; Lambda async-invocation DLQ is not this path"
+              ]
+            ]
+          },
+          "trap": "A queue-triggered Lambda is not the same as InvocationType=Event."
+        },
+        {
+          "title": "Container/runtime and configuration contract",
+          "paragraphs": [
+            "Lambda container images must be **Linux**, target **one architecture** (x86_64 or arm64), and stay within **10 GB uncompressed including layers**. Multi-architecture images are not supported; a normal container image still needs Lambda-compatible invocation handling.",
+            "**Runtime API** is the HTTP contract to fetch invocations/report results. A **Runtime Interface Client (RIC)** implements that contract inside the image/runtime. The **Runtime Interface Emulator (RIE)** is a local testing proxy; it does not emulate IAM, AWS networking or all service behaviour.",
+            "Environment variables are strings with an aggregate **4 KB** limit for a function. Store large configuration externally; use Secrets Manager/Parameter Store when appropriate rather than treating env vars as a secret-rotation system."
+          ],
+          "trigger": "CPU-intensive code → tune memory; large container dependencies → image packaging, still subject to Lambda quotas."
+        },
+        {
+          "title": "Node.js ZIP: declaring a dependency does not install it",
+          "paragraphs": [
+            "**package.json** declares packages; **node_modules/** contains their installed code. Lambda does not run npm install when you upload a ZIP. Install/build in development or CI, then ship the handler at the archive root with required dependencies. With an existing lockfile, npm ci provides a reproducible install.",
+            "A layer can provide dependencies separately (Node.js layers use the supported nodejs/node_modules path); a container image is another packaging model. Bundle the runtime/library versions you require explicitly, even when the runtime includes an SDK. Native modules must match the Lambda Linux runtime and architecture."
+          ],
+          "analogy": "A shopping list is not a pantry. Ship the ingredients, not only the list.",
+          "steps": [
+            "Source + package lock",
+            "CI: install / build",
+            "ZIP / layer / image",
+            "Runtime loads modules"
+          ],
+          "table": {
+            "headers": [
+              "Responsibility",
+              "Build time",
+              "Runtime"
+            ],
+            "rows": [
+              [
+                "Dependencies",
+                "npm install to update lockfile; npm ci --omit=dev in CI",
+                "require(\"pg\") loads already packaged driver"
+              ],
+              [
+                "Application",
+                "Package index.js and installed production dependencies",
+                "Handler executes; no automatic npm install"
+              ],
+              [
+                "Database access",
+                "Configure permissions, secrets and connectivity separately",
+                "Driver connects to PostgreSQL; packaging does not create the database"
+              ]
+            ]
+          },
+          "example": "# Build commands inside a project containing index.js\nnpm install pg                 # once: update manifest + lockfile\nnpm ci --omit=dev               # CI: install from the committed lockfile\nzip -r ../lambda.zip index.js package.json package-lock.json node_modules/\n# ZIP root: index.js, manifests, node_modules/pg/ and its dependencies\n\n// index.js — CommonJS example; configure DATABASE_URL securely\nconst { Client } = require('pg');\nexports.handler = async () => {\n  const db = new Client({ connectionString: process.env.DATABASE_URL });\n  await db.connect();\n  try { return (await db.query('SELECT 1 AS ok')).rows; }\n  finally { await db.end(); }\n};\n// This simple connection-per-invocation example still needs DB network/auth setup.",
+          "trigger": "Cannot find module pg after ZIP upload → verify installed dependency files/layer and archive paths, not just package.json.",
+          "trap": "npm ci needs a matching lockfile. Bundlers/layers can change the artifact shape, but required runtime code must still be present.",
+          "exampleTitle": "Build commands (Bash), then index.js contents (JavaScript)"
+        }
+      ]
     },
     "cfn": {
       "name": "AWS CloudFormation",
@@ -429,6 +951,14 @@
         {
           "label": "StackSets",
           "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html"
+        },
+        {
+          "label": "Parameter types",
+          "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html"
+        },
+        {
+          "label": "Pseudo parameters",
+          "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html"
         }
       ],
       "read": "#dva-service-cfn",
@@ -457,20 +987,66 @@
           [
             "!If [Condition, Yes, No]",
             "Conditional value"
-          ],
-          [
-            "AWS::NoValue",
-            "Remove a property through Fn::If"
-          ],
-          [
-            "AWS::AccountId / AWS::Region / AWS::StackName",
-            "Context pseudo parameters"
           ]
         ]
       },
       "language": "yaml",
       "exampleTitle": "Minimal conditional resource + export",
-      "note": "StackSets deploy a template across selected accounts/Regions with parameters and permissions. This is different from a same-Region export/import dependency. Consult current docs for newer cross-Region output-reference features."
+      "note": "StackSets deploy a template across selected accounts/Regions with parameters and permissions. This is different from a same-Region export/import dependency. Consult current docs for newer cross-Region output-reference features.",
+      "learning": [
+        {
+          "title": "Valid parameters, Conditions vs DependsOn",
+          "paragraphs": [
+            "Parameter types include **String, Number, List<Number>, CommaDelimitedList**, supported **AWS-specific types** (for example AWS::EC2::VPC::Id and List<AWS::EC2::Subnet::Id>), and supported **SSM parameter value types**. `DependentParameter` is not a valid type; native Boolean is not a parameter type either.",
+            "**Conditions** decide whether a resource/output is created or select a property through Fn::If. **DependsOn** controls ordering for resources that are created. It does not test an input or make a resource optional. References can create implicit dependencies."
+          ],
+          "example": "Parameters:\n  Stage:\n    Type: String\n    AllowedValues: [dev, prod]\nConditions:\n  IsProd: !Equals [!Ref Stage, prod]\n# Resource: Condition: IsProd → create only in prod.\n# Resource: DependsOn: OtherResource → order, not a boolean check."
+        },
+        {
+          "title": "Pseudo parameters: AWS supplies deployment context",
+          "paragraphs": [
+            "Think of a template as a function: **Parameters** are user inputs; **pseudo parameters** are AWS-provided context. CloudFormation resolves references during stack deployment/evaluation, not as ordinary application compile-time constants.",
+            "**CDK synthesis** emits a CloudFormation template. Environment-aware CDK code can resolve some context earlier, but unresolved AWS references remain tokens for CloudFormation to resolve at deployment."
+          ],
+          "analogy": "The form asks you for a name; the office supplies its address and the assigned case number.",
+          "flow": "CDK code → synth template → CloudFormation deploy → resolve account/Region/stack context.",
+          "table": {
+            "headers": [
+              "Pseudo parameter",
+              "Value"
+            ],
+            "rows": [
+              [
+                "AWS::Region",
+                "Deployment Region"
+              ],
+              [
+                "AWS::AccountId",
+                "Deployment account ID"
+              ],
+              [
+                "AWS::StackName",
+                "Stack name"
+              ],
+              [
+                "AWS::StackId",
+                "Unique stack ARN"
+              ],
+              [
+                "AWS::Partition",
+                "ARN partition: aws, aws-cn, aws-us-gov, etc."
+              ],
+              [
+                "AWS::NoValue",
+                "Remove a property when returned by Fn::If"
+              ]
+            ]
+          },
+          "example": "# CloudFormation YAML excerpt\nOutputs:\n  Region:\n    Value: !Ref AWS::Region\n  Account:\n    Value: !Ref AWS::AccountId\n  Stack:\n    Value: !Ref AWS::StackId\n# Optional property pattern: !If [UseValue, value, !Ref AWS::NoValue]",
+          "trigger": "Need current account/Region without user input → pseudo parameter.",
+          "trap": "AWS::NoValue removes a property through Fn::If; it is not an empty string or a parameter you declare."
+        }
+      ]
     },
     "cdk": {
       "name": "AWS CDK",
@@ -491,6 +1067,10 @@
         {
           "label": "CDK synthesis",
           "url": "https://docs.aws.amazon.com/cdk/v2/guide/ref-cli-cmd-synth.html"
+        },
+        {
+          "label": "CDK diff",
+          "url": "https://docs.aws.amazon.com/cdk/v2/guide/ref-cli-cmd-diff.html"
         }
       ],
       "read": "#dva-service-cdk",
@@ -520,7 +1100,17 @@
       },
       "language": "python",
       "exampleTitle": "CDK stack excerpt · creates a Lambda function",
-      "note": "cdk init → write constructs → build if needed → cdk synth → cdk deploy. SAM can also declare ordinary CloudFormation resources; serverless scope versus broad infrastructure is a preference, not an absolute capability boundary."
+      "note": "cdk init → write constructs → build if needed → cdk synth → cdk deploy. SAM can also declare ordinary CloudFormation resources; serverless scope versus broad infrastructure is a preference, not an absolute capability boundary.",
+      "learning": [
+        {
+          "title": "diff previews; deploy changes resources",
+          "paragraphs": [
+            "`cdk diff` compares the synthesised stack with its deployed state and displays proposed differences; it does not apply the application update. Its default workflow may use a temporary CloudFormation change set for replacement accuracy.",
+            "`cdk deploy` provisions/updates through CloudFormation. Neither command runs your business application locally; the provisioned Lambda/EC2/ECS resources execute it."
+          ],
+          "trigger": "Review proposed infrastructure changes → diff; apply reviewed changes → deploy."
+        }
+      ]
     },
     "sam": {
       "name": "AWS SAM",
@@ -549,6 +1139,18 @@
         {
           "label": "DVA-C02 Deployment scope",
           "url": "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02-domain3.html"
+        },
+        {
+          "label": "Sync behaviour",
+          "url": "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/using-sam-cli-sync.html"
+        },
+        {
+          "label": "Sync command",
+          "url": "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-sync.html"
+        },
+        {
+          "label": "Deploy command",
+          "url": "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-deploy.html"
         }
       ],
       "read": "#dva-service-sam",
@@ -590,7 +1192,38 @@
       },
       "language": "yaml",
       "exampleTitle": "SAM template excerpt · HTTP API + Lambda + standard Cognito resource",
-      "note": "sam init → sam build → sam local invoke / sam local start-api → sam deploy --guided. The table lists common types; the current reference includes additional shorthand resources. SAM remains explicit in exam skills 3.2.4, 3.3.1, 3.3.4 and 3.4.3."
+      "note": "sam init → sam build → sam local invoke / sam local start-api → sam deploy --guided. The table lists common types; the current reference includes additional shorthand resources. SAM remains explicit in exam skills 3.2.4, 3.3.1, 3.3.4 and 3.4.3.",
+      "learning": [
+        {
+          "title": "sam sync vs sam deploy: feedback loop vs managed release",
+          "paragraphs": [],
+          "table": {
+            "headers": [
+              "Command",
+              "Path",
+              "Recovery boundary"
+            ],
+            "rows": [
+              [
+                "sam sync --code / --watch",
+                "Fast development loop; supported code updates use service APIs directly; other changes can use CloudFormation",
+                "Do not assume a stack rollback reverses direct code syncs"
+              ],
+              [
+                "sam deploy",
+                "Packages/deploys a CloudFormation-managed update/change set",
+                "Normal stack failure/rollback behaviour unless explicitly disabled; use versioned artifacts for release"
+              ],
+              [
+                "Production release",
+                "Repeatable stack deployment + tested versions/aliases/hooks as appropriate",
+                "Use sync in a development stack, not as a replacement for controlled promotion"
+              ]
+            ]
+          },
+          "trap": "sam sync is not exclusively API-only: unsupported/code-independent infrastructure changes can trigger a CloudFormation deployment."
+        }
+      ]
     },
     "sar": {
       "name": "AWS Serverless Application Repository",
@@ -661,6 +1294,66 @@
         {
           "label": "Conditional expressions",
           "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ConditionExpressions.html"
+        },
+        {
+          "label": "Transactions and ACID",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html"
+        },
+        {
+          "label": "Transaction limits",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html"
+        },
+        {
+          "label": "Batch limits",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html"
+        },
+        {
+          "label": "Adaptive capacity",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/burst-adaptive-capacity.html"
+        },
+        {
+          "label": "Atomic counters",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/example_dynamodb_Scenario_AtomicCounterOperations_section.html"
+        },
+        {
+          "label": "Capacity arithmetic",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/read-write-operations.html"
+        },
+        {
+          "label": "LSIs",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LSI.html"
+        },
+        {
+          "label": "GSI creation/backfill",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.OnlineOps.html"
+        },
+        {
+          "label": "Query",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html"
+        },
+        {
+          "label": "Scan and parallel scan",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Scan.html"
+        },
+        {
+          "label": "DAX consistency",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.consistency.html"
+        },
+        {
+          "label": "DAX client integration",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.client.html"
+        },
+        {
+          "label": "GSI back-pressure",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/gsi-throttling.html"
+        },
+        {
+          "label": "CLI Scan options",
+          "url": "https://docs.aws.amazon.com/cli/latest/reference/dynamodb/scan.html"
+        },
+        {
+          "label": "CLI pagination",
+          "url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-pagination.html"
         }
       ],
       "read": "#dva-service-dynamodb",
@@ -685,7 +1378,268 @@
       },
       "language": "json",
       "exampleTitle": "Low-level PutItem: atomic request claim",
-      "note": "The key schema must make RequestId the primary key in this separate ledger. A successful claim does not prove the payment/write completed; persist outcomes and recover abandoned work. A String Version sorts lexically; use Number or suitable encoding for numeric ordering."
+      "note": "The key schema must make RequestId the primary key in this separate ledger. A successful claim does not prove the payment/write completed; persist outcomes and recover abandoned work. A String Version sorts lexically; use Number or suitable encoding for numeric ordering.",
+      "lab": {
+        "href": "#transaction-lab",
+        "label": "Transfer a voucher: fail the second write"
+      },
+      "learning": [
+        {
+          "title": "Atomic transaction vs batch vs a recent read",
+          "paragraphs": [],
+          "table": {
+            "headers": [
+              "Operation",
+              "Contract",
+              "Deciding boundary"
+            ],
+            "rows": [
+              [
+                "TransactWriteItems",
+                "Up to 100 distinct items; aggregate item size ≤4 MB; same account/Region",
+                "Put/Update/Delete/ConditionCheck; whole bundle succeeds or cancels"
+              ],
+              [
+                "BatchWriteItem",
+                "Up to 25 Put/Delete operations; request ≤16 MB",
+                "Individual writes atomic; bundle not atomic; retry UnprocessedItems with backoff"
+              ],
+              [
+                "Strong GetItem / Query",
+                "Supported table/LSI reads with ConsistentRead=true",
+                "Recent committed item data; not a multi-item transaction; no strong GSI reads"
+              ],
+              [
+                "Conditional PutItem",
+                "attribute_not_exists(primary_key)",
+                "Prevents replacing that existing key atomically"
+              ],
+              [
+                "Atomic ADD / arithmetic UpdateItem",
+                "One item updated without a read-then-write race",
+                "Not inherently idempotent; retry can increment twice"
+              ]
+            ]
+          },
+          "trigger": "Debit game credits + grant the purchased item, all-or-nothing → transaction with conditions for the business invariants.",
+          "trap": "An awaited/synchronous batch can partially succeed. An async application can submit an atomic transaction; timing and atomicity are independent."
+        },
+        {
+          "title": "Capacity, hot partitions and scaling",
+          "paragraphs": [
+            "**Provisioned capacity** is the configured budget; **Auto Scaling** changes that budget in response to utilisation, with reaction time. **Adaptive capacity** reallocates available capacity towards unevenly accessed partitions; it cannot create unlimited table/partition capacity or rescue every single hot key.",
+            "Distribute high-volume access across partition keys. Adding total WCU/RCU or switching to on-demand is not a universal cure for a hot item. For a voucher, condition the owner/balance update and use a transaction across ownership items."
+          ],
+          "trigger": "Hot key despite available table capacity → inspect key distribution and per-partition pressure, not only total WCU.",
+          "example": "// UpdateItem excerpt: atomic increment, NOT retry-idempotent\n{\"UpdateExpression\":\"ADD Views :one\",\n \"ExpressionAttributeValues\":{\":one\":{\"N\":\"1\"}}}"
+        },
+        {
+          "title": "Read/write capacity: round size, then apply the rate",
+          "paragraphs": [
+            "**Strong** reads return the latest successfully committed data; **eventual** reads can be stale and consume half the read capacity, not two reads. The calculator models successful single-item reads/writes of equally sized items; KB here means 1,024 bytes, including attribute names and values.",
+            "**12 KB × 16 eventual reads/s:** ceil(12/4) = 3 size units; 3 × 0.5 = 1.5 units/read; 1.5 × 16 = **24 RCUs**. Consumed units describe operations; provisioned units describe throughput per second. On-demand uses analogous request-unit arithmetic rather than provisioned RCU/WCU settings."
+          ],
+          "analogy": "Buy capacity in rounded cartons: a partly filled carton still costs one carton; read consistency changes its price.",
+          "flow": "Item bytes → round to 4 KB read / 1 KB write units → consistency/transaction multiplier → requests per second.",
+          "table": {
+            "headers": [
+              "Operation",
+              "Per item-size chunk",
+              "Then multiply by"
+            ],
+            "rows": [
+              [
+                "Normal write",
+                "1 write unit per 1 KB, rounded up",
+                "Writes/s → WCUs"
+              ],
+              [
+                "Strong read",
+                "1 read unit per 4 KB, rounded up",
+                "Reads/s → RCUs"
+              ],
+              [
+                "Eventual read",
+                "0.5 read unit per 4 KB, rounded up",
+                "Reads/s → RCUs"
+              ],
+              [
+                "Transactional read",
+                "2 read units per 4 KB, rounded up",
+                "Reads/s → RCUs"
+              ],
+              [
+                "Transactional write",
+                "2 write units per 1 KB, rounded up",
+                "Writes/s → WCUs"
+              ]
+            ]
+          },
+          "trigger": "Round item size before multiplying by request rate; transactions cost twice the equivalent strong-read/normal-write capacity.",
+          "trap": "This single-item formula is not a universal Query/Scan estimator. Index writes, updates, condition failures and actual access distribution can add considerations; provision headroom."
+        },
+        {
+          "title": "LSI vs GSI: another access path, not a reordered table",
+          "paragraphs": [
+            "Like a relational index, an index offers a different lookup order. It does **not** physically reorder the original table. An LSI is not necessarily a simple pointer: it stores index keys and projected attributes. “Local” refers to sharing the table partition key and related storage organisation; GSI storage/partitioning is separate.",
+            "The **10 GB LSI item-collection limit** applies per partition-key value to the base-table items plus their LSI entries. Creating LSIs only with the table is a DynamoDB design constraint, not a rule for all databases. A newly added GSI backfills existing eligible items before becoming active.",
+            "**Provisioned accounting:** LSI reads/writes share the table budget. GSI queries use the index’s eventual-read RCUs, not table RCUs. Writes to eligible base items can also write index entries; their sizes/changed keys determine the extra WCUs. Insufficient GSI write capacity can back-pressure base writes. Separate index reads, writes and storage add cost, but a suitable GSI can replace expensive repeated scans."
+          ],
+          "analogy": "Two library catalogues: LSI keeps the same reader’s drawer with a new sort order; GSI provides a separate set of drawers by another key.",
+          "flow": "Orders base UserID + OrderID → LSI UserID + OrderDate; GSI OrderStatus + OrderDate.",
+          "table": {
+            "headers": [
+              "Boundary",
+              "LSI",
+              "GSI"
+            ],
+            "rows": [
+              [
+                "Partition / sort keys",
+                "Same partition key; alternative sort key",
+                "Can use different partition and sort keys"
+              ],
+              [
+                "Created",
+                "Only with table",
+                "With table or later (backfill)"
+              ],
+              [
+                "Read consistency",
+                "Strong or eventual",
+                "Eventual only"
+              ],
+              [
+                "Provisioned capacity",
+                "Shares base table",
+                "Separate index capacity when provisioned"
+              ],
+              [
+                "Storage/limit",
+                "10 GB item collection per partition-key value",
+                "Separate index partitions; no LSI item-collection limit"
+              ],
+              [
+                "Write amplification",
+                "Included in table capacity accounting",
+                "Additional writes for affected index entries; changing an index key may delete old + insert new"
+              ],
+              [
+                "Read source",
+                "Table/LSI budget; non-projected attributes may require table fetch",
+                "Projected index data only; use GSI RCUs"
+              ]
+            ]
+          },
+          "trigger": "Existing table needs a new lookup partition key → GSI. Same partition key + strong reads on another sort key → plan an LSI at table creation.",
+          "trap": "Global means a different table-wide access path, not a cross-Region index."
+        },
+        {
+          "title": "Query vs Scan vs Parallel Scan",
+          "paragraphs": [
+            "**CLI view:** projection chooses attributes (columns); filtering chooses returned items (rows), after reads. For the same evaluated data, neither reduces Scan capacity. CLI output pagination is separate from DynamoDB’s service-level LastEvaluatedKey/ExclusiveStartKey. Use the playground above for both Users and a 250-object S3 listing."
+          ],
+          "analogy": "Query goes to the right filing drawer; Scan checks every drawer; Parallel Scan gives several clerks different portions of the filing room.",
+          "flow": "Suitable table/index partition key → Query. Otherwise Scan → process page → follow LastEvaluatedKey; parallel workers scan separate logical segments.",
+          "table": {
+            "headers": [
+              "Operation",
+              "Access pattern",
+              "Capacity / caveat"
+            ],
+            "rows": [
+              [
+                "Query",
+                "Partition-key equality; optional sort-key condition",
+                "An existing suitable table/index key may already suffice"
+              ],
+              [
+                "Scan",
+                "Evaluate table/index items, up to 1 MB per page",
+                "FilterExpression and ProjectionExpression do not reduce Scan read capacity"
+              ],
+              [
+                "Parallel Scan",
+                "Concurrent Segment workers with the same TotalSegments",
+                "Can reduce elapsed time, but increases simultaneous read pressure"
+              ],
+              [
+                "CLI projection / filter",
+                "--projection-expression / --filter-expression",
+                "Return fewer attributes/items; same evaluated data still costs reads"
+              ],
+              [
+                "CLI service batching",
+                "--page-size",
+                "Items requested/evaluated per service call; DynamoDB can stop sooner at 1 MB"
+              ],
+              [
+                "CLI output limit",
+                "--max-items",
+                "Maximum output items across automatic service calls"
+              ],
+              [
+                "CLI resume",
+                "--starting-token",
+                "Pass the CLI response NextToken unchanged; not a generic --next-token input"
+              ]
+            ]
+          },
+          "example": "# Pseudocode: four concurrent workers; each paginates independently\ndef worker(segment):\n    start = None\n    while True:\n        page = scan(TableName=\"Orders\", Segment=segment,\n                    TotalSegments=4, ExclusiveStartKey=start) # omit key initially\n        process(page[\"Items\"])\n        start = page.get(\"LastEvaluatedKey\")\n        if not start: break\nrun_concurrently(worker, segments=range(4))\n\n# Executable AWS CLI shape; aliases avoid reserved attribute names\naws dynamodb scan --table-name Users \\\n  --projection-expression \"UserID, #n\" \\\n  --filter-expression \"#a = :yes\" \\\n  --expression-attribute-names '{\"#n\":\"Name\",\"#a\":\"Active\"}' \\\n  --expression-attribute-values '{\":yes\":{\"BOOL\":true}}' \\\n  --page-size 4 --max-items 5\n# Resume using the returned CLI NextToken: --starting-token \"TOKEN\"\n",
+          "trigger": "No suitable key/index and a one-off full-table job → Scan; use Parallel Scan only when concurrency and capacity budget fit.",
+          "trap": "A filter runs after reads. Segments are logical scan work, not a promise of one worker per physical partition; pagination still applies."
+        },
+        {
+          "title": "DAX vs Redis vs CloudFront: cache the right boundary",
+          "paragraphs": [
+            "**DAX** shares eligible DynamoDB item/query results across clients; it is not a separate cache per signed-in user. Reuse depends on keys and query inputs. A DAX-compatible SDK/client and cluster endpoint handle lookup, population and much of the cache lifecycle. Cache hits are eventually consistent; strong reads pass through to DynamoDB and do not populate the cache.",
+            "**Redis can cache DynamoDB data.** Your application controls lookup, miss handling, population, TTL and invalidation. Choose it for custom keys, session data or computed values. For static S3 images, use **CloudFront** in the HTTP delivery path. Always preserve authorisation/tenant scope; a shared cache is not an entitlement check."
+          ],
+          "analogy": "DAX is a DynamoDB-aware librarian; Redis is a general-purpose shelf you organise; CloudFront is a worldwide HTTP delivery depot.",
+          "steps": [
+            "Application request",
+            "DAX / Redis lookup, or HTTP CDN",
+            "Source on miss"
+          ],
+          "table": {
+            "headers": [
+              "Cache",
+              "Integration / responsibility",
+              "Choose when"
+            ],
+            "rows": [
+              [
+                "DAX",
+                "DAX client → cluster → DynamoDB; item/query cache logic largely managed",
+                "Repeated eventual DynamoDB reads, minimal cache plumbing"
+              ],
+              [
+                "ElastiCache Redis",
+                "Application → cache → any suitable source; application manages consistency",
+                "Sessions, database results or computed recommendations"
+              ],
+              [
+                "CloudFront",
+                "Browser → edge cache → HTTP origin such as S3",
+                "Static assets and appropriate cacheable HTTP responses"
+              ],
+              [
+                "Strong-read requirement",
+                "Bypass cache → DynamoDB table/LSI",
+                "Latest successfully committed data; a GSI cannot serve strong reads"
+              ]
+            ]
+          },
+          "trigger": "Repeated DynamoDB products + least cache logic → DAX. Arbitrary sessions/computation → Redis. S3 images → CloudFront.",
+          "trap": "DAX does not provide strong cache hits; it can forward strong reads. Redis is capable of caching DynamoDB, but is not a direct CDN replacement."
+        }
+      ],
+      "exercises": [
+        "dynamo",
+        "cache-choice",
+        "cli",
+        "gsi"
+      ]
     },
     "sqs": {
       "name": "Amazon SQS",
@@ -710,6 +1664,38 @@
         {
           "label": "Queue-based scaling",
           "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-using-sqs-queue.html"
+        },
+        {
+          "label": "Message quotas (1 MiB)",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html"
+        },
+        {
+          "label": "Long polling",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-short-and-long-polling.html"
+        },
+        {
+          "label": "Large messages via S3",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-managing-large-messages.html"
+        },
+        {
+          "label": "SQS encryption",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-server-side-encryption.html"
+        },
+        {
+          "label": "KMS producer/consumer permissions",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-key-management.html"
+        },
+        {
+          "label": "FIFO identifiers",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-key-terms.html"
+        },
+        {
+          "label": "Content deduplication",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-exactly-once-processing.html"
+        },
+        {
+          "label": "Receive retry ID",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ReceiveMessage.html"
         }
       ],
       "read": "#dva-service-sqs",
@@ -734,7 +1720,112 @@
       },
       "language": "json",
       "exampleTitle": "ReceiveMessage request (long polling)",
-      "note": "Backlog per worker = ApproximateNumberOfMessagesVisible / running workers. Target backlog = acceptable wait / average processing time. Apply target tracking to ECS with an appropriate task-count metric and a scale-from-zero strategy."
+      "note": "Backlog per worker = ApproximateNumberOfMessagesVisible / running workers. Target backlog = acceptable wait / average processing time. Apply target tracking to ECS with an appropriate task-count metric and a scale-from-zero strategy.",
+      "learning": [
+        {
+          "title": "Polling, in-flight messages and large payloads",
+          "paragraphs": [
+            "Stored messages are waiting in the queue; **in-flight** messages have been received but not deleted. Standard queues have an approximately **120,000** in-flight limit depending on traffic/backlog; FIFO currently supports **120,000**. There is no fixed count quota on stored backlog, but retention and service quotas still apply.",
+            "**Short polling** (WaitTimeSeconds=0) samples servers and may return false-empty results. **Long polling** (1–20 s) queries all servers and waits for messages, reducing empty responses. At the Standard in-flight limit, short polling can return OverLimit; long polling waits without returning more messages until slots free.",
+            "Native messages are now up to **1 MiB (1,048,576 bytes)**, not the older 256 KB. The Java/Python **SQS Extended Client** stores large payloads in S3 (up to 2 GB) and queues a reference. Consumers need S3 permissions and coordinated object cleanup; this is not a native multi-GB queue body.",
+            "Visibility is a processing lease, not deletion. For Lambda polling SQS, configure the source queue redrive policy/DLQ. Lambda async-invocation retry/DLQ settings apply to its separate asynchronous queue, not SQS event source mappings."
+          ],
+          "trigger": "Excess empty receives → long polling; repeated processing → inspect visibility, failures and idempotency.",
+          "trap": "Increasing stored backlog is not identical to hitting the in-flight limit."
+        },
+        {
+          "title": "Message encryption: service-side vs client-side",
+          "paragraphs": [
+            "SSE-KMS uses [envelope encryption](#cryptography): SQS manages data-key use, not the producer’s application logic. Producers generally need **kms:GenerateDataKey + kms:Decrypt**; consumers need **kms:Decrypt** for relevant keys. Check the key policy and service integrations too.",
+            "See [IAM identity vs queue policies](#dva-service-iam) for who may call SendMessage/ReceiveMessage. Secrets Manager stores secrets; it is not the service encrypting queue storage."
+          ],
+          "analogy": "The queue locks its storage room for you; client-side encryption puts a separately locked box inside that room.",
+          "flow": "Authorised producer → TLS → SQS encrypts message body at rest → SQS decrypts → authorised consumer over TLS.",
+          "table": {
+            "headers": [
+              "Choice",
+              "Who encrypts at rest?",
+              "Application / permission impact"
+            ],
+            "rows": [
+              [
+                "SSE-SQS",
+                "SQS with SQS-managed keys",
+                "Transparent service encryption; no KMS key permissions"
+              ],
+              [
+                "SSE-KMS",
+                "SQS using KMS-protected data keys",
+                "Usually unchanged Send/Receive code; check IAM and KMS permissions"
+              ],
+              [
+                "Client-side encryption",
+                "Your application before SendMessage",
+                "Requires encrypt/decrypt code and its own key-access model"
+              ],
+              [
+                "HTTPS/TLS",
+                "Transport layer, not queue storage",
+                "Protects data in transit; not an at-rest alternative"
+              ]
+            ]
+          },
+          "trigger": "Encrypt SQS messages at rest with KMS and minimal application change → SSE-KMS with appropriate permissions.",
+          "trap": "SSE does not mean the consumer must implement local decryption. Client-side encryption can add confidentiality but changes the application."
+        },
+        {
+          "title": "FIFO: group orders work; deduplication identifies a send",
+          "paragraphs": [
+            "The five-minute deduplication history can outlive receiving/deleting the original message. Suppression does not delete an already queued message, and a retry outside the window can enqueue again. FIFO ordering and send deduplication do not make business side effects exactly once: visibility expiry, failures and retries still require application idempotency."
+          ],
+          "analogy": "MessageGroupId chooses the checkout lane; MessageDeduplicationId is the receipt number that identifies one logical purchase.",
+          "steps": [
+            "Producer sets group + operation ID",
+            "FIFO suppresses duplicate sends",
+            "Consumers process each group in order"
+          ],
+          "table": {
+            "headers": [
+              "Field",
+              "Responsibility",
+              "Example / trap"
+            ],
+            "rows": [
+              [
+                "MessageGroupId",
+                "Producer chooses the ordering boundary",
+                "user_id → one user’s ordered work; different users/groups can proceed concurrently"
+              ],
+              [
+                "MessageDeduplicationId",
+                "Producer identifies one logical send",
+                "transaction_id; repeat within five minutes is acknowledged without another deliverable message"
+              ],
+              [
+                "ContentBasedDeduplication",
+                "SQS hashes message body using SHA-256",
+                "Attributes are excluded; an explicitly supplied deduplication ID overrides the generated ID"
+              ],
+              [
+                "ReceiveRequestAttemptId",
+                "Identifies certain FIFO ReceiveMessage retries",
+                "Receive-side retry handling, not producer send deduplication"
+              ],
+              [
+                "MessageOrderId / MessageHash",
+                "Not real SQS parameters",
+                "Do not substitute these for group/deduplication IDs"
+              ]
+            ]
+          },
+          "example": "// SendMessage JSON excerpt\n{\"QueueUrl\":\"https://sqs.ap-southeast-2.amazonaws.com/111111111111/orders.fifo\",\n \"MessageBody\":\"{\\\"operation\\\":\\\"purchase\\\"}\",\n \"MessageGroupId\":\"user-42\", \"MessageDeduplicationId\":\"transaction-901\"}",
+          "trigger": "Per-user order → MessageGroupId=user_id. Retry the same purchase → same logical deduplication ID within the window.",
+          "trap": "A new random ID on every retry defeats explicit send deduplication. Same body with different attributes still hashes identically in content-based mode."
+        }
+      ],
+      "exercises": [
+        "fifo"
+      ]
     },
     "kinesis": {
       "name": "Kinesis Data Streams",
@@ -767,6 +1858,22 @@
         {
           "label": "Enhanced fan-out",
           "url": "https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html"
+        },
+        {
+          "label": "Retention",
+          "url": "https://docs.aws.amazon.com/streams/latest/dev/kinesis-extended-retention.html"
+        },
+        {
+          "label": "Firehose destinations",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html"
+        },
+        {
+          "label": "Managed Apache Flink",
+          "url": "https://docs.aws.amazon.com/managed-flink/latest/java/what-is.html"
+        },
+        {
+          "label": "KCL scaling and leases",
+          "url": "https://docs.aws.amazon.com/streams/latest/dev/kinesis-record-processor-scaling.html"
         }
       ],
       "read": "#dva-service-kinesis",
@@ -792,7 +1899,90 @@
       "language": "json",
       "exampleTitle": "PutRecords response: retry the second input record",
       "note": "Results align with request order. PutRecords does not guarantee ordering across successful and retried records. Reducing readers does not directly fix producer-side write throttling.",
-      "walkthrough": "kinesis-shards"
+      "walkthrough": "kinesis-shards",
+      "learning": [
+        {
+          "title": "Shard budgets, hot keys and read contention",
+          "paragraphs": [
+            "For sustained **provisioned** writes, each shard has up to **1 MiB/s and 1,000 records/s**. Ten evenly used shards provide up to 10 MiB/s aggregate byte throughput. Spare capacity on other shards is not a common pool for a hot shard.",
+            "A partition key hashes to one shard. Many well-spread keys can exploit additional/split shards; a single hot key still stays together. Reducing shard count cannot solve hot-key pressure. Retry only failed PutRecords entries with exponential backoff and jitter, then address capacity/key distribution.",
+            "Shared consumers share **2 MiB/s and 5 GetRecords calls/s per shard**; enhanced fan-out gives each registered consumer up to **2 MiB/s per shard**. This isolates read throughput, not producer write pressure or slow processing. Reads do not delete records: **24 h default retention**, extendable to **365 days**, enables replay with independent consumer positions."
+          ],
+          "trigger": "Low aggregate utilisation + one saturated shard → partition-key skew. Shared consumer read contention → enhanced fan-out, not more producer retries.",
+          "trap": "Shard-count quotas vary by Region/account and can change; LimitExceededException does not inherently mean “one shard is full”.",
+          "analogy": "Ten checkout lanes do not help if every customer queues at lane one.",
+          "flow": "Producer partition key → hash range → one shard’s write budget; consumers later share/read that shard’s separate read budget.",
+          "table": {
+            "headers": [
+              "Signal",
+              "Typical boundary",
+              "Investigate"
+            ],
+            "rows": [
+              [
+                "ProvisionedThroughputExceededException",
+                "Data-plane throughput exceeded",
+                "Write shard/record rate or shared read pressure; inspect the failing operation"
+              ],
+              [
+                "LimitExceededException",
+                "Service quota/control-plane operation limit",
+                "Account/Region quota or API-operation limit; inspect the API/error context"
+              ]
+            ]
+          }
+        },
+        {
+          "title": "Streams vs delivery vs continuous analytics",
+          "paragraphs": [
+            "ElastiCache, DynamoDB and RDS are **not native Firehose destination types**. To write there, build a suitable consumer/custom integration with its own retries, throughput and transaction handling; an arbitrary HTTP endpoint does not make them native destinations."
+          ],
+          "table": {
+            "headers": [
+              "Service",
+              "Responsibility",
+              "Choose for"
+            ],
+            "rows": [
+              [
+                "Kinesis Data Streams",
+                "Retained log with producers, shard lanes and independent consumers",
+                "Replay/event processing; consumers own read progress"
+              ],
+              [
+                "Amazon Data Firehose",
+                "Buffered managed delivery to a configured destination",
+                "S3, Redshift (stage in S3 then COPY), OpenSearch, Splunk, Iceberg and supported HTTP/partner destinations"
+              ],
+              [
+                "Amazon Managed Service for Apache Flink",
+                "Stateful streaming computation, windows, joins and aggregations",
+                "Formerly Kinesis Data Analytics for Apache Flink; separate from the retired SQL-app offering"
+              ]
+            ]
+          },
+          "trigger": "Deliver buffered records to S3 with minimal consumer code → Firehose. Compute continuous windowed analytics → Flink. Independent retained replay → Data Streams."
+        },
+        {
+          "title": "KCL workers: shard leases are the unit of ownership",
+          "paragraphs": [
+            "Within **one consumer application**, KCL assigns each shard lease to one active worker in steady state. One worker can run record processors for several shards. With **10 shards and 20 one-worker EC2 instances**, at most 10 workers perform shard-level work concurrently in this simplified model; the rest cannot create extra shard parallelism.",
+            "Separate application identities have independent lease/checkpoint sets and can each consume the stream. This does not create more stream write capacity; shared-read throughput or enhanced fan-out limits still apply. Lease recovery and checkpoints do not eliminate duplicate processing after failures."
+          ],
+          "analogy": "A worker holds the checkout-lane assignment; one worker can cover several lanes, but twenty workers cannot invent twenty lanes in a ten-lane store.",
+          "steps": [
+            "Shards",
+            "Per-application leases",
+            "Worker record processors",
+            "Checkpoint / recovery"
+          ],
+          "trigger": "More EC2 consumers than shards in one KCL app → no extra shard-level parallelism. Independent apps are a different boundary.",
+          "trap": "A shard lease is not a shard copied to a worker. This is steady-state assignment, not an exactly-once side-effect guarantee."
+        }
+      ],
+      "exercises": [
+        "kcl"
+      ]
     },
     "containers": {
       "name": "Amazon ECS",
@@ -813,6 +2003,10 @@
         {
           "label": "EFS with ECS / Fargate",
           "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/efs-volumes.html"
+        },
+        {
+          "label": "Deregistration",
+          "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deregister_container_instance.html"
         }
       ],
       "read": "#dva-service-containers",
@@ -847,7 +2041,18 @@
       },
       "language": "json",
       "exampleTitle": "Task-definition storage excerpt",
-      "note": "The excerpt omits task roles, CPU/memory, networking and other required task settings. Add an EFS access point/IAM authorization where needed; a mount declaration alone does not grant access."
+      "note": "The excerpt omits task roles, CPU/memory, networking and other required task settings. Add an EFS access point/IAM authorization where needed; a mount declaration alone does not grant access.",
+      "learning": [
+        {
+          "title": "ECS container instance registration vs EC2 lifecycle",
+          "paragraphs": [
+            "For **ECS on EC2**, the ECS agent registers a container instance with the cluster. Drain it before planned termination to stop placing tasks and replace service tasks appropriately.",
+            "Terminating a running EC2 container instance with a connected agent normally deregisters it automatically. Stopped instances or disconnected agents can leave stale registrations requiring manual deregistration.",
+            "Deregistering an ECS container instance does not terminate the EC2 instance or stop its billing. Forced deregistration can orphan running tasks. These are EC2 host concerns, not a Fargate host-management procedure."
+          ],
+          "trap": "The ECS cluster inventory and the underlying billable EC2 fleet are separate resources."
+        }
+      ]
     },
     "fargate": {
       "name": "AWS Fargate",
@@ -910,6 +2115,22 @@
         {
           "label": "Read replica operation",
           "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html"
+        },
+        {
+          "label": "Backup retention",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.BackupRetention.html"
+        },
+        {
+          "label": "Manual snapshots",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_CreateSnapshot.html"
+        },
+        {
+          "label": "Scheduler universal targets",
+          "url": "https://docs.aws.amazon.com/scheduler/latest/UserGuide/managing-targets-universal.html"
+        },
+        {
+          "label": "MySQL transactions",
+          "url": "https://dev.mysql.com/doc/refman/8.4/en/commit.html"
         }
       ],
       "read": "#dva-service-rds",
@@ -939,7 +2160,26 @@
       },
       "language": "python",
       "exampleTitle": "Route reads explicitly",
-      "note": ""
+      "note": "",
+      "learning": [
+        {
+          "title": "SQL transactions, OLTP and OLAP",
+          "paragraphs": [
+            "With **RDS MySQL / InnoDB**, wrap a voucher/game purchase in START TRANSACTION → debit / create entitlement with correct locking or conditions → COMMIT. On failure, ROLLBACK the transaction explicitly as appropriate; do not assume every SQL error aborts the entire transaction. Autocommit on separate statements does not make them one atomic bundle.",
+            "**OLTP** serves many short operational reads/writes (orders, balances); **OLAP** scans/aggregates historical datasets for analytics (for example a Redshift warehouse). SQL is used in both; a read replica scales reads but does not turn every OLTP schema into an analytics warehouse."
+          ],
+          "example": "-- Conceptual MySQL/InnoDB transaction (application checks debit row count)\nSTART TRANSACTION;\nUPDATE players SET credits = credits - 10\nWHERE id = 42 AND credits >= 10;\n-- If no row changed: ROLLBACK; do not grant the entitlement.\nINSERT INTO entitlements(player_id, game_id) VALUES (42, 7);\nCOMMIT;\n-- Catch failure and ROLLBACK; use a unique purchase/request ID."
+        },
+        {
+          "title": "Automated backups vs long-term snapshots",
+          "paragraphs": [
+            "RDS DB-instance automated-backup retention is **0–35 days** (0 disables it); Multi-AZ DB clusters use **1–35 days**. Creation defaults differ: CLI/API DB instance default 1 day, console default 7 days. Point-in-time recovery creates a new database resource.",
+            "**Manual snapshots** persist until explicitly deleted. For longer-term policy-based retention, use manual snapshots or an appropriate **AWS Backup** plan. Replicas and Multi-AZ are not a backup retention policy.",
+            "For a custom periodic DB-instance snapshot workflow: **EventBridge Scheduler → Lambda → CreateDBSnapshot** with execution permissions and unique names. Scheduler can also call supported AWS APIs directly; Lambda is useful when custom naming/retention logic is needed. Define cleanup, idempotency and snapshot-quota handling."
+          ],
+          "trigger": "Retain backups beyond the automated retention window → snapshots/AWS Backup, not an oversized BackupRetentionPeriod."
+        }
+      ]
     },
     "cache": {
       "name": "Amazon ElastiCache",
@@ -956,6 +2196,26 @@
         {
           "label": "Engine and deployment options",
           "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html"
+        },
+        {
+          "label": "Engine comparison",
+          "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/SelectEngine.html"
+        },
+        {
+          "label": "Replication groups",
+          "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Replication.html"
+        },
+        {
+          "label": "Cluster mode and slots",
+          "url": "https://aws.amazon.com/blogs/database/work-with-cluster-mode-on-amazon-elasticache-for-redis/"
+        },
+        {
+          "label": "Regional / AZ placement",
+          "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/RegionsAndAZs.html"
+        },
+        {
+          "label": "Caching patterns",
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/database-caching-strategies-using-redis/caching-patterns.html"
         }
       ],
       "read": "#dva-service-cache",
@@ -980,7 +2240,96 @@
       },
       "language": "python",
       "exampleTitle": "Cache-aside pseudocode",
-      "note": ""
+      "note": "",
+      "learning": [
+        {
+          "title": "Redis/Valkey vs Memcached: replicas, failover and shards",
+          "paragraphs": [
+            "Read-heavy repeated database results and expensive computed values (rendered pages, recommendations, aggregations) can both benefit from caching. Key by the actual inputs and set invalidation/TTL; non-reusable CPU work is not accelerated merely by adding a cache.",
+            "This engine/topology comparison describes node-based clusters. ElastiCache Serverless manages availability across AZs itself; do not generalise node-based Memcached failure behaviour to its serverless offering. The standard cache-node topology below excludes the newer Valkey 9.0+ durability mode, which uses a Multi-AZ transactional log and has different write/recovery guarantees.",
+            "A **node** is one running cache server; a **shard** owns a subset of the keyspace; a node-based Redis replication group/cluster contains one or more shards. Cluster mode disabled has **one shard**; enabled supports multiple. Each shard has one primary and **optional** replicas. Redis Cluster maps keys to **16,384 hash slots**.",
+            "**Asynchronous replication** copies each primary’s data to its replicas in both modes. Replicas increase read capacity and provide promotion candidates, not additional writers. Shards scale aggregate writes/storage. Enable automatic failover/Multi-AZ with an appropriate replica topology for availability; replication can lose recent writes during failure.",
+            "Both node-based Redis OSS/Valkey and Memcached clusters are **regional**; nodes can span AZs. More nodes is not cross-Region deployment. A hot single key still maps to one shard.",
+            "For the DynamoDB-native cache vs general-purpose cache vs CDN choice, use the [DAX/Redis/CloudFront comparison](#dva-service-dynamodb)."
+          ],
+          "table": {
+            "headers": [
+              "Engine/topology",
+              "Capability",
+              "Choose with care"
+            ],
+            "rows": [
+              [
+                "Redis OSS / Valkey",
+                "Rich data types, replication and supported persistence/HA features",
+                "Replication group: primary writes, replicas read; Multi-AZ automatic failover promotes a replica"
+              ],
+              [
+                "Redis/Valkey cluster mode",
+                "Multiple shards partition keyspace; each shard has its own primary and optional replicas",
+                "Sharding increases aggregate capacity; replicas/failover improve read/availability characteristics"
+              ],
+              [
+                "Node-based Memcached",
+                "Simple multithreaded distributed cache; client distributes keys across nodes",
+                "No Redis-style replication groups, automatic replica promotion or durable primary storage"
+              ]
+            ]
+          },
+          "trigger": "Need replication + automatic failover or rich structures → supported Redis/Valkey topology. Need disposable simple distributed cache → Memcached can fit.",
+          "trap": "A replica is not an extra write shard; a cache is not the relational SQL endpoint.",
+          "analogy": "Shards are different book collections; replicas are extra copies of the same collection. Extra copies let more people read, not write to a new collection.",
+          "flow": "Client hashes key → owning shard primary → asynchronous replica copy; read-capable clients can use replicas deliberately."
+        },
+        {
+          "title": "Cache strategy: who updates the cached representation?",
+          "paragraphs": [
+            "These are application patterns, not a Redis setting that makes database/cache writes atomic. Write-through **updates** the cached representation; write-invalidate **deletes** it after the database commit. Either write workflow can be synchronous or asynchronous; latency, ordering, failures and races still need design.",
+            "Exam examples: **popular profiles + limited cache + up to 60 s staleness** → lazy loading + TTL; **blog updates + fresher cached content** → write-through is the intended pattern; **product price updates without maintaining a cached representation** → database write then invalidate. Strict zero-staleness needs stronger consistency/concurrency controls than these basic patterns alone."
+          ],
+          "analogy": "Lazy loading fills a shelf when someone asks; TTL puts a use-by time on it; write-through replaces the shelf copy; invalidation removes the old copy.",
+          "steps": [
+            "Read cache first",
+            "Miss → database → populate",
+            "Write → update or invalidate cache"
+          ],
+          "table": {
+            "headers": [
+              "Pattern",
+              "Read / write behaviour",
+              "Trade-off"
+            ],
+            "rows": [
+              [
+                "Lazy loading",
+                "Miss fetches DB and populates cache; DB writes alone do not update cache",
+                "Only requested items cached; can remain stale until eviction/invalidation"
+              ],
+              [
+                "Lazy + TTL",
+                "Same miss path; entries expire after a chosen duration",
+                "Next read refreshes; expiry itself performs no DB fetch"
+              ],
+              [
+                "Write-through",
+                "DB write + cache set/update in the application workflow",
+                "Fresher on successful writes; can cache never-read data and adds write work"
+              ],
+              [
+                "Write-invalidate",
+                "DB commit → delete cache key → next read repopulates",
+                "Avoids maintaining new cached value; failed delete/concurrent reads can still leave stale data"
+              ]
+            ]
+          },
+          "trigger": "Choose by freshness tolerance, read reuse and write workflow—not merely by engine name.",
+          "trap": "A TTL does not refresh automatically. Updating the DB and cache in two calls is not an atomic transaction."
+        }
+      ],
+      "exercises": [
+        "redis",
+        "cache-strategy"
+      ]
     },
     "iam": {
       "name": "IAM, STS & Access Analyzer",
@@ -1009,16 +2358,103 @@
         {
           "label": "Billing console activation",
           "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/control-access-billing.html"
+        },
+        {
+          "label": "SQS evaluation",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-creating-custom-policies-evaluation-logic.html"
+        },
+        {
+          "label": "STS diagnostic decoder",
+          "url": "https://docs.aws.amazon.com/cli/latest/reference/sts/decode-authorization-message.html"
+        },
+        {
+          "label": "Instance profiles / propagation",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html"
+        },
+        {
+          "label": "Revoke role sessions",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_revoke-sessions.html"
         }
       ],
       "read": "#dva-service-iam",
       "table": null,
       "language": "json",
       "exampleTitle": "IAM-user prefix policy (illustrative)",
-      "note": "Billing-console access can require the account root user to Activate IAM Access plus appropriate IAM permissions. SCPs govern member-account principals within their documented scope; they are not a universal policy attached to every possible caller."
+      "note": "Billing-console access can require the account root user to Activate IAM Access plus appropriate IAM permissions. SCPs govern member-account principals within their documented scope; they are not a universal policy attached to every possible caller.",
+      "learning": [
+        {
+          "title": "Identity policy vs SQS queue policy",
+          "paragraphs": [],
+          "analogy": "An identity policy is an employee’s badge; a queue policy is the guest list on the room. A role trust policy controls who can borrow a badge.",
+          "flow": "Lambda uses its execution role → sqs:SendMessage → SQS evaluates applicable identity/queue policies. There is no special “SQS role”.",
+          "table": {
+            "headers": [
+              "Policy",
+              "Attached to / question",
+              "Example"
+            ],
+            "rows": [
+              [
+                "Identity-based",
+                "IAM user/group/role: what may this identity do?",
+                "Lambda execution role allows sqs:SendMessage on Orders"
+              ],
+              [
+                "Resource-based",
+                "SQS queue: which Principal may do what here?",
+                "Queue allows sns.amazonaws.com to send, restricted by aws:SourceArn"
+              ],
+              [
+                "Cross-account IAM access",
+                "Typically requires both identity-side and queue-side Allows",
+                "Account A role → account B queue"
+              ],
+              [
+                "Role trust",
+                "IAM role: who may assume this role?",
+                "sts:AssumeRole; not a queue permission"
+              ]
+            ]
+          },
+          "example": "// Queue policy statement: SNS → one queue (JSON excerpt)\n{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"sns.amazonaws.com\"},\n \"Action\":\"sqs:SendMessage\",\n \"Resource\":\"arn:aws:sqs:ap-southeast-2:222222222222:Orders\",\n \"Condition\":{\"ArnEquals\":{\"aws:SourceArn\":\n   \"arn:aws:sns:ap-southeast-2:222222222222:OrderEvents\"}}}",
+          "trigger": "Allow SNS to deliver to SQS → queue resource policy with the SNS service Principal and source restriction.",
+          "trap": "Same-account policies often combine as a union; applicable explicit Deny wins. SCPs/RCPs, boundaries, sessions, endpoint policies, principal type and KMS permissions can further change the result."
+        },
+        {
+          "title": "Decode an encoded authorisation failure",
+          "paragraphs": [
+            "Some AWS access-denied responses include encoded diagnostic details. **STS** decodes them; the caller needs `sts:DecodeAuthorizationMessage`, not necessarily administrator access. Decoding reveals context; it does not grant the failed operation."
+          ],
+          "analogy": "Open a sealed diagnostic report with the authorised decoder; it does not unlock the denied door.",
+          "flow": "Failed AWS API → encoded message → authorised STS decode call → inspect explicit/implicit denial.",
+          "example": "# AWS CLI; substitute the encoded message from the error\naws sts decode-authorization-message \\\n  --encoded-message 'ENCODED_MESSAGE' \\\n  --query DecodedMessage --output text",
+          "trigger": "Encoded authorisation failure → sts decode-authorization-message.",
+          "trap": "Neither IAM nor KMS provides this CLI operation; not every access-denied error contains an encoded message."
+        },
+        {
+          "title": "EC2 role removal vs S3 bucket permissions",
+          "paragraphs": [
+            "EC2 obtains temporary credentials through its instance profile. Detaching/removing the role stops that ongoing source once the change propagates; previously issued credentials can remain usable until expiry unless permissions are revoked/denied. Removing a role from a profile can have propagation delay; do not use it as an immediate revocation mechanism.",
+            "Every S3 request evaluates its actual credentials and applicable policies. A bucket policy can grant a named principal access, or public/anonymous access when Block Public Access and other controls permit it. A named-principal grant still needs the right authenticated principal. There is **no special five-minute S3 read grace period**; a surviving credential or independent resource grant explains continued access."
+          ],
+          "analogy": "Taking away the badge dispenser does not instantly invalidate every badge already issued, and the room may have its own guest/public access rules.",
+          "steps": [
+            "EC2 credentials / anonymous request",
+            "Identity + bucket policies",
+            "Applicable limits / Deny",
+            "GetObject or PutObject decision"
+          ],
+          "trigger": "Reads continue after role detachment → identify the credentials and bucket policy used, not a fictional S3 grace timer.",
+          "trap": "Detaching a role is different from deleting it or revoking its sessions. An applicable explicit Deny wins; SCPs/RCPs, boundaries, sessions, endpoints and BPA still matter."
+        }
+      ],
+      "exercises": [
+        "policy",
+        "s3-access"
+      ]
     },
     "network": {
-      "name": "Security groups & NACLs",
+      "name": "Security groups, NACLs & VPC endpoints",
       "icon": "Amazon-Virtual-Private-Cloud",
       "role": "Filter network traffic at two different boundaries.",
       "bullets": [
@@ -1036,6 +2472,26 @@
         {
           "label": "Security group / NACL comparison",
           "url": "https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html"
+        },
+        {
+          "label": "NACL ephemeral ports",
+          "url": "https://docs.aws.amazon.com/vpc/latest/userguide/custom-network-acl.html"
+        },
+        {
+          "label": "ALB subnet NACLs",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-troubleshooting.html"
+        },
+        {
+          "label": "Gateway endpoints",
+          "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html"
+        },
+        {
+          "label": "Interface endpoints",
+          "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html"
+        },
+        {
+          "label": "DynamoDB PrivateLink",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/privatelink-interface-endpoints.html"
         }
       ],
       "read": "#dva-service-network",
@@ -1063,12 +2519,97 @@
       },
       "language": "text",
       "exampleTitle": "Request path to inspect",
-      "note": ""
+      "note": "",
+      "learning": [
+        {
+          "title": "Follow the destination port in each direction",
+          "paragraphs": [
+            "A browser chooses an ephemeral **source** port: `Browser:54321 → ALB:80`; the response is `ALB:80 → Browser:54321`. HTTPS normally uses destination 443. SG connection tracking permits the response; a stateless NACL needs its own return rule.",
+            "ALB creates a **separate** backend connection, for example `ALB:40000 → EC2:80`. The browser’s 54321 is not reused as the backend destination. Actual ephemeral ranges depend on the initiating OS/service; **1024–65535** is commonly used in ELB-related NACL configurations."
+          ],
+          "analogy": "A stateful guard remembers your visit and lets you leave; a stateless checkpoint checks the outbound ticket again.",
+          "flow": "Browser:54321 → ALB:80 → response to :54321; independently ALB:40000 → EC2:80 → response to :40000.",
+          "table": {
+            "headers": [
+              "Subnet / leg",
+              "Inbound NACL destination",
+              "Outbound NACL destination"
+            ],
+            "rows": [
+              [
+                "ALB subnet: browser connection",
+                "80 or 443 from allowed clients",
+                "Client ephemeral range"
+              ],
+              [
+                "ALB subnet: backend connection",
+                "ALB ephemeral range from backend",
+                "Backend application/health-check ports"
+              ],
+              [
+                "EC2 subnet: backend connection",
+                "Backend application/health-check ports from ALB",
+                "ALB ephemeral range"
+              ]
+            ]
+          },
+          "trigger": "Request arrives but reply times out → inspect return routes and outbound/inbound ephemeral-port NACL rules.",
+          "trap": "Security groups have allow rules only; NACLs have ordered allow/deny rules. Opening only 80/443 in both NACL directions misses the return destination port."
+        },
+        {
+          "title": "Gateway vs interface endpoints: route entry vs private ENI",
+          "paragraphs": [
+            "**Gateway endpoints** support S3 and DynamoDB, use service-prefix-list route-table entries, and create no endpoint ENI or endpoint security group. Normal public service DNS/IP addressing can still use that private AWS-network route; no NAT/IGW is required.",
+            "**Interface endpoints** use AWS PrivateLink with private-IP ENIs in selected subnets/AZs, endpoint security groups and eligible private/endpoint DNS. They are regional resources and usually incur hourly/data-processing charges. **S3 and DynamoDB both support gateway and interface endpoints**; a gateway is commonly simplest for ordinary same-VPC access. Interface endpoints address additional connectivity cases, including supported on-premises access."
+          ],
+          "analogy": "A gateway endpoint changes the road sign in the route table; an interface endpoint builds a private service entrance at a local IP.",
+          "table": {
+            "headers": [
+              "Boundary",
+              "Gateway endpoint",
+              "Interface endpoint"
+            ],
+            "rows": [
+              [
+                "Mechanism",
+                "Prefix-list route-table target",
+                "PrivateLink + endpoint ENIs/private IPs"
+              ],
+              [
+                "Supported examples",
+                "S3 and DynamoDB",
+                "Secrets Manager, KMS, S3, DynamoDB and many more"
+              ],
+              [
+                "Security group on endpoint",
+                "None",
+                "Yes; typically allow required HTTPS source/port"
+              ],
+              [
+                "DNS",
+                "Normal public service endpoint can use private route",
+                "Private DNS or endpoint-specific hostname selects ENIs"
+              ],
+              [
+                "Charging / placement",
+                "No additional endpoint charge; route-table association",
+                "Usually hourly + data; regional endpoint, ENIs in chosen AZs"
+              ]
+            ]
+          },
+          "trigger": "Private EC2 → S3/DynamoDB without NAT and minimal endpoint cost → gateway. Private-IP entry to KMS/Secrets Manager → interface.",
+          "trap": "Private connectivity is not IAM authorisation. Do not claim DynamoDB supports gateway endpoints only, or place the regional service itself inside your subnet."
+        }
+      ],
+      "exercises": [
+        "firewall",
+        "endpoint"
+      ]
     },
     "s3": {
-      "name": "Amazon S3 encryption",
+      "name": "Amazon S3",
       "icon": "Amazon-Simple-Storage-Service",
-      "role": "Store objects; enforce the encryption contract at upload.",
+      "role": "Store objects; separate access, browser sharing, replication and encryption.",
       "bullets": [
         "New S3 uploads are encrypted by default. SSE-S3 uses AES256; SSE-KMS uses aws:kms in the encryption request header.",
         "Default bucket encryption chooses storage encryption even when the client omits a header.",
@@ -1080,38 +2621,123 @@
         {
           "label": "SSE-KMS and enforcement",
           "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html"
+        },
+        {
+          "label": "Server logging",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-server-access-logging.html"
+        },
+        {
+          "label": "CORS",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html"
+        },
+        {
+          "label": "What replication copies",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication-what-is-isnot-replicated.html"
+        },
+        {
+          "label": "Batch Replication",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-batch-replication-batch.html"
+        },
+        {
+          "label": "Access controls",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-overview.html"
+        },
+        {
+          "label": "Partitions",
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/partitions.html"
+        },
+        {
+          "label": "CloudFront signers",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html"
+        },
+        {
+          "label": "SSE-C requirements",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/ServerSideEncryptionCustomerKeys.html"
+        },
+        {
+          "label": "Transport policy conditions",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/amazon-s3-policy-keys.html"
+        },
+        {
+          "label": "CLI ListObjectsV2",
+          "url": "https://docs.aws.amazon.com/cli/latest/reference/s3api/list-objects-v2.html"
         }
       ],
       "read": "#dva-service-s3",
-      "table": {
-        "headers": [
-          "Mode",
-          "Header value",
-          "Keys / costs"
-        ],
-        "rows": [
-          [
-            "SSE-S3",
-            "AES256",
-            "S3 manages keys; baseline encryption"
-          ],
-          [
-            "SSE-KMS",
-            "aws:kms",
-            "KMS policy/use permissions; KMS charges may apply"
-          ]
-        ]
-      },
+      "table": null,
       "language": "json",
       "exampleTitle": "Explicit SSE-KMS header enforcement policy",
-      "note": "Illustrative bucket name. This narrow policy shows request enforcement, not complete bucket access. KMS upload/download permissions and bucket policies must also allow the intended principal."
+      "note": "Illustrative bucket name. This narrow policy shows request enforcement, not complete bucket access. KMS upload/download permissions and bucket policies must also allow the intended principal.",
+      "lab": {
+        "href": "#s3-encryption-choices",
+        "label": "Compare S3 encryption responsibilities"
+      },
+      "learning": [
+        {
+          "title": "Logging and CORS: storage access vs browser permission",
+          "paragraphs": [
+            "Use **source bucket → separate logging bucket**, in the same account and Region. Logging deliveries to the source bucket generate further requests and recursive log growth; leave destination-bucket server access logging off.",
+            "**CORS is configured on the resource server (S3), enforced by the browser.** The browser sends `Origin`; an allowed response contains `Access-Control-Allow-Origin`. A preflight also checks allowed methods/headers. Server-to-server clients do not enforce browser CORS.",
+            "Bucket/IAM policies decide whether the operation is authorised. CORS only permits a browser to expose an otherwise permitted cross-origin response; it does not grant S3 access."
+          ],
+          "trigger": "Browser code at app.smart.com reads an S3 resource: configure CORS on that S3 bucket and independently allow the object operation.",
+          "trap": "Changing browser code or adding an allow bucket policy alone does not supply the resource server’s CORS response.",
+          "example": "GET /manual.pdf HTTP/1.1\nOrigin: https://app.smart.com\n\nHTTP/1.1 200 OK\nAccess-Control-Allow-Origin: https://app.smart.com\n# Illustrative headers; S3 CORS rules control the response."
+        },
+        {
+          "title": "Replication, existing objects, metadata and lifecycle",
+          "paragraphs": [
+            "**SRR** stays in one Region; **CRR** copies to another Region. Live rules apply to eligible new objects after configuration; versioning and the replication role are required. Use **S3 Batch Replication** for eligible pre-existing objects or missed replicas.",
+            "Object user metadata and tags can replicate with objects; tag-based rule selection requires the matching tags on the original upload. Later-tagged existing objects can need Batch Replication. Configure permissions and replica-modification behaviour for your case.",
+            "**Lifecycle actions are not replicated.** Set lifecycle rules independently on the destination. Do not infer that expiring the source object also expires its replica; delete-marker replication is a separate configurable feature with exceptions."
+          ],
+          "trigger": "Backfill existing data after creating a replication rule → Batch Replication, not just wait for the live rule."
+        },
+        {
+          "title": "Access controls, signed URLs and AWS partitions",
+          "paragraphs": [
+            "Identity policies grant a principal actions; bucket policies grant/deny resource access. Legacy ACLs grant limited object/bucket access, but **Bucket owner enforced** Object Ownership disables ACLs by default. Prefer policies.",
+            "A **presigned S3 URL** delegates an operation using the signer’s credentials and permissions, for a bounded validity period; it does not bypass explicit denies, expired credentials or KMS checks. A permissions boundary caps applicable identity permissions without granting them.",
+            "An ARN partition (`aws`, `aws-cn`, `aws-us-gov`) is an isolated AWS identity/service boundary, not a folder. An S3 prefix such as `customers/alice/` is part of an object key. Standard IAM role delegation/resource-policy grants do not bridge partitions; use separately authorised data-transfer designs where permitted.",
+            "**CloudFront signed URLs** differ from S3 presigning: the application signs with a private key and CloudFront verifies a public key in a trusted key group (recommended). Legacy CloudFront account key pairs use the account root user; normal IAM access keys are not CloudFront signing keys."
+          ],
+          "trap": "A valid URL signature proves the configured signing contract, not ownership of arbitrary objects or cross-partition IAM trust."
+        },
+        {
+          "title": "SSE-C, client-side encryption and HTTPS",
+          "paragraphs": [
+            "**SSE-C** sends the customer-provided key with each relevant request over **HTTPS**; S3 performs encryption/decryption and does not persist that key. S3 rejects SSE-C over HTTP. **Client-side encryption** encrypts before upload, so S3 receives ciphertext. See the [existing encryption comparison](#s3-encryption-choices). The customer sends an actual SSE-C key, not a KMS key ARN. SSE-C does not require KMS; importing key material into KMS is a separate concept. Try the [key-flow selector](#s3-key-flow) beside the existing comparison.",
+            "Enforce HTTPS for all relevant S3 requests with an explicit bucket-policy Deny on `aws:SecureTransport=false`. Other encryption modes do not inherently impose that same SSE-C-specific request requirement. Account for AWS-service-to-service access using the documented principal conditions where appropriate."
+          ],
+          "analogy": "SSE-C lends the warehouse your key to lock the box; client-side encryption delivers an already locked box.",
+          "flow": "SSE-C: client + key over TLS → S3 encrypts → encrypted object; client-side: client encrypts → S3 stores ciphertext.",
+          "example": "// Bucket-policy statement excerpt: deny HTTP for this bucket and objects\n{\"Effect\":\"Deny\",\"Principal\":\"*\",\"Action\":\"s3:*\",\n \"Resource\":[\"arn:aws:s3:::study-bucket\",\"arn:aws:s3:::study-bucket/*\"],\n \"Condition\":{\"Bool\":{\"aws:SecureTransport\":\"false\"}}}",
+          "trigger": "S3-managed keys → SSE-S3; KMS-protected data keys/key control → SSE-KMS; actual customer key supplied to S3 → SSE-C.",
+          "trap": "SSE-C is still server-side encryption. TLS protects transit; it does not replace encryption at rest. New SSE-C defaults may block its use unless explicitly permitted."
+        },
+        {
+          "title": "CLI pagination: service pages vs output pages",
+          "paragraphs": [
+            "The [shared CLI playground](#dva-service-dynamodb) includes **S3 objects (250)**: --max-items 100 produces output pages of **100 → 100 → 50**. --page-size controls underlying API call batching, not the total output limit. Pass the CLI **NextToken** unchanged to **--starting-token**; do not substitute a raw S3 continuation token or invent a generic --next-token option."
+          ],
+          "analogy": "The warehouse sends boxes to the clerk (service pages); the clerk gives you a limited pile and a claim ticket (CLI output page).",
+          "steps": [
+            "S3 ListObjectsV2 service calls",
+            "CLI limits output",
+            "NextToken → --starting-token"
+          ],
+          "example": "# Executable AWS CLI shape\naws s3api list-objects-v2 --bucket my-bucket --max-items 100\n# Next output page (omit --starting-token on the first call):\naws s3api list-objects-v2 --bucket my-bucket --max-items 100 \\\n  --starting-token \"TOKEN_FROM_PREVIOUS_RESPONSE\"",
+          "trigger": "Limit CLI output → --max-items; resume → --starting-token. Smaller internal service calls → --page-size.",
+          "trap": "Tokens are opaque and command-specific. Reuse the same relevant command settings; CLI tokens differ from service API cursors."
+        }
+      ]
     },
     "kms": {
       "name": "AWS KMS",
       "icon": "AWS-Key-Management-Service",
       "role": "Control cryptographic keys and cryptographic operations.",
       "bullets": [
-        "Use a KMS key directly for supported small payloads; use envelope encryption for larger application data.",
+        "For symmetric encryption KMS keys, Encrypt accepts up to 4,096 bytes. Use envelope encryption for large application data; KMS protects the data key, not the 111 GB file directly.",
         "GenerateDataKey returns plaintext and encrypted copies of a data key. Encrypt data locally, discard plaintext key, store the encrypted key with ciphertext.",
         "Normal crypto calls do not return the underlying KMS key material. Rotation support depends on key type/origin; rotating key material is not recreating a key per request."
       ],
@@ -1129,13 +2755,62 @@
         {
           "label": "Key rotation",
           "url": "https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html"
+        },
+        {
+          "label": "Encrypt limits",
+          "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html"
+        },
+        {
+          "label": "GenerateDataKey",
+          "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_GenerateDataKey.html"
+        },
+        {
+          "label": "WithoutPlaintext",
+          "url": "https://docs.aws.amazon.com/kms/latest/APIReference/API_GenerateDataKeyWithoutPlaintext.html"
+        },
+        {
+          "label": "SDK data-key caching",
+          "url": "https://docs.aws.amazon.com/encryption-sdk/latest/developer-guide/data-key-caching.html"
+        },
+        {
+          "label": "Caching thresholds",
+          "url": "https://docs.aws.amazon.com/encryption-sdk/latest/developer-guide/thresholds.html"
         }
       ],
       "read": "#dva-service-kms",
       "table": null,
       "language": "text",
       "exampleTitle": "Large-payload encryption pseudocode",
-      "note": ""
+      "note": "",
+      "lab": {
+        "href": "#cryptography",
+        "label": "Compare cryptography patterns and KMS example calls"
+      },
+      "learning": [
+        {
+          "title": "Choose the API by the returned material",
+          "paragraphs": [
+            "`Encrypt` returns ciphertext; `Decrypt` returns recovered plaintext. `GenerateDataKey` returns a plaintext data key AND its encrypted representation. `GenerateDataKeyWithoutPlaintext` returns only the encrypted data key. `GenerateDataKeyWithPlaintext` is not an API.",
+            "The KMS key stays under KMS protection. The application stores ciphertext, encrypted data key and encryption metadata; discard plaintext data-key material after use. KMS does not retain both returned copies as application storage. Eligible, deliberately configured SDK caching is a bounded exception to immediate data-key disposal; compare the caching section below."
+          ],
+          "trigger": "Large-file encryption with a separately controlled key → envelope encryption; compare the two-client flow in the cryptography section."
+        },
+        {
+          "title": "Bounded data-key caching: fewer KMS calls, more retained material",
+          "paragraphs": [
+            "The **AWS Encryption SDK** can reuse eligible cached cryptographic materials, reducing KMS requests, latency, cost and throttling. Cache age, message-count and encrypted-byte thresholds bound reuse; matching algorithm/context and SDK support matter. Protect cached plaintext material and use the minimum reuse needed.",
+            "A fresh key per encryption is the normal default. Data-key reuse never permits **IV/nonce reuse**; follow the SDK’s supported algorithms and metadata handling. Backoff/jitter and quota planning also address KMS throttling. **S3 Bucket Keys** optimise S3 SSE-KMS, not arbitrary application transaction encryption. See the [request counter in the cryptography comparison](#kms-key-caching)."
+          ],
+          "analogy": "Briefly retain a protected work key for a bounded batch; it is not permission to reuse the same seal/nonce or keep the key indefinitely.",
+          "steps": [
+            "Eligible cache lookup",
+            "Reuse within thresholds, or KMS call",
+            "Encrypt with correct fresh message material"
+          ],
+          "trigger": "Many eligible application encryptions bottlenecked on KMS requests → evaluate bounded SDK caching and retries, with security thresholds.",
+          "trap": "The simple request counter is not an exact caching-CMM implementation. Supported SDK/keyring alternatives differ; KMS itself is not storing your application’s plaintext data-key cache."
+        }
+      ]
     },
     "cognito": {
       "name": "Amazon Cognito",
@@ -1274,13 +2949,175 @@
         {
           "label": "CloudWatch concepts",
           "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html"
+        },
+        {
+          "label": "Log metric filters",
+          "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/MonitoringLogData.html"
+        },
+        {
+          "label": "Logs Insights",
+          "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html"
+        },
+        {
+          "label": "Metric math",
+          "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/using-metric-math.html"
+        },
+        {
+          "label": "X-Ray sampling",
+          "url": "https://docs.aws.amazon.com/xray/latest/devguide/xray-console-sampling.html"
+        },
+        {
+          "label": "X-Ray SDK lifecycle",
+          "url": "https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-daemon-timeline.html"
+        },
+        {
+          "label": "EC2 native metric definitions",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html"
+        },
+        {
+          "label": "EC2 detailed monitoring",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch-new.html"
+        },
+        {
+          "label": "Agent metrics",
+          "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/metrics-collected-by-CloudWatch-agent.html"
+        },
+        {
+          "label": "X-Ray concepts",
+          "url": "https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html"
         }
       ],
       "read": "#dva-service-evidence",
       "table": null,
       "language": "text",
       "exampleTitle": "Investigation sequence",
-      "note": "CloudTrail data events are service/operation-specific and often require explicit enablement. They do not replace application access logs. Avoid sensitive credentials/payloads in diagnostic logs."
+      "note": "CloudTrail data events are service/operation-specific and often require explicit enablement. They do not replace application access logs. Avoid sensitive credentials/payloads in diagnostic logs.",
+      "learning": [
+        {
+          "title": "Custom signals, metric filters and error rates",
+          "paragraphs": [
+            "Standard custom metric resolution is **60 seconds**; high-resolution custom metrics use **StorageResolution=1** for one-second data. Resolution is distinct from which metric you publish.",
+            "A **metric filter** turns matching incoming log events into numerical metrics for graphs/alarms; it is not retroactive. **Logs Insights** queries logs for investigation/aggregation; a query alone is not a continuously emitted custom metric.",
+            "For an external API, instrument your application’s calls: emit total requests and failed requests (consistent dimensions/periods and a defined failure rule), then metric math **IF(total > 0, 100 × failures / total, 0)**. Alarm on sustained error percentage → **SNS** notification. NetworkOut or a count of all app errors does not measure that API’s failure ratio. Treat missing telemetry separately from zero traffic; configure alarm missing-data behaviour deliberately."
+          ],
+          "trigger": "Need a third-party API error rate → publish/count both failures and total calls; use metric math and an alarm.",
+          "example": "// PutMetricData excerpt: both counters share namespace/dimensions\n{\"Namespace\":\"Study/Payments\",\"MetricData\":[\n {\"MetricName\":\"Requests\",\"Value\":100,\"Unit\":\"Count\",\"StorageResolution\":1},\n {\"MetricName\":\"Failures\",\"Value\":4,\"Unit\":\"Count\",\"StorageResolution\":1}\n]}\n// Sum over the same period: error_pct = 100 * 4 / 100 = 4%"
+        },
+        {
+          "title": "X-Ray: traces, annotations, metadata and sampling",
+          "paragraphs": [
+            "The default X-Ray sampling rule uses a **1 request/second reservoir plus 5% of additional requests**. Central reservoir quotas are shared; local fallback rules can sample independently per process. Upstream sampling decisions and service-specific behaviour also matter.",
+            "A matching custom rule with a **fixed rate of 1.0** can request 100% sampling for debugging. Ensure the upstream/root service samples and downstream instrumentation propagates context; instrumentation gaps, quotas and unsupported paths can still prevent a complete trace.",
+            "CloudWatch metrics answer “how much/how often”; logs record application events; X-Ray traces instrumented request paths; CloudTrail records supported AWS API/account activity. Prefer OpenTelemetry/ADOT for new instrumentation: X-Ray SDKs/daemon entered maintenance in February 2026."
+          ],
+          "trap": "Metadata is not an indexed filter field or a relational column. The downstream DynamoDB node is inferred from client instrumentation.",
+          "analogy": "A trace is the delivery journey; segments are each depot’s work; annotations are indexed labels; metadata is the detailed note inside the parcel.",
+          "steps": [
+            "API Gateway segment",
+            "Lambda segment",
+            "DynamoDB client subsegment / inferred node"
+          ],
+          "table": {
+            "headers": [
+              "Concept",
+              "Purpose",
+              "Boundary"
+            ],
+            "rows": [
+              [
+                "Trace",
+                "End-to-end request journey",
+                "Groups related segments by trace ID"
+              ],
+              [
+                "Segment",
+                "Work performed by an instrumented service",
+                "Not a CloudFormation/infrastructure stack"
+              ],
+              [
+                "Subsegment",
+                "Downstream operation or finer work",
+                "An instrumented Lambda → DynamoDB call produces a client subsegment; DynamoDB does not emit its own X-Ray segment"
+              ],
+              [
+                "Annotation",
+                "Indexed searchable scalar key/value",
+                "String, number or Boolean; use trace filter expressions"
+              ],
+              [
+                "Metadata",
+                "Non-indexed debugging detail",
+                "Can contain nested objects/arrays; application/instrumentation adds it deliberately, not necessarily automatically"
+              ],
+              [
+                "Sampling",
+                "Choose which requests are traced",
+                "Limits telemetry volume/overhead; no trace exists for an unsampled request"
+              ]
+            ]
+          },
+          "trigger": "Search traces by business tag → annotation. Store structured debug context → metadata, then inspect a selected trace."
+        },
+        {
+          "title": "Metric source vs collection frequency",
+          "paragraphs": [
+            "Supported AWS services publish **built-in metrics** automatically. EC2 basic monitoring typically publishes native metrics every **5 minutes**; detailed monitoring changes those metrics to **1 minute**, not new guest-memory or filesystem measurements.",
+            "The **CloudWatch Agent** publishes guest metrics as custom metrics. Application-specific metrics have no predefined universal list: instrument them with **PutMetricData**, log metric filters or another publisher. A CloudWatch alarm can invoke an ASG scaling policy; the policy changes desired capacity and the ASG reconciles actual instances."
+          ],
+          "analogy": "A faster speedometer still does not measure fuel level; a different sensor is needed.",
+          "flow": "Actual signal → native/agent/application publisher → CloudWatch metric → alarm/scaling policy → ASG desired target.",
+          "table": {
+            "headers": [
+              "Metric",
+              "Typical source"
+            ],
+            "rows": [
+              [
+                "EC2 CPU utilisation",
+                "Built-in CPUUtilization"
+              ],
+              [
+                "EC2 NetworkIn / NetworkOut",
+                "Built-in"
+              ],
+              [
+                "EC2 disk I/O",
+                "Built-in where supported (EC2 instance-store metrics; EBS has its own volume metrics)"
+              ],
+              [
+                "EC2 memory utilisation",
+                "CloudWatch Agent / custom publisher"
+              ],
+              [
+                "EC2 disk space percentage",
+                "CloudWatch Agent / custom publisher"
+              ],
+              [
+                "Application requests/minute",
+                "Application instrumentation / log metric filter"
+              ],
+              [
+                "Self-managed MySQL query rate",
+                "Custom instrumentation"
+              ],
+              [
+                "ALB RequestCount",
+                "ALB built-in, if an ALB exists"
+              ],
+              [
+                "ALB RequestCountPerTarget",
+                "ALB built-in, if an ALB/target group exists"
+              ]
+            ]
+          },
+          "trigger": "One-minute native EC2 samples → detailed monitoring. Memory/disk space → agent/custom publishing. App-specific query rate → instrumentation.",
+          "trap": "Detailed monitoring changes frequency, not metric inventory. No ALB in the architecture means no ALB request metric to scale from."
+        }
+      ],
+      "exercises": [
+        "metrics",
+        "trace"
+      ]
     },
     "pipeline": {
       "name": "AWS CodePipeline",
@@ -1305,6 +3142,14 @@
         {
           "label": "Current pricing",
           "url": "https://aws.amazon.com/codepipeline/pricing/"
+        },
+        {
+          "label": "Retired services",
+          "url": "https://docs.aws.amazon.com/general/latest/gr/full_shutdown_services.html"
+        },
+        {
+          "label": "CodeConnections rename",
+          "url": "https://aws.amazon.com/about-aws/whats-new/2024/03/aws-codeconnections-formerly-codestar-connections/"
         }
       ],
       "read": "#dva-service-pipeline",
@@ -1329,7 +3174,58 @@
       },
       "language": "json",
       "exampleTitle": "Pipeline build-stage excerpt",
-      "note": "This is one stage, not a complete CreatePipeline request. Source connection, roles, artifact storage and deploy actions are configured elsewhere."
+      "note": "This is one stage, not a complete CreatePipeline request. Source connection, roles, artifact storage and deploy actions are configured elsewhere.",
+      "learning": [
+        {
+          "title": "CI/CD roles and the retired CodeStar dashboard",
+          "paragraphs": [
+            "**Historical exam note:** original AWS CodeStar project creation/dashboard capabilities were retired in **July 2024**. An old practice question about one unified development-project dashboard may intend CodeStar; do not treat that as a current onboarding recommendation.",
+            "**AWS CodeConnections**, formerly CodeStar Connections, is a separate repository-connection capability. Its former name does not mean it was retired with CodeStar projects. Modern pipelines connect a source provider, build/test artifacts, then deploy to the target."
+          ],
+          "analogy": "CodePipeline is the conductor; CodeBuild makes/tests the instrument; CodeDeploy takes the release to the stage. CodeStar was the old project control room.",
+          "steps": [
+            "Source via CodeConnections",
+            "CodePipeline stages",
+            "CodeBuild / CodeDeploy actions"
+          ],
+          "table": {
+            "headers": [
+              "Service",
+              "Responsibility",
+              "Current vs historical"
+            ],
+            "rows": [
+              [
+                "CodeBuild",
+                "Build and test",
+                "Build artifacts, run commands/tests"
+              ],
+              [
+                "CodeDeploy",
+                "Application rollout",
+                "Platform-specific deployment and lifecycle"
+              ],
+              [
+                "CodePipeline",
+                "Orchestrate CI/CD stages/actions",
+                "Coordinates source/build/deploy and approvals"
+              ],
+              [
+                "CodeStar",
+                "Unified project setup/dashboard",
+                "Original capability retired July 2024"
+              ],
+              [
+                "CodeConnections",
+                "Connect supported external source providers",
+                "Separate capability, formerly CodeStar Connections"
+              ]
+            ]
+          },
+          "trigger": "Build/test → CodeBuild; deploy → CodeDeploy; coordinate stages → CodePipeline. Unified CodeStar projects → historical question.",
+          "trap": "CodeStar and CodeStar Connections/CodeConnections are different service capabilities."
+        }
+      ]
     },
     "build": {
       "name": "AWS CodeBuild",
@@ -1408,6 +3304,10 @@
         {
           "label": "AppSpec examples",
           "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-example.html"
+        },
+        {
+          "label": "Lifecycle events and hooks",
+          "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-structure-hooks.html"
         }
       ],
       "read": "#dva-service-deploy",
@@ -1437,7 +3337,56 @@
       },
       "language": "yaml",
       "exampleTitle": "Lambda AppSpec excerpt",
-      "note": "The deployment group, service role, traffic policy, alarms and optional hooks are configured separately. Verify the actual alias/target and business health before considering a release complete."
+      "note": "The deployment group, service role, traffic policy, alarms and optional hooks are configured separately. Verify the actual alias/target and business health before considering a release complete.",
+      "learning": [
+        {
+          "title": "EC2 in-place lifecycle: stop, download, prepare, install, start, test",
+          "paragraphs": [
+            "**In-place** updates application files on existing instances; it does not inherently replace EC2. **Blue/green** deploys to a replacement environment and shifts traffic, keeping the original environment for a controlled transition.",
+            "**ApplicationStop** uses scripts from the previous successful deployment’s AppSpec; it is skipped on the first deployment when none exists. **DownloadBundle** and **Install** are agent-reserved events, not custom-script hook locations. A load-balanced deployment can also have traffic-block/allow lifecycle events."
+          ],
+          "analogy": "Stop the old app → download the update → prepare the room → install → finish setup → start → test.",
+          "flow": "ApplicationStop → DownloadBundle → BeforeInstall → Install → AfterInstall → ApplicationStart → ValidateService.",
+          "table": {
+            "headers": [
+              "Order / event",
+              "Responsibility"
+            ],
+            "rows": [
+              [
+                "1 ApplicationStop",
+                "Stop previous application (previous successful revision)"
+              ],
+              [
+                "2 DownloadBundle",
+                "Agent downloads new revision"
+              ],
+              [
+                "3 BeforeInstall",
+                "Custom preparation"
+              ],
+              [
+                "4 Install",
+                "Agent installs revision files"
+              ],
+              [
+                "5 AfterInstall",
+                "Custom configuration"
+              ],
+              [
+                "6 ApplicationStart",
+                "Start application"
+              ],
+              [
+                "7 ValidateService",
+                "Verify it works"
+              ]
+            ]
+          },
+          "trigger": "Prepare before new files are installed → BeforeInstall; downloading is the separate DownloadBundle event.",
+          "trap": "Do not put DownloadBundle/Install under custom hooks. In-place lifecycle events are not Lambda alias lifecycle events."
+        }
+      ]
     },
     "events": {
       "name": "EventBridge & SNS",
@@ -1508,6 +3457,10 @@
         {
           "label": "Lambda integration",
           "url": "https://docs.aws.amazon.com/step-functions/latest/dg/connect-lambda.html"
+        },
+        {
+          "label": "State types",
+          "url": "https://docs.aws.amazon.com/step-functions/latest/dg/concepts-states.html"
         }
       ],
       "read": "#dva-service-workflow",
@@ -1532,7 +3485,48 @@
       },
       "language": "json",
       "exampleTitle": "Amazon States Language: one application task",
-      "note": "The sample omits retries and business error handling. Workflow execution semantics do not make an external payment exactly once; plan for uncertain task outcomes and replay."
+      "note": "The sample omits retries and business error handling. Workflow execution semantics do not make an external payment exactly once; plan for uncertain task outcomes and replay.",
+      "learning": [
+        {
+          "title": "Read the state type before choosing compute",
+          "paragraphs": [],
+          "table": {
+            "headers": [
+              "State",
+              "Responsibility",
+              "Caveat"
+            ],
+            "rows": [
+              [
+                "Task",
+                "Run a supported service/API integration or activity",
+                "A Lambda task runs code; workflow permission is still required"
+              ],
+              [
+                "Pass",
+                "Pass/transform state data without external work",
+                "Not a substitute for arbitrary Lambda code"
+              ],
+              [
+                "Wait",
+                "Pause until a time or for a duration",
+                "Workflow wait, not billable Lambda sleep"
+              ],
+              [
+                "Choice",
+                "Evaluate conditions and choose a next state",
+                "Branches do not themselves run a task"
+              ],
+              [
+                "Fail",
+                "End execution with failure/error information",
+                "Does not automatically undo already committed side effects"
+              ]
+            ]
+          },
+          "trigger": "Pause/branch explicitly across durable steps → state machine; use Task only where actual work is needed."
+        }
+      ]
     },
     "appconfig": {
       "name": "AWS AppConfig",
@@ -1560,6 +3554,259 @@
       "language": "json",
       "exampleTitle": "StartDeployment: illustrative identifiers",
       "note": "The application, environment, profile, validators, deployment strategy and monitoring must already be configured. Current pricing depends on retrieval/deployment usage; check AWS rates for the chosen retrieval pattern."
+    },
+    "appsync": {
+      "name": "AWS AppSync",
+      "icon": "AWS-AppSync",
+      "role": "Expose GraphQL APIs with real-time updates and supported offline-sync patterns.",
+      "bullets": [
+        "Resolvers connect GraphQL fields to supported data sources such as DynamoDB or Lambda. Authorisation remains explicit.",
+        "GraphQL subscriptions deliver mutation-triggered real-time updates over managed connections. AppSync Events is a separate pub/sub API offering.",
+        "Offline synchronisation requires a client/local-store integration (for example Amplify DataStore) plus configured sync/versioned data sources; conflict detection/resolution is not automatic for every GraphQL API."
+      ],
+      "boundary": "Offline client state and server authorisation/conflict handling are separate responsibilities. A Cognito user pool authenticates users; an identity pool supplies scoped AWS credentials when needed.",
+      "table": {
+        "headers": [
+          "Need",
+          "Starting feature",
+          "Caveat"
+        ],
+        "rows": [
+          [
+            "Live GraphQL updates",
+            "Subscriptions",
+            "Selection sets, auth and client connection matter"
+          ],
+          [
+            "Offline edits + later sync",
+            "Compatible client + AppSync sync/versioned source",
+            "Choose optimistic concurrency, Automerge or Lambda conflict handling"
+          ],
+          [
+            "JWT app sign-in",
+            "Cognito User Pool",
+            "JWT is not an AWS access-key set"
+          ],
+          [
+            "Direct AWS service access",
+            "Cognito Identity Pool + role",
+            "Temporary AWS credentials; still constrained by IAM"
+          ]
+        ]
+      },
+      "exampleTitle": "GraphQL subscription (schema excerpt)",
+      "language": "graphql",
+      "example": "type Subscription {\n  onUpdateOrder(id: ID!): Order\n    @aws_subscribe(mutations: [\"updateOrder\"])\n}\n# Illustrative: define Order, Mutation, resolvers and auth separately.",
+      "note": "Choose AppSync for the GraphQL and sync requirements, not because every API needs it.",
+      "docs": [
+        {
+          "label": "Subscriptions",
+          "url": "https://docs.aws.amazon.com/appsync/latest/devguide/aws-appsync-real-time-data.html"
+        },
+        {
+          "label": "Sync and offline access",
+          "url": "https://docs.aws.amazon.com/appsync/latest/devguide/tutorial-delta-sync.html"
+        },
+        {
+          "label": "Conflict resolution",
+          "url": "https://docs.aws.amazon.com/appsync/latest/devguide/conflict-detection-and-resolution.html"
+        }
+      ],
+      "read": "#dva-service-appsync",
+      "learning": [
+        {
+          "title": "Exam boundary: GraphQL sync vs identity",
+          "paragraphs": [],
+          "trigger": "Offline synchronisation and conflict handling → AppSync with the appropriate client/sync setup; Cognito alone does not sync application records.",
+          "trap": "User pools issue app tokens; identity pools issue temporary AWS credentials. Neither is a substitute for resolver/data authorisation."
+        }
+      ]
+    },
+    "edge": {
+      "name": "CloudFront & global delivery",
+      "icon": "Amazon-CloudFront",
+      "role": "Route and accelerate requests globally; run edge code only when a request needs custom processing.",
+      "bullets": [
+        "CloudFront serves HTTP(S) through global Points of Presence (PoPs). An origin is a backend content source; path behaviours can select different origins.",
+        "Origin groups pair a primary with a secondary for configured failover. They do not combine responses.",
+        "Global Accelerator provides static anycast entry IPs and routes TCP/UDP traffic to healthy regional endpoints over the AWS backbone; it is not a content cache."
+      ],
+      "boundary": "Different paths → multiple origins. Same content with fallback → origin group. Custom edge logic → an edge function. Static global IPs → Global Accelerator.",
+      "table": {
+        "headers": [
+          "Capability",
+          "Responsibility",
+          "Example"
+        ],
+        "rows": [
+          [
+            "CloudFront multiple origins",
+            "Route by cache behaviour/path pattern",
+            "/images/* → S3; /api/* → ALB"
+          ],
+          [
+            "Lambda@Edge",
+            "Custom request/response processing",
+            "Inspect request body or call another service at an eligible trigger"
+          ],
+          [
+            "CloudFront origin group",
+            "Retry eligible requests against a secondary",
+            "Primary 503 → backup origin"
+          ],
+          [
+            "Global Accelerator",
+            "Static anycast IPs, backbone routing and endpoint health/failover",
+            "Client → global entry IP → healthy regional ALB"
+          ]
+        ]
+      },
+      "exampleTitle": "Illustrative distribution rules (pseudocode)",
+      "language": "text",
+      "example": "/images/* → images-origin (S3)\n/api/*    → orders-origin (ALB)\n# Either behaviour can instead target its own primary/secondary origin group.",
+      "note": "Assume an origin fetch: a cache hit can be returned without contacting either origin. CloudFront can deliver dynamic responses without Lambda@Edge.",
+      "docs": [
+        {
+          "label": "Origin failover",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/high_availability_origin_failover.html"
+        },
+        {
+          "label": "Edge function comparison",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/edge-functions-choosing.html"
+        },
+        {
+          "label": "Global Accelerator",
+          "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/introduction-how-it-works.html"
+        },
+        {
+          "label": "Cache policy inputs",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html"
+        }
+      ],
+      "read": "#dva-service-edge",
+      "learning": [
+        {
+          "title": "Routing, failover and edge code",
+          "paragraphs": [
+            "An origin group retries **GET, HEAD or OPTIONS** after a configured failure (for example 503); OPTIONS must be enabled as a cached method. It does not fail over POST/PUT, merge responses, or send all later requests directly to the backup. Each origin fetch tries the primary again.",
+            "An IPv4 Global Accelerator normally gets **two static anycast IPv4 addresses** (dual-stack also adds two IPv6 addresses). Anycast advertises the same address from multiple edge locations. That global public entry is separate from the regional ALB/NLB/EC2/Elastic IP endpoint."
+          ],
+          "analogy": "A shopping-centre directory sends you to the right shop; a backup shop supplies the same item if the first fails. A worldwide phone number is a separate idea.",
+          "flow": "Viewer → CloudFront PoP → path behaviour → selected origin/group; optional edge code changes a request or response.",
+          "table": {
+            "headers": [
+              "Edge code",
+              "Runs on",
+              "Good fit / boundary"
+            ],
+            "rows": [
+              [
+                "CloudFront Functions",
+                "Viewer request/response; JavaScript",
+                "Short header/URL/cache-key changes; no general network or request-body access"
+              ],
+              [
+                "Lambda@Edge",
+                "Viewer or origin request/response; supported Node.js/Python",
+                "More processing, libraries, network or eligible request-body access; trigger restrictions apply"
+              ]
+            ]
+          },
+          "trigger": "A dynamic API alone needs no edge function. Choose code only when the scenario requires custom processing.",
+          "trap": "Path routing, origin failover and global IP acceleration solve different problems."
+        },
+        {
+          "title": "Query strings: cache the representation, not just the path",
+          "paragraphs": [
+            "A cache policy selects the request inputs in the **cache key**; query strings are not automatically included in every policy. If the origin varies /reviews by **lang=en/jp/fr**, include **lang** in the cache key. A header and a query parameter are distinct inputs.",
+            "The origin must receive the inputs it needs. Including a query parameter in the cache policy also forwards it; an origin-request policy can forward additional values without including them in the key. Forwarding lang while omitting it from the key can serve one cached language to everyone."
+          ],
+          "analogy": "Label each translated folder with its language; replacing wrongly labelled folders more often does not fix the labels.",
+          "steps": [
+            "/reviews?lang=jp",
+            "Cache key includes lang",
+            "Separate Japanese response"
+          ],
+          "example": "# Illustrative cache-policy fields\nQueryStringsConfig:\n  QueryStringBehavior: whitelist\n  QueryStrings: [lang]\n# /reviews?lang=en and /reviews?lang=jp now have different keys.",
+          "trigger": "Wrong cached variant despite correct origin response → inspect cache-key inputs before shortening TTL.",
+          "trap": "A lower TTL reduces time until expiry, not the correctness of a key that collapses different representations."
+        }
+      ],
+      "exercises": [
+        "edge",
+        "cache-key"
+      ]
+    },
+    "codecommit": {
+      "name": "AWS CodeCommit",
+      "icon": "AWS-CodeCommit",
+      "role": "Managed private Git repositories; repository encryption and Git authentication are separate responsibilities.",
+      "bullets": [
+        "Repository data is encrypted at rest automatically with KMS; the default is the AWS-managed aws/codecommit key. HTTPS or SSH protects Git traffic in transit.",
+        "HTTPS can use IAM-generated CodeCommit Git credentials or the AWS credential helper. AWS access keys are not the direct Git username/password.",
+        "Git authenticates during clone, pull or push. A credential manager may supply stored credentials; Git has no standard git login command."
+      ],
+      "boundary": "GitHub PATs authenticate GitHub, not CodeCommit. Provider-managed at-rest encryption is not end-to-end encryption.",
+      "table": {
+        "headers": [
+          "Layer",
+          "Mechanism",
+          "Responsibility"
+        ],
+        "rows": [
+          [
+            "At rest",
+            "Default AWS-managed KMS key; supported customer-managed key option",
+            "CodeCommit encrypts automatically; ordinary use needs no separate encryption enablement"
+          ],
+          [
+            "In transit",
+            "HTTPS/TLS or SSH",
+            "Protect the Git connection"
+          ],
+          [
+            "HTTPS identity",
+            "IAM-generated Git username/password, or AWS credential helper",
+            "Authenticate to CodeCommit; do not paste access keys as Git credentials"
+          ]
+        ]
+      },
+      "exampleTitle": "Executable migration pattern — use your own repositories",
+      "language": "bash",
+      "example": "git clone --mirror https://github.com/company/repo.git\ncd repo.git\ngit push --mirror \\\n  https://git-codecommit.ap-southeast-2.amazonaws.com/v1/repos/my-repo\n# Clone authenticates to GitHub if required; push authenticates to CodeCommit.\n# --mirror copies refs and can delete destination refs: use a new migration target.",
+      "note": "New-customer onboarding was restricted in July 2024 and reopened in November 2025. Current AWS announcement checked 7 November 2026; older closure banners can be stale.",
+      "docs": [
+        {
+          "label": "Encryption",
+          "url": "https://docs.aws.amazon.com/codecommit/latest/userguide/encryption.html"
+        },
+        {
+          "label": "HTTPS Git credentials",
+          "url": "https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-gc.html"
+        },
+        {
+          "label": "Credential helper",
+          "url": "https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-https-unixes.html"
+        },
+        {
+          "label": "Current service availability",
+          "url": "https://aws.amazon.com/blogs/devops/aws-codecommit-returns-to-general-availability/"
+        }
+      ],
+      "read": "#dva-service-codecommit",
+      "learning": [
+        {
+          "title": "Credentials are a badge; encryption is the locked cabinet",
+          "paragraphs": [
+            "IAM-generated **Git credentials** are a service-specific username/password for an IAM user. The **AWS CLI credential helper** instead uses configured AWS credentials (including supported temporary credentials) to authenticate HTTPS requests. Configure the appropriate method rather than mixing conflicting helpers.",
+            "[GitHub.com also encrypts repository data at rest](https://github.blog/changelog/2019-05-23-git-data-encryption-at-rest/) and uses HTTPS/SSH in transit. In either service, the hosting provider can process repository contents; this is not client-only end-to-end encryption."
+          ],
+          "analogy": "The lock protects stored files; the badge proves who may open them. A GitHub badge does not open a CodeCommit door.",
+          "flow": "Local Git → HTTPS authentication → CodeCommit permissions → encrypted repository.",
+          "trigger": "HTTPS username/password for CodeCommit → IAM-generated Git credentials; federated AWS credentials → supported helper workflow.",
+          "trap": "An AWS access key ID/secret is not the raw Git HTTPS username/password."
+        }
+      ]
     }
   },
   "choosers": {
@@ -1703,6 +3950,13 @@
           "keys": [
             "alb",
             "asg"
+          ]
+        },
+        {
+          "when": "Real-time GraphQL; offline edits with sync/conflict handling",
+          "then": "AppSync + compatible client/versioned data source",
+          "keys": [
+            "appsync"
           ]
         }
       ],
@@ -1988,6 +4242,7 @@
         {
           "title": "Delivery tools and runtime configuration",
           "keys": [
+            "codecommit",
             "pipeline",
             "build",
             "deploy",
@@ -2004,13 +4259,15 @@
         {
           "title": "Front door, execution and capacity",
           "keys": [
+            "edge",
             "apigw",
             "alb",
             "lambda",
             "ec2",
             "asg",
             "containers",
-            "fargate"
+            "fargate",
+            "appsync"
           ],
           "chooser": "runtime"
         }
@@ -2871,7 +5128,7 @@
         ],
         "purpose": "Persist authoritative data or reuse an appropriate cached copy.",
         "owns": "Access keys/indexes or SQL endpoints, consistency, projection, cache scope and lifetime.",
-        "handoff": "Return data to the request path; background workers can update the same permitted state.",
+        "handoff": "Return data to application code, which constructs the client response. Background workers can update the same permitted state.",
         "boundary": "A replica/index/cache has a distinct consistency contract. TTL cleanup is asynchronous; a cache key must separate users/tenants where required.",
         "situation": "A user sees stale or another tenant’s cached result. Check authoritative state, cache key and invalidation before adding capacity.",
         "evidence": "Query/index or replica endpoint, projected fields, timestamps, cache hit/miss and tenant-scoped keys.",
@@ -3074,7 +5331,7 @@
         "purpose": "Apply separate identity and access decisions to delivery, users and machine workloads.",
         "owns": "Developer/deployment roles, API token trust, backend/worker roles and application-level entitlements.",
         "handoff": "Each trust boundary validates the correct principal/credential and permits only its intended action and data.",
-        "boundary": "The deployment role does not become the end user. Boundaries/SCPs restrict applicable grants; a valid JWT is not automatically an AWS permission.",
+        "boundary": "A developer/deployment identity changes resources; the runtime uses its own configured role. Lambda assumes its execution role automatically. Explicit STS role switching is needed only for a separate session/trust requirement. Boundaries and SCPs restrict permissions; they grant none.",
         "situation": "The front door accepts a token but the app leaks another tenant’s record. Enforce record entitlement at the application/data access boundary.",
         "evidence": "Token claims, route scopes, execution-role action/resource and tenant-filter decisions are distinct evidence.",
         "keys": [
@@ -3287,13 +5544,14 @@
         "kind": "request",
         "label": null,
         "lx": null,
-        "ly": null
+        "ly": null,
+        "bidirectional": true
       },
       {
         "id": "state-response",
-        "from": "state",
+        "from": "compute",
         "to": "response",
-        "path": "M1010 499 H1065",
+        "path": "M710 553 V562 Q710 570 718 570 H1045 Q1053 570 1053 562 V507 Q1053 499 1061 499 H1065",
         "kind": "request",
         "label": null,
         "lx": null,
@@ -3582,7 +5840,7 @@
     }
   },
   "examCheck": {
-    "checked": "29 October 2026",
+    "checked": "7 November 2026",
     "guide": "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html",
     "revisions": "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/dva-02-revisions.html",
     "services": "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/dva-02-in-scope-services.html"

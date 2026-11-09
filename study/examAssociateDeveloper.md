@@ -18,15 +18,18 @@ Learn the responsibility first, then choose the AWS feature that satisfies it. T
 
 **Checked: {{ site.data.dva_study.checked }}.** The [official DVA-C02 guide](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html) defines exam scope. Use [the study roadmap](#coverage) to plan your next topics.
 
+[Architecture](#theory) · [Service cards](#services) · [Cryptography](#cryptography) · [Practice](#practice) · [Part 2](#practice-followup) · [Part 3 review](#practice-followup-3)
+
 <link rel="stylesheet" href="{{ '/assets/aip-study-flow.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/assets/aws-ai-service-map.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/assets/dva-study.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/dva-learning.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/assets/dva-architecture-explorer.css' | relative_url }}">
 <div class="dva-study" id="dva-study" markdown="1">
 
 ## 1. Understand the application {#theory}
 
-Trace three connected flows: **developer delivery → deployed application → user requests and background work**. Provisioning creates resources and permissions; release promotion changes which version receives traffic. Production evidence guides recovery and the next change. Select a box to study its responsibility, or trace a situation across lanes.
+Trace three connected flows: **developer delivery → deployed application → user requests and background work**. These are logical handoffs, not one packet path. Delivery configures resources and roles; the application uses its own runtime identity and constructs the response. Production evidence guides recovery and the next change. Select a box to study its responsibility, or trace a situation across lanes.
 
 {% include dva-theory-map.html %}
 
@@ -48,6 +51,8 @@ Use **least overhead** only after hard constraints are met. Prefer supported cap
 ## 3. Connect theory to services {#services}
 
 The chooser rules stay visible. Open a tile for details and a sample contract. Examples are deliberately small; configuration excerpts and pseudocode are labelled where they omit deployment context.
+
+**Quick guides:** [ASG capacity](#asg-capacity-lab) · [Atomic transactions](#transaction-lab) · [Cryptography & KMS](#cryptography) · [Kinesis shards](#dva-service-kinesis). Service references now include expandable **Exam trigger / Common trap** notes.
 
 ### 3.1 Release & infrastructure {#delivery-services}
 
@@ -85,6 +90,8 @@ Use a separate REST API stage for incompatible testing; stage variables supply e
 
 For compute, distinguish **routing, provisioning, scaling and storage**. Lambda layers package dependencies; memory affects conventional function CPU. An ASG adds EC2 instances; ALB sends requests to healthy targets. EFS keeps supported container tasks on shared persistent files, while task-local storage is disposable.
 
+{% include dva-capacity-lab.html %}
+
 ### 3.3 State & data access {#data-services}
 
 Access pattern → key/index or SQL endpoint → consistency → cache/lifetime
@@ -96,6 +103,8 @@ Access pattern → key/index or SQL endpoint → consistency → cache/lifetime
 For the game catalogue, `GameName + Version` identifies a version; `GameName` queries versions; `Category + GameName` on a GSI lists by category. Project the fields that the index must return. A GSI is eventually consistent. TTL removes expired items asynchronously; enforce application expiry even while an item still exists.
 
 Route read-heavy SQL to a read replica when lag is acceptable. A traditional Multi-AZ standby supports failover; a Multi-AZ **DB cluster** can also serve reads. Cache-aside adds a separate lookup and invalidation path; it does not replace the relational endpoint.
+
+{% include dva-transaction-lab.html %}
 
 ### 3.4 Asynchronous work {#async-services}
 
@@ -121,7 +130,11 @@ Separate the caller of your API from the role your code uses to call AWS. A role
 
 {% include dva-identity-lab.html %}
 
-Store rotating credentials in Secrets Manager and static named configuration in Parameter Store as appropriate. For S3, distinguish resulting default encryption from a policy requiring explicit upload headers: `AES256` means SSE-S3; `aws:kms` means SSE-KMS. For large client-encrypted data, envelope encryption uses a data key protected by a KMS key.
+Store rotating credentials in Secrets Manager and static named configuration in Parameter Store as appropriate. For S3, distinguish resulting default encryption from a policy requiring explicit upload headers: `AES256` means SSE-S3; `aws:kms` means SSE-KMS.
+
+#### Cryptography — patterns, keys & AWS KMS {#cryptography}
+
+{% include dva-cryptography-lab.html %}
 
 #### Find the right evidence {#operations-notes}
 
@@ -141,18 +154,32 @@ Choose a scenario and answer once. Explain the deciding constraint, reject the n
 
 {% include dva-practice.html %}
 
+### Practice Exam Follow-Up — Part 2 {#practice-followup}
+
+The related calculators and flow exercises live inside the existing service cards; this review tests the distinctions together.
+
+{% include dva-followup-review.html %}
+
+### Practice Exam Review — Part 3 {#practice-followup-3}
+
+Practise cache ownership, permission direction, index capacity and delivery boundaries. The examples remain in their service cards.
+
+{% include dva-followup-review.html part='3' %}
+
 ## 5. Exam scope and next topics {#coverage}
 
 The exam weights are **Development 32% · Security 26% · Deployment 24% · Troubleshooting and Optimization 18%**. The [official guide](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html) emphasizes implementing, testing, deploying and debugging applications; designing networking or an entire CI/CD platform is outside the stated target role.
 
 **Scope verified {{ site.data.dva_study.examCheck.checked }}:** AWS still lists **DVA-C02**. The current [revision notes]({{ site.data.dva_study.examCheck.revisions }}) include Amazon Q Developer assistance/testing, EventBridge, application-level authorization, structured logging and runtime configuration. Use the [in-scope service list]({{ site.data.dva_study.examCheck.services }}) alongside the four domain descriptions. The map organizes responsibilities; its lanes are not separate exam domains.
 
+AWS's [exam-guide index](https://docs.aws.amazon.com/aws-certification/latest/examguides/) lists **30 November 2026** as the last day for DVA-C02 and **1 December 2026** for DVA-C03 registration opening. This page continues to target DVA-C02; confirm the version when booking.
+
 | Domain | Covered here | Topics to expand |
 |---|---|---|
-| [Development — 32%](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02-domain1.html) | API integration, Lambda, stores, queues/streams, routing/workflows, idempotency. | SDK pagination/error handling, Query vs Scan, read consistency, Lambda invocation/error lifecycles, concurrency and hands-on Q Developer-assisted development. |
-| [Security — 26%](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02-domain2.html) | Cognito, IAM, encryption, secrets, network filtering. | Cross-account roles/key permissions, TLS/certificates, token scopes, tenant-level authorization, sanitization and sensitive logging. |
+| [Development — 32%](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02-domain1.html) | API integration/cache, Lambda concurrency/retry, transactions/capacity/indexes, Query/Scan, queues/streams, routing/workflows, idempotency, AppSync. | More SDK error-handling exercises and hands-on Q Developer-assisted development. |
+| [Security — 26%](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02-domain2.html) | Cognito, IAM, cryptography/KMS comparison, S3 encryption/access, secrets, network filtering. | Deeper cross-account policy evaluation, TLS/certificates, token scopes, tenant-level authorization, sanitization and sensitive logging. |
 | [Deployment — 24%](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02-domain3.html) | Beanstalk, versions/aliases, stages, IaC, CodePipeline/CodeBuild/CodeDeploy and AppConfig boundaries. | Exercise artifact packaging, local/integration tests, hooks, alarms and rollback in an existing delivery workflow. |
-| [Troubleshooting — 18%](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02-domain4.html) | Health checks, evidence, CPU tuning, throttling/backlog. | Instrumentation, tracing, custom metrics, log queries, service quotas and concurrency bottlenecks; validate with before/after measurements. |
+| [Troubleshooting — 18%](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02-domain4.html) | Health checks, ASG capacity, CPU tuning, throttling/backlog, custom error rates, metric filters and tracing. | Exercise instrumentation/log queries and validate fixes with before/after measurements. |
 
 SAM remains explicit in the [Deployment domain](https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02-domain3.html): staging deployments, test events and IaC template updates. The service list is non-exhaustive; a missing name there does not mean the skill is excluded.
 
@@ -166,5 +193,10 @@ Explore scope, placement and communication on one map. The **25 scenarios** and 
 
 </div>
 <script id="dva-study-data" type="application/json">{{ site.data.dva_study | jsonify }}</script>
+<script id="dva-followup-data" type="application/json">{{ site.data.dva_followup | jsonify }}</script>
+<script src="{{ '/assets/dva-learning-core.js' | relative_url }}" defer></script>
+<script src="{{ '/assets/dva-part3-core.js' | relative_url }}" defer></script>
 <script src="{{ '/assets/dva-study.js' | relative_url }}" defer></script>
+<script src="{{ '/assets/dva-learning.js' | relative_url }}" defer></script>
+<script src="{{ '/assets/dva-followup.js' | relative_url }}" defer></script>
 <script src="{{ '/assets/dva-architecture-explorer.js' | relative_url }}" defer></script>

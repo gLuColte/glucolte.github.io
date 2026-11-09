@@ -1,0 +1,2262 @@
+{
+  "exercises": {
+    "dynamo": {
+      "title": "Try it · DynamoDB RCU/WCU calculator",
+      "purpose": "Round the item size first, then apply consistency and requests per second.",
+      "legend": "Change the scenario",
+      "controls": [
+        {
+          "key": "size",
+          "label": "Item size · KB (1,024 bytes)",
+          "type": "number",
+          "value": 12,
+          "min": 0.001,
+          "max": 400,
+          "step": "any"
+        },
+        {
+          "key": "reads",
+          "label": "Reads / second",
+          "type": "number",
+          "value": 16,
+          "min": 0,
+          "max": 1000000,
+          "step": "any"
+        },
+        {
+          "key": "writes",
+          "label": "Writes / second",
+          "type": "number",
+          "value": 1,
+          "min": 0,
+          "max": 1000000,
+          "step": "any"
+        },
+        {
+          "key": "consistency",
+          "label": "Read consistency",
+          "type": "select",
+          "options": [
+            [
+              "eventual",
+              "Eventual"
+            ],
+            [
+              "strong",
+              "Strong"
+            ],
+            [
+              "transaction",
+              "Transactional"
+            ]
+          ],
+          "value": "eventual"
+        },
+        {
+          "key": "transactional",
+          "label": "Transactional writes",
+          "type": "checkbox",
+          "value": false
+        }
+      ],
+      "fallback": "12 KB → 3 read-size units × 0.5 × 16 reads/s = 24 RCUs. One normal 12 KB write/s needs 12 WCUs.",
+      "caveat": "Successful single-item operations, equally sized items, no secondary-index write costs. Whole provisioned settings have a minimum of 1 RCU and 1 WCU; this is arithmetic sizing before headroom.",
+      "actions": []
+    },
+    "edge": {
+      "title": "Try it · CloudFront request router",
+      "purpose": "Trace a cache miss: path routing and primary/secondary failover are separate choices.",
+      "legend": "Change the scenario",
+      "controls": [
+        {
+          "key": "path",
+          "label": "Request path",
+          "type": "select",
+          "options": [
+            [
+              "/images/logo.png",
+              "/images/logo.png"
+            ],
+            [
+              "/api/orders",
+              "/api/orders"
+            ]
+          ],
+          "value": "/images/logo.png"
+        },
+        {
+          "key": "health",
+          "label": "Selected primary origin",
+          "type": "select",
+          "options": [
+            [
+              "healthy",
+              "Healthy"
+            ],
+            [
+              "failed",
+              "503 · configured failure"
+            ]
+          ],
+          "value": "healthy"
+        },
+        {
+          "key": "mode",
+          "label": "Origin configuration",
+          "type": "select",
+          "options": [
+            [
+              "multiple",
+              "Multiple origins · by path"
+            ],
+            [
+              "group",
+              "Origin group · per path"
+            ]
+          ],
+          "value": "multiple"
+        },
+        {
+          "key": "method",
+          "label": "HTTP method",
+          "type": "select",
+          "options": [
+            [
+              "GET",
+              "GET"
+            ],
+            [
+              "HEAD",
+              "HEAD"
+            ],
+            [
+              "OPTIONS",
+              "OPTIONS"
+            ],
+            [
+              "POST",
+              "POST"
+            ]
+          ],
+          "value": "GET"
+        }
+      ],
+      "fallback": "GET /images/logo.png → CloudFront PoP → S3. /api/orders routes to ALB. With a group, an eligible failed request retries a matching backup.",
+      "caveat": "Assumes cache miss, allowed method and configured 503 failover; OPTIONS caching is enabled. Each path’s group has a backup serving the same content. No health probes or requests run here.",
+      "actions": []
+    },
+    "policy": {
+      "title": "Try it · IAM identity vs queue policy",
+      "purpose": "Evaluate one IAM principal and one SQS action, in the same account or across accounts.",
+      "legend": "Change the scenario",
+      "controls": [
+        {
+          "key": "account",
+          "label": "Accounts",
+          "type": "select",
+          "options": [
+            [
+              "same",
+              "Same account"
+            ],
+            [
+              "cross",
+              "Cross-account"
+            ]
+          ],
+          "value": "same"
+        },
+        {
+          "key": "action",
+          "label": "Requested action",
+          "type": "select",
+          "options": [
+            [
+              "sqs:SendMessage",
+              "sqs:SendMessage"
+            ],
+            [
+              "sqs:ReceiveMessage",
+              "sqs:ReceiveMessage"
+            ]
+          ],
+          "value": "sqs:SendMessage"
+        },
+        {
+          "key": "identity",
+          "label": "IAM identity policy Allow",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "resource",
+          "label": "SQS queue policy Allow",
+          "type": "checkbox",
+          "value": false
+        },
+        {
+          "key": "identityDeny",
+          "label": "IAM explicit Deny",
+          "type": "checkbox",
+          "value": false
+        },
+        {
+          "key": "resourceDeny",
+          "label": "SQS explicit Deny",
+          "type": "checkbox",
+          "value": false
+        }
+      ],
+      "fallback": "Same account: either applicable Allow can suffice. Cross-account IAM access: both sides typically allow. Applicable explicit Deny always wins.",
+      "caveat": "Only policies matching this principal, action, resource and conditions are toggled. Other controls are assumed satisfied: SCPs/RCPs, boundaries, session/endpoint policies and KMS can restrict access. SNS service-principal evaluation is a separate example, not modelled as an IAM role.",
+      "actions": []
+    },
+    "redis": {
+      "title": "Try it · Shards vs replicas",
+      "purpose": "One Region, node-based Redis OSS/Valkey cluster mode enabled. Each shard owns a different part of the keyspace.",
+      "legend": "Change the scenario",
+      "controls": [
+        {
+          "key": "key",
+          "label": "Key used by write/failure example",
+          "type": "text",
+          "value": "order:42"
+        },
+        {
+          "key": "failover",
+          "label": "Automatic failover enabled (requires a replica)",
+          "type": "checkbox",
+          "value": true
+        }
+      ],
+      "fallback": "Three shards each have a primary and no replicas. Add shards for aggregate write/storage capacity; add replicas for reads and failover candidates.",
+      "caveat": "Standard node-based cache with durability mode off. Illustrative stable hash and even slot ranges, not actual Redis CRC16 placement or a real resharding/failover procedure. Nodes can span AZs; async replicas are not guaranteed zero-data-loss copies.",
+      "actions": [
+        [
+          "shard",
+          "Add shard"
+        ],
+        [
+          "replica",
+          "Add replica per shard"
+        ],
+        [
+          "write",
+          "Write key"
+        ],
+        [
+          "fail",
+          "Fail selected primary"
+        ]
+      ]
+    },
+    "cache": {
+      "title": "Try it · REST API cache flow",
+      "purpose": "Assume successful API authentication; separately decide whether the caller may invalidate the cached response.",
+      "legend": "Change the scenario",
+      "controls": [
+        {
+          "key": "enabled",
+          "label": "Stage/method cache enabled",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "entry",
+          "label": "Cache entry",
+          "type": "select",
+          "options": [
+            [
+              "fresh",
+              "Unexpired entry"
+            ],
+            [
+              "stale",
+              "Expired / missing entry"
+            ]
+          ],
+          "value": "fresh"
+        },
+        {
+          "key": "header",
+          "label": "Send Cache-Control: max-age=0",
+          "type": "checkbox",
+          "value": false
+        },
+        {
+          "key": "permission",
+          "label": "Caller has execute-api:InvalidateCache",
+          "type": "checkbox",
+          "value": false
+        },
+        {
+          "key": "unauthorised",
+          "label": "Unauthorised invalidation strategy",
+          "type": "select",
+          "options": [
+            [
+              "reject",
+              "FAIL_WITH_403"
+            ],
+            [
+              "warn",
+              "Ignore + response warning"
+            ],
+            [
+              "ignore",
+              "Ignore silently"
+            ]
+          ],
+          "value": "reject"
+        }
+      ],
+      "fallback": "Unexpired entry → cache hit. Authorised max-age=0 → backend fetch → replace entry. Unauthorised invalidation can be rejected or ignored according to configuration.",
+      "caveat": "Method requires authorisation for invalidation; caller’s normal invoke permission is assumed allowed. “Unexpired” describes TTL, not guaranteed source-data freshness. REST API response cache only.",
+      "actions": []
+    },
+    "alb": {
+      "title": "Try it · ALB frontend and target routing",
+      "purpose": "A public frontend can route to private targets; registering a target does not build network connectivity.",
+      "legend": "Change the scenario",
+      "controls": [
+        {
+          "key": "scheme",
+          "label": "ALB scheme",
+          "type": "select",
+          "options": [
+            [
+              "internet",
+              "Internet-facing"
+            ],
+            [
+              "internal",
+              "Internal"
+            ]
+          ],
+          "value": "internet"
+        },
+        {
+          "key": "client",
+          "label": "Client connectivity",
+          "type": "select",
+          "options": [
+            [
+              "public",
+              "Internet only"
+            ],
+            [
+              "private",
+              "Private network connectivity"
+            ]
+          ],
+          "value": "public"
+        },
+        {
+          "key": "target",
+          "label": "Target type",
+          "type": "select",
+          "options": [
+            [
+              "instance",
+              "instance"
+            ],
+            [
+              "ip",
+              "ip"
+            ],
+            [
+              "lambda",
+              "lambda"
+            ]
+          ],
+          "value": "instance"
+        },
+        {
+          "key": "location",
+          "label": "Private IP location",
+          "type": "select",
+          "options": [
+            [
+              "same",
+              "Same VPC"
+            ],
+            [
+              "other",
+              "Other reachable VPC"
+            ]
+          ],
+          "value": "same"
+        },
+        {
+          "key": "route",
+          "label": "Forward and return routes available",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "sg",
+          "label": "Target SG permits application traffic",
+          "type": "checkbox",
+          "value": true
+        }
+      ],
+      "fallback": "Client → ALB DNS → listener → matching rule → target group → healthy target. Internal ALBs need private connectivity; private IP targets still need routes and network permissions.",
+      "caveat": "Assumes valid DNS, ALB listener rules/SG, NACLs and target health. IP examples use permitted private ranges. Lambda invocation permission is assumed allowed; it is not a target TCP connection.",
+      "actions": []
+    },
+    "firewall": {
+      "title": "Try it · Stateful SG vs stateless NACL",
+      "purpose": "Model one TCP connection at the receiving subnet. The frontend and backend are separate connections.",
+      "legend": "Change the scenario",
+      "controls": [
+        {
+          "key": "leg",
+          "label": "Connection",
+          "type": "select",
+          "options": [
+            [
+              "front",
+              "Browser ↔ ALB"
+            ],
+            [
+              "back",
+              "ALB ↔ EC2"
+            ]
+          ],
+          "value": "front"
+        },
+        {
+          "key": "protocol",
+          "label": "Service protocol",
+          "type": "select",
+          "options": [
+            [
+              "http",
+              "HTTP · 80"
+            ],
+            [
+              "https",
+              "HTTPS · 443"
+            ]
+          ],
+          "value": "http"
+        },
+        {
+          "key": "port",
+          "label": "Initiator ephemeral source port",
+          "type": "number",
+          "value": 54321,
+          "min": 1024,
+          "max": 65535,
+          "step": 1
+        },
+        {
+          "key": "sgIn",
+          "label": "Target SG allows new inbound connection",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "sgOut",
+          "label": "Matching target SG outbound rule",
+          "type": "checkbox",
+          "value": false
+        },
+        {
+          "key": "naclIn",
+          "label": "Target-subnet NACL allows service destination port",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "naclOut",
+          "label": "Target-subnet NACL allows response ephemeral destination port",
+          "type": "checkbox",
+          "value": true
+        }
+      ],
+      "fallback": "Browser:54321 → ALB:80; ALB:80 → Browser:54321. Stateful SG permits the response; stateless NACL needs an outbound destination-port rule for 54321.",
+      "caveat": "Initiator-side controls/routes and target application are assumed permitted. This is ordinary tracked TCP traffic; special untracked flows are outside the exercise. Actual ephemeral ranges depend on the initiator.",
+      "actions": []
+    },
+    "metrics": {
+      "title": "Try it · Choose the metric source",
+      "purpose": "First identify the signal; then decide whether you need a new publisher or simply faster native samples.",
+      "legend": "Change the scenario",
+      "controls": [
+        {
+          "key": "scenario",
+          "label": "Requirement",
+          "type": "select",
+          "options": [
+            [
+              "cpu",
+              "Scale EC2 on CPU"
+            ],
+            [
+              "memory",
+              "Scale EC2 on memory"
+            ],
+            [
+              "app",
+              "Scale on application requests/minute"
+            ],
+            [
+              "alb",
+              "Scale on ALB requests per target"
+            ],
+            [
+              "frequency",
+              "Increase native EC2 metric frequency"
+            ]
+          ],
+          "value": "cpu"
+        },
+        {
+          "key": "hasAlb",
+          "label": "This architecture has an ALB + target group",
+          "type": "checkbox",
+          "value": true
+        }
+      ],
+      "fallback": "CPU → native metric. Memory → agent/custom publisher. App-specific rate → instrumentation. ALB requests/target → ALB native metric if an ALB exists. Faster EC2 native samples → detailed monitoring.",
+      "caveat": "A valid metric must exist with the correct dimensions and scaling behaviour. Standard custom resolution is 60 s; high-resolution custom data uses StorageResolution=1. Detailed EC2 monitoring is normally 1 minute, not 1 second.",
+      "actions": []
+    },
+    "cache-choice": {
+      "title": "Try it · Choose the cache boundary",
+      "purpose": "Choose for the deciding requirement; another technology can be technically possible with more application work.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "scenario",
+          "label": "Requirement",
+          "type": "select",
+          "options": [
+            [
+              "products",
+              "Shared DynamoDB products · least cache logic"
+            ],
+            [
+              "sessions",
+              "Shared user sessions"
+            ],
+            [
+              "images",
+              "Static images in S3"
+            ],
+            [
+              "recommendations",
+              "Custom computed recommendations"
+            ],
+            [
+              "strong",
+              "Latest committed DynamoDB data · strong read"
+            ]
+          ],
+          "value": "products"
+        },
+        {
+          "key": "choice",
+          "label": "Your choice",
+          "type": "select",
+          "options": [
+            [
+              "dax",
+              "DAX"
+            ],
+            [
+              "redis",
+              "ElastiCache Redis"
+            ],
+            [
+              "cloudfront",
+              "CloudFront"
+            ],
+            [
+              "direct",
+              "Bypass cache / direct strong read"
+            ]
+          ],
+          "value": "dax"
+        }
+      ],
+      "fallback": "DAX simplifies eligible DynamoDB read caching; Redis supports general-purpose cached values; CloudFront serves cacheable HTTP content. Strong reads bypass cached copies.",
+      "caveat": "Choices describe a typical fit, not exclusive technical possibilities. Session durability/expiry and tenant-level authorisation still need application design.",
+      "actions": []
+    },
+    "invocation": {
+      "title": "Try it · Find the failing permission hop",
+      "purpose": "Select a stage, then test caller, integration and execution permissions independently.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "stage",
+          "label": "Stage variable target",
+          "type": "select",
+          "options": [
+            [
+              "dev",
+              "dev → my-api-dev"
+            ],
+            [
+              "prod",
+              "prod → my-api-prod"
+            ]
+          ],
+          "value": "dev"
+        },
+        {
+          "key": "client",
+          "label": "Client passes configured API authorisation",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "resource",
+          "label": "Selected Lambda resource policy permits API Gateway",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "role",
+          "label": "Configured API Gateway invocation role is trusted + permits InvokeFunction",
+          "type": "checkbox",
+          "value": false
+        },
+        {
+          "key": "downstream",
+          "label": "Lambda execution role permits required DynamoDB action",
+          "type": "checkbox",
+          "value": true
+        }
+      ],
+      "fallback": "Client → API authorisation → Gateway invoke permission → Lambda → execution-role permission → DynamoDB. A stage variable selects the function; it grants no access.",
+      "caveat": "Same-account illustration, no explicit Deny, valid integration/alias/source-ARN scopes. The role toggle means the alternative integration credentials role is correctly configured. Other IAM controls are assumed satisfied.",
+      "actions": []
+    },
+    "cli": {
+      "title": "Try it · CLI projection, filtering and pagination",
+      "purpose": "Use Users for attributes/filters, or switch to 250 S3 objects to see 100 → 100 → 50 output pages.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "dataset",
+          "label": "Sample dataset",
+          "type": "select",
+          "options": [
+            [
+              "users",
+              "DynamoDB Users · 12 items"
+            ],
+            [
+              "s3",
+              "S3 objects · 250 items"
+            ]
+          ],
+          "value": "users"
+        },
+        {
+          "key": "projection",
+          "label": "Projection · returned attributes",
+          "type": "select",
+          "options": [
+            [
+              "all",
+              "All attributes"
+            ],
+            [
+              "names",
+              "UserID + Name"
+            ],
+            [
+              "contact",
+              "Name + Email"
+            ]
+          ],
+          "value": "names"
+        },
+        {
+          "key": "filter",
+          "label": "Filter · returned rows",
+          "type": "select",
+          "options": [
+            [
+              "all",
+              "All users"
+            ],
+            [
+              "active",
+              "Active users only"
+            ]
+          ],
+          "value": "all"
+        },
+        {
+          "key": "pageSize",
+          "label": "--page-size · service-call items",
+          "type": "number",
+          "value": 4,
+          "min": 1,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "maxItems",
+          "label": "--max-items · output items",
+          "type": "number",
+          "value": 5,
+          "min": 1,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "startToken",
+          "label": "--starting-token · blank for first output page",
+          "type": "text",
+          "value": ""
+        }
+      ],
+      "fallback": "Users: --page-size 4 and --max-items 5 can require two underlying calls. Projection/filtering change output, not the cost of evaluating the same records. The CLI NextToken resumes with --starting-token.",
+      "caveat": "Fixed illustrative dataset order; actual DynamoDB Scan order is not guaranteed. Service pages are below 1 MB. Cursor handling is simplified, including intra-page resume; tokens are simulated and never sent to AWS. Changing dataset resets options/tokens.",
+      "actions": [
+        [
+          "run",
+          "Run command"
+        ],
+        [
+          "next",
+          "Use NextToken"
+        ]
+      ]
+    },
+    "fifo": {
+      "title": "Try it · FIFO group order vs duplicate sends",
+      "purpose": "Send two users’ operations, receive their group heads, and compare retries before and after five minutes.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "user",
+          "label": "Producer user",
+          "type": "select",
+          "options": [
+            [
+              "User-A",
+              "User A"
+            ],
+            [
+              "User-B",
+              "User B"
+            ]
+          ],
+          "value": "User-A"
+        },
+        {
+          "key": "group",
+          "label": "Producer MessageGroupId",
+          "type": "select",
+          "options": [
+            [
+              "user",
+              "Use user_id · separate groups"
+            ],
+            [
+              "shared",
+              "all-users · one shared group"
+            ]
+          ],
+          "value": "user"
+        },
+        {
+          "key": "id",
+          "label": "MessageDeduplicationId · logical operation",
+          "type": "text",
+          "value": "purchase-001"
+        },
+        {
+          "key": "body",
+          "label": "Message body",
+          "type": "text",
+          "value": "buy:book"
+        },
+        {
+          "key": "content",
+          "label": "Generate deduplication ID from body instead",
+          "type": "checkbox",
+          "value": false
+        }
+      ],
+      "fallback": "Per-user groups can progress independently. Reusing a send deduplication ID inside five minutes is acknowledged without adding another deliverable message, even after the first is deleted.",
+      "caveat": "Queue-wide deduplication scope, one active head per group and successful DeleteMessage on completion. Content-hash equality is simulated; real SQS uses SHA-256 of body, excluding attributes. An explicit ID overrides content-based generation in real SQS.",
+      "actions": [
+        [
+          "send",
+          "Send message"
+        ],
+        [
+          "retry",
+          "Retry last send"
+        ],
+        [
+          "receive",
+          "Receive group heads"
+        ],
+        [
+          "complete",
+          "Complete / delete"
+        ],
+        [
+          "advance",
+          "Advance 5 minutes"
+        ]
+      ]
+    },
+    "gsi": {
+      "title": "Try it · GSI capacity and write back-pressure",
+      "purpose": "Compare base-table writes with the additional index-entry writes and eventual index reads.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "writes",
+          "label": "Base-table writes / second",
+          "type": "number",
+          "value": 100,
+          "min": 0,
+          "max": 1000000,
+          "step": "any"
+        },
+        {
+          "key": "size",
+          "label": "Base item size · KB",
+          "type": "number",
+          "value": 3,
+          "min": 0.001,
+          "max": 400,
+          "step": "any"
+        },
+        {
+          "key": "projected",
+          "label": "GSI entry size · KB (keys + projected attributes)",
+          "type": "number",
+          "value": 1.5,
+          "min": 0.001,
+          "max": 400,
+          "step": "any"
+        },
+        {
+          "key": "indexWcu",
+          "label": "GSI provisioned WCUs",
+          "type": "number",
+          "value": 150,
+          "min": 1,
+          "max": 1000000,
+          "step": 1
+        },
+        {
+          "key": "reads",
+          "label": "One-entry GSI Query requests / second",
+          "type": "number",
+          "value": 40,
+          "min": 0,
+          "max": 1000000,
+          "step": "any"
+        }
+      ],
+      "fallback": "100 new 3 KB items/s need 300 table WCUs. One 1.5 KB GSI entry per item adds 200 index WCUs; a 150-WCU index can back-pressure table writes. Forty eventual index reads/s use 20 RCUs at this size.",
+      "caveat": "Provisioned mode, one GSI, successful new eligible items, one index write per base write, no changed index keys/transactions or burst/adaptive headroom. Each Query evaluates/retrieves one projected entry; multi-entry Query size aggregation differs. KB = 1,024 bytes. It is sizing arithmetic, not an exact throttle predictor.",
+      "actions": []
+    },
+    "cutover": {
+      "title": "Try it · Replacement deployment cutover",
+      "purpose": "Compare the gap with no ready server, stable-IP reassociation, and independent-server redundancy.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "strategy",
+          "label": "Cutover strategy",
+          "type": "select",
+          "options": [
+            [
+              "stop",
+              "Stop old, then launch replacement"
+            ],
+            [
+              "eip",
+              "Prepare replacement, then move EIP"
+            ],
+            [
+              "dns",
+              "Multiple ready servers + DNS failover"
+            ]
+          ],
+          "value": "eip"
+        }
+      ],
+      "fallback": "Prepare-and-move EIP keeps one public IPv4 address but may briefly interrupt traffic. DNS redundancy uses different endpoints and has detection/caching considerations.",
+      "caveat": "Qualitative comparison only; no universal downtime seconds are claimed. EIPs are regional public IPv4 addresses. A redundant authoritative DNS design differs from simply changing an A record.",
+      "actions": []
+    },
+    "cache-key": {
+      "title": "Try it · CloudFront language cache key",
+      "purpose": "Request English, then Japanese, before and after including lang in the cache key.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "lang",
+          "label": "Request query parameter",
+          "type": "select",
+          "options": [
+            [
+              "en",
+              "lang=en"
+            ],
+            [
+              "jp",
+              "lang=jp"
+            ],
+            [
+              "fr",
+              "lang=fr"
+            ]
+          ],
+          "value": "en"
+        },
+        {
+          "key": "include",
+          "label": "Include lang in cache key",
+          "type": "checkbox",
+          "value": false
+        }
+      ],
+      "fallback": "Without lang in the key, /reviews?lang=en can populate /reviews, and a later lang=jp request hits the English response. Including lang separates variants.",
+      "caveat": "One edge cache, unexpired entries, origin returns the requested language. In both modes the origin receives lang (via cache/origin-request policy); this isolates the cache-key mistake. Changing policy does not clear this local model’s previous entries.",
+      "actions": [
+        [
+          "request",
+          "Request page"
+        ]
+      ]
+    },
+    "kcl": {
+      "title": "Try it · KCL shard leases and workers",
+      "purpose": "A worker can own several shard leases; extra workers do not create more shards.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "shards",
+          "label": "Stream shard count",
+          "type": "number",
+          "value": 10,
+          "min": 1,
+          "max": 20,
+          "step": 1
+        },
+        {
+          "key": "workers",
+          "label": "Workers per application",
+          "type": "number",
+          "value": 20,
+          "min": 1,
+          "max": 20,
+          "step": 1
+        },
+        {
+          "key": "apps",
+          "label": "Independent consumer applications",
+          "type": "number",
+          "value": 1,
+          "min": 1,
+          "max": 3,
+          "step": 1
+        }
+      ],
+      "fallback": "Ten shards and twenty one-worker instances → ten active workers and ten without shard leases within one application. Each independent application has its own lease/checkpoint set.",
+      "caveat": "Even, settled lease assignment; one KCL worker per instance is an assumption, not an EC2 rule. Real balancing/recovery is dynamic. Multiple applications still share normal read limits unless using eligible dedicated fan-out.",
+      "actions": []
+    },
+    "kms-cache": {
+      "title": "Try it · KMS data-key request counter",
+      "purpose": "Compare fresh materials per transaction with deliberately bounded reuse in one eligible cache.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "transactions",
+          "label": "Encryption transactions",
+          "type": "number",
+          "value": 1000,
+          "min": 1,
+          "max": 10000,
+          "step": 1
+        },
+        {
+          "key": "reuse",
+          "label": "Illustrative messages per cached data key",
+          "type": "number",
+          "value": 100,
+          "min": 1,
+          "max": 1000,
+          "step": 1
+        }
+      ],
+      "fallback": "1,000 encryptions: fresh data keys ≈1,000 GenerateDataKey calls; batches of 100 eligible messages ≈10 calls. Real age, byte, context and cache-miss rules can refresh sooner.",
+      "caveat": "Illustrative ceiling(transactions / reuse), not the exact Encryption SDK threshold algorithm. No cryptography, nonce generation, decryption calls or AWS requests run. Protect cached plaintext materials, retain unique required IV/nonces, and configure age/message/byte security limits.",
+      "actions": []
+    },
+    "cache-strategy": {
+      "title": "Try it · Lazy load, write-through or invalidate",
+      "purpose": "Read first, write an updated value, then read again; compare the cache and database.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "record",
+          "label": "Example item",
+          "type": "select",
+          "options": [
+            [
+              "price",
+              "Product price"
+            ],
+            [
+              "profile",
+              "Popular profile"
+            ],
+            [
+              "blog",
+              "Blog article"
+            ]
+          ],
+          "value": "price"
+        },
+        {
+          "key": "strategy",
+          "label": "Application cache strategy",
+          "type": "select",
+          "options": [
+            [
+              "lazy",
+              "Lazy loading"
+            ],
+            [
+              "lazy-ttl",
+              "Lazy loading + 60 s TTL"
+            ],
+            [
+              "through",
+              "Write-through + miss loading"
+            ],
+            [
+              "invalidate",
+              "Write-invalidate + miss loading"
+            ]
+          ],
+          "value": "lazy-ttl"
+        },
+        {
+          "key": "newValue",
+          "label": "New database value",
+          "type": "text",
+          "value": "$120"
+        },
+        {
+          "key": "fail",
+          "label": "Simulate cache set/delete failure after DB commit",
+          "type": "checkbox",
+          "value": false
+        }
+      ],
+      "fallback": "Lazy+TTL: read $100, update DB to $120, then an unexpired cache can still return $100. TTL expiry does not refresh it; the next read fetches $120. Write-through updates; invalidation deletes.",
+      "caveat": "One item, serial calls; changing item/strategy resets the example. Write-through/invalidation are shown synchronously, but can also be asynchronous. Separate DB/cache calls and concurrent readers need stronger controls for strict freshness.",
+      "actions": [
+        [
+          "read",
+          "Read item"
+        ],
+        [
+          "write",
+          "Update database"
+        ],
+        [
+          "advance",
+          "Advance 60 s"
+        ],
+        [
+          "expire",
+          "Expire TTL now"
+        ]
+      ]
+    },
+    "endpoint": {
+      "title": "Try it · Private-subnet service access",
+      "purpose": "Assume EC2 has no public IP, NAT or IGW path; choose the endpoint mechanism and its configuration.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "service",
+          "label": "Regional destination",
+          "type": "select",
+          "options": [
+            [
+              "s3",
+              "Amazon S3"
+            ],
+            [
+              "dynamodb",
+              "DynamoDB"
+            ],
+            [
+              "secrets",
+              "Secrets Manager"
+            ],
+            [
+              "kms",
+              "AWS KMS"
+            ]
+          ],
+          "value": "s3"
+        },
+        {
+          "key": "kind",
+          "label": "Endpoint type",
+          "type": "select",
+          "options": [
+            [
+              "gateway",
+              "Gateway · route table"
+            ],
+            [
+              "interface",
+              "Interface · PrivateLink ENIs"
+            ]
+          ],
+          "value": "gateway"
+        },
+        {
+          "key": "route",
+          "label": "Gateway route associated with application subnet",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "sg",
+          "label": "Interface endpoint SG permits HTTPS source",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "dns",
+          "label": "Use private DNS or endpoint-specific DNS",
+          "type": "checkbox",
+          "value": true
+        }
+      ],
+      "fallback": "EC2 → S3/DynamoDB gateway endpoint uses a service-prefix-list route, not an endpoint ENI. Secrets Manager/KMS use supported interface endpoints with private ENIs and security groups.",
+      "caveat": "Same-Region standard connectivity; EC2 egress SG, NACLs, normal local routing, IAM/resource/endpoint policies are assumed permitted. S3 and DynamoDB also support interface endpoints. The service itself remains regional, outside the customer subnet.",
+      "actions": []
+    },
+    "s3-access": {
+      "title": "Try it · EC2 credentials vs S3 bucket access",
+      "purpose": "Detach the role and expire its cached credentials separately; inspect GetObject and PutObject.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "get",
+          "label": "EC2 role allows GetObject",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "put",
+          "label": "EC2 role allows PutObject",
+          "type": "checkbox",
+          "value": true
+        },
+        {
+          "key": "bucketGet",
+          "label": "Bucket permits public / anonymous GetObject (BPA permits)",
+          "type": "checkbox",
+          "value": false
+        },
+        {
+          "key": "denyPut",
+          "label": "Bucket explicitly denies PutObject",
+          "type": "checkbox",
+          "value": false
+        },
+        {
+          "key": "removed",
+          "label": "Role detached; profile change has propagated",
+          "type": "checkbox",
+          "value": false
+        },
+        {
+          "key": "oldValid",
+          "label": "Previously issued role credentials still valid",
+          "type": "checkbox",
+          "value": true
+        }
+      ],
+      "fallback": "Detachment stops ongoing credential supply after propagation, not every already-issued credential. A separate public bucket read grant can still allow GetObject; an explicit PutObject Deny wins.",
+      "caveat": "Existing role remains defined with the selected policies; it is detached, not deleted. Public read is a hypothetical independently allowed path, not a recommendation. Named-principal bucket grants need valid matching credentials. Other IAM/BPA/network controls are assumed satisfied; no five-minute grace is modelled. Objects in this access-only model have no extra KMS decryption requirement.",
+      "actions": []
+    },
+    "trace": {
+      "title": "Try it · X-Ray annotation vs metadata",
+      "purpose": "Enrich one sampled trace, search its indexed annotation, then try searching metadata.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "sampling",
+          "label": "Next batch sampling · %",
+          "type": "number",
+          "value": 100,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "trace",
+          "label": "Request / trace number to inspect",
+          "type": "number",
+          "value": 1,
+          "min": 1,
+          "max": 20,
+          "step": 1
+        },
+        {
+          "key": "key",
+          "label": "Annotation / search key",
+          "type": "text",
+          "value": "tenant"
+        },
+        {
+          "key": "value",
+          "label": "Annotation / search value",
+          "type": "text",
+          "value": "blue"
+        },
+        {
+          "key": "metadata",
+          "label": "Debug metadata · JSON",
+          "type": "text",
+          "value": "{\"attempt\":1,\"items\":[\"book\"]}"
+        },
+        {
+          "key": "search",
+          "label": "Search field type",
+          "type": "select",
+          "options": [
+            [
+              "annotation",
+              "Indexed annotation"
+            ],
+            [
+              "metadata",
+              "Non-indexed metadata"
+            ]
+          ],
+          "value": "annotation"
+        }
+      ],
+      "fallback": "Annotations are indexed scalar labels; metadata can hold nested debugging data but is not an indexed X-Ray filter. DynamoDB appears through an instrumented client subsegment/inferred node.",
+      "caveat": "Deterministic illustrative batch of 20 requests; generate a new batch to apply the chosen sampling rate. This is not the default reservoir algorithm. No real traces are emitted; avoid putting sensitive values in telemetry.",
+      "actions": [
+        [
+          "generate",
+          "Generate 20 requests"
+        ],
+        [
+          "annotation",
+          "Add annotation"
+        ],
+        [
+          "metadata",
+          "Add metadata"
+        ],
+        [
+          "search",
+          "Search traces"
+        ]
+      ]
+    },
+    "s3-key": {
+      "title": "Try it · Follow the S3 encryption key",
+      "purpose": "Compare the direction of object data, a KMS key identifier and an actual customer-supplied key.",
+      "legend": "Change the example",
+      "controls": [
+        {
+          "key": "mode",
+          "label": "Server-side encryption",
+          "type": "select",
+          "options": [
+            [
+              "s3",
+              "SSE-S3"
+            ],
+            [
+              "kms",
+              "SSE-KMS"
+            ],
+            [
+              "customer",
+              "SSE-C"
+            ]
+          ],
+          "value": "s3"
+        }
+      ],
+      "fallback": "SSE-S3: S3 manages keys. SSE-KMS: S3 uses KMS-protected data keys. SSE-C: client supplies actual key over HTTPS; S3 encrypts and does not retain it. SSE-C does not inherently use KMS.",
+      "caveat": "All three encrypt on S3’s side. HTTPS is recommended throughout and mandatory for SSE-C. Bucket policies/key permissions and the current default SSE-C block still apply; this selector performs no encryption.",
+      "actions": []
+    }
+  },
+  "review": [
+    {
+      "id": "indexes",
+      "card": "dynamodb",
+      "title": "LSI vs GSI",
+      "question": "An existing Orders table needs a new OrderStatus partition-key lookup. Which index can be added?",
+      "options": [
+        {
+          "text": "LSI",
+          "why": "LSIs must be created with the table and share its partition key."
+        },
+        {
+          "text": "GSI",
+          "why": "A GSI can be added later with another partition key; existing eligible items are backfilled."
+        },
+        {
+          "text": "Either index",
+          "why": "Creation timing and partition-key rules differ."
+        }
+      ],
+      "answer": 1,
+      "analogy": "A new catalogue can use a new filing system; a local drawer keeps its existing key."
+    },
+    {
+      "id": "hot-shard",
+      "card": "kinesis",
+      "title": "Shard vs stream capacity",
+      "question": "Ten provisioned shards receive 5 MiB/s, but one gets 4 MiB/s. What explains write throttling?",
+      "options": [
+        {
+          "text": "The stream has no spare capacity",
+          "why": "The theoretical aggregate byte budget is 10 MiB/s, but it is not a shared pool."
+        },
+        {
+          "text": "One shard exceeds its sustained write budget",
+          "why": "A shard is limited to 1 MiB/s and 1,000 records/s. Key skew can overload it despite idle shards."
+        },
+        {
+          "text": "Consumers deleted the shard",
+          "why": "Reads do not delete Kinesis records or shards."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Empty checkout lanes do not lend their capacity to one overloaded lane."
+    },
+    {
+      "id": "exception",
+      "card": "kinesis",
+      "title": "Kinesis exceptions",
+      "question": "Which interpretation best distinguishes these errors?",
+      "options": [
+        {
+          "text": "LimitExceededException always means a hot shard",
+          "why": "It typically concerns service quotas/control-plane limits; inspect the operation."
+        },
+        {
+          "text": "Both mean the same thing",
+          "why": "Throughput pressure and service/API quota pressure need different investigation."
+        },
+        {
+          "text": "ProvisionedThroughputExceededException indicates data-plane throughput pressure",
+          "why": "Investigate shard write/read limits for the failing operation; LimitExceededException typically concerns service or control-plane limits."
+        }
+      ],
+      "answer": 2,
+      "analogy": "A busy checkout lane differs from the store’s limit on opening new lanes."
+    },
+    {
+      "id": "rcu",
+      "card": "dynamodb",
+      "title": "Eventual read arithmetic",
+      "question": "A 12 KB item is read 16 times/s using eventual consistency. What steady read capacity does this require before headroom?",
+      "options": [
+        {
+          "text": "24 RCUs",
+          "why": "ceil(12/4) × 0.5 × 16 = 24 RCUs. Eventual reads consume half the strong-read units."
+        },
+        {
+          "text": "48 RCUs",
+          "why": "This is the corresponding strong-read rate, not eventual."
+        },
+        {
+          "text": "96 RCUs",
+          "why": "This is the corresponding transactional-read rate, not eventual."
+        }
+      ],
+      "answer": 0,
+      "analogy": "Three cartons per item, half-price reads, sixteen orders per second."
+    },
+    {
+      "id": "scan",
+      "card": "dynamodb",
+      "title": "Query vs Parallel Scan",
+      "question": "A one-off export needs all items, no suitable key access exists, and spare read capacity is available. What can reduce elapsed scan time?",
+      "options": [
+        {
+          "text": "Query with only a FilterExpression",
+          "why": "Query still requires partition-key equality; a filter cannot supply it."
+        },
+        {
+          "text": "Parallel Scan with paginated segment workers",
+          "why": "Concurrent logical segments can reduce time, while consuming capacity and requiring per-worker pagination."
+        },
+        {
+          "text": "ProjectionExpression makes the scan free",
+          "why": "Projection reduces returned fields, not Scan read capacity."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Several clerks can inspect separate filing-room sections, but each still reads the files."
+    },
+    {
+      "id": "return-port",
+      "card": "network",
+      "title": "Stateful vs stateless",
+      "question": "HTTP reaches an ALB from Browser:54321, but the subnet outbound NACL allows only destination 80. What is missing?",
+      "options": [
+        {
+          "text": "Response destination ephemeral port",
+          "why": "The response is ALB:80 → Browser:54321; the stateless NACL must allow that outbound destination."
+        },
+        {
+          "text": "A second inbound SG rule for source 80",
+          "why": "SG tracking already permits the established response; the missing control is the NACL return path."
+        },
+        {
+          "text": "Change the browser source port to 80",
+          "why": "Clients normally choose ephemeral source ports; the service destination is 80."
+        }
+      ],
+      "answer": 0,
+      "analogy": "The return envelope is addressed to the caller’s temporary desk number."
+    },
+    {
+      "id": "alb-target",
+      "card": "alb",
+      "title": "Public frontend, private backend",
+      "question": "Can an internet-facing ALB forward to an IP target in another VPC?",
+      "options": [
+        {
+          "text": "Only if the target has a public IP",
+          "why": "Publicly routable IPs cannot be registered as ALB IP targets."
+        },
+        {
+          "text": "Registration alone makes it reachable",
+          "why": "Registration creates no routing, security-group rules or return path."
+        },
+        {
+          "text": "Yes, for a supported private IP with working connectivity",
+          "why": "Supported reachable private targets can be outside the VPC; routes, SGs, NACLs and health still apply."
+        }
+      ],
+      "answer": 2,
+      "analogy": "A public reception desk can call a private office if a working connection exists."
+    },
+    {
+      "id": "origin-group",
+      "card": "edge",
+      "title": "Origins vs origin groups",
+      "question": "An eligible GET must retry the same content from a backup after primary 503. What fits?",
+      "options": [
+        {
+          "text": "Multiple origins alone",
+          "why": "They let behaviours route different requests; they do not automatically define a failover pair."
+        },
+        {
+          "text": "Origin group with configured failure conditions",
+          "why": "The behaviour targets a primary/secondary pair. GET can fail over on configured errors."
+        },
+        {
+          "text": "Merge both origin responses",
+          "why": "Origin groups retry; they do not combine responses."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Ask the backup shop for the same item, rather than combining two shopping baskets."
+    },
+    {
+      "id": "edge-code",
+      "card": "edge",
+      "title": "Dynamic delivery",
+      "question": "/api/* returns dynamic JSON from an ALB. Does this alone require Lambda@Edge?",
+      "options": [
+        {
+          "text": "No; ordinary CloudFront origin delivery can handle it",
+          "why": "Custom edge code is needed only when the request/response requires that custom processing."
+        },
+        {
+          "text": "Yes; every dynamic response requires edge code",
+          "why": "Dynamic content and custom processing are separate responsibilities."
+        },
+        {
+          "text": "Use Global Accelerator to cache JSON",
+          "why": "Global Accelerator is not a content cache."
+        }
+      ],
+      "answer": 0,
+      "analogy": "Delivering a letter does not require rewriting it at every post office."
+    },
+    {
+      "id": "redis",
+      "card": "cache",
+      "title": "Shards vs replicas",
+      "question": "Redis writes/storage need horizontal scaling across many well-distributed keys. What directly helps?",
+      "options": [
+        {
+          "text": "More replicas of the same shard",
+          "why": "Replicas copy that shard and support reads/failover; they do not add independent primary write partitions."
+        },
+        {
+          "text": "Enable cluster mode without adding shards",
+          "why": "The flag permits multi-shard topology, but does not itself add write capacity or replicas."
+        },
+        {
+          "text": "Add shards and distribute the keyspace",
+          "why": "Each shard has a primary for its part of the keyspace; one hot key still maps to one shard."
+        }
+      ],
+      "answer": 2,
+      "analogy": "Open another collection, rather than photocopying the same collection."
+    },
+    {
+      "id": "sqs-sse",
+      "card": "sqs",
+      "title": "Queue encryption",
+      "question": "A queue needs KMS encryption at rest with minimal application changes. Which fits?",
+      "options": [
+        {
+          "text": "SSE-KMS plus appropriate IAM/KMS permissions",
+          "why": "SQS handles message encryption/decryption transparently for authorised clients."
+        },
+        {
+          "text": "Client-side encryption with no code changes",
+          "why": "Client-side encryption needs application encryption and key-handling logic."
+        },
+        {
+          "text": "Secrets Manager encrypts queue storage",
+          "why": "Secrets Manager stores secrets; SQS manages its own storage encryption."
+        }
+      ],
+      "answer": 0,
+      "analogy": "The storage-room lock is managed by the queue, not installed by each visitor."
+    },
+    {
+      "id": "ssec",
+      "card": "s3",
+      "title": "SSE-C and TLS",
+      "question": "Who encrypts an SSE-C object, and how is the key supplied?",
+      "options": [
+        {
+          "text": "The client encrypts and never sends a key",
+          "why": "That describes client-side encryption, not SSE-C."
+        },
+        {
+          "text": "S3 encrypts; client supplies the key over HTTPS",
+          "why": "SSE-C is server-side. S3 requires HTTPS and does not persist the supplied key."
+        },
+        {
+          "text": "S3 retrieves the customer key from Secrets Manager automatically",
+          "why": "That is not the SSE-C request model."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Lend the warehouse your key over a protected channel; it locks the box for you."
+    },
+    {
+      "id": "hooks",
+      "card": "deploy",
+      "title": "CodeDeploy lifecycle",
+      "question": "Which sequence is correct for the core EC2 in-place lifecycle?",
+      "options": [
+        {
+          "text": "BeforeInstall → DownloadBundle → ApplicationStop",
+          "why": "ApplicationStop and DownloadBundle precede BeforeInstall."
+        },
+        {
+          "text": "DownloadBundle → ApplicationStop → Install",
+          "why": "ApplicationStop precedes the new bundle download and uses the prior successful revision."
+        },
+        {
+          "text": "ApplicationStop → DownloadBundle → BeforeInstall → Install → AfterInstall → ApplicationStart → ValidateService",
+          "why": "This is the core order; DownloadBundle/Install are agent-reserved, and load-balanced deployments can add traffic events."
+        }
+      ],
+      "answer": 2,
+      "analogy": "Stop → download → prepare → install → finish → start → test."
+    },
+    {
+      "id": "git-auth",
+      "card": "codecommit",
+      "title": "CodeCommit HTTPS",
+      "question": "An IAM user needs a direct username/password for Git HTTPS to CodeCommit. What should they use?",
+      "options": [
+        {
+          "text": "IAM-generated CodeCommit Git credentials",
+          "why": "These are service-specific Git credentials; a supported AWS credential helper is another approach."
+        },
+        {
+          "text": "AWS access key ID and secret as the raw Git login",
+          "why": "Those are not the direct Git HTTPS username/password."
+        },
+        {
+          "text": "GitHub PAT after git login",
+          "why": "A GitHub PAT authenticates GitHub, and Git has no standard git login command."
+        }
+      ],
+      "answer": 0,
+      "analogy": "Use the badge issued for this repository host."
+    },
+    {
+      "id": "pseudo",
+      "card": "cfn",
+      "title": "CloudFormation context",
+      "question": "How should a template obtain its deployment Region without user input?",
+      "options": [
+        {
+          "text": "Declare AWS::Region as a String parameter",
+          "why": "It is a built-in pseudo parameter, not a user parameter declaration."
+        },
+        {
+          "text": "!Ref AWS::Region",
+          "why": "CloudFormation resolves AWS-provided deployment context; CDK can leave it as an unresolved token during synthesis."
+        },
+        {
+          "text": "Hard-code it as a universal compile-time constant",
+          "why": "The deployment context can vary; hard-coding defeats reusable templates."
+        }
+      ],
+      "answer": 1,
+      "analogy": "The office supplies its own address when processing your form."
+    },
+    {
+      "id": "invalidate",
+      "card": "apigw",
+      "title": "API cache refresh",
+      "question": "Which requests REST API entry invalidation when authorised and correctly configured?",
+      "options": [
+        {
+          "text": "?bypass_cache=1",
+          "why": "This query parameter has no built-in API Gateway invalidation meaning."
+        },
+        {
+          "text": "Bypass-Cache: 1",
+          "why": "This is not the required invalidation header."
+        },
+        {
+          "text": "Cache-Control: max-age=0",
+          "why": "With required execute-api:InvalidateCache permission and configuration, fetch a fresh backend response and update the entry."
+        }
+      ],
+      "answer": 2,
+      "analogy": "An authorised check-again instruction replaces the cached order slip."
+    },
+    {
+      "id": "metric-source",
+      "card": "evidence",
+      "title": "Detailed vs custom",
+      "question": "An EC2 application must scale on memory utilisation. What is needed?",
+      "options": [
+        {
+          "text": "Only enable detailed monitoring",
+          "why": "Detailed monitoring increases native frequency; it does not add guest memory metrics."
+        },
+        {
+          "text": "CloudWatch Agent or another custom memory publisher",
+          "why": "Publish guest memory, then configure the appropriate alarm/scaling policy."
+        },
+        {
+          "text": "ALB RequestCount without an ALB",
+          "why": "No ALB means no such metric; requests also do not directly measure memory."
+        }
+      ],
+      "answer": 1,
+      "analogy": "A faster speedometer does not become a fuel gauge."
+    },
+    {
+      "id": "queue-policy",
+      "card": "iam",
+      "title": "Identity vs resource policy",
+      "question": "SNS must send to one SQS queue. Where is the queue access grant normally expressed?",
+      "options": [
+        {
+          "text": "Queue policy: Principal sns.amazonaws.com, sqs:SendMessage, restricted source topic",
+          "why": "A queue resource policy grants the service principal access; add relevant KMS permissions for SSE-KMS."
+        },
+        {
+          "text": "An “SQS role” trust policy",
+          "why": "A queue policy is not a role trust policy, and SQS has no special identity type called an SQS role."
+        },
+        {
+          "text": "A permissions boundary by itself",
+          "why": "A boundary restricts permissions; it does not independently grant them."
+        }
+      ],
+      "answer": 0,
+      "analogy": "Put the named delivery service on the room’s guest list."
+    }
+  ],
+  "review3": [
+    {
+      "id": "p3-cache",
+      "card": "dynamodb",
+      "title": "DAX vs general cache",
+      "question": "A product catalogue repeats eventual DynamoDB reads and wants minimal custom cache population/invalidation code. Which fits best?",
+      "options": [
+        {
+          "text": "DAX with a compatible client/endpoint",
+          "why": "DAX manages the eligible item/query cache path. Results can be shared by clients using the same relevant keys/queries."
+        },
+        {
+          "text": "Redis because it cannot cache DynamoDB otherwise",
+          "why": "Redis absolutely can cache DynamoDB; it needs application-managed cache logic, so the stated reason is false."
+        },
+        {
+          "text": "CloudFront as a direct DynamoDB SDK cache",
+          "why": "CloudFront caches HTTP representations, not native DynamoDB SDK operations."
+        }
+      ],
+      "answer": 0,
+      "analogy": "Use a DynamoDB-aware librarian rather than organising every cache shelf yourself."
+    },
+    {
+      "id": "p3-dax-strong",
+      "card": "dynamodb",
+      "title": "Strong reads and DAX",
+      "question": "A DAX client requests ConsistentRead=true on a supported table read. What should you expect?",
+      "options": [
+        {
+          "text": "A strong read served from the DAX cache",
+          "why": "DAX cache hits are eventually consistent; this would misstate the guarantee."
+        },
+        {
+          "text": "DAX forwards the read to DynamoDB without caching that strong result",
+          "why": "The strong consistency requirement is met by DynamoDB, not by a DAX cache hit."
+        },
+        {
+          "text": "DAX converts it to an eventual GSI read",
+          "why": "DAX does not change the requirement into a GSI read; GSIs cannot serve strong reads."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Go to the original signed ledger when the latest committed entry is required."
+    },
+    {
+      "id": "p3-invoke",
+      "card": "apigw",
+      "title": "Which permission direction?",
+      "question": "API Gateway accepts a caller but fails before a Lambda function executes. Adding DynamoDB access to the Lambda role did not help. What should you inspect?",
+      "options": [
+        {
+          "text": "Only the Lambda execution role",
+          "why": "That role controls outgoing AWS calls after the function runs."
+        },
+        {
+          "text": "The client’s Redis session TTL",
+          "why": "It does not grant the API Gateway integration permission to invoke Lambda."
+        },
+        {
+          "text": "The selected integration target and API Gateway invocation permission",
+          "why": "Check the function/alias resource policy or correctly configured invocation role. Missing permission can cause HTTP 500."
+        }
+      ],
+      "answer": 2,
+      "analogy": "The receptionist needs permission to call the office before the office can open its filing cabinet."
+    },
+    {
+      "id": "p3-sts",
+      "card": "apigw",
+      "title": "STS vs authorisation",
+      "question": "A client assumes an IAM role, then calls an AWS_IAM-protected API. What authorises the incoming request?",
+      "options": [
+        {
+          "text": "API Gateway treats STS as a built-in authoriser",
+          "why": "STS supplies credentials; it is not a standalone API Gateway authoriser."
+        },
+        {
+          "text": "IAM evaluation of a properly signed request using the temporary credentials",
+          "why": "The client uses the STS-issued key/session credentials to sign, normally with SigV4, and needs execute-api:Invoke."
+        },
+        {
+          "text": "Lambda’s execution role authenticates the client",
+          "why": "That role controls the function’s downstream AWS permissions, not incoming API caller authorisation."
+        }
+      ],
+      "answer": 1,
+      "analogy": "STS issues the badge; the API checks the badge and its permitted access."
+    },
+    {
+      "id": "p3-stage",
+      "card": "apigw",
+      "title": "Stage variable vs grant",
+      "question": "dev defines lambdaFunction=my-api-dev and prod defines my-api-prod. What does the variable itself provide?",
+      "options": [
+        {
+          "text": "Configuration selecting the integration target",
+          "why": "Stages hold key/value settings; the integration can interpolate a function/alias, which still needs invocation permission."
+        },
+        {
+          "text": "lambda:InvokeFunction permission on both functions",
+          "why": "A configuration value is not a policy grant."
+        },
+        {
+          "text": "A new Lambda execution role for every call",
+          "why": "Variables do not provision execution roles or isolate application state automatically."
+        }
+      ],
+      "answer": 0,
+      "analogy": "Changing the office number in a directory does not give you an access badge."
+    },
+    {
+      "id": "p3-projection",
+      "card": "dynamodb",
+      "title": "Projection vs filtering",
+      "question": "A Users Scan should return Name/Email only, and only active users. Which description is correct?",
+      "options": [
+        {
+          "text": "Projection filters rows and filter selects columns",
+          "why": "Those responsibilities are reversed."
+        },
+        {
+          "text": "Projection/filter reduce read capacity for the same evaluated items",
+          "why": "They reduce output, not the underlying read capacity for evaluating those items."
+        },
+        {
+          "text": "Projection chooses attributes; filter removes non-matching items after reading",
+          "why": "Use expression aliases where needed. A suitable key/index can avoid a full Scan; output filters alone do not."
+        }
+      ],
+      "answer": 2,
+      "analogy": "Choose spreadsheet columns separately from which rows remain visible."
+    },
+    {
+      "id": "p3-groups",
+      "card": "sqs",
+      "title": "FIFO group boundary",
+      "question": "Two users’ purchases need per-user order, with different users processing concurrently. What should the producer set?",
+      "options": [
+        {
+          "text": "MessageGroupId=user_id",
+          "why": "Same-group order is preserved; different groups can progress concurrently."
+        },
+        {
+          "text": "One shared group for every user",
+          "why": "This serialises all users into one ordering boundary instead of permitting cross-user group parallelism."
+        },
+        {
+          "text": "MessageOrderId=user_id",
+          "why": "MessageOrderId is not an SQS SendMessage parameter."
+        }
+      ],
+      "answer": 0,
+      "analogy": "One checkout lane per ordering group, rather than one lane for the whole store."
+    },
+    {
+      "id": "p3-dedup",
+      "card": "sqs",
+      "title": "Deduplication does not delete",
+      "question": "A FIFO message was processed and deleted. The producer retries the same logical MessageDeduplicationId two minutes after the first send. What occurs?",
+      "options": [
+        {
+          "text": "SQS deletes any newer queued message",
+          "why": "Deduplication suppresses the duplicate send; it is not a delete request."
+        },
+        {
+          "text": "The retry can be acknowledged without a new deliverable message",
+          "why": "Deduplication history persists for the five-minute window even after the original message is deleted."
+        },
+        {
+          "text": "A new message must be delivered because the first was deleted",
+          "why": "Deletion does not automatically remove the send-deduplication history."
+        }
+      ],
+      "answer": 1,
+      "analogy": "A used receipt number remains recognised after the original order is collected."
+    },
+    {
+      "id": "p3-package",
+      "card": "lambda",
+      "title": "Declared vs packaged dependency",
+      "question": "A Lambda ZIP contains index.js and package.json listing pg, but no installed pg code or dependency layer. What is missing?",
+      "options": [
+        {
+          "text": "Lambda must be told to run npm install at each cold start",
+          "why": "ZIP deployment does not automatically install npm dependencies; build/install before deployment."
+        },
+        {
+          "text": "A bigger memory setting",
+          "why": "More CPU/memory does not supply the missing module files."
+        },
+        {
+          "text": "Installed/bundled dependencies in the artifact or a configured layer",
+          "why": "Run npm ci/install at build time; include required runtime code and correct archive paths."
+        }
+      ],
+      "answer": 2,
+      "analogy": "A shopping list is not the ingredients in the pantry."
+    },
+    {
+      "id": "p3-gsi-writes",
+      "card": "dynamodb",
+      "title": "Index write back-pressure",
+      "question": "One hundred new items/s each require a 1.5 KB GSI entry. The GSI has 150 WCUs; table capacity is ample. What is the concern?",
+      "options": [
+        {
+          "text": "The GSI needs 200 WCUs before headroom and can back-pressure base writes",
+          "why": "ceil(1.5/1) × 100 = 200 index WCUs. Its insufficient write budget can throttle associated table writes."
+        },
+        {
+          "text": "The GSI can borrow spare base-table WCUs automatically",
+          "why": "Provisioned GSI capacity is separate, unlike LSI capacity."
+        },
+        {
+          "text": "Only GSI queries can throttle; base writes are unaffected",
+          "why": "An under-provisioned GSI write path can throttle base-table writes."
+        }
+      ],
+      "answer": 0,
+      "analogy": "A fast factory can still back up when its required indexing desk cannot keep pace."
+    },
+    {
+      "id": "p3-gsi-reads",
+      "card": "dynamodb",
+      "title": "Index read budget",
+      "question": "A GSI Query retrieves one projected 12 KB entry per request at 16 requests/s. What eventual read budget applies before headroom?",
+      "options": [
+        {
+          "text": "48 base-table RCUs",
+          "why": "That is strong-read arithmetic; GSI queries use their own eventual-read capacity."
+        },
+        {
+          "text": "24 GSI RCUs",
+          "why": "ceil(12/4) × 0.5 × 16 = 24 RCUs on the index. This example has one returned/evaluated entry per Query."
+        },
+        {
+          "text": "No read cost because the table was already indexed",
+          "why": "A GSI has its own reads, storage and affected-write costs."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Pay the separate catalogue’s read desk at the eventual-read rate."
+    },
+    {
+      "id": "p3-eip",
+      "card": "ec2",
+      "title": "Stable-IP cutover",
+      "question": "A replacement must preserve the public IPv4 of an EC2-hosted service. Which approach fits, with the right caveat?",
+      "options": [
+        {
+          "text": "Route 53 automatically preserves the EC2 public IP",
+          "why": "DNS answers can point to addresses; failover does not make a new instance inherit an old address."
+        },
+        {
+          "text": "Stopping the old server guarantees zero downtime",
+          "why": "A period without a ready serving instance is disruptive."
+        },
+        {
+          "text": "Prepare/test the replacement, then reassociate the EIP in its Region",
+          "why": "The IP stays stable, but reassociation and connection recovery can briefly interrupt traffic."
+        }
+      ],
+      "answer": 2,
+      "analogy": "Keep the phone number while transferring it to a prepared office; calls can still drop."
+    },
+    {
+      "id": "p3-cache-key",
+      "card": "edge",
+      "title": "Query string cache key",
+      "question": "The origin returns the requested review language, but CloudFront serves English for lang=jp after caching lang=en. What should change?",
+      "options": [
+        {
+          "text": "Include lang in the cache key and ensure it reaches the origin",
+          "why": "Different representations need distinct keys; origin-request forwarding alone does not distinguish cached objects."
+        },
+        {
+          "text": "Only reduce TTL",
+          "why": "A shorter TTL does not make a key that ignores language correct."
+        },
+        {
+          "text": "Replace the query parameter with an unrelated header automatically",
+          "why": "Headers and query parameters are different inputs; a matching cache/origin design is still required."
+        }
+      ],
+      "answer": 0,
+      "analogy": "Translated folders need language labels, not just a faster replacement schedule."
+    },
+    {
+      "id": "p3-codestar",
+      "card": "pipeline",
+      "title": "Historical CodeStar clue",
+      "question": "An older question describes a unified AWS development project dashboard. What is the accurate modern reading?",
+      "options": [
+        {
+          "text": "CodeStar is the recommended new dashboard today",
+          "why": "The original CodeStar project capability retired in July 2024."
+        },
+        {
+          "text": "The old clue may mean CodeStar; use current CI/CD tools for current designs",
+          "why": "CodeBuild builds/tests, CodeDeploy deploys and CodePipeline orchestrates. CodeConnections is a separate capability."
+        },
+        {
+          "text": "CodeConnections retired with the CodeStar dashboard",
+          "why": "The old CodeStar Connections name does not imply the separate connection service was retired."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Recognise the old control-room name without trying to open a retired control room."
+    },
+    {
+      "id": "p3-kcl",
+      "card": "kinesis",
+      "title": "KCL shard leases",
+      "question": "One KCL application has 10 shards and 20 one-worker EC2 instances. What is the settled shard-level allocation limit?",
+      "options": [
+        {
+          "text": "Twenty workers each get half a shard lease",
+          "why": "The basic lease-processing model assigns a shard to one active worker within an application."
+        },
+        {
+          "text": "Only one worker can read the entire stream",
+          "why": "One worker can own multiple shards, but multiple workers can own different shards."
+        },
+        {
+          "text": "At most 10 workers do shard-level processing; the others have no shard lease",
+          "why": "More workers do not create more shards. Independent consumer applications have separate ownership sets."
+        }
+      ],
+      "answer": 2,
+      "analogy": "Twenty clerks cannot create twenty checkout lanes in a ten-lane store."
+    },
+    {
+      "id": "p3-kms-count",
+      "card": "kms",
+      "title": "Data-key request reduction",
+      "question": "An illustrative single-client model encrypts 1,000 matching-context messages, with 100 uses per cached data key and no earlier age/byte expiry. About how many fresh data-key calls occur?",
+      "options": [
+        {
+          "text": "10",
+          "why": "ceil(1000/100) = 10 in this simple model. Actual SDK thresholds, misses and contexts can refresh sooner."
+        },
+        {
+          "text": "1,000 regardless of eligible caching",
+          "why": "Fresh-per-message would need approximately 1,000; eligible bounded caching is intended to reduce those requests."
+        },
+        {
+          "text": "Zero because KMS stores the client cache",
+          "why": "A fresh key still needs initial materials; the application/SDK cache is not automatically stored by KMS."
+        }
+      ],
+      "answer": 0,
+      "analogy": "A bounded batch reuses a protected work key, then requests a fresh one."
+    },
+    {
+      "id": "p3-nonce",
+      "card": "kms",
+      "title": "Data-key caching safety",
+      "question": "Eligible data-key caching is enabled. Which assumption remains unsafe?",
+      "options": [
+        {
+          "text": "Age, message and byte thresholds can limit reuse",
+          "why": "Those are useful security boundaries, along with supported algorithm/context handling."
+        },
+        {
+          "text": "The same key means an IV/nonce may be reused for every encryption",
+          "why": "Key reuse does not permit nonce/IV reuse. Follow the SDK’s cryptographic construction and protect cached materials."
+        },
+        {
+          "text": "S3 Bucket Keys are specific to S3 SSE-KMS",
+          "why": "Correct: they are not an arbitrary application-transaction data-key cache."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Reusing a protected work key is not reusing the same per-message seal."
+    },
+    {
+      "id": "p3-ttl",
+      "card": "cache",
+      "title": "TTL does not refresh",
+      "question": "Popular profiles tolerate up to 60 seconds of staleness and cache space is limited. What fits, and what happens at expiry?",
+      "options": [
+        {
+          "text": "Write every profile into cache; expiry proactively queries the DB",
+          "why": "That caches never-read profiles, and ordinary TTL expiry does not automatically fetch the source."
+        },
+        {
+          "text": "Lazy loading without TTL guarantees the 60-second bound",
+          "why": "Without expiry/invalidation, a cache-aside entry can remain stale much longer."
+        },
+        {
+          "text": "Lazy loading + TTL; the next read after expiry fetches/populates",
+          "why": "Only requested items are cached, with an expiry boundary; real concurrency/failures still need consideration."
+        }
+      ],
+      "answer": 2,
+      "analogy": "The use-by label invalidates the shelf copy; a customer’s next request restocks it."
+    },
+    {
+      "id": "p3-invalidate",
+      "card": "cache",
+      "title": "Update vs delete cache",
+      "question": "After committing a new product price, the app should avoid maintaining the new cached representation. Which pattern fits?",
+      "options": [
+        {
+          "text": "Delete the cache entry after the DB write; next read repopulates",
+          "why": "Write-invalidate differs from write-through, which sets the updated cached representation. Handle deletion failure and read/write races."
+        },
+        {
+          "text": "Call TTL and assume it updates the cached price immediately",
+          "why": "TTL expiration does not write a new cached value or guarantee an immediate refresh."
+        },
+        {
+          "text": "Use two ordinary writes as an atomic DB/cache transaction",
+          "why": "Separate DB/cache calls are not automatically atomic; strict freshness needs stronger controls."
+        }
+      ],
+      "answer": 0,
+      "analogy": "Remove the old price card; the next reader fetches the new one."
+    },
+    {
+      "id": "p3-endpoint",
+      "card": "network",
+      "title": "Gateway route vs interface ENI",
+      "question": "Private EC2 needs ordinary same-VPC DynamoDB access without NAT and with minimal endpoint cost. Which statement fits?",
+      "options": [
+        {
+          "text": "DynamoDB supports only interface endpoints",
+          "why": "It supports gateway and interface endpoints."
+        },
+        {
+          "text": "A gateway endpoint uses a prefix-list route; a DynamoDB interface endpoint is also supported for other needs",
+          "why": "Gateway access needs the route-table association, no endpoint ENI/SG, and no additional endpoint charge."
+        },
+        {
+          "text": "A gateway endpoint always resolves to a new private ENI IP",
+          "why": "That describes the interface-endpoint mechanism, not a gateway route."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Change a route sign for a gateway; build a private-IP entrance for an interface endpoint."
+    },
+    {
+      "id": "p3-s3-role",
+      "card": "iam",
+      "title": "Role detachment and bucket access",
+      "question": "An EC2 role was detached and its old credentials expired. Reads still work through a bucket policy explicitly allowing anonymous GetObject, with BPA permitting it. Why?",
+      "options": [
+        {
+          "text": "S3 gives a five-minute read grace period",
+          "why": "There is no special five-minute read grace period."
+        },
+        {
+          "text": "The expired role credentials still authorise signed requests forever",
+          "why": "Expired credentials do not provide a valid authenticated role identity."
+        },
+        {
+          "text": "The anonymous request has a separate applicable resource-policy grant",
+          "why": "The scenario explicitly permits public reads. Named-principal bucket grants would still need matching valid credentials; other controls can deny."
+        }
+      ],
+      "answer": 2,
+      "analogy": "Closing the badge dispenser does not close a separately permitted public doorway."
+    },
+    {
+      "id": "p3-cli",
+      "card": "s3",
+      "title": "CLI output pages",
+      "question": "A 250-object listing uses --max-items 100. How does the caller obtain the next output page?",
+      "options": [
+        {
+          "text": "Pass the prior CLI NextToken unchanged as --starting-token",
+          "why": "This yields the next output page: 100, 100, then 50 objects in the fixed dataset. --page-size controls underlying calls."
+        },
+        {
+          "text": "Pass --next-token as the generic CLI paginator input",
+          "why": "That is not the corresponding CLI input; command-specific service tokens are a separate concept."
+        },
+        {
+          "text": "Set --page-size 100 and expect it to stop total output at 100",
+          "why": "Page size controls each service call, not the complete automatically paginated output."
+        }
+      ],
+      "answer": 0,
+      "analogy": "The clerk’s claim ticket resumes your output pile; box size controls warehouse deliveries."
+    },
+    {
+      "id": "p3-trace",
+      "card": "evidence",
+      "title": "Searchable trace data",
+      "question": "Traces must be searchable by tenant, with a nested debugging payload retained for inspection. Where should each go?",
+      "options": [
+        {
+          "text": "Tenant in metadata; nested object in an annotation",
+          "why": "Metadata is not indexed, and annotations are scalar indexed values."
+        },
+        {
+          "text": "Tenant annotation; nested object in metadata",
+          "why": "Use an annotation filter to find traces, then inspect non-indexed metadata. Segments describe service work, not infrastructure stacks."
+        },
+        {
+          "text": "Put both in the sampling rate",
+          "why": "Sampling controls whether requests are traced, not their indexed business labels."
+        }
+      ],
+      "answer": 1,
+      "analogy": "Use an indexed parcel label to find the package; read the detailed note inside it."
+    },
+    {
+      "id": "p3-cron",
+      "card": "beanstalk",
+      "title": "Worker scheduling",
+      "question": "A Beanstalk app must enqueue hourly video jobs for its worker HTTP endpoint. What is the native scheduling path?",
+      "options": [
+        {
+          "text": "A web-tier package.json cron field creates scheduled SQS messages",
+          "why": "That is not the Beanstalk native scheduled-worker mechanism."
+        },
+        {
+          "text": ".ebextensions is the recurring-job schedule file",
+          "why": "It configures/provisions the environment; it is not cron.yaml."
+        },
+        {
+          "text": "Worker-tier cron.yaml → scheduler → SQS → daemon → application POST",
+          "why": "The scheduler enqueues; the daemon delivers work to the local application endpoint. Jobs still need retry/idempotency handling."
+        }
+      ],
+      "answer": 2,
+      "analogy": "The timetable creates a ticket, the queue holds it, and the worker delivers it to the back office."
+    },
+    {
+      "id": "p3-ssec",
+      "card": "s3",
+      "title": "Actual key vs key identifier",
+      "question": "The customer sends an actual encryption key to S3 over HTTPS; S3 encrypts and does not persist that key. Which mode is this?",
+      "options": [
+        {
+          "text": "SSE-C; it does not inherently require KMS",
+          "why": "S3 performs the cryptography with the supplied key. SSE-KMS instead uses KMS-protected data keys and normally a key identifier, not customer plaintext key material."
+        },
+        {
+          "text": "SSE-KMS because all customer keys require KMS import",
+          "why": "Importing key material into KMS is separate from supplying an SSE-C key."
+        },
+        {
+          "text": "Client-side encryption because the customer owns the key",
+          "why": "Client-side means encryption happens before upload; in this scenario S3 encrypts."
+        }
+      ],
+      "answer": 0,
+      "analogy": "Lend the warehouse your key to lock the box; you have not delivered an already encrypted box."
+    }
+  ]
+}

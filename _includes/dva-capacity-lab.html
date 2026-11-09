@@ -1,0 +1,19 @@
+<div class="dva-lab" id="asg-capacity-lab" data-capacity-lab>
+  <strong class="dva-panel-title">Desired is a target; current is observed capacity</strong>
+  <p>Min/max bound the target. A scaling decision changes desired capacity; the ASG then launches or terminates instances to converge. This model counts ready instances as current and shows pending capacity separately; it omits weights, cooldowns and replacement surges.</p>
+  <div class="dva-queue-inputs" data-learning-controls hidden>
+    <label>Minimum<input data-capacity="min" type="number" min="0" max="50" value="2"></label>
+    <label>Maximum<input data-capacity="max" type="number" min="0" max="50" value="10"></label>
+    <label>Desired target<input data-capacity="desired" type="number" min="0" max="50" value="5"></label>
+    <label>Current ready<input data-capacity="current" type="number" min="0" max="50" value="3"></label>
+    <label>Adjustment<input data-capacity="adjustment" type="number" min="-50" max="50" value="3"></label>
+    <label>Calculation<select data-capacity-basis><option value="desired">Edit desired target</option><option value="step">Step policy + warm-up</option></select></label>
+  </div>
+  <div class="dva-controls" data-learning-controls hidden><button type="button" data-capacity-apply>Apply adjustment</button><button type="button" data-capacity-reconcile>Reconcile one instance</button><button type="button" data-capacity-reset>Reset</button></div>
+  <div data-capacity-fleet class="dva-instance-row" aria-label="Ready and pending instances"></div>
+  <p class="dva-note">Lab range: 0–50 instances for readability; this is not an AWS quota. Dots = ready, dashed + = pending.</p>
+  <p data-capacity-result role="status" aria-live="polite">Current 3, desired 5: two more instances are needed. Editing desired by +3 gives 8, subject to max 10; current remains 3 until launches complete.</p>
+  <p class="dva-note"><strong>Important correction.</strong> “Current 3, desired 5, +3 → desired 8” is a <em>desired-target edit</em>, not a universal step-policy rule. A step scaling adjustment can be based on current ready capacity and account for warming instances: 3 + 3 gives target 6, with two already pending. Repeated alarms need not add three again. Scale-in is blocked while instances warm in this simplified policy mode.</p>
+  <p class="dva-example"><strong>Exam trigger:</strong> min 1 allows the fleet to shrink to a single instance; multiple configured AZs alone do not guarantee two healthy targets. ASG maintains capacity; ALB routes requests, with its own health checks.</p>
+  <p class="dva-docs"><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-simple-step.html">Step adjustments and warm-up</a> · <a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-capacity-limits.html">Scaling limits</a> · <a href="#dva-service-asg">ASG reference and cross-zone example</a></p>
+</div>

@@ -1,0 +1,20 @@
+{% assign review_questions = site.data.dva_followup.review %}{% assign review_part = '2' %}{% assign review_id = 'dva-followup-review' %}{% assign question_id = 'dva-followup-question' %}
+{% if include.part == '3' %}{% assign review_questions = site.data.dva_followup.review3 %}{% assign review_part = '3' %}{% assign review_id = 'dva-followup-review-3' %}{% assign question_id = 'dva-followup-question-3' %}{% endif %}
+<div class="dva-lab" id="{{ review_id }}" data-review-part="{{ review_part }}" aria-label="Practice Exam Follow-Up Part {{ review_part }}">
+  <p>One deciding detail at a time. Answer, check the boundary, then revisit the relevant service card.</p>
+  <div data-review-controls hidden>
+    <label for="{{ question_id }}">Review topic</label>
+    <select id="{{ question_id }}" data-review-select>{% for question in review_questions %}<option value="{{ question.id }}">{{ forloop.index }} · {{ question.title | escape }}</option>{% endfor %}</select>
+    <p class="dva-note" data-review-progress role="status"></p>
+    <div data-review-body></div>
+    <div class="dva-controls"><button type="button" data-review-retry>Retry question</button><button type="button" data-review-next>Next question</button><button type="button" data-review-reset>Reset progress</button></div>
+  </div>
+  <div data-review-fallback>
+  {% for question in review_questions %}
+    <details class="dva-learning-detail"><summary>{{ question.title | escape }} — {{ question.question | escape }}</summary>
+      {% for option in question.options %}<p><strong>{% if forloop.index0 == question.answer %}Best answer: {% endif %}{{ option.text | escape }}</strong> {{ option.why | escape }}</p>{% endfor %}
+      <p class="dva-note">Think of it as: {{ question.analogy | escape }}</p><a href="#dva-service-{{ question.card }}">Revisit the service card</a>
+    </details>
+  {% endfor %}
+  </div>
+</div>

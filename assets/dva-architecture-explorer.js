@@ -37,6 +37,9 @@
   }
   const scenario = () => data.scenarios.find(item => item.id === state.scenario);
   const comparison = () => data.comparisons.find(item => item.id === state.comparison);
+  const nodeLabel = id => scenario()?.actors?.[id] || nodes.get(id).label;
+  const activityNames = {request: 'Request', response: 'Response', event: 'Independent delivery', replication: 'Replication', telemetry: 'Evidence delivery', control: 'Control-plane operation', association: 'Configuration relationship', check: 'Policy / configuration check', internal: 'Internal operation'};
+  const connector = edge => ['association', 'check'].includes(edge.activity) ? '—' : edge.activity === 'internal' ? '⇢' : '→';
   function ancestors(groupId) {
     const result = [];
     for (let group = groups.get(groupId); group; group = groups.get(group.parent)) result.push(group.id);
@@ -47,7 +50,7 @@
     ids.forEach(id => ancestors(nodes.get(id).group).forEach(group => state.collapsed.delete(group)));
   }
   function sceneNodes(entry) {
-    return new Set(entry.steps.flatMap(step => [edges.get(step.edge).source, edges.get(step.edge).target]));
+    return new Set(entry.steps.flatMap(step => step.node ? [step.node] : [edges.get(step.edge).source, edges.get(step.edge).target]));
   }
   function relatedIds() {
     if (state.search) {
@@ -93,8 +96,9 @@
     setView({x: anchor.x - (anchor.x - view.x) * ratio, y: anchor.y - (anchor.y - view.y) * ratio, w: width});
   }
 
-  // Orthogonal routes avoid service boxes. Cache routes because node positions
-  // remain stable while scenarios, search and categories change emphasis.
+  // Orthogonal routes avoid service boxes and unrelated architecture zones.
+  // Only the boundaries that contain an endpoint may be entered; Cloud and
+  // Region are ambient scope frames. Routes stay stable as emphasis changes.
   const cell = 20;
   const columns = Math.ceil(data.width / cell) + 1;
   const rows = Math.ceil(data.height / cell) + 1;
@@ -110,6 +114,19 @@
     const right = group.x + 14 + Math.min(group.w - 65, group.label.length * 10);
     for (let x = Math.ceil((group.x + 9) / cell); x * cell <= right + 5; x++) {
       for (let y = Math.ceil((group.y + 5) / cell); y * cell <= group.y + 35; y++) obstacles.add(y * columns + x);
+    }
+  });
+  const boundaryCells = new Map();
+  data.groups.filter(group => !['cloud', 'region'].includes(group.kind)).forEach(group => {
+    // Leave room for the whole moving label beside the developer machine,
+    // so a marker cannot visually enter it while its route stays outside.
+    const gap = group.kind === 'developer' ? 40 : 8;
+    for (let x = Math.max(0, Math.ceil((group.x - gap) / cell)); x * cell <= group.x + group.w + gap && x < columns; x++) {
+      for (let y = Math.max(0, Math.ceil((group.y - gap) / cell)); y * cell <= group.y + group.h + gap && y < rows; y++) {
+        const id = y * columns + x;
+        if (!boundaryCells.has(id)) boundaryCells.set(id, []);
+        boundaryCells.get(id).push(group.id);
+      }
     }
   });
   class Heap {
@@ -137,6 +154,8 @@
   function route(edge) {
     if (pathCache.has(edge.id)) return pathCache.get(edge.id);
     const a = nodes.get(edge.source), b = nodes.get(edge.target);
+    const permitted = new Set([...ancestors(a.group), ...ancestors(b.group)]);
+    const blocked = id => obstacles.has(id) || boundaryCells.get(id)?.some(group => !permitted.has(group));
     const candidates = ports(a).flatMap(start => ports(b).map(end => ({start, end, distance: Math.abs(start[0] - end[0]) + Math.abs(start[1] - end[1])})));
     candidates.sort((a, b) => a.distance - b.distance);
     let result;
@@ -145,7 +164,7 @@
       const tx = Math.round((end[0] + end[2] * 35) / cell), ty = Math.round((end[1] + end[3] * 35) / cell);
       if (sx < 0 || sy < 0 || tx < 0 || ty < 0 || sx >= columns || tx >= columns || sy >= rows || ty >= rows) continue;
       const first = sy * columns + sx, target = ty * columns + tx;
-      if (obstacles.has(first) || obstacles.has(target)) continue;
+      if (blocked(first) || blocked(target)) continue;
       const open = new Heap(), costs = new Map([[first, 0]]), previous = new Map();
       open.push({id: first, f: 0});
       let found = false, visits = 0;
@@ -155,7 +174,7 @@
         const x = current % columns, y = Math.floor(current / columns);
         for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
           const nx = x + dx, ny = y + dy, next = ny * columns + nx;
-          if (nx < 0 || ny < 0 || nx >= columns || ny >= rows || obstacles.has(next)) continue;
+          if (nx < 0 || ny < 0 || nx >= columns || ny >= rows || blocked(next)) continue;
           const parent = previous.get(current);
           const bend = parent !== undefined && current - parent !== next - current ? 8 : 0;
           const cost = costs.get(current) + cell + bend;
@@ -200,6 +219,9 @@
     const focused = relatedIds();
     const entry = scenario();
     const activeEdgeId = entry?.steps[state.step]?.edge;
+    const activeEdge = edges.get(activeEdgeId);
+    const staticAction = entry && (!activeEdge?.packet || entry.mode === 'comparison');
+    const actionNodes = new Set(staticAction ? entry.steps[state.step].node ? [entry.steps[state.step].node] : [activeEdge.source, activeEdge.target] : []);
     const sceneEdges = new Set(entry ? entry.steps.map(step => step.edge) : []);
     const compare = comparison();
     const defs = shape('defs');
@@ -221,15 +243,17 @@
       boundaryLayer.append(boundary);
     });
     const paths = new Map();
-    data.relationships.forEach(edge => {
+    // Paint the current connection last so a reverse response path cannot hide it.
+    [...data.relationships].sort((a, b) => Number(a.id === activeEdgeId) - Number(b.id === activeEdgeId)).forEach(edge => {
       if (!state.types.has(edge.type) || hiddenNode(nodes.get(edge.source)) || hiddenNode(nodes.get(edge.target))) return;
       const selected = edge.source === state.selected || edge.target === state.selected;
       const overviewEdge = ['target-a', 'target-b', 'sql', 'ha', 'disk-a', 'disk-b', 'mount-fs-a', 'mount-fs-b'].includes(edge.id);
       if (!state.all && !(entry ? sceneEdges.has(edge.id) : state.overview ? overviewEdge : selected) && !(compare && focused.has(edge.source) && focused.has(edge.target))) return;
       const d = route(edge);
       if (!d) return;
-      const path = shape('path', {d, class: `scope-edge${activeEdgeId === edge.id ? ' is-current' : ''}`, 'data-edge': edge.id, 'data-type': edge.type, style: `--edge-color:var(--scope-${edge.type})`, 'marker-end': `url(#dva-scope-arrow-${edge.type})`});
-      path.append(shape('title', {}, `${kinds[edge.type][0]}: ${edge.description}`));
+      const directional = !['association', 'check'].includes(edge.activity);
+      const path = shape('path', {d, class: `scope-edge${activeEdgeId === edge.id ? ` is-current${staticAction ? ' is-current-action' : ''}` : ''}`, 'data-edge': edge.id, 'data-type': edge.type, 'data-activity': edge.activity, style: `--edge-color:var(--scope-${edge.type})`, ...(directional ? {'marker-end': `url(#dva-scope-arrow-${edge.type})`} : {})});
+      path.append(shape('title', {}, `${activityNames[edge.activity]}: ${edge.description}`));
       edgeLayer.append(path); paths.set(edge.id, path);
     });
     data.nodes.forEach(node => {
@@ -237,16 +261,17 @@
       const classes = ['scope-node'];
       if (focused.has(node.id)) classes.push('is-related'); else classes.push('is-dim');
       if (state.selected === node.id) classes.push('is-selected');
+      if (actionNodes.has(node.id)) classes.push('is-current-operation');
       if (compare?.left.includes(node.id)) classes.push('is-left');
       if (compare?.right.includes(node.id)) classes.push('is-right');
-      const group = shape('g', {class: classes.join(' '), 'data-node': node.id, role: 'button', tabindex: 0, 'aria-label': `${node.label}. ${node.scope}. Select for placement, flow and study notes.`, 'aria-pressed': String(state.selected === node.id)});
+      const group = shape('g', {class: classes.join(' '), 'data-node': node.id, role: 'button', tabindex: 0, 'aria-label': `${nodeLabel(node.id)}. ${node.scope}. Select for placement, flow and study notes.`, 'aria-pressed': String(state.selected === node.id), ...(actionNodes.has(node.id) ? {style: `--action-color:var(--scope-${activeEdge?.type || 'deployment'})`} : {})});
       group.append(shape('rect', {x: node.x, y: node.y, width: node.w, height: node.h, rx: 9}));
       if (node.icon) group.append(shape('image', {x: node.x + 10, y: node.y + (node.h - 30) / 2, width: 30, height: 30, href: `${root.dataset.iconBase}Arch_${node.icon}_64.svg`, 'aria-hidden': 'true'}));
       else {
         group.append(shape('circle', {class: 'scope-symbol', cx: node.x + 25, cy: node.y + node.h / 2, r: 17}));
         group.append(shape('text', {class: 'scope-symbol-text', x: node.x + 25, y: node.y + node.h / 2 + 7}, node.id === 'client' ? '↗' : 'ID'));
       }
-      const label = lines(node.label, 16);
+      const label = lines(nodeLabel(node.id), 14);
       label.forEach((line, index) => group.append(shape('text', {x: node.x + 52, y: node.y + (label.length === 2 ? 27 : node.h < 60 ? 30 : 31) + index * 21}, line)));
       if (label.length === 1 && node.h >= 60) group.append(shape('text', {class: 'scope-node-scope', x: node.x + 52, y: node.y + 51}, node.group.startsWith('priv') ? `PRIVATE · AZ ${node.group.slice(-1)}` : node.group.startsWith('pub') ? `PUBLIC · AZ ${node.group.slice(-1)}` : node.group.startsWith('az') ? `AZ ${node.group.slice(-1)} · NO SUBNET` : node.scope.startsWith('Global') ? 'GLOBAL / ACCOUNT' : node.scope === 'External' ? 'EXTERNAL' : 'REGIONAL / LOGICAL'));
       nodeLayer.append(group);
@@ -256,31 +281,32 @@
     packet = null;
     if (currentPath) {
       const edge = edges.get(activeEdgeId), label = edge.label.length > 37 ? edge.label.slice(0, 34) + '…' : edge.label;
-      const at = currentPath.getPointAtLength(currentPath.getTotalLength() / 2);
+      const permitted = new Set([...ancestors(nodes.get(edge.source).group), ...ancestors(nodes.get(edge.target).group)]);
+      const unrelated = data.groups.filter(group => !['cloud', 'region'].includes(group.kind) && !permitted.has(group.id));
       const badge = shape('g', {class: 'scope-edge-label', style: `--edge-color:var(--scope-${edge.type})`});
       const width = label.length * 7.2 + 20;
       let labelPoint = null;
       for (const fraction of [.5, .35, .65, .2, .8]) {
         const point = currentPath.getPointAtLength(currentPath.getTotalLength() * fraction);
-        const box = {x: point.x - width / 2, y: point.y - 32, w: width, h: 28};
+        const box = {x: point.x - width / 2, y: point.y - 46, w: width, h: 28};
         if (box.x < 0 || box.y < 0 || box.x + box.w > data.width) continue;
         const overlaps = data.nodes.some(node => !hiddenNode(node) && box.x < node.x + node.w + 5 && box.x + box.w > node.x - 5 && box.y < node.y + node.h + 5 && box.y + box.h > node.y - 5);
-        if (!overlaps) { labelPoint = point; break; }
+        const crossesBoundary = unrelated.some(group => box.x < group.x + group.w && box.x + box.w > group.x && box.y < group.y + group.h && box.y + box.h > group.y);
+        const coversHeading = data.groups.some(group => box.x < group.x + 14 + Math.min(group.w - 65, group.label.length * 10) && box.x + box.w > group.x + 9 && box.y < group.y + 35 && box.y + box.h > group.y + 5);
+        if (!overlaps && !crossesBoundary && !coversHeading) { labelPoint = point; break; }
       }
       if (labelPoint) {
-        badge.append(shape('rect', {x: labelPoint.x - width / 2, y: labelPoint.y - 30, width, height: 26, rx: 5}), shape('text', {x: labelPoint.x, y: labelPoint.y - 12}, label));
+        badge.append(shape('rect', {x: labelPoint.x - width / 2, y: labelPoint.y - 44, width, height: 26, rx: 5}), shape('text', {x: labelPoint.x, y: labelPoint.y - 26}, label));
         svg.append(badge);
       }
-      let glyph = kinds[edge.type][1];
-      if (edge.id.startsWith('dns-')) glyph = 'DNS';
-      if (edge.id.includes('sql') || edge.id.includes('replica') && edge.type === 'api') glyph = 'SQL';
-      if (edge.id.includes('queue') || edge.id === 'process') glyph = 'MSG';
-      if (['put-record', 'hash', 'read-record', 'stream-batch'].includes(edge.id)) glyph = 'REC';
-      if (edge.id.includes('jwt')) glyph = 'JWT';
-      if (edge.id.includes('nfs')) glyph = 'NFS';
-      packet = shape('g', {class: 'scope-packet', 'aria-hidden': 'true', style: `--edge-color:var(--scope-${edge.type})`});
-      packet.append(edge.type === 'event' ? shape('rect', {x: -22, y: -13, width: 44, height: 26, rx: 3}) : edge.type === 'authorization' ? shape('polygon', {points: '0,-24 32,0 0,24 -32,0'}) : shape('rect', {x: -23, y: -14, width: 46, height: 28, rx: edge.type === 'network' ? 14 : 4}), shape('text', {y: 4}, glyph));
-      svg.append(packet); movePacket();
+      if (edge.packet && entry.mode !== 'comparison') {
+        const width = Math.max(46, edge.packet.length * 8 + 16);
+        packet = shape('g', {class: 'scope-packet', 'aria-hidden': 'true', 'data-packet': edge.packet, style: `--edge-color:var(--scope-${edge.type})`});
+        packet.append(shape('rect', {x: -width / 2, y: -14, width, height: 28, rx: edge.activity === 'response' ? 14 : 4}), shape('text', {y: 4}, edge.packet));
+        // Service boxes mask the marker at connection endpoints, keeping it
+        // from covering their labels while entering or leaving a service.
+        svg.insertBefore(packet, nodeLayer); movePacket();
+      }
     }
     root.querySelectorAll('[data-scope-category]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.scopeCategory === state.category)));
     get('match').textContent = state.search ? `${focused.size} matching nodes · Enter to focus` : `${data.nodes.length} placed resources · ${data.scenarios.length} scenarios`;
@@ -292,7 +318,7 @@
     const node = nodes.get(id);
     if (!node) return;
     pause(); state.selected = id; expandFor([id]);
-    const panel = get('detail'); panel.replaceChildren(html('strong', node.label), html('span', `${data.categories[node.category]} · ${node.scope}`, 'dva-scope-placement'), html('p', node.description));
+    const panel = get('detail'); panel.replaceChildren(html('strong', nodeLabel(id)), html('span', `${data.categories[node.category]} · ${node.scope}`, 'dva-scope-placement'), html('p', node.description));
     panelSection(panel, 'Architecture placement', node.placement);
     panelSection(panel, 'Subnet / security-group requirements', node.networkRequirements);
     panelSection(panel, 'Input → processing → output', node.flow);
@@ -308,7 +334,8 @@
     const relations = html('div', undefined, 'dva-scope-relations'); relations.append(html('h5', 'Connected responsibilities'));
     data.relationships.filter(edge => edge.source === id || edge.target === id).forEach(edge => {
       const target = edge.source === id ? edge.target : edge.source;
-      const button = html('button', `${edge.source === id ? '→' : '←'} ${nodes.get(target).label} · ${edge.label}`); button.type = 'button'; button.dataset.scopeRelated = target; relations.append(button);
+      const symbol = ['association', 'check'].includes(edge.activity) ? '—' : edge.source === id ? '→' : '←';
+      const button = html('button', `${symbol} ${nodeLabel(target)} · ${edge.label}`); button.type = 'button'; button.dataset.scopeRelated = target; relations.append(button);
     }); panel.append(relations);
     render();
     if (focus) fit([id]);
@@ -328,41 +355,61 @@
     get('step-detail').replaceChildren(html('p', 'Comparison highlights responsibilities and placement. Select a scenario to simulate an operation.'));
     updatePlayer(); render(); fit(ids);
   }
+  function stepDuration() {
+    const words = scenario()?.steps[state.step]?.text.trim().split(/\s+/).length || 0;
+    return Math.max(5500, Math.min(12000, words * 300 + 1200));
+  }
   function movePacket() {
     if (!packet || !currentPath) return;
-    const fraction = Math.min(1, state.elapsed / 2600);
+    const fraction = Math.min(1, state.elapsed / stepDuration());
     const at = currentPath.getPointAtLength(currentPath.getTotalLength() * (matchMedia('(prefers-reduced-motion: reduce)').matches ? fraction > .5 ? 1 : 0 : fraction));
     packet.setAttribute('transform', `translate(${at.x} ${at.y})`);
   }
   function pause() {
     state.running = false; cancelAnimationFrame(frame); state.lastFrame = 0;
-    get('run').textContent = 'Run simulation';
+    updatePlayer();
   }
   function animate(time) {
     if (!state.running) return;
     if (state.lastFrame) state.elapsed += time - state.lastFrame;
     state.lastFrame = time; movePacket();
-    if (state.elapsed >= 2600) {
+    if (state.elapsed >= stepDuration()) {
       const entry = scenario();
-      if (!entry || state.step >= entry.steps.length - 1) { pause(); get('progress').textContent = 'Simulation complete'; return; }
+      if (!entry || state.step >= entry.steps.length - 1) { pause(); return; }
       state.step++; state.elapsed = 0; showStep();
     }
     frame = requestAnimationFrame(animate);
   }
   function updatePlayer() {
     const entry = scenario();
+    root.dataset.scopeRunning = String(state.running);
+    const complete = entry && state.step === entry.steps.length - 1 && state.elapsed >= stepDuration();
     get('run').disabled = !entry; get('previous').disabled = !entry || state.step === 0; get('next').disabled = !entry || state.step === entry.steps.length - 1;
     get('step').disabled = !entry;
-    get('progress').textContent = entry ? `Step ${state.step + 1} / ${entry.steps.length}` : 'Choose a scenario to run';
+    const noun = entry?.mode === 'comparison' ? 'walkthrough' : 'simulation';
+    get('run').textContent = state.running ? `Pause ${noun}` : complete ? `Replay ${noun}` : `Run ${noun}`;
+    get('run').setAttribute('aria-pressed', String(state.running));
+    get('progress').textContent = entry ? complete ? `Completed ${entry.steps.length} steps · replay or inspect any step.` : `Step ${state.step + 1} / ${entry.steps.length} · ${state.running ? 'Running — pause to inspect' : 'Paused — ready to run'}` : 'Choose an architecture scenario above to enable Run.';
+    get('scenario-notes').hidden = !entry;
+    if (!entry) {
+      const emptyStep = html('option', 'No steps available'); emptyStep.value = '';
+      get('step').replaceChildren(emptyStep);
+      get('step-detail').replaceChildren(html('p', comparison() ? 'Comparison highlights responsibilities and placement. Choose a scenario above to follow an operation.' : 'Run follows named operations, not one packet through every box. Pause or use the step controls to inspect a connection.'));
+    }
   }
   function showStep() {
     const entry = scenario();
     if (!entry) { get('step').replaceChildren(); updatePlayer(); return; }
-    get('step').replaceChildren(...entry.steps.map((step, index) => { const option = html('option', `${index + 1}. ${edges.get(step.edge).label}`); option.value = index; return option; }));
+    get('step').replaceChildren(...entry.steps.map((step, index) => { const option = html('option', `${index + 1}. ${step.phase}`); option.value = index; return option; }));
     get('step').value = String(state.step);
     const step = entry.steps[state.step], edge = edges.get(step.edge), result = get('step-detail');
-    result.replaceChildren(html('span', `${state.step + 1} · ${kinds[edge.type][0].toUpperCase()}`, 'dva-scope-step-type'), html('p', step.text), html('p', `Architecture note: ${entry.note}`), html('p', `Exam boundary: ${entry.exam}`));
-    if (!state.types.has(edge.type)) result.append(html('p', 'This connection type is hidden in the legend; enable it to show its animation.'));
+    const type = html('span', `${state.step + 1} · ${step.phase.toUpperCase()} · ${edge ? activityNames[edge.activity] : 'Local / internal step'}`, 'dva-scope-step-type');
+    if (edge) type.style.color = `var(--scope-${edge.type})`;
+    const routeLabel = edge ? `${nodeLabel(edge.source)} ${connector(edge)} ${nodeLabel(edge.target)}` : `${nodeLabel(step.node)} · local / internal operation`;
+    const meaning = entry.mode === 'comparison' ? 'Comparison walkthrough: independent patterns, not a sequential traffic path.' : edge?.packet ? `Moving label “${edge.packet}”: this named operation only. Each new call or response has its own arrow.` : edge?.activity === 'association' ? 'Configuration relationship · no packet or extra network hop.' : edge?.activity === 'check' ? 'Policy / configuration check · no packet or extra network hop.' : 'Local or service-internal work · no extra API hop.';
+    result.replaceChildren(type, html('strong', routeLabel, 'dva-scope-step-route'), html('p', step.text), html('small', meaning, 'dva-scope-step-meaning'));
+    get('scenario-notes').replaceChildren(html('p', `Architecture note: ${entry.note}`), html('p', `Exam boundary: ${entry.exam}`));
+    if (edge && !state.types.has(edge.type)) result.append(html('p', 'This connection type is hidden in the legend; enable it to show this connection.'));
     render(); updatePlayer();
   }
   function chooseScenario(id) {
@@ -371,7 +418,7 @@
     const entry = scenario();
     if (entry) {
       const ids = [...sceneNodes(entry)]; expandFor(ids);
-      state.selected = edges.get(entry.steps[0].edge).target;
+      state.selected = entry.steps[0].node || edges.get(entry.steps[0].edge).target;
       showNode(state.selected); showStep(); fit(ids);
     } else { showNode(state.selected); get('step-detail').replaceChildren(html('p', 'Select any resource for placement and relationships, or choose a scenario for numbered steps.')); updatePlayer(); fit(); }
   }
@@ -409,7 +456,7 @@
   get('compare').addEventListener('change', event => { state.comparison = event.target.value; showComparison(); });
   get('connections').addEventListener('change', event => { state.all = event.target.checked; render(); });
   get('study').addEventListener('change', study); get('question').addEventListener('change', study);
-  get('search').addEventListener('input', event => { state.search = event.target.value.trim(); render(); });
+  get('search').addEventListener('input', event => { pause(); state.search = event.target.value.trim(); render(); });
   get('search').addEventListener('keydown', event => {
     if (event.key !== 'Enter' || !state.search) return;
     const ids = [...relatedIds()];
@@ -421,11 +468,11 @@
     if (state.running) { pause(); return; }
     const entry = scenario(); if (!entry) return;
     expandFor([...sceneNodes(entry)]); render();
-    if (state.step === entry.steps.length - 1 && state.elapsed >= 2600) { state.step = 0; state.elapsed = 0; showStep(); }
-    state.running = true; state.lastFrame = 0; get('run').textContent = 'Pause simulation'; frame = requestAnimationFrame(animate);
+    if (state.step === entry.steps.length - 1 && state.elapsed >= stepDuration()) { state.step = 0; state.elapsed = 0; showStep(); }
+    state.running = true; state.lastFrame = 0; updatePlayer(); frame = requestAnimationFrame(animate);
   });
   get('zoom-in').addEventListener('click', () => zoom(.8)); get('zoom-out').addEventListener('click', () => zoom(1.25));
-  get('reset').addEventListener('click', () => { pause(); state.collapsed.clear(); state.category = ''; state.search = ''; get('search').value = ''; state.all = false; get('connections').checked = false; state.types = new Set(Object.keys(kinds)); get('legend').querySelectorAll('input').forEach(input => { input.checked = true; }); render(); fit(); });
+  get('reset').addEventListener('click', () => { pause(); state.collapsed.clear(); state.category = ''; state.search = ''; get('search').value = ''; state.all = false; get('connections').checked = false; state.types = new Set(Object.keys(kinds)); get('legend').querySelectorAll('input').forEach(input => { input.checked = true; }); render(); fitContext(); });
   get('expand').hidden = !document.fullscreenEnabled;
   get('expand').addEventListener('click', async () => { if (document.fullscreenElement === root) await document.exitFullscreen(); else await root.requestFullscreen(); });
   document.addEventListener('fullscreenchange', () => { get('expand').textContent = document.fullscreenElement === root ? 'Exit expanded view' : 'Expand'; });
@@ -458,12 +505,17 @@
   [...new Set(data.nodes.map(node => node.label))].sort().forEach(label => { const option = html('option'); option.value = label; get('services').append(option); });
   root.querySelectorAll('[data-scope-ready]').forEach(element => { element.hidden = false; });
   showNode('lambda'); updatePlayer(); fit();
-  get('step-detail').append(html('p', 'Choose a scenario, then Run simulation. Each typed symbol represents a request, record, message, identity assertion, deployment operation or telemetry event; no AWS resources are created.'));
-  new ResizeObserver(() => {
+  function fitContext() {
     const entry = scenario(), compare = comparison();
     if (entry) fit([...sceneNodes(entry)]);
     else if (compare) fit([...new Set([...compare.left, ...compare.right])]);
     else fit();
-  }).observe(svg);
+  }
+  new ResizeObserver(fitContext).observe(svg);
+  const header = document.querySelector('.site-header');
+  if (header) {
+    const headerOffset = () => root.style.setProperty('--scope-header-offset', `${header.getBoundingClientRect().height}px`);
+    new ResizeObserver(headerOffset).observe(header); headerOffset();
+  }
   document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 })();

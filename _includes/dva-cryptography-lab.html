@@ -1,0 +1,75 @@
+<div class="dva-lab dva-crypto-summary" id="cryptography-lab">
+  <p><strong>One question first:</strong> are you checking data, keeping it secret, or proving who signed it?</p>
+  <p class="dva-table-hint">Scroll horizontally to compare the examples.</p>
+  <div class="dva-table-wrap" role="region" aria-label="Cryptography patterns, analogies and example calls" tabindex="0">
+    <table class="dva-crypto-patterns">
+      <thead><tr><th>Pattern</th><th>Think of it as…</th><th>Key direction</th><th>Example calls · pseudocode</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Hashing</strong><br>Check content</td><td>A document's fingerprint; it does not contain the original document.</td><td>No key; designed to be one-way.</td><td><code>digest = SHA256(data)</code><br>No <code>decrypt(digest)</code>.</td></tr>
+        <tr><td><strong>Symmetric encryption</strong><br>Keep data secret</td><td>A locked box with identical keys held by both sides.</td><td>Same secret encrypts and decrypts.</td><td><code>c = encrypt(data, shared_key)</code><br><code>data = decrypt(c, shared_key)</code></td></tr>
+        <tr><td><strong>Asymmetric encryption</strong><br>Send a secret</td><td>Share an open padlock; keep its unlocking key.</td><td>Client: server's public key encrypts.<br>Server: private key decrypts.</td><td><code>c = encrypt(data, server_public)</code><br><code>data = decrypt(c, server_private)</code></td></tr>
+        <tr><td><strong>SSH signature</strong><br>Prove key possession</td><td>Your personal seal: others can check it without owning it.</td><td>Client: private key signs.<br>Server: authorised public key verifies.</td><td><code>sig = sign(auth_data, client_private)</code><br><code>verify(auth_data, sig, client_public)</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="dva-note"><strong>Exam traps:</strong> asymmetric encryption is not hashing; a plain hash does not authenticate its sender; Base64 only encodes data. SSH authenticates with a signature, then protects traffic with separate symmetric session keys.</p>
+
+  <strong class="dva-panel-title">AWS KMS — small secret vs large file</strong>
+  <p><strong>Analogy:</strong> KMS is a key vault. It can lock a small item for you, or protect the key you use to lock a large file yourself.</p>
+  <div class="dva-crypto-calls">
+    <section aria-label="KMS direct encryption example">
+      <strong>Small data · up to 4,096 bytes</strong>
+      <p><strong>KMS encrypts/decrypts the data</strong> with a symmetric KMS key that stays in KMS.</p>
+      <pre class="dva-reference-code"><code># Conceptual calls
+blob = kms.Encrypt(secret, KeyId=K)
+secret = kms.Decrypt(blob)</code></pre>
+    </section>
+    <section aria-label="KMS envelope encryption example">
+      <strong>Large file · e.g. 111 GB</strong>
+      <p><strong>Client encrypts the file.</strong> KMS protects its data key.</p>
+      <pre class="dva-reference-code"><code># Conceptual envelope encryption
+D, wrapped_D = kms.GenerateDataKey(K)
+encrypted_file = AES_encrypt(file, D)
+save(encrypted_file, wrapped_D, metadata)
+clear_from_memory(D)</code></pre>
+    </section>
+  </div>
+  <p><strong>Another authorised client:</strong> <code>D = kms.Decrypt(wrapped_D)</code> → <code>file = AES_decrypt(encrypted_file, D)</code> → clear <code>D</code>.</p>
+  <p class="dva-example"><strong>Remember:</strong> <code>D</code> and <code>wrapped_D</code> are two forms of <em>one data key</em>. Keep plaintext <code>D</code> temporarily in client memory; store the encrypted key beside the ciphertext. KMS retains <code>K</code>, not both returned data-key copies. The second client still needs storage and KMS permissions.</p>
+  <p class="dva-docs">Conceptual calls; see the references for SDK syntax and encryption metadata. <a href="https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html">Direct encryption limits</a> · <a href="https://docs.aws.amazon.com/kms/latest/developerguide/data-keys.html">Envelope encryption</a> · <a href="https://www.rfc-editor.org/rfc/rfc4252#section-7">SSH authentication</a></p>
+
+  <details class="dva-learning-detail">
+    <summary>KMS API comparison</summary>
+    <p class="dva-table-hint">Scroll the table horizontally on a narrow screen.</p>
+    <div class="dva-table-wrap" role="region" aria-label="KMS API comparison" tabindex="0"><table>
+      <thead><tr><th>Call</th><th>Returns</th><th>Choose when</th></tr></thead>
+      <tbody>
+        <tr><td><code>Encrypt</code></td><td>Ciphertext</td><td>KMS directly encrypts small data</td></tr>
+        <tr><td><code>Decrypt</code></td><td>Recovered plaintext</td><td>Recover data or a wrapped data key</td></tr>
+        <tr><td><code>GenerateDataKey</code></td><td>Plaintext + encrypted data key</td><td>Client needs to encrypt data now</td></tr>
+        <tr><td><code>GenerateDataKeyWithoutPlaintext</code></td><td>Encrypted data key only</td><td>Decrypt the data key when needed later</td></tr>
+      </tbody>
+    </table></div>
+    <p class="dva-note"><code>GenerateDataKeyWithPlaintext</code> does not exist. “CMK” in older questions means a KMS key. Rotation does not automatically re-encrypt stored objects.</p>
+    <p class="dva-docs"><a href="https://docs.aws.amazon.com/kms/latest/APIReference/API_GenerateDataKey.html">GenerateDataKey</a> · <a href="https://docs.aws.amazon.com/kms/latest/APIReference/API_GenerateDataKeyWithoutPlaintext.html">WithoutPlaintext</a></p>
+  </details>
+  {% include dva-card-exercise.html id='kms-cache' anchor='kms-key-caching' %}
+  <details class="dva-learning-detail" id="s3-encryption-choices">
+    <summary>S3 encryption comparison</summary>
+    <p class="dva-table-hint">Scroll the table horizontally on a narrow screen.</p>
+    <div class="dva-table-wrap" role="region" aria-label="S3 encryption responsibilities" tabindex="0"><table>
+      <thead><tr><th>Mode</th><th>Who encrypts?</th><th>Key control</th><th>KMS access?</th></tr></thead>
+      <tbody>
+        <tr><td>SSE-S3</td><td>S3</td><td>S3 manages keys and rotation</td><td>No</td></tr>
+        <tr><td>SSE-KMS · AWS managed <code>aws/s3</code></td><td>S3</td><td>AWS manages policy/rotation; customer cannot disable the key</td><td>Yes</td></tr>
+        <tr><td>SSE-KMS · customer managed</td><td>S3</td><td>Customer controls key policy, disabling and supported rotation settings</td><td>Yes: GenerateDataKey for upload; Decrypt for read/multipart</td></tr>
+        <tr><td>SSE-C</td><td>S3</td><td>Customer supplies the key over HTTPS; manages rotation; S3 does not retain it</td><td>No native KMS requirement</td></tr>
+        <tr><td>Client-side encryption</td><td>Application before upload</td><td>Application/library manages keys; S3 stores ciphertext</td><td>If the design uses KMS</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>Exam clue:</strong> control key policy, disabling or rotation → customer managed KMS key. Cross-account SSE-KMS sharing also needs a customer managed key and suitable S3/KMS permissions.</p>
+    <p class="dva-note">SSE-C rejects HTTP: the key must travel over HTTPS. To require HTTPS across S3 modes, use a bucket-policy Deny for <code>aws:SecureTransport=false</code>. SSE-C is blocked by default in new buckets and existing buckets in accounts without SSE-C objects (April 2026). See the <a href="#dva-service-s3">S3 card</a> for the transport-policy example.</p>
+    {% include dva-card-exercise.html id='s3-key' anchor='s3-key-flow' %}
+    <p class="dva-docs"><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html">SSE-KMS</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/ServerSideEncryptionCustomerKeys.html">SSE-C</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingClientSideEncryption.html">Client-side encryption</a></p>
+  </details>
+</div>

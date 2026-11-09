@@ -143,7 +143,7 @@
 #dva-architecture-map .dva-edge--request{stroke:var(--flow-teal);marker-end:url(#dva-request-arrow)}
 #dva-architecture-map .dva-edge--deploy{stroke-dasharray:6 5}
 #dva-control-arrow path{fill:var(--flow-wire)}
-#dva-request-arrow path{fill:var(--flow-teal)}
+#dva-request-arrow path,#dva-return-arrow path{fill:var(--flow-teal)}
 #dva-architecture-map .dva-edge--feedback{stroke:var(--flow-blue);stroke-width:1.75;stroke-dasharray:5 5;opacity:.8;marker-end:url(#dva-feedback-arrow)}
 #dva-feedback-arrow path{fill:var(--flow-blue)}
 #dva-architecture-map .legend-feedback::before{border-color:var(--flow-blue);border-top-style:dashed}

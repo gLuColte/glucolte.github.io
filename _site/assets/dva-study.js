@@ -29,6 +29,7 @@
     get('card-body').replaceChildren(reference.querySelector('.dva-card-content').cloneNode(true));
     if (!dialog.open) dialog.showModal();
     dialog.scrollTop = 0;
+    get('card-body').dispatchEvent(new CustomEvent('dva:card-open', {bubbles:true}));
   }
   root.addEventListener('click', event => {
     const link = event.target.closest('a');
@@ -150,25 +151,31 @@
 
   function kinesisShardsExample(example) {
     const field = name => example.querySelector(`[data-shards-${name}]`);
-    const rate = Number(field('rate').value);
+    const mibMode = field('unit').value === 'mib';
+    field('records-field').hidden = mibMode;
+    field('mib-field').hidden = !mibMode;
+    const rate = mibMode ? Number(field('mib').value) * 256 : Number(field('rate').value);
     const count = Number(field('count').value);
     const hot = field('keys').value === 'hot';
-    if (!field('rate').value || !Number.isInteger(rate) || rate < 1 || rate > 10000) {
-      field('result').textContent = 'Enter a whole-number arrival rate from 1 to 10,000 records/s.';
+    const skew = field('keys').value === 'skew';
+    if (mibMode ? field('mib').value === '' || !Number.isFinite(rate) || rate < 0 || rate > 25600 : !field('rate').value || !Number.isInteger(rate) || rate < 1 || rate > 10000) {
+      field('result').textContent = 'Enter 0–100 MiB/s, or a whole-number arrival rate from 1 to 10,000 records/s.';
       field('result').className = 'dva-result-blocked';
       field('calculation').textContent = 'The lanes retain the last valid example until the input is valid.';
       return;
     }
-    field('producer').textContent = `${rate.toLocaleString()} records/s × 4 KiB = ${(rate / 256).toFixed(3)} MiB/s`;
+    const load = globalThis.DVALearning.shards({count, mib: rate / 256, distribution: field('keys').value});
+    field('producer').textContent = `${Number(rate.toFixed(2)).toLocaleString()} records/s × 4 KiB = ${(rate / 256).toFixed(3)} MiB/s`;
+    field('aggregate').textContent = `Aggregate offered: ${(rate / 256).toFixed(3)} MiB/s / ${count} MiB/s shard-sum budget (${Math.round(load.aggregate * 100)}%). ${load.overloaded ? 'At least one shard still exceeds its own budget.' : 'Every shard fits in this distribution.'} Unused capacity is not pooled.`;
     field('routing').textContent = hot
       ? 'Every record uses device01. Its hash maps to one shard at a time; unused shards cannot absorb that key’s excess traffic.'
-      : count === 1
+      : skew && count > 1 ? 'Illustrative skew: 80% of traffic hashes into shard 1; the remaining 20% spreads evenly. Aggregate spare capacity cannot absorb that shard’s excess.' : count === 1
         ? 'Many keys are assumed evenly distributed in this model. With one shard, all records still enter that lane.'
         : `Many partition keys are assumed evenly distributed across ${count} shard hash ranges. Multiple keys do not guarantee an even real-world workload.`;
     let overloaded = false;
     field('lanes').replaceChildren(...Array.from({length: count}, (_, index) => {
-      const records = hot ? index === 0 ? rate : 0 : rate / count;
-      const bytes = records / 256;
+      const bytes = load.loads[index];
+      const records = bytes * 256;
       const exceeds = bytes > 1 || records > 1000;
       overloaded ||= exceeds;
       const lane = make('div', undefined, 'dva-shard-lane');
@@ -189,18 +196,28 @@
     }));
     field('result').className = overloaded ? 'dva-result-blocked' : 'dva-result-rule';
     field('result').textContent = overloaded
-      ? hot && count > 1
-        ? `Hot key: shard 1 is over capacity while ${count - 1} shard(s) sit idle. Adding shards alone does not split one partition key. Revisit key design while preserving the ordering your application needs.`
+      ? (hot || skew) && count > 1
+        ? `${hot ? 'Hot key' : 'Skewed keys'}: shard 1 is over capacity despite spare lanes. Adding shards alone does not split one partition key. Revisit key design while preserving the ordering your application needs.`
         : `${rate.toLocaleString()} records/s exceed the sustained budget of ${count} shard(s). Some writes can be throttled; retry failed records with backoff and jitter.`
-      : `Fits the sustained write budget: ${count} shard(s), ${hot ? 'one active key' : 'assumed even distribution'}. Leave headroom for bursts and skew; this does not guarantee that consumers keep up.`;
+      : `Fits the sustained write budget: ${count} shard(s), ${hot ? 'one active key' : skew ? 'illustrative 80% skew' : 'assumed even distribution'}. Leave headroom for bursts and skew; this does not guarantee that consumers keep up.`;
     field('calculation').textContent = `Per shard: min(1,000 records/s, 1,024 KiB/s ÷ 4 KiB) = 256 records/s. At ${rate.toLocaleString()} records/s, at least ${Math.ceil(rate / 256)} evenly loaded shard(s) are needed before headroom.${hot ? ' That aggregate estimate cannot solve a single hot key.' : ''} The three record blocks per lane illustrate order, not a real-time count.`;
+    if (field('consumers')) {
+      const readers = Number(field('consumers').value);
+      const perReader = Number(field('read-rate').value);
+      const dedicated = field('read-mode').value === 'efo';
+      const contention = dedicated ? perReader > 2 : readers * perReader > 2;
+      field('reads').className = contention ? 'dva-result-blocked' : 'dva-result-rule';
+      field('reads').textContent = dedicated
+        ? `${readers} registered consumer(s): each requests ${perReader} MiB/s per shard against its own 2 MiB/s budget. ${contention ? 'Each reader still exceeds its individual budget.' : 'Read demand fits independently.'} Producer write pressure is unchanged.`
+        : `${readers} consumer(s) × ${perReader} MiB/s = ${readers * perReader} MiB/s requested per shard, sharing 2 MiB/s. ${contention ? 'Read contention: consider enhanced fan-out, not a producer retry policy.' : 'Fits shared byte budget; GetRecords call limits still apply.'}`;
+    }
   }
   root.querySelectorAll('[data-shards-demo]').forEach(kinesisShardsExample);
   root.addEventListener('input', event => {
-    if (event.target.matches('[data-shards-rate]')) kinesisShardsExample(event.target.closest('[data-shards-demo]'));
+    if (event.target.matches('[data-shards-rate], [data-shards-mib]')) kinesisShardsExample(event.target.closest('[data-shards-demo]'));
   });
   root.addEventListener('change', event => {
-    if (event.target.matches('[data-shards-count], [data-shards-keys]')) kinesisShardsExample(event.target.closest('[data-shards-demo]'));
+    if (event.target.matches('[data-shards-count], [data-shards-keys], [data-shards-unit], [data-shards-consumers], [data-shards-read-rate], [data-shards-read-mode]')) kinesisShardsExample(event.target.closest('[data-shards-demo]'));
   });
 
   // One connected system: selection explains ownership; situations trace handoffs.

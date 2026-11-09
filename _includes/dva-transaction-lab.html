@@ -1,0 +1,20 @@
+<div class="dva-lab" id="transaction-lab" data-transaction-lab>
+  <strong class="dva-panel-title">One voucher, two writes — what if the second fails?</strong>
+  <p>Transfer voucher V-42: delete Alice's ownership item, then put Bob's. A transaction makes both changes one atomic unit. A batch makes individual writes atomic, but allows partial success. This is a conceptual local model; the order of actual batch execution is not guaranteed.</p>
+  <div class="dva-controls" data-learning-controls hidden>
+    <label>Write contract <select data-transaction-mode><option value="transaction">TransactWriteItems · atomic</option><option value="batch">BatchWriteItem · partial success allowed</option></select></label>
+    <label><input type="checkbox" data-transaction-fail checked> Second write fails / is unprocessed</label>
+    <button type="button" data-transaction-run>Transfer voucher</button><button type="button" data-transaction-reset>Reset</button>
+  </div>
+  <ol class="dva-flow"><li><strong>Alice</strong><small data-voucher-alice>Owns V-42</small></li><li class="dva-purple"><strong>Write boundary</strong><small data-voucher-boundary>Transaction: all-or-nothing</small></li><li class="dva-green"><strong>Bob</strong><small data-voucher-bob>No voucher</small></li></ol>
+  <p data-transaction-result role="status" aria-live="polite">Failure under a transaction: Alice keeps V-42; Bob receives nothing. Failure under a batch: Alice's delete may persist while Bob's put remains unprocessed.</p>
+  <pre class="dva-reference-code"><code data-transaction-code># Conceptual SDK pseudocode; two distinct ownership items
+TransactWriteItems([
+  Delete(AliceVoucher, condition="owner = Alice"),
+  Put(BobVoucher, condition="attribute_not_exists(PK)")
+])
+# BatchWriteItem supports Put/Delete, no conditions or Update.</code></pre>
+  <p><strong>ACID:</strong> Atomicity = all or nothing; Consistency = declared conditions/invariants remain valid when correctly modelled; Isolation = concurrent transactions behave serialisably for supported transactional operations; Durability = committed changes persist. A game purchase similarly couples balance debit with entitlement creation.</p>
+  <p class="dva-note">Both APIs are synchronous requests. Returning immediately vs waiting is independent of atomicity. A strongly consistent GetItem reads a recent committed item; it does not atomically coordinate multiple changes. Two independent strongly consistent reads are not one multi-item snapshot; use TransactGetItems for an atomic read set.</p>
+  <p class="dva-docs"><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html">Transaction semantics</a> · <a href="#dva-service-dynamodb">DynamoDB limits and conditional writes</a> · <a href="#dva-service-rds">SQL transactions / OLTP vs OLAP</a></p>
+</div>
