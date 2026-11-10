@@ -154,7 +154,17 @@ try {
       }
     }
   }
-  change('compare',data.comparisons[0].id);
+  // The shared search filters scenarios by their actual services and feature
+  // text, preserves the query on selection, and restores all on clear/reset.
+  const search=value=>{get('search').value=value;get('search').dispatchEvent(new window.Event('input',{bubbles:true}));};
+  const scenarioIds=()=>[...get('scenario').options].map(option=>option.value).filter(Boolean);
+  search('EFS');assert.ok(scenarioIds().includes('storage'));assert.ok(!scenarioIds().includes('kinesis'));assert.ok(scenarioIds().length<data.scenarios.length);
+  change('scenario','storage');assert.equal(get('search').value,'EFS');assert.ok(document.querySelector('[data-node="efs"].is-related'));
+  search('no-such-service-xyz');assert.equal(scenarioIds().length,0);assert.equal(get('run').disabled,true);assert.match(get('scenario-filter').textContent,/0 of/);
+  search('');assert.equal(scenarioIds().length,data.scenarios.length);assert.equal(get('scenario-filter').hidden,true);
+  search('Kinesis');assert.ok(scenarioIds().includes('kinesis'));get('reset').click();assert.equal(scenarioIds().length,data.scenarios.length);
+  search('SAM');change('compare',data.comparisons[0].id);
+  assert.equal(get('search').value,'');assert.equal(scenarioIds().length,data.scenarios.length);
   assert.equal(get('run').disabled,true); assert.equal(get('scenario-notes').hidden,true);
   assert.match(get('step-detail').textContent,/Comparison highlights/);
   document.querySelector('[data-scope-category=""]').click();

@@ -1,0 +1,34 @@
+<section class="dva-scope-explorer" id="soa-scope-explorer" data-study-prefix="soa" aria-label="AWS architecture explorer" data-icon-base="{{ '/study/assets/aws-architecture-icons/' | relative_url }}">
+  <div class="dva-scope-intro"><span>EXAM SCOPE · ARCHITECTURE EXPLORER</span><strong>Find the failed boundary.</strong><p>Moving labels show named operations; badges show resource state. Policy checks pulse without packets. Boundaries show placement, not extra hops.</p></div>
+  <div class="dva-scope-tools" hidden data-scope-ready>
+    <label>Find a service or feature<input id="soa-scope-search" type="search" list="soa-scope-services" aria-controls="soa-scope-scenario soa-scope-canvas" placeholder="Try rollback, KMS, backups…"><datalist id="soa-scope-services"></datalist></label>
+    <label>Architecture scenario<select id="soa-scope-scenario" aria-describedby="soa-scope-scenario-filter"><option value="">Architecture overview</option>{% for scenario in site.data.cloudops_architecture.scenarios %}<option value="{{ scenario.id }}">{{ scenario.title }}</option>{% endfor %}</select><small id="soa-scope-scenario-filter" class="dva-scope-filter-status" role="status" hidden></small></label>
+    <label>Compare concepts<select id="soa-scope-compare"><option value="">No comparison</option>{% for comparison in site.data.cloudops_architecture.comparisons %}<option value="{{ comparison.id }}">{{ comparison.title }}</option>{% endfor %}</select></label>
+  </div>
+  <div class="dva-scope-simulation" hidden data-scope-ready>
+    <div class="dva-scope-playback-controls">
+      <div class="dva-scope-player" role="group" aria-label="Simulation playback controls"><button type="button" id="soa-scope-run" aria-pressed="false" aria-describedby="soa-scope-progress" aria-controls="soa-scope-canvas soa-scope-step-detail">Run simulation</button><button type="button" id="soa-scope-previous" aria-label="Previous simulation step">←</button><button type="button" id="soa-scope-next" aria-label="Next simulation step">→</button><label>Inspect a step<select id="soa-scope-step"></select></label><span id="soa-scope-progress" role="status"></span></div>
+      <div class="dva-scope-view-tools" role="group" aria-label="Architecture view controls"><button type="button" id="soa-scope-zoom-out" aria-label="Zoom out">−</button><button type="button" id="soa-scope-zoom-in" aria-label="Zoom in">+</button><button type="button" id="soa-scope-reset">Reset view</button><button type="button" id="soa-scope-expand">Expand</button><span id="soa-scope-zoom"></span></div>
+    </div>
+    <div id="soa-scope-step-detail" aria-live="polite" aria-atomic="true"></div>
+  </div>
+  <div class="dva-scope-options" hidden data-scope-ready>
+    <label><input id="soa-scope-study" type="checkbox"> Exam study mode</label>
+    <label><input id="soa-scope-connections" type="checkbox"> All connections</label>
+    <details><summary>Connection types / legend</summary><p>Arrow = direction · moving label = operation · pulse = internal action. Pause to inspect.</p><div id="soa-scope-legend"></div></details>
+    <span id="soa-scope-match" role="status"></span>
+  </div>
+  <div id="soa-scope-study-panel" class="dva-scope-study" hidden><label>Reason from the requirement<select id="soa-scope-question">{% for question in site.data.cloudops_architecture.study %}<option value="{{ forloop.index0 }}">{{ question.title }}</option>{% endfor %}</select></label><p id="soa-scope-answer"></p></div>
+  <div class="dva-scope-layout" hidden data-scope-ready>
+    <nav class="dva-scope-nav" aria-label="Architecture categories"><button type="button" data-scope-category="">Overview</button>{% for category in site.data.cloudops_architecture.categories %}<button type="button" data-scope-category="{{ category[0] }}">{{ category[1] }}</button>{% endfor %}<button type="button" data-scope-nav="scenario">Scenarios</button><button type="button" data-scope-nav="study">Exam study</button></nav>
+    <div class="dva-scope-map-area">
+      <svg id="soa-scope-canvas" xmlns="http://www.w3.org/2000/svg" role="group" tabindex="0" aria-label="AWS architecture canvas: drag empty space to pan; use zoom buttons or Control plus mouse wheel; arrow keys pan, plus and minus zoom, zero resets" viewBox="0 0 {{ site.data.cloudops_architecture.width }} {{ site.data.cloudops_architecture.height }}"></svg>
+      <p class="dva-scope-hint">Drag blank canvas to pan · + / − to zoom · select an icon to inspect · boundary + / − collapses its contents. Connections shown by default belong to the selected scenario or service.</p>
+      <details class="soa-scenario-detail"><summary>Assumptions, exam boundary & related question</summary><div class="dva-scope-scenario-notes" id="soa-scope-scenario-notes" hidden></div></details>
+    </div>
+    <aside class="dva-scope-panel" aria-label="Selected architecture explanation" id="soa-scope-detail" aria-live="polite"></aside>
+  </div>
+  <p class="dva-scope-sources">AWS references: {% for source in site.data.cloudops_architecture.sources %}<a href="{{ source.url }}">{{ source.label }}</a>{% unless forloop.last %} · {% endunless %}{% endfor %}. Service panels also link to their specific documentation. These scenarios explain mechanisms; the exam guide defines scope.</p>
+  <noscript><p>The interactive architecture explorer needs JavaScript. The service references and exam scope above remain available.</p></noscript>
+</section>
+<script type="application/json" id="soa-scope-data">{{ site.data.cloudops_architecture | jsonify }}</script>

@@ -1,0 +1,15 @@
+<section class="dva-lab soa-practice" id="soa-practice" aria-label="Original SOA-C03 practice questions">
+  <div hidden data-soa-enhanced>
+    <div class="soa-practice-controls"><label for="soa-question">Choose an original scenario</label><select id="soa-question">{% for question in site.data.cloudops_study.practice %}<option value="{{ question.id }}">{{ question.task }} · {{ question.title | escape }}</option>{% endfor %}</select></div>
+    <p id="soa-progress" role="status"></p>
+    <div id="soa-question-content"></div>
+    <div class="dva-controls"><button type="button" id="soa-retry">Retry this question</button><button type="button" id="soa-next-question">Next question</button><button type="button" id="soa-reset-practice">Reset progress</button></div>
+  </div>
+  <details class="soa-question-library"><summary>All {{ site.data.cloudops_study.practice.size }} scenarios & explanations · static reference</summary>
+    {% for q in site.data.cloudops_study.practice %}
+    <details id="soa-question-{{ q.id }}"><summary>{{ q.task }} · {{ q.title | escape }}</summary><p>{{ q.prompt | escape }}</p><ol type="A">{% for c in q.choices %}<li>{{ c.text | escape }}</li>{% endfor %}</ol>
+      <details><summary>Answer & deciding boundary</summary><p><strong>Correct:</strong> {% for a in q.answers %}{{ q.choices[a].text | escape }}{% unless forloop.last %}; {% endunless %}{% endfor %}</p><p><strong>Clue.</strong> {{ q.clue | escape }}</p><ul>{% for c in q.choices %}<li><strong>{{ c.text | escape }}:</strong> {{ c.why | escape }}</li>{% endfor %}</ul><p><strong>Change the requirement.</strong> {{ q.change | escape }}</p><p><strong>Analogy.</strong> {{ q.analogy | escape }}</p><p>{% for key in q.cards %}<a href="#soa-service-{{ key }}">{{ site.data.cloudops_study.cards[key].name | escape }}</a>{% unless forloop.last %} · {% endunless %}{% endfor %}</p></details>
+    </details>{% endfor %}
+  </details>
+  <p class="dva-note">Original practice material, not AWS exam questions. Single-answer and multiple-answer items are labelled. Progress stays in this browser when local storage is available.</p>
+</section>

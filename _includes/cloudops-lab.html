@@ -1,0 +1,91 @@
+<details class="dva-lab soa-lab" id="soa-lab-{{ include.id }}" data-soa-lab="{{ include.id }}" aria-labelledby="soa-lab-title-{{ include.id }}">
+<summary id="soa-lab-title-{{ include.id }}">{% case include.id %}{% when 'alarm' %}Optional exercise · Alarm evaluation{% when 'capacity' %}Optional exercise · ASG failure capacity{% when 'recovery' %}Optional exercise · RTO / RPO{% when 'stack' %}Optional exercise · Stack recovery{% when 'access' %}Optional exercise · IAM / KMS access{% when 'network' %}Optional exercise · Network path{% endcase %}</summary>
+<div class="soa-lab-body">
+{% case include.id %}
+{% when 'alarm' %}
+  <p>Think of an alarm as a rule over a time window. Change the data or missing-data policy and explain why the state changes.</p>
+  <form class="soa-lab-inputs" hidden data-soa-enhanced>
+    <label>Values, oldest → newest; - = missing<input name="values" value="70,90,-" type="text" required></label>
+    <label>Threshold: greater than<input name="threshold" value="80" type="number" min="0" max="100"></label>
+    <label>N evaluated periods<input name="n" value="3" type="number" min="1" max="3"></label>
+    <label>M datapoints to alarm<input name="m" value="2" type="number" min="1" max="3"></label>
+    <label>Period<select name="period"><option value="60">60 seconds</option><option value="300">300 seconds</option></select></label>
+    <label>Missing data<select name="missing"><option value="missing">missing</option><option value="breaching">breaching</option><option value="notBreaching">notBreaching</option><option value="ignore">ignore</option></select></label>
+    <label>Previous state for ignore<select name="previous"><option>OK</option><option>ALARM</option></select></label>
+    <button type="reset">Reset example</button>
+  </form>
+  <p class="dva-note">Illustrative fixed-window calculation: no older datapoints, ingestion lag, premature-transition rules or namespace-specific exceptions. Real CloudWatch evaluates more conditions; inspect its state history.</p>
+  <p data-soa-static>For 70, 90, missing with a threshold above 80 and 2-of-3: one known breach is insufficient alone. Treating absence as breaching supplies the second breach; treating it as notBreaching does not.</p>
+{% when 'capacity' %}
+  <p>The ASG sets the staffing target; the ALB routes to eligible workers. A surviving instance count does not prove enough usable capacity.</p>
+  <form class="soa-lab-inputs" hidden data-soa-enhanced>
+    <label>Minimum<input name="min" type="number" value="2" min="0" max="20"></label>
+    <label>Maximum<input name="max" type="number" value="10" min="0" max="20"></label>
+    <label>Desired before policy<input name="desired" type="number" value="5" min="0" max="20"></label>
+    <label>Policy adjustment<input name="adjustment" type="number" value="3" min="-20" max="20"></label>
+    <label>Actual instances in AZ A<input name="a" type="number" value="2" min="0" max="20"></label>
+    <label>Actual instances in AZ B<input name="b" type="number" value="3" min="0" max="20"></label>
+    <label>Demand, requests/s<input name="load" type="number" value="400" min="0" max="4000" step="100"></label>
+    <label><input name="failed" type="checkbox"> AZ A fails</label>
+    <label><input name="health" type="checkbox" checked> Surviving targets pass health checks</label>
+    <button type="reset">Reset example</button>
+  </form>
+  <p class="dva-note">Assumes equal instance capacity of 100 requests/s and health convergence. Launches are eventual and can fail. ASG min/max and single-Region scope still apply; this is not a capacity reservation.</p>
+  <p data-soa-static>Actual 5 and desired 5 with +3 requests desired 8. Losing AZ A leaves 3 instances, or an illustrative 300 requests/s: below 400 requests/s demand until adequate capacity recovers.</p>
+{% when 'recovery' %}
+  <p>RTO is the outage clock; RPO is how far the recovered ledger may lag. Both constraints must be met.</p>
+  <form class="soa-lab-inputs" hidden data-soa-enhanced>
+    <label>Maximum outage, minutes (RTO)<input name="rto" type="number" value="120" min="1" max="2880"></label>
+    <label>Maximum lost data age, minutes (RPO)<input name="rpo" type="number" value="15" min="0" max="2880"></label>
+    <label><input name="corruption" type="checkbox"> Logical corruption already replicated</label>
+    <button type="reset">Reset example</button>
+  </form>
+  <p class="dva-note">The table uses assumed measured procedures, not universal AWS timings or guarantees. Listed order approximates increasing standby cost; actual costs differ. Live standby options here have no independent historical undo.</p>
+  <div class="dva-table-wrap" tabindex="0" role="region" aria-label="Illustrative measured recovery procedures"><table><thead><tr><th>Procedure</th><th>Assumed RTO</th><th>Assumed RPO</th><th>Cost boundary</th></tr></thead><tbody>
+    <tr><td>Daily backup + restore</td><td>180 min</td><td>1,440 min</td><td>Low standby cost</td></tr>
+    <tr><td>Continuous PITR + restore</td><td>90 min</td><td>5 min</td><td>Retention + restore</td></tr>
+    <tr><td>Pilot light</td><td>45 min</td><td>5 min</td><td>Core data running</td></tr>
+    <tr><td>Warm standby</td><td>10 min</td><td>1 min</td><td>Reduced stack running</td></tr>
+  </tbody></table></div>
+  <p data-soa-static>At RTO 120 minutes and RPO 15 minutes, the assumed daily backup fails both constraints; the illustrated PITR procedure meets both. Validate real recovery before making the same claim.</p>
+{% when 'stack' %}
+  <p>A failed update and a failed rollback are different states. Repair the prerequisite before repeating the operation.</p>
+  <form class="soa-lab-inputs" hidden data-soa-enhanced>
+    <label>Current stack status<select name="status"><option>UPDATE_ROLLBACK_FAILED</option><option>UPDATE_ROLLBACK_COMPLETE</option></select></label>
+    <label><input name="permission" type="checkbox"> Required service-role permission restored</label>
+    <label><input name="ips" type="checkbox" checked> Required subnet IP capacity available</label>
+    <button type="reset">Reset example</button>
+  </form>
+  <p data-soa-static>For UPDATE_ROLLBACK_FAILED, fix the permission/resource problem and continue rollback. Once UPDATE_ROLLBACK_COMPLETE, review a corrected change set before another deployment.</p>
+{% when 'access' %}
+  <p>The resource permission and the key-use permission protect different boundaries. This example uses an IAM-enabled KMS key policy.</p>
+  <form class="soa-lab-inputs" hidden data-soa-enhanced>
+    <label><input name="session" type="checkbox" checked> Valid role session</label>
+    <label><input name="resource" type="checkbox" checked> S3 GetObject allowed</label>
+    <label><input name="deny" type="checkbox"> Applicable explicit deny</label>
+    <label><input name="key" type="checkbox" checked> Key policy enables this IAM access path</label>
+    <label><input name="decrypt" type="checkbox"> IAM permits kms:Decrypt</label>
+    <label><input name="enabled" type="checkbox" checked> Key enabled; context correct</label>
+    <button type="reset">Reset example</button>
+  </form>
+  <p data-soa-static>A valid role and S3 permission still cannot read this SSE-KMS object without the required KMS permission. Explicit denial wins even when other allows are present.</p>
+{% when 'network' %}
+  <p>A route is a road; an SG is a stateful gate; a NACL is a stateless checkpoint in each direction.</p>
+  <form class="soa-lab-inputs" hidden data-soa-enhanced>
+    <label><input name="https" type="checkbox" checked> HTTPS (otherwise HTTP)</label>
+    <label>Client ephemeral port<input name="port" type="number" value="54321" min="1024" max="65535"></label>
+    <label><input name="dns" type="checkbox" checked> DNS resolves correctly</label>
+    <label><input name="route" type="checkbox" checked> Forward and return routes exist</label>
+    <label><input name="sg" type="checkbox" checked> ALB SG permits frontend request</label>
+    <label><input name="inbound" type="checkbox" checked> ALB NACL permits inbound service port</label>
+    <label><input name="outbound" type="checkbox"> ALB NACL permits ephemeral return destination</label>
+    <label><input name="backend" type="checkbox" checked> Backend SG permits ALB application traffic</label>
+    <button type="reset">Reset example</button>
+  </form>
+  <p class="dva-note">Simplified browser ↔ ALB path plus backend SG check; backend NACLs, OS listener and TLS are assumed correct. ALB → backend is a separate connection with its own source ephemeral port and return rules. Broad 1024–65535 examples are not every OS’s exact range.</p>
+  <p data-soa-static>browser:54321 → ALB:443 needs inbound destination 443; ALB:443 → browser:54321 needs outbound destination 54321 at the ALB subnet NACL. Stateful SGs track the allowed connection; NACLs do not.</p>
+{% endcase %}
+  <div class="soa-lab-result" data-soa-result aria-live="polite" aria-atomic="true" hidden></div>
+  <noscript><p>Enable JavaScript to change inputs. The assumptions and worked example remain readable here.</p></noscript>
+</div>
+</details>

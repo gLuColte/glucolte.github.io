@@ -1,0 +1,10 @@
+{% assign soa_domain = site.data.cloudops_study.domains | where: 'id', include.id | first %}
+<div class="aws-map dva-zone soa-zone" aria-label="{{ soa_domain.title }} service references">
+  <div class="aws-map__groups"><section class="aws-map__group">
+    <div class="aws-map__tiles">
+      {% for key in soa_domain.cards %}{% assign card = site.data.cloudops_study.cards[key] %}
+      <a class="aws-map__tile" href="{{ card.read }}" data-soa-card="{{ key }}"><img src="{{ '/study/assets/aws-architecture-icons/Arch_' | append: card.icon | append: '_64.svg' | relative_url }}" alt="" width="30" height="30" loading="lazy"><span>{{ card.name | escape }}</span></a>
+      {% endfor %}
+    </div>
+  </section></div>
+</div>

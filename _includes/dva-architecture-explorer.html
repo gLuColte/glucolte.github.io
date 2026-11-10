@@ -1,8 +1,8 @@
 <section class="dva-scope-explorer" id="dva-scope-explorer" aria-label="AWS architecture explorer" data-icon-base="{{ '/study/assets/aws-architecture-icons/' | relative_url }}">
   <div class="dva-scope-intro"><span>EXAM SCOPE · ARCHITECTURE EXPLORER</span><strong>Place it. Connect it. Follow one operation.</strong><p>Each moving label represents one named call, response or delivery. Policy checks and resource relationships stay still. Comparisons highlight independent alternatives. Boundaries show placement, not extra network hops. This local simulator makes no AWS calls.</p></div>
   <div class="dva-scope-tools" hidden data-scope-ready>
-    <label>Find a service or feature<input id="dva-scope-search" type="search" list="dva-scope-services" placeholder="Try SAM, shards, EFS…"><datalist id="dva-scope-services"></datalist></label>
-    <label>Architecture scenario<select id="dva-scope-scenario"><option value="">Architecture overview</option>{% for scenario in site.data.dva_architecture.scenarios %}<option value="{{ scenario.id }}">{{ scenario.title }}</option>{% endfor %}</select></label>
+    <label>Find a service or feature<input id="dva-scope-search" type="search" list="dva-scope-services" aria-controls="dva-scope-scenario dva-scope-canvas" placeholder="Try SAM, shards, EFS…"><datalist id="dva-scope-services"></datalist></label>
+    <label>Architecture scenario<select id="dva-scope-scenario" aria-describedby="dva-scope-scenario-filter"><option value="">Architecture overview</option>{% for scenario in site.data.dva_architecture.scenarios %}<option value="{{ scenario.id }}">{{ scenario.title }}</option>{% endfor %}</select><small id="dva-scope-scenario-filter" class="dva-scope-filter-status" role="status" hidden></small></label>
     <label>Compare concepts<select id="dva-scope-compare"><option value="">No comparison</option>{% for comparison in site.data.dva_architecture.comparisons %}<option value="{{ comparison.id }}">{{ comparison.title }}</option>{% endfor %}</select></label>
   </div>
   <div class="dva-scope-simulation" hidden data-scope-ready>

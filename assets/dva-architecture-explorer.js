@@ -1,11 +1,13 @@
 (() => {
   'use strict';
-  const root = document.getElementById('dva-scope-explorer');
-  const source = document.getElementById('dva-scope-data');
+  const root = document.getElementById('dva-scope-explorer') || document.getElementById('soa-scope-explorer');
+  const prefix = root?.dataset.studyPrefix || 'dva';
+  const source = document.getElementById(`${prefix}-scope-data`);
   if (!root || !source) return;
   const data = JSON.parse(source.textContent);
-  const cards = JSON.parse(document.getElementById('dva-study-data').textContent).cards;
-  const get = name => document.getElementById(`dva-scope-${name}`);
+  const catalogue = JSON.parse(document.getElementById(`${prefix}-study-data`).textContent);
+  const cards = catalogue.cards;
+  const get = name => document.getElementById(`${prefix}-scope-${name}`);
   const svg = get('canvas');
   const nodes = new Map(data.nodes.map(node => [node.id, node]));
   const groups = new Map(data.groups.map(group => [group.id, group]));
@@ -16,11 +18,13 @@
     attachment: ['Attachment / association', 'ATT'], authorization: ['Identity / authorization', 'AUTH'],
     deployment: ['Deployment / control', 'DEP'], monitoring: ['Telemetry / audit', 'LOG']
   };
-  const state = {selected: 'lambda', scenario: '', comparison: '', step: 0, category: '', search: '', overview: true, all: false, running: false, elapsed: 0, lastFrame: 0, collapsed: new Set(), types: new Set(Object.keys(kinds))};
+  const initialNode = data.initialNode || 'lambda';
+  const state = {selected: initialNode, scenario: '', comparison: '', step: 0, category: '', search: '', overview: true, all: false, running: false, elapsed: 0, lastFrame: 0, collapsed: new Set(), types: new Set(Object.keys(kinds))};
   let view = {x: 0, y: 0, w: data.width, h: data.height};
   let frame = 0;
   let packet = null;
   let currentPath = null;
+  let scenarioQuery = '';
   const pathCache = new Map();
   const ns = 'http://www.w3.org/2000/svg';
   function html(tag, text, className) {
@@ -37,7 +41,12 @@
   }
   const scenario = () => data.scenarios.find(item => item.id === state.scenario);
   const comparison = () => data.comparisons.find(item => item.id === state.comparison);
-  const nodeLabel = id => scenario()?.actors?.[id] || nodes.get(id).label;
+  // A step is a complete snapshot, so seeking backwards cannot retain a later
+  // failure, promoted role or replacement instance from the playback history.
+  const nodeState = id => scenario()?.steps[state.step]?.nodeStates?.[id];
+  const nodeLabel = id => nodeState(id)?.name || scenario()?.actors?.[id] || nodes.get(id).label;
+  const annotatedNodes = new Set(data.scenarios.flatMap(scene => scene.steps.flatMap(step => Object.keys(step.nodeStates || {}))));
+  const nodeBounds = node => ({x: node.x, y: node.y - (annotatedNodes.has(node.id) ? 32 : 0), w: node.w, h: node.h + (annotatedNodes.has(node.id) ? 32 : 0)});
   const activityNames = {request: 'Request', response: 'Response', event: 'Independent delivery', replication: 'Replication', telemetry: 'Evidence delivery', control: 'Control-plane operation', association: 'Configuration relationship', check: 'Policy / configuration check', internal: 'Internal operation'};
   const connector = edge => ['association', 'check'].includes(edge.activity) ? '—' : edge.activity === 'internal' ? '⇢' : '→';
   function ancestors(groupId) {
@@ -45,22 +54,57 @@
     for (let group = groups.get(groupId); group; group = groups.get(group.parent)) result.push(group.id);
     return result;
   }
-  const hiddenNode = node => ancestors(node.group).some(id => state.collapsed.has(id));
+  const hiddenNode = node => node.scenarios && !node.scenarios.includes(state.scenario) || nodeState(node.id)?.hidden || ancestors(node.group).some(id => state.collapsed.has(id));
   function expandFor(ids) {
     ids.forEach(id => ancestors(nodes.get(id).group).forEach(group => state.collapsed.delete(group)));
   }
   function sceneNodes(entry) {
-    return new Set(entry.steps.flatMap(step => step.node ? [step.node] : [edges.get(step.edge).source, edges.get(step.edge).target]));
+    return new Set(entry.steps.flatMap(step => [...Object.keys(step.nodeStates || {}), ...(step.node ? [step.node] : [edges.get(step.edge).source, edges.get(step.edge).target])]));
+  }
+  const searchText = text => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const matchesSearch = (text, query) => {
+    const terms = searchText(query).split(/\s+/).filter(Boolean);
+    return terms.length > 0 && terms.every(term => term.length <= 3 ? text.split(' ').includes(term) : text.includes(term) || term.length > 4 && term.endsWith('s') && text.includes(term.slice(0, -1)));
+  };
+  const nodeSearch = new Map(data.nodes.map(node => [node.id, searchText([node.id, node.label, cards[node.card]?.name || '', ...node.features].join(' '))]));
+  // Index the actual flow and its participating components, without pulling
+  // every topic from a shared service card into every scenario using that card.
+  const scenarioSearch = new Map(data.scenarios.map(entry => [entry.id, searchText([
+    entry.title, entry.note, entry.exam, ...(entry.keywords || []), ...Object.values(entry.actors || {}),
+    ...entry.steps.flatMap(step => [step.phase, step.text, step.edge ? edges.get(step.edge).label : '']),
+    ...[...sceneNodes(entry)].map(id => { const node = nodes.get(id); return [node.id, node.label, cards[node.card]?.name || ''].join(' '); })
+  ].join(' '))]));
+  function matchingNodes(query) {
+    const matches = data.nodes.filter(node => (!node.scenarios || node.scenarios.includes(state.scenario)) && matchesSearch(nodeSearch.get(node.id), query));
+    matches.sort((a, b) => Number(searchText(b.label) === searchText(query)) - Number(searchText(a.label) === searchText(query)));
+    return matches;
+  }
+  function updateScenarioOptions() {
+    const entries = scenarioQuery ? data.scenarios.filter(entry => matchesSearch(scenarioSearch.get(entry.id), scenarioQuery)) : data.scenarios;
+    const empty = html('option', !scenarioQuery ? 'Architecture overview' : entries.length ? 'Choose a matching scenario' : 'No matching scenarios');
+    empty.value = '';
+    get('scenario').replaceChildren(empty, ...entries.map(entry => { const option = html('option', entry.title); option.value = entry.id; return option; }));
+    get('scenario').value = entries.some(entry => entry.id === state.scenario) ? state.scenario : '';
+    const status = get('scenario-filter');
+    status.hidden = !scenarioQuery;
+    status.textContent = scenarioQuery ? `${entries.length} of ${data.scenarios.length} scenarios match. Clear search to show all.` : '';
+    return entries;
+  }
+  function clearSearch() {
+    state.search = ''; scenarioQuery = ''; get('search').value = ''; updateScenarioOptions();
+  }
+  function applySearch(value) {
+    pause(); state.search = scenarioQuery = value.trim();
+    const entries = updateScenarioOptions();
+    if (state.scenario && !entries.some(entry => entry.id === state.scenario)) {
+      state.scenario = ''; state.step = 0; state.elapsed = 0; state.overview = false;
+      showNode(initialNode); updatePlayer();
+    }
+    render();
   }
   function relatedIds() {
     if (state.search) {
-      const query = state.search.toLowerCase();
-      const matches = data.nodes.filter(node => {
-        const text = [node.id, node.label, cards[node.card]?.name || '', ...node.features].join(' ').toLowerCase();
-        return query.length <= 3 ? (text.match(/[a-z0-9]+/g) || []).includes(query) : text.includes(query) || query.length > 4 && query.endsWith('s') && text.includes(query.slice(0, -1));
-      });
-      matches.sort((a, b) => Number(b.label.toLowerCase() === query) - Number(a.label.toLowerCase() === query));
-      return new Set(matches.map(node => node.id));
+      return new Set(matchingNodes(state.search).map(node => node.id));
     }
     const compare = comparison();
     if (compare) return new Set([...compare.left, ...compare.right]);
@@ -104,9 +148,10 @@
   const rows = Math.ceil(data.height / cell) + 1;
   const obstacles = new Set();
   data.nodes.forEach(node => {
-    for (let x = Math.floor((node.x - 12) / cell); x <= Math.ceil((node.x + node.w + 12) / cell); x++) {
-      for (let y = Math.floor((node.y - 12) / cell); y <= Math.ceil((node.y + node.h + 12) / cell); y++) {
-        if (x * cell >= node.x - 12 && x * cell <= node.x + node.w + 12 && y * cell >= node.y - 12 && y * cell <= node.y + node.h + 12) obstacles.add(y * columns + x);
+    const box = nodeBounds(node);
+    for (let x = Math.floor((box.x - 12) / cell); x <= Math.ceil((box.x + box.w + 12) / cell); x++) {
+      for (let y = Math.floor((box.y - 12) / cell); y <= Math.ceil((box.y + box.h + 12) / cell); y++) {
+        if (x * cell >= box.x - 12 && x * cell <= box.x + box.w + 12 && y * cell >= box.y - 12 && y * cell <= box.y + box.h + 12) obstacles.add(y * columns + x);
       }
     }
   });
@@ -149,7 +194,10 @@
   }
   function ports(node) {
     const {x, y, w, h} = node;
-    return [[x + w, y + h / 2, 1, 0], [x, y + h / 2, -1, 0], [x + w / 2, y + h, 0, 1], [x + w / 2, y, 0, -1]];
+    const result = [[x + w, y + h / 2, 1, 0], [x, y + h / 2, -1, 0], [x + w / 2, y + h, 0, 1]];
+    // A top connector would pass through the node's own status badge.
+    if (!annotatedNodes.has(node.id)) result.push([x + w / 2, y, 0, -1]);
+    return result;
   }
   function route(edge) {
     if (pathCache.has(edge.id)) return pathCache.get(edge.id);
@@ -220,13 +268,15 @@
     const entry = scenario();
     const activeEdgeId = entry?.steps[state.step]?.edge;
     const activeEdge = edges.get(activeEdgeId);
+    const inactiveEdges = new Set(entry?.steps[state.step]?.inactiveEdges || []);
     const staticAction = entry && (!activeEdge?.packet || entry.mode === 'comparison');
     const actionNodes = new Set(staticAction ? entry.steps[state.step].node ? [entry.steps[state.step].node] : [activeEdge.source, activeEdge.target] : []);
-    const sceneEdges = new Set(entry ? entry.steps.map(step => step.edge) : []);
+    const visibleSteps = entry ? entry.progressive ? entry.steps.slice(0, state.step + 1) : entry.steps : [];
+    const sceneEdges = new Set(entry ? [...(entry.contextEdges || []), ...visibleSteps.map(step => step.edge)] : []);
     const compare = comparison();
     const defs = shape('defs');
     Object.keys(kinds).forEach(type => {
-      const marker = shape('marker', {id: `dva-scope-arrow-${type}`, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto', markerUnits: 'userSpaceOnUse'});
+      const marker = shape('marker', {id: `${prefix}-scope-arrow-${type}`, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto', markerUnits: 'userSpaceOnUse'});
       marker.append(shape('path', {d: 'M0 0 L10 5 L0 10z', fill: `var(--scope-${type})`})); defs.append(marker);
     });
     const boundaryLayer = shape('g'), edgeLayer = shape('g'), nodeLayer = shape('g');
@@ -247,24 +297,27 @@
     [...data.relationships].sort((a, b) => Number(a.id === activeEdgeId) - Number(b.id === activeEdgeId)).forEach(edge => {
       if (!state.types.has(edge.type) || hiddenNode(nodes.get(edge.source)) || hiddenNode(nodes.get(edge.target))) return;
       const selected = edge.source === state.selected || edge.target === state.selected;
-      const overviewEdge = ['target-a', 'target-b', 'sql', 'ha', 'disk-a', 'disk-b', 'mount-fs-a', 'mount-fs-b'].includes(edge.id);
+      const overviewEdge = (data.overviewEdges || ['target-a', 'target-b', 'sql', 'ha', 'disk-a', 'disk-b', 'mount-fs-a', 'mount-fs-b']).includes(edge.id);
       if (!state.all && !(entry ? sceneEdges.has(edge.id) : state.overview ? overviewEdge : selected) && !(compare && focused.has(edge.source) && focused.has(edge.target))) return;
       const d = route(edge);
       if (!d) return;
       const directional = !['association', 'check'].includes(edge.activity);
-      const path = shape('path', {d, class: `scope-edge${activeEdgeId === edge.id ? ` is-current${staticAction ? ' is-current-action' : ''}` : ''}`, 'data-edge': edge.id, 'data-type': edge.type, 'data-activity': edge.activity, style: `--edge-color:var(--scope-${edge.type})`, ...(directional ? {'marker-end': `url(#dva-scope-arrow-${edge.type})`} : {})});
-      path.append(shape('title', {}, `${activityNames[edge.activity]}: ${edge.description}`));
+      const path = shape('path', {d, class: `scope-edge${inactiveEdges.has(edge.id) ? ' is-unavailable' : ''}${activeEdgeId === edge.id ? ` is-current${staticAction ? ' is-current-action' : ''}` : ''}`, 'data-edge': edge.id, 'data-type': edge.type, 'data-activity': edge.activity, 'data-unavailable': String(inactiveEdges.has(edge.id)), style: `--edge-color:var(--scope-${edge.type})`, ...(directional && !inactiveEdges.has(edge.id) ? {'marker-end': `url(#${prefix}-scope-arrow-${edge.type})`} : {})});
+      path.append(shape('title', {}, `${inactiveEdges.has(edge.id) ? 'Not eligible in this step; no request is routed here. ' : ''}${activityNames[edge.activity]}: ${edge.description}`));
       edgeLayer.append(path); paths.set(edge.id, path);
     });
     data.nodes.forEach(node => {
       if (hiddenNode(node)) return;
+      const status = nodeState(node.id);
       const classes = ['scope-node'];
       if (focused.has(node.id)) classes.push('is-related'); else classes.push('is-dim');
       if (state.selected === node.id) classes.push('is-selected');
       if (actionNodes.has(node.id)) classes.push('is-current-operation');
+      if (status) classes.push('has-state');
       if (compare?.left.includes(node.id)) classes.push('is-left');
       if (compare?.right.includes(node.id)) classes.push('is-right');
-      const group = shape('g', {class: classes.join(' '), 'data-node': node.id, role: 'button', tabindex: 0, 'aria-label': `${nodeLabel(node.id)}. ${node.scope}. Select for placement, flow and study notes.`, 'aria-pressed': String(state.selected === node.id), ...(actionNodes.has(node.id) ? {style: `--action-color:var(--scope-${activeEdge?.type || 'deployment'})`} : {})});
+      const styles = [status ? `--node-state-color:var(--scope-state-${status.tone})` : '', actionNodes.has(node.id) ? `--action-color:var(--scope-${activeEdge?.type || 'deployment'})` : ''].filter(Boolean).join(';');
+      const group = shape('g', {class: classes.join(' '), 'data-node': node.id, ...(status ? {'data-node-status': status.tone} : {}), role: 'button', tabindex: 0, 'aria-label': `${nodeLabel(node.id)}. ${status ? `${status.label}. ${status.detail} ` : ''}${node.scope}. Select for placement, flow and study notes.`, 'aria-pressed': String(state.selected === node.id), ...(styles ? {style: styles} : {})});
       group.append(shape('rect', {x: node.x, y: node.y, width: node.w, height: node.h, rx: 9}));
       if (node.icon) group.append(shape('image', {x: node.x + 10, y: node.y + (node.h - 30) / 2, width: 30, height: 30, href: `${root.dataset.iconBase}Arch_${node.icon}_64.svg`, 'aria-hidden': 'true'}));
       else {
@@ -274,6 +327,11 @@
       const label = lines(nodeLabel(node.id), 14);
       label.forEach((line, index) => group.append(shape('text', {x: node.x + 52, y: node.y + (label.length === 2 ? 27 : node.h < 60 ? 30 : 31) + index * 21}, line)));
       if (label.length === 1 && node.h >= 60) group.append(shape('text', {class: 'scope-node-scope', x: node.x + 52, y: node.y + 51}, node.group.startsWith('priv') ? `PRIVATE · AZ ${node.group.slice(-1)}` : node.group.startsWith('pub') ? `PUBLIC · AZ ${node.group.slice(-1)}` : node.group.startsWith('az') ? `AZ ${node.group.slice(-1)} · NO SUBNET` : node.scope.startsWith('Global') ? 'GLOBAL / ACCOUNT' : node.scope === 'External' ? 'EXTERNAL' : 'REGIONAL / LOGICAL'));
+      if (status) {
+        const badge = shape('g', {class: 'scope-status-badge', 'data-status-for': node.id, 'aria-hidden': 'true'});
+        badge.append(shape('rect', {x: node.x, y: node.y - 30, width: node.w, height: 24, rx: 5}), shape('text', {x: node.x + node.w / 2, y: node.y - 13}, status.label));
+        group.append(badge);
+      }
       nodeLayer.append(group);
     });
     svg.replaceChildren(defs, boundaryLayer, edgeLayer, nodeLayer);
@@ -290,7 +348,7 @@
         const point = currentPath.getPointAtLength(currentPath.getTotalLength() * fraction);
         const box = {x: point.x - width / 2, y: point.y - 46, w: width, h: 28};
         if (box.x < 0 || box.y < 0 || box.x + box.w > data.width) continue;
-        const overlaps = data.nodes.some(node => !hiddenNode(node) && box.x < node.x + node.w + 5 && box.x + box.w > node.x - 5 && box.y < node.y + node.h + 5 && box.y + box.h > node.y - 5);
+        const overlaps = data.nodes.some(node => { const bounds = nodeBounds(node); return !hiddenNode(node) && box.x < bounds.x + bounds.w + 5 && box.x + box.w > bounds.x - 5 && box.y < bounds.y + bounds.h + 5 && box.y + box.h > bounds.y - 5; });
         const crossesBoundary = unrelated.some(group => box.x < group.x + group.w && box.x + box.w > group.x && box.y < group.y + group.h && box.y + box.h > group.y);
         const coversHeading = data.groups.some(group => box.x < group.x + 14 + Math.min(group.w - 65, group.label.length * 10) && box.x + box.w > group.x + 9 && box.y < group.y + 35 && box.y + box.h > group.y + 5);
         if (!overlaps && !crossesBoundary && !coversHeading) { labelPoint = point; break; }
@@ -309,16 +367,25 @@
       }
     }
     root.querySelectorAll('[data-scope-category]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.scopeCategory === state.category)));
+    const statusPanel = get('detail').querySelector('[data-scope-node-state]');
+    if (statusPanel) {
+      const status = nodeState(statusPanel.dataset.scopeNodeState);
+      get('detail').querySelector(':scope > strong').textContent = nodeLabel(statusPanel.dataset.scopeNodeState);
+      statusPanel.hidden = !status;
+      statusPanel.textContent = status ? `At this step · ${status.label}: ${status.detail}` : '';
+    }
     get('match').textContent = state.search ? `${focused.size} matching nodes · Enter to focus` : `${data.nodes.length} placed resources · ${data.scenarios.length} scenarios`;
   }
   function panelSection(panel, title, text) {
     panel.append(html('h5', title), html('p', text));
   }
   function showNode(id, focus = false) {
+    if (nodes.get(id)?.scenarios && !nodes.get(id).scenarios.includes(state.scenario)) id = initialNode;
     const node = nodes.get(id);
     if (!node) return;
     pause(); state.selected = id; expandFor([id]);
     const panel = get('detail'); panel.replaceChildren(html('strong', nodeLabel(id)), html('span', `${data.categories[node.category]} · ${node.scope}`, 'dva-scope-placement'), html('p', node.description));
+    const statusPanel = html('p', undefined, 'dva-scope-current-state'); statusPanel.dataset.scopeNodeState = id; statusPanel.hidden = true; panel.append(statusPanel);
     panelSection(panel, 'Architecture placement', node.placement);
     panelSection(panel, 'Subnet / security-group requirements', node.networkRequirements);
     panelSection(panel, 'Input → processing → output', node.flow);
@@ -343,7 +410,7 @@
   function showComparison() {
     const entry = comparison();
     if (!entry) { showNode(state.selected); return; }
-    pause(); clearStudy(); state.overview = false; state.scenario = ''; get('scenario').value = ''; state.category = ''; state.search = ''; get('search').value = '';
+    pause(); clearStudy(); state.overview = false; state.scenario = ''; get('scenario').value = ''; state.category = ''; clearSearch();
     const ids = [...new Set([...entry.left, ...entry.right])]; expandFor(ids);
     const panel = get('detail'); panel.replaceChildren(html('strong', entry.title));
     for (const side of ['left', 'right']) {
@@ -403,18 +470,29 @@
     get('step').replaceChildren(...entry.steps.map((step, index) => { const option = html('option', `${index + 1}. ${step.phase}`); option.value = index; return option; }));
     get('step').value = String(state.step);
     const step = entry.steps[state.step], edge = edges.get(step.edge), result = get('step-detail');
-    const type = html('span', `${state.step + 1} · ${step.phase.toUpperCase()} · ${edge ? activityNames[edge.activity] : 'Local / internal step'}`, 'dva-scope-step-type');
+    const kind = {incident: 'Failure event', state: 'State transition', observe: 'Evidence check', verify: 'Verification', decision: 'Control decision'}[step.kind];
+    const type = html('span', `${state.step + 1} · ${step.phase.toUpperCase()} · ${edge ? activityNames[edge.activity] : kind || 'Local / internal step'}`, 'dva-scope-step-type');
     if (edge) type.style.color = `var(--scope-${edge.type})`;
-    const routeLabel = edge ? `${nodeLabel(edge.source)} ${connector(edge)} ${nodeLabel(edge.target)}` : `${nodeLabel(step.node)} · local / internal operation`;
-    const meaning = entry.mode === 'comparison' ? 'Comparison walkthrough: independent patterns, not a sequential traffic path.' : edge?.packet ? `Moving label “${edge.packet}”: this named operation only. Each new call or response has its own arrow.` : edge?.activity === 'association' ? 'Configuration relationship · no packet or extra network hop.' : edge?.activity === 'check' ? 'Policy / configuration check · no packet or extra network hop.' : 'Local or service-internal work · no extra API hop.';
-    result.replaceChildren(type, html('strong', routeLabel, 'dva-scope-step-route'), html('p', step.text), html('small', meaning, 'dva-scope-step-meaning'));
+    const routeLabel = edge ? `${nodeLabel(edge.source)} ${connector(edge)} ${nodeLabel(edge.target)}` : `${nodeLabel(step.node)} · ${kind ? kind.toLowerCase() : 'local / internal operation'}`;
+    const meaning = entry.mode === 'comparison' ? 'Comparison walkthrough: independent patterns, not a sequential traffic path.' : edge?.packet ? `Moving label “${edge.packet}”: this named operation only. Each new call or response has its own arrow.` : edge?.activity === 'association' ? 'Configuration relationship · no packet or extra network hop.' : edge?.activity === 'check' ? 'Policy / configuration check · no packet or extra network hop.' : edge?.activity === 'control' ? 'Logical control-plane handoff · no application packet or extra HTTP probe.' : step.kind === 'incident' ? 'Failure event: no packet causes the outage. Resource labels show the resulting condition.' : kind ? 'Resource labels show this step’s state. This is not an extra network hop.' : 'Local or service-internal work · no extra API hop.';
+    result.replaceChildren(type, html('strong', routeLabel, 'dva-scope-step-route'), html('p', step.text), ...(step.summary ? [html('p', step.summary, 'dva-scope-state-summary')] : []), html('small', meaning, 'dva-scope-step-meaning'));
     get('scenario-notes').replaceChildren(html('p', `Architecture note: ${entry.note}`), html('p', `Exam boundary: ${entry.exam}`));
+    if (entry.practice?.length) {
+      const practice = html('p', 'Try the matching question before reviewing the full flow: ');
+      entry.practice.forEach((id, index) => {
+        const link = html('a', catalogue.practice?.find(question => question.id === id)?.title || `Case ${index + 1}`);
+        link.href = `#${prefix}-question-${id}`;
+        link.dataset[`${prefix}Question`] = id;
+        practice.append(link, document.createTextNode(index < entry.practice.length - 1 ? ' · ' : ''));
+      });
+      get('scenario-notes').append(practice);
+    }
     if (edge && !state.types.has(edge.type)) result.append(html('p', 'This connection type is hidden in the legend; enable it to show this connection.'));
     render(); updatePlayer();
   }
   function chooseScenario(id) {
-    pause(); clearStudy(); state.overview = !id; state.scenario = id; state.comparison = ''; state.category = ''; state.search = ''; state.step = 0; state.elapsed = 0;
-    get('compare').value = ''; get('search').value = '';
+    pause(); clearStudy(); state.overview = !id; state.scenario = id; state.comparison = ''; state.category = ''; state.search = id ? '' : scenarioQuery; state.step = 0; state.elapsed = 0;
+    get('compare').value = ''; updateScenarioOptions();
     const entry = scenario();
     if (entry) {
       const ids = [...sceneNodes(entry)]; expandFor(ids);
@@ -426,7 +504,7 @@
     pause(); get('study-panel').hidden = !get('study').checked;
     if (!get('study').checked) { render(); return; }
     state.overview = false; state.scenario = ''; state.comparison = ''; state.category = ''; state.search = '';
-    get('scenario').value = ''; get('compare').value = ''; get('search').value = ''; updatePlayer();
+    get('scenario').value = ''; get('compare').value = ''; clearSearch(); updatePlayer();
     const question = data.study[Number(get('question').value)];
     get('answer').textContent = question.answer; expandFor(question.nodes); render(); fit(question.nodes);
   }
@@ -435,11 +513,11 @@
     const collapse = event.target.closest('[data-collapse]');
     if (collapse) { pause(); const id = collapse.dataset.collapse; if (state.collapsed.has(id)) state.collapsed.delete(id); else state.collapsed.add(id); render(); return; }
     const selected = event.target.closest('[data-node]');
-    if (selected) { state.overview = false; state.search = ''; get('search').value = ''; showNode(selected.dataset.node, view.w > 1600); return; }
+    if (selected) { state.overview = false; state.search = ''; showNode(selected.dataset.node, view.w > 1600); return; }
     const related = event.target.closest('[data-scope-related]');
     if (related) { state.scenario = ''; get('scenario').value = ''; showNode(related.dataset.scopeRelated, true); updatePlayer(); return; }
     const category = event.target.closest('[data-scope-category]');
-    if (category) { pause(); clearStudy(); state.overview = !category.dataset.scopeCategory; state.category = category.dataset.scopeCategory; state.comparison = ''; state.scenario = ''; state.search = ''; get('search').value = ''; get('scenario').value = ''; get('compare').value = ''; const ids = [...relatedIds()]; expandFor(ids); render(); updatePlayer(); fit(state.category ? ids : undefined); }
+    if (category) { pause(); clearStudy(); state.overview = !category.dataset.scopeCategory; state.category = category.dataset.scopeCategory; state.comparison = ''; state.scenario = ''; clearSearch(); get('scenario').value = ''; get('compare').value = ''; const ids = [...relatedIds()]; expandFor(ids); render(); updatePlayer(); fit(state.category ? ids : undefined); }
     const navigation = event.target.closest('[data-scope-nav]');
     if (navigation?.dataset.scopeNav === 'scenario') get('scenario').focus();
     if (navigation?.dataset.scopeNav === 'study') { get('study').checked = true; study(); get('question').focus(); }
@@ -456,10 +534,12 @@
   get('compare').addEventListener('change', event => { state.comparison = event.target.value; showComparison(); });
   get('connections').addEventListener('change', event => { state.all = event.target.checked; render(); });
   get('study').addEventListener('change', study); get('question').addEventListener('change', study);
-  get('search').addEventListener('input', event => { pause(); state.search = event.target.value.trim(); render(); });
+  get('search').addEventListener('input', event => applySearch(event.target.value));
   get('search').addEventListener('keydown', event => {
-    if (event.key !== 'Enter' || !state.search) return;
-    const ids = [...relatedIds()];
+    if (event.key === 'Escape' && scenarioQuery) { event.preventDefault(); get('search').value = ''; applySearch(''); return; }
+    if (event.key !== 'Enter' || !scenarioQuery) return;
+    state.search = scenarioQuery;
+    const ids = matchingNodes(scenarioQuery).map(node => node.id);
     if (ids.length) { expandFor(ids); showNode(ids[0]); fit(ids.slice(0, 8)); }
   });
   get('step').addEventListener('change', event => { pause(); state.step = Number(event.target.value); state.elapsed = 0; showStep(); });
@@ -472,7 +552,7 @@
     state.running = true; state.lastFrame = 0; updatePlayer(); frame = requestAnimationFrame(animate);
   });
   get('zoom-in').addEventListener('click', () => zoom(.8)); get('zoom-out').addEventListener('click', () => zoom(1.25));
-  get('reset').addEventListener('click', () => { pause(); state.collapsed.clear(); state.category = ''; state.search = ''; get('search').value = ''; state.all = false; get('connections').checked = false; state.types = new Set(Object.keys(kinds)); get('legend').querySelectorAll('input').forEach(input => { input.checked = true; }); render(); fitContext(); });
+  get('reset').addEventListener('click', () => { pause(); state.collapsed.clear(); state.category = ''; clearSearch(); state.all = false; get('connections').checked = false; state.types = new Set(Object.keys(kinds)); get('legend').querySelectorAll('input').forEach(input => { input.checked = true; }); render(); fitContext(); });
   get('expand').hidden = !document.fullscreenEnabled;
   get('expand').addEventListener('click', async () => { if (document.fullscreenElement === root) await document.exitFullscreen(); else await root.requestFullscreen(); });
   document.addEventListener('fullscreenchange', () => { get('expand').textContent = document.fullscreenElement === root ? 'Exit expanded view' : 'Expand'; });
@@ -504,7 +584,7 @@
   });
   [...new Set(data.nodes.map(node => node.label))].sort().forEach(label => { const option = html('option'); option.value = label; get('services').append(option); });
   root.querySelectorAll('[data-scope-ready]').forEach(element => { element.hidden = false; });
-  showNode('lambda'); updatePlayer(); fit();
+  showNode(initialNode); updatePlayer(); fit();
   function fitContext() {
     const entry = scenario(), compare = comparison();
     if (entry) fit([...sceneNodes(entry)]);

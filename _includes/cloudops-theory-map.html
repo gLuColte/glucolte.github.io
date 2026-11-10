@@ -1,0 +1,55 @@
+<section class="soa-theory-map" aria-label="Connected CloudOps operating model">
+<div class="soa-theory-head"><span>ARCHITECTURE BEFORE SERVICES</span><strong>One workload. Find the boundary that owns the symptom.</strong><p>Provisioning changes the environment; users exercise it; evidence guides a bounded repair. Recovery succeeds only when the service and its data are validated. These are logical handoffs, not one packet travelling through every box.</p></div>
+<div class="soa-theory-controls" hidden data-soa-enhanced><button type="button" id="soa-service-labels" aria-pressed="false" aria-controls="soa-theory-canvas">Show AWS services</button><label for="soa-concept-select">Inspect a responsibility</label><select id="soa-concept-select"><option value="provision">Provision / configure</option><option value="operate">Operate</option><option value="observe">Observe</option><option value="investigate">Investigate</option><option value="remediate">Remediate</option><option value="recover">Validate / recover</option><option value="client">User request</option><option value="routing">Route / filter</option><option value="application">Application</option><option value="state">Durable state</option></select></div>
+<div class="soa-map-legend"><span>Operating sequence</span><span data-flow="traffic">Application traffic / data</span><span data-flow="change">Configuration / corrective action</span><span data-flow="evidence">Monitoring evidence / feedback</span></div>
+<div class="soa-theory-viewport" tabindex="0" role="region" aria-label="Architecture diagram; scroll horizontally on small screens"><svg id="soa-theory-canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1360 550" role="group" aria-labelledby="soa-map-title soa-map-description"><title id="soa-map-title">Operating loop connected to workload traffic</title><desc id="soa-map-description">Provision, operate, observe, investigate, remediate and validate. Configuration affects the application; application evidence reaches observation. Client to route to application to state is a separate data flow. Select boxes for dependencies, failures and evidence.</desc><defs>
+<marker id="soa-map-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="var(--dva-blue)"/></marker>
+<marker id="soa-traffic-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="var(--dva-green)"/></marker>
+<marker id="soa-change-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="var(--dva-purple)"/></marker>
+</defs><rect class="soa-map-frame" x="15" y="20" width="1330" height="175" rx="12"/><text class="soa-lane-label" x="36" y="48">OPERATING LOOP · SCOPE → EVIDENCE → ACTION → VERIFICATION</text><rect class="soa-map-frame" x="15" y="295" width="1330" height="170" rx="12"/><text class="soa-lane-label" x="36" y="322">WORKLOAD · REGIONAL ALB + TWO-AZ COMPUTE / DATABASE · DETAIL IN EXPLORER</text>
+<path class="soa-map-edge" d="M210 115 H260" data-soa-from="provision" data-soa-to="operate"/>
+<path class="soa-map-edge" d="M430 115 H480" data-soa-from="operate" data-soa-to="observe"/>
+<path class="soa-map-edge" d="M650 115 H700" data-soa-from="observe" data-soa-to="investigate"/>
+<path class="soa-map-edge" d="M870 115 H920" data-soa-from="investigate" data-soa-to="remediate"/>
+<path class="soa-map-edge" d="M1090 115 H1140" data-soa-from="remediate" data-soa-to="recover"/>
+<path class="soa-map-edge" data-flow="traffic" d="M290 390 H400" data-soa-from="client" data-soa-to="routing"/>
+<path class="soa-map-edge" data-flow="traffic" d="M610 390 H720" data-soa-from="routing" data-soa-to="application"/>
+<path class="soa-map-edge" data-flow="traffic" d="M930 390 H1040" data-soa-from="application" data-soa-to="state"/>
+<path class="soa-map-edge" data-flow="change" d="M125 160 V270 H795 V350" data-soa-from="provision" data-soa-to="application"/>
+<path class="soa-map-edge" data-flow="change" d="M1005 160 V245 H855 V350" data-soa-from="remediate" data-soa-to="application"/>
+<path class="soa-map-edge" data-flow="evidence" d="M825 440 V505 H665 V230 H565 V160" data-soa-from="application" data-soa-to="observe"/>
+<path class="soa-map-edge" data-flow="evidence" d="M1225 160 V220 H25 V115 H40" data-soa-from="recover" data-soa-to="provision"/>
+<text class="soa-map-sub" x="190" y="262">Declared deployment</text><text class="soa-map-sub" x="1030" y="247">Approved repair</text><text class="soa-map-sub" x="850" y="510">Logs / metrics / traces</text>
+<g data-soa-concept="provision" role="button" tabindex="0" aria-pressed="false" aria-label="Provision / configure: inspect responsibility"><rect x="40" y="70" width="170" height="90" rx="8"/>
+<text x="52" y="94">Provision /</text>
+<text x="52" y="114">configure</text>
+<text class="soa-map-sub" x="52" y="144" data-soa-principle="Declared resources" data-soa-services="CFN / CDK">Declared resources</text></g>
+<g data-soa-concept="operate" role="button" tabindex="0" aria-pressed="false" aria-label="Operate: inspect responsibility"><rect x="260" y="70" width="170" height="90" rx="8"/>
+<text x="272" y="94">Operate</text>
+<text class="soa-map-sub" x="272" y="144" data-soa-principle="Usable capacity" data-soa-services="EC2 / ASG">Usable capacity</text></g>
+<g data-soa-concept="observe" role="button" tabindex="0" aria-pressed="false" aria-label="Observe: inspect responsibility"><rect x="480" y="70" width="170" height="90" rx="8"/>
+<text x="492" y="94">Observe</text>
+<text class="soa-map-sub" x="492" y="144" data-soa-principle="Reliable signals" data-soa-services="CloudWatch">Reliable signals</text></g>
+<g data-soa-concept="investigate" role="button" tabindex="0" aria-pressed="false" aria-label="Investigate: inspect responsibility"><rect x="700" y="70" width="170" height="90" rx="8"/>
+<text x="712" y="94">Investigate</text>
+<text class="soa-map-sub" x="712" y="144" data-soa-principle="Test a hypothesis" data-soa-services="Logs / Config">Test a hypothesis</text></g>
+<g data-soa-concept="remediate" role="button" tabindex="0" aria-pressed="false" aria-label="Remediate: inspect responsibility"><rect x="920" y="70" width="170" height="90" rx="8"/>
+<text x="932" y="94">Remediate</text>
+<text class="soa-map-sub" x="932" y="144" data-soa-principle="Bounded change" data-soa-services="SSM / events">Bounded change</text></g>
+<g data-soa-concept="recover" role="button" tabindex="0" aria-pressed="false" aria-label="Validate / recover: inspect responsibility"><rect x="1140" y="70" width="170" height="90" rx="8"/>
+<text x="1152" y="94">Validate / recover</text>
+<text class="soa-map-sub" x="1152" y="144" data-soa-principle="Measured outcome" data-soa-services="Backup / RDS">Measured outcome</text></g>
+<g data-soa-concept="client" role="button" tabindex="0" aria-pressed="false" aria-label="User request: inspect responsibility"><rect x="80" y="350" width="210" height="90" rx="8"/>
+<text x="92" y="374">User request</text>
+<text class="soa-map-sub" x="92" y="424" data-soa-principle="Name + TLS" data-soa-services="Client + DNS">Name + TLS</text></g>
+<g data-soa-concept="routing" role="button" tabindex="0" aria-pressed="false" aria-label="Route / filter: inspect responsibility"><rect x="400" y="350" width="210" height="90" rx="8"/>
+<text x="412" y="374">Route / filter</text>
+<text class="soa-map-sub" x="412" y="424" data-soa-principle="Reach a healthy target" data-soa-services="CloudFront / ALB">Reach a healthy target</text></g>
+<g data-soa-concept="application" role="button" tabindex="0" aria-pressed="false" aria-label="Application: inspect responsibility"><rect x="720" y="350" width="210" height="90" rx="8"/>
+<text x="732" y="374">Application</text>
+<text class="soa-map-sub" x="732" y="424" data-soa-principle="Execute / respond" data-soa-services="EC2 / ECS">Execute / respond</text></g>
+<g data-soa-concept="state" role="button" tabindex="0" aria-pressed="false" aria-label="Durable state: inspect responsibility"><rect x="1040" y="350" width="210" height="90" rx="8"/>
+<text x="1052" y="374">Durable state</text>
+<text class="soa-map-sub" x="1052" y="424" data-soa-principle="Store / protect" data-soa-services="RDS / S3 / EBS">Store / protect</text></g>
+</svg></div><div class="soa-theory-panel" hidden data-soa-enhanced><div id="soa-concept-panel" aria-live="polite" aria-atomic="true"></div></div>
+<details class="soa-theory-static"><summary>All responsibilities · static reading</summary>{% for node in site.data.cloudops_study.theory %}<details id="soa-concept-{{ node.id }}"><summary>{{ node.title }}</summary><p>{{ node.purpose }}</p><p><strong>Dependencies.</strong> {{ node.dependencies }}</p><p><strong>Failure.</strong> {{ node.failure }}</p><p><strong>Evidence.</strong> {{ node.evidence }}</p><p><strong>Verify.</strong> {{ node.verify }}</p></details>{% endfor %}</details></section>

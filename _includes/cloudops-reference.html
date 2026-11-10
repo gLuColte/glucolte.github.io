@@ -1,0 +1,47 @@
+<details class="soa-references soa-optional">
+  <summary>All {{ site.data.cloudops_study.cards.size }} service references · static reading</summary>
+  {% for entry in site.data.cloudops_study.cards %}{% assign card = entry[1] %}
+  <details id="soa-service-{{ entry[0] }}" class="soa-service-reference">
+    <summary>{{ card.name | escape }}</summary>
+    <div class="soa-card-content">
+      <p><strong>{{ card.role | escape }}</strong></p>
+      {% if card.callout %}<aside class="soa-exam-alert" aria-label="{{ card.callout.title | escape }}">
+        <strong>{{ card.callout.title | escape }}</strong>
+        <p>{{ card.callout.text | escape }}</p>
+        <div class="dva-table-wrap" tabindex="0" role="region" aria-label="AWS-reserved addresses in an example IPv4 subnet"><table><thead><tr>{% for cell in card.callout.table.headers %}<th scope="col">{{ cell | escape }}</th>{% endfor %}</tr></thead><tbody>{% for row in card.callout.table.rows %}<tr>{% for cell in row %}<td>{{ cell | escape }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+        <p class="soa-alert-note">{{ card.callout.note | escape }} <a href="{{ card.callout.url }}">AWS reference</a>.</p>
+      </aside>{% endif %}
+      <p class="dva-example"><strong>Flow.</strong> {{ card.flow | escape }}</p>
+      <ul>{% for point in card.bullets %}<li>{{ point | escape }}</li>{% endfor %}</ul>
+      <p class="dva-example"><strong>Choose / compare.</strong> {{ card.boundary | escape }}</p>
+      {% if card.table %}<div class="dva-table-wrap" tabindex="0" role="region" aria-label="{{ card.name | escape }} comparison"><table><thead><tr>{% for cell in card.table.headers %}<th scope="col">{{ cell | escape }}</th>{% endfor %}</tr></thead><tbody>{% for row in card.table.rows %}<tr>{% for cell in row %}<td>{{ cell | escape }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>{% endif %}
+      {% if card.labs %}<p>Try the related local exercise: {% for lab in card.labs %}<a href="#soa-lab-{{ lab }}" data-soa-lesson-link>{{ lab }}</a>{% unless forloop.last %} · {% endunless %}{% endfor %}</p>{% endif %}
+      <p class="dva-result-rule"><strong>Exam clue.</strong> {{ card.trigger | escape }}</p>
+      <p class="dva-example"><strong>Trap.</strong> {{ card.trap | escape }}</p>
+      <strong>Example</strong>
+      <pre><code>{{ card.example | escape }}</code></pre>
+      <details class="soa-learning-note"><summary>Investigate, remediate & verify</summary>
+        <p><strong>Evidence.</strong> {{ card.investigate | escape }}</p>
+        <p><strong>Action → verification.</strong> {{ card.remediate | escape }}</p>
+        <p><strong>Analogy.</strong> {{ card.analogy | escape }}</p>
+      </details>
+      {% for note in card.notes %}
+      <details class="soa-learning-note" data-soa-note="{{ note.id }}"><summary>{{ note.title | escape }}</summary>
+        <pre><code>{{ note.flow | escape }}</code></pre>
+        {% for paragraph in note.paragraphs %}<p>{{ paragraph | escape }}</p>{% endfor %}
+        {% if note.table %}<div class="dva-table-wrap" tabindex="0" role="region" aria-label="{{ note.title | escape }} comparison"><table><thead><tr>{% for cell in note.table.headers %}<th scope="col">{{ cell | escape }}</th>{% endfor %}</tr></thead><tbody>{% for row in note.table.rows %}<tr>{% for cell in row %}<td>{{ cell | escape }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>{% endif %}
+        {% if note.example %}<pre><code>{{ note.example | escape }}</code></pre>{% endif %}
+        <p class="dva-result-rule"><strong>Exam trigger.</strong> {{ note.trigger | escape }}</p>
+        <p class="dva-example"><strong>Common trap.</strong> {{ note.trap | escape }}</p>
+        <p class="dva-docs">Official references: {% for doc in note.docs %}<a href="{{ doc.url }}">{{ doc.label | escape }}</a>{% unless forloop.last %} · {% endunless %}{% endfor %}</p>
+      </details>
+      {% endfor %}
+      <p class="dva-docs">AWS references: {% for doc in card.docs %}<a href="{{ doc.url }}">{{ doc.label | escape }}</a>{% unless forloop.last %} · {% endunless %}{% endfor %}</p>
+    </div>
+  </details>
+  {% endfor %}
+</details>
+<dialog id="soa-service-dialog" class="aws-map__dialog dva-dialog" aria-labelledby="soa-card-title">
+  <div class="aws-map__dialog-head"><strong id="soa-card-title"></strong><form method="dialog"><button type="submit" aria-label="Close service reference" autofocus>×</button></form></div>
+  <div id="soa-card-body"></div>
+</dialog>
